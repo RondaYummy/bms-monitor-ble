@@ -30,31 +30,29 @@ def parse_device_info(data, device_name):
     try:
         log(device_name, f"Raw data: {data}")
         # Використання структури протоколу для визначення довжин
-        start_index = 5
-        device_name_end = data.index(0x00, start_index)  # Пошук першого \x00
-        device_name = data[start_index:device_name_end].decode('utf-8', errors='ignore')
-
-        firmware_version_start = device_name_end + 1
-        firmware_version_end = data.index(0x00, firmware_version_start)
-        firmware_version = data[firmware_version_start:firmware_version_end].decode('utf-8', errors='ignore')
-
-        serial_number_start = firmware_version_end + 1
-        serial_number_end = data.index(0x00, serial_number_start)
-        serial_number = data[serial_number_start:serial_number_end].decode('utf-8', errors='ignore')
-
-        hardware_version_start = serial_number_end + 1
-        hardware_version_end = data.index(0x00, hardware_version_start)
-        hardware_version = data[hardware_version_start:hardware_version_end].decode('utf-8', errors='ignore')
-
-        other_info_start = hardware_version_end + 1
-        other_info = data[other_info_start:].decode('utf-8', errors='ignore').strip('\x00')
+        start_index = 5  # Початковий індекс, після якого починається корисна інформація
+        
+        # Послідовно зчитуємо кожен сегмент до 0x00
+        segments = []
+        while start_index < len(data):
+            try:
+                end_index = data.index(0x00, start_index)  # Знаходимо наступний 0x00
+                segment = data[start_index:end_index].decode('utf-8', errors='ignore')  # Декодуємо
+                segments.append(segment)
+                start_index = end_index + 1  # Переміщаємося до наступного байта після 0x00
+            except ValueError:
+                break  # Якщо 0x00 більше немає, виходимо з циклу
+        
+        # Розподіляємо дані за секціями
+        if len(segments) < 5:  # Переконайтеся, що є всі необхідні сегменти
+            raise ValueError("Недостатньо даних для парсингу")
 
         device_info = {
-            "device_name": device_name,
-            "serial_number": serial_number,
-            "firmware_version": firmware_version,
-            "hardware_version": hardware_version,
-            "other_info": other_info,
+            "device_name": segments[0],
+            "firmware_version": segments[1],
+            "serial_number": segments[2],
+            "hardware_version": segments[3],
+            "other_info": segments[4:]  # Усе інше — додаткові дані
         }
 
         log(device_name, "Device Info Parsed:")
