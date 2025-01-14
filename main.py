@@ -26,27 +26,45 @@ def log(device_name, message):
 def parse_device_info(data, device_name):
     """Парсинг Device Info Frame (0x03)."""
     log(device_name, "Parsing Device Info Frame...")
-    device_info = {
-        "device_name": data[5:35].decode('utf-8', errors='ignore').strip(),
-        "serial_number": data[35:55].decode('utf-8', errors='ignore').strip(),
-        "firmware_version": data[55:75].decode('utf-8', errors='ignore').strip(),
-        "hardware_version": data[75:95].decode('utf-8', errors='ignore').strip(),
-        "other_info": data[95:],
-    }
 
-    log(device_name, "Device Info Parsed:")
-    for key, value in device_info.items():
-        log(device_name, f"{key}: {value}")
+    try:
+        # Використання структури протоколу для визначення довжин
+        device_name_length = 30  # Максимальна довжина device_name
+        serial_number_length = 20  # Максимальна довжина serial_number
+        firmware_version_length = 20  # Максимальна довжина firmware_version
+        hardware_version_length = 20  # Максимальна довжина hardware_version
 
-    crc_calculated = calculate_crc(data[:-1])
-    crc_received = data[-1]
+        device_name = data[5:5 + device_name_length].decode('utf-8', errors='ignore').strip('\x00')
+        serial_number = data[35:35 + serial_number_length].decode('utf-8', errors='ignore').strip('\x00')
+        firmware_version = data[55:55 + firmware_version_length].decode('utf-8', errors='ignore').strip('\x00')
+        hardware_version = data[75:75 + hardware_version_length].decode('utf-8', errors='ignore').strip('\x00')
+        other_info = data[95:].decode('utf-8', errors='ignore').strip('\x00')
 
-    if crc_calculated != crc_received:
-        log(device_name, f"Invalid CRC: {crc_calculated} != {crc_received}")
-    else:
-        log(device_name, "CRC Valid")
+        device_info = {
+            "device_name": device_name,
+            "serial_number": serial_number,
+            "firmware_version": firmware_version,
+            "hardware_version": hardware_version,
+            "other_info": other_info,
+        }
 
-    return device_info
+        log(device_name, "Device Info Parsed:")
+        for key, value in device_info.items():
+            log(device_name, f"{key}: {value}")
+
+        # CRC Validation
+        crc_calculated = calculate_crc(data[:-1])
+        crc_received = data[-1]
+        if crc_calculated != crc_received:
+            log(device_name, f"Invalid CRC: {crc_calculated} != {crc_received}")
+        else:
+            log(device_name, "CRC Valid")
+
+        return device_info
+
+    except Exception as e:
+        log(device_name, f"Error parsing Device Info Frame: {e}")
+        return None
 
 def parse_cell_info(data, device_name):
     """Парсинг Cell Info Frame (0x02)."""
