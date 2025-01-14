@@ -10,6 +10,8 @@ CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Інформація про пристрій
 CMD_TYPE_CELL_INFO = 0x96 # 0x02: Інформація про ячейки
 # CMD_TYPE_SETTINGS = 0x95 # 0x01: Налаштування
 
+response_buffer = bytearray()
+
 def calculate_crc(data):
     return sum(data) & 0xFF
 
@@ -117,14 +119,29 @@ def parse_cell_info(data, device_name):
         return None
 
 async def notification_handler(sender, data, device_name):
-    if data[:4] == b'\x55\xAA\xEB\x90':
-        log(device_name, f"{BRIGHT_GREEN}Notification received: {data.hex()}")
+    global response_buffer
 
-        frame_type = data[4]
+    if data[:4] == b'\x55\xAA\xEB\x90':  # Початок нового фрейму
+        response_buffer = bytearray()   # Очистка буфера
+    response_buffer.extend(data)       # Додавання даних до буфера
+
+    # Мінімальний розмір повного фрейму — 300 байтів
+    if len(response_buffer) >= 300:
+        log(device_name, f"Full frame received: {response_buffer.hex()}")
+
+        # Перевірка CRC
+        calculated_crc = calculate_crc(response_buffer[:-1])
+        received_crc = response_buffer[-1]
+        if calculated_crc != received_crc:
+            log(device_name, f"Invalid CRC: {calculated_crc} != {received_crc}")
+            return
+
+        # Визначення типу фрейму
+        frame_type = response_buffer[4]
         if frame_type == 0x03:
-            parse_device_info(data, device_name)
+            parse_device_info(response_buffer, device_name)
         elif frame_type == 0x02:
-            parse_cell_info(data, device_name)
+            parse_cell_info(response_buffer, device_name)
         else:
             log(device_name, f"Unknown frame type: {frame_type}")
 
