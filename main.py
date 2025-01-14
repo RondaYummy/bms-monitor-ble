@@ -30,30 +30,7 @@ def parse_device_info(data, device_name):
     try:
         log(device_name, f"Raw data: {data}")
         # Використання структури протоколу для визначення довжин
-        start_index = 5  # Початковий індекс, після якого починається корисна інформація
-        
-        # Послідовно зчитуємо кожен сегмент до 0x00
-        segments = []
-        while start_index < len(data):
-            try:
-                end_index = data.index(0x00, start_index)  # Знаходимо наступний 0x00
-                segment = data[start_index:end_index].decode('utf-8', errors='ignore')  # Декодуємо
-                segments.append(segment)
-                start_index = end_index + 1  # Переміщаємося до наступного байта після 0x00
-            except ValueError:
-                break  # Якщо 0x00 більше немає, виходимо з циклу
-        
-        # Розподіляємо дані за секціями
-        if len(segments) < 5:  # Переконайтеся, що є всі необхідні сегменти
-            raise ValueError("Недостатньо даних для парсингу")
-
-        device_info = {
-            "device_name": segments[0],
-            "firmware_version": segments[1],
-            "serial_number": segments[2],
-            "hardware_version": segments[3],
-            "other_info": segments[4:]  # Усе інше — додаткові дані
-        }
+        device_info = parse_device_data(data)
 
         log(device_name, "Device Info Parsed:")
         for key, value in device_info.items():
@@ -72,6 +49,34 @@ def parse_device_info(data, device_name):
     except Exception as e:
         log(device_name, f"Error parsing Device Info Frame: {e}")
         return None
+
+def parse_device_data(data: bytearray):
+    start_index = 5  # Початковий індекс, після якого починається корисна інформація
+    
+    # Послідовно зчитуємо кожен сегмент до 0x00
+    segments = []
+    while start_index < len(data):
+        try:
+            end_index = data.index(0x00, start_index)  # Знаходимо наступний 0x00
+            segment = data[start_index:end_index].decode('utf-8', errors='ignore')  # Декодуємо
+            segments.append(segment)
+            start_index = end_index + 1  # Переміщаємося до наступного байта після 0x00
+        except ValueError:
+            break  # Якщо 0x00 більше немає, виходимо з циклу
+    
+    # Розподіляємо дані за секціями
+    if len(segments) < 5:  # Переконайтеся, що є всі необхідні сегменти
+        raise ValueError("Недостатньо даних для парсингу")
+
+    device_info = {
+        "device_name": segments[0],
+        "firmware_version": segments[1],
+        "serial_number": segments[2],
+        "hardware_version": segments[3],
+        "other_info": segments[4:]  # Усе інше — додаткові дані
+    }
+    
+    return device_info
 
 def parse_cell_info(data, device_name):
     """Парсинг Cell Info Frame (0x02)."""
