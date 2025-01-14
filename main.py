@@ -30,16 +30,24 @@ def parse_device_info(data, device_name):
     try:
         log(device_name, f"Raw data: {data.hex()}")
         # Використання структури протоколу для визначення довжин
-        device_name_length = 30  # Максимальна довжина device_name
-        serial_number_length = 20  # Максимальна довжина serial_number
-        firmware_version_length = 20  # Максимальна довжина firmware_version
-        hardware_version_length = 20  # Максимальна довжина hardware_version
+        start_index = 5
+        device_name_end = data.index(0x00, start_index)  # Пошук першого \x00
+        device_name = data[start_index:device_name_end].decode('utf-8', errors='ignore')
 
-        device_name = data[5:5 + device_name_length].decode('utf-8', errors='ignore').strip('\x00')
-        serial_number = data[35:35 + serial_number_length].decode('utf-8', errors='ignore').strip('\x00')
-        firmware_version = data[55:55 + firmware_version_length].decode('utf-8', errors='ignore').strip('\x00')
-        hardware_version = data[75:75 + hardware_version_length].decode('utf-8', errors='ignore').strip('\x00')
-        other_info = data[95:].decode('utf-8', errors='ignore').strip('\x00')
+        firmware_version_start = device_name_end + 1
+        firmware_version_end = data.index(0x00, firmware_version_start)
+        firmware_version = data[firmware_version_start:firmware_version_end].decode('utf-8', errors='ignore')
+
+        serial_number_start = firmware_version_end + 1
+        serial_number_end = data.index(0x00, serial_number_start)
+        serial_number = data[serial_number_start:serial_number_end].decode('utf-8', errors='ignore')
+
+        hardware_version_start = serial_number_end + 1
+        hardware_version_end = data.index(0x00, hardware_version_start)
+        hardware_version = data[hardware_version_start:hardware_version_end].decode('utf-8', errors='ignore')
+
+        other_info_start = hardware_version_end + 1
+        other_info = data[other_info_start:].decode('utf-8', errors='ignore').strip('\x00')
 
         device_info = {
             "device_name": device_name,
