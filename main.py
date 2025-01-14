@@ -28,35 +28,24 @@ def parse_device_info(data, device_name):
     log(device_name, "Parsing Device Info Frame...")
 
     try:
+        log(device_name, f"Raw data: {data.hex()}")
         # Використання структури протоколу для визначення довжин
-        device_name_start = 5
-        serial_number_start = device_name_start + data[device_name_start:].find(b'\x00')
-        serial_number_start += 1  # Пропустити нульовий байт
-        serial_number_end = serial_number_start + data[serial_number_start:].find(b'\x00')
-        
-        device_user_name_start = serial_number_end + 1
-        device_user_name_end = device_user_name_start + data[device_user_name_start:].find(b'\x00')
+        device_name_length = 30  # Максимальна довжина device_name
+        serial_number_length = 20  # Максимальна довжина serial_number
+        firmware_version_length = 20  # Максимальна довжина firmware_version
+        hardware_version_length = 20  # Максимальна довжина hardware_version
 
-        # Динамічний парсинг на основі знайдених меж
-        device_name = data[device_name_start:serial_number_start - 1].decode('utf-8', errors='ignore').strip('\x00')
-        serial_number = data[serial_number_start:serial_number_end].decode('utf-8', errors='ignore').strip('\x00')
-        device_user_name = data[device_user_name_start:device_user_name_end].decode('utf-8', errors='ignore').strip('\x00')
-
-        firmware_version_start = device_user_name_end + 1
-        firmware_version_end = firmware_version_start + data[firmware_version_start:].find(b'\x00')
-
-        hardware_version_start = firmware_version_end + 1
-        hardware_version_end = hardware_version_start + data[hardware_version_start:].find(b'\x00')
-
-        # Інші дані
-        other_info = data[hardware_version_end + 1:].decode('utf-8', errors='ignore').strip('\x00')
+        device_name = data[5:5 + device_name_length].decode('utf-8', errors='ignore').strip('\x00')
+        serial_number = data[35:35 + serial_number_length].decode('utf-8', errors='ignore').strip('\x00')
+        firmware_version = data[55:55 + firmware_version_length].decode('utf-8', errors='ignore').strip('\x00')
+        hardware_version = data[75:75 + hardware_version_length].decode('utf-8', errors='ignore').strip('\x00')
+        other_info = data[95:].decode('utf-8', errors='ignore').strip('\x00')
 
         device_info = {
             "device_name": device_name,
             "serial_number": serial_number,
-            "user_name": device_user_name,
-            "firmware_version": data[firmware_version_start:firmware_version_end].decode('utf-8', errors='ignore').strip('\x00'),
-            "hardware_version": data[hardware_version_start:hardware_version_end].decode('utf-8', errors='ignore').strip('\x00'),
+            "firmware_version": firmware_version,
+            "hardware_version": hardware_version,
             "other_info": other_info,
         }
 
