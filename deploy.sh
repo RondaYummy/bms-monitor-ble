@@ -21,7 +21,6 @@ function deploy() {
 
   echo "====> Запускаємо проект"
   docker run --rm -it --privileged --name bms-monitor-ble --net=host     -v /var/run/dbus:/var/run/dbus     bms-monitor-ble
-  npm run build
   if [ $? -ne 0 ]; then
     echo "❌ Помилка під час запуску проекта"
     exit 1
