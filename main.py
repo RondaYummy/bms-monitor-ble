@@ -102,10 +102,12 @@ def parse_cell_info(data, device_name):
             "cell_voltages": cell_voltages,
         }
 
-        log(device_name, "Cell Info Parsed:")
         log(device_name, f"Number of Cells with voltage > 0: {len(cell_voltages)}")
         for cell_num, voltage in cell_voltages:
-            log(device_name, f"Cell {cell_num}: {voltage:.3f} V")
+            if cell_num > 17:
+                log(device_name, f"Cells Wire Resistance {cell_num}: {voltage:.3f} V")
+            else:
+                log(device_name, f"Cell {cell_num}: {voltage:.3f} V")
 
         return cell_info
 
