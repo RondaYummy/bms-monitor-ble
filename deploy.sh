@@ -20,6 +20,8 @@ function deploy() {
   echo "✅ Докер перезібрався успішно"
 
   echo "====> Запускаємо проект"
+  docker stop bms-monitor-ble
+  docker rm bms-monitor-ble
   docker run -d --privileged --name bms-monitor-ble --net=host \
       -v /var/run/dbus:/var/run/dbus \
       bms-monitor-ble
