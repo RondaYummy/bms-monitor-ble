@@ -117,7 +117,7 @@ def parse_cell_info(data, device_name):
 
 async def notification_handler(sender, data, device_name):
     if data[:4] == b'\x55\xAA\xEB\x90':
-        log(device_name, f"Notification received: {data.hex()}")
+        log(device_name, f"{BRIGHT_GREEN}Notification received: {data.hex()}")
 
         frame_type = data[4]
         if frame_type == 0x03:
