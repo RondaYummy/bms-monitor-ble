@@ -1,6 +1,6 @@
 import asyncio
 from bleak import BleakClient, BleakScanner
-from file1 import *
+from colors import *
 
 SERVICE_UUID = "0000FFE0-0000-1000-8000-00805f9b34fb"
 CHARACTERISTIC_UUID = "0000FFE1-0000-1000-8000-00805f9b34fb"
