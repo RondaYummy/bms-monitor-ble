@@ -44,8 +44,6 @@ function check_deploy() {
     fi
 }
 
-cd ~/bms-monitor-ble
-
 while [ 1 ]; do
     check_deploy 2>&1
     sleep 60
