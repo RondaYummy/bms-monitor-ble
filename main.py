@@ -29,14 +29,14 @@ def parse_device_info(data, device_name):
 
     try:
         log(device_name, f"Raw data: {data}")
-        # Використання структури протоколу для визначення довжин
+        # Визначення структури кадру
         device_info = parse_device_data(data)
 
         log(device_name, "Device Info Parsed:")
         for key, value in device_info.items():
             log(device_name, f"{key}: {value}")
 
-        # CRC Validation
+        # Перевірка CRC
         crc_calculated = calculate_crc(data[:-1])
         crc_received = data[-1]
         if crc_calculated != crc_received:
@@ -114,14 +114,23 @@ def parse_cell_info(data, device_name):
         return None
 
 async def notification_handler(sender, data, device_name):
-    if data[:4] == b'\x55\xAA\xEB\x90':
-        log(device_name, f"Notification received: {data.hex()}")
+    """Обробка вхідних даних."""
+    if device_name not in fragment_buffer:
+        fragment_buffer[device_name] = bytearray()
 
-        frame_type = data[4]
+    fragment_buffer[device_name].extend(data)
+    log(device_name, f"Received fragment: {data.hex()}")
+
+    # Перевірка завершення кадру
+    if len(fragment_buffer[device_name]) >= 20:  # Мінімальний розмір кадру
+        complete_data = fragment_buffer[device_name]
+        fragment_buffer[device_name] = bytearray()  # Очищення буфера
+
+        frame_type = complete_data[4]
         if frame_type == 0x03:
-            parse_device_info(data, device_name)
+            parse_device_info(complete_data, device_name)
         elif frame_type == 0x02:
-            parse_cell_info(data, device_name)
+            parse_cell_info(complete_data, device_name)
         else:
             log(device_name, f"Unknown frame type: {frame_type}")
 
