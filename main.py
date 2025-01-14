@@ -28,7 +28,7 @@ def parse_device_info(data, device_name):
     log(device_name, "Parsing Device Info Frame...")
 
     try:
-        log(device_name, f"Raw data: {data.hex()}")
+        log(device_name, f"Raw data: {data}")
         # Використання структури протоколу для визначення довжин
         start_index = 5
         device_name_end = data.index(0x00, start_index)  # Пошук першого \x00
