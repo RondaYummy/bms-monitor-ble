@@ -3,7 +3,8 @@ FROM python:3.11-slim
 
 # Встановлення оновлень і необхідних утиліт
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
+    bluez \
+    dbus \
     && rm -rf /var/lib/apt/lists/*
 
 # Створення робочої директорії в контейнері
