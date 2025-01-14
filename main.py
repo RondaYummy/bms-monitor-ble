@@ -1,6 +1,11 @@
 import asyncio
 from bleak import BleakClient, BleakScanner
 
+# ANSI escape codes
+BLUE = "\033[34m"
+WHITE = "\033[37m"
+RESET = "\033[0m"
+
 SERVICE_UUID = "0000FFE0-0000-1000-8000-00805f9b34fb"
 CHARACTERISTIC_UUID = "0000FFE1-0000-1000-8000-00805f9b34fb"
 
@@ -20,7 +25,7 @@ def create_command(command_type):
 
 def log(device_name, message):
     """Додає назву пристрою до логів."""
-    print(f"[{device_name}] {message}")
+    print(f"{BLUE}[{device_name}]{RESET} {message}")
 
 def parse_device_info(data, device_name):
     """Парсинг Device Info Frame (0x03)."""
