@@ -29,5 +29,15 @@ docker run --rm -it --privileged --name bms-monitor-ble --net=host \
 ### Deploy
 ```bash
 chmod +x deploy.sh
+```
+```bash
 ./deploy.sh
+```
+
+### PM2
+```bash
+npm install pm2 -g
+```
+```bash
+pm2 start ecosystem.config.js
 ```
