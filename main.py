@@ -105,9 +105,9 @@ def parse_cell_info(data, device_name):
         log(device_name, f"Number of Cells with voltage > 0: {len(cell_voltages)}")
         for cell_num, voltage in cell_voltages:
             if cell_num > 17:
-                log(device_name, f"Cells Wire Resistance {cell_num}: {voltage:.3f} V")
+                log(device_name, f"{YELLOW}Cells Wire Resistance {cell_num}: {voltage:.3f} V{RESET}")
             else:
-                log(device_name, f"Cell {cell_num}: {voltage:.3f} V")
+                log(device_name, f"{GREEN}Cell {cell_num}: {voltage:.3f} V{RESET}")
 
         return cell_info
 
