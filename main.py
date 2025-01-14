@@ -64,6 +64,9 @@ def parse_device_data(data: bytearray):
         except ValueError:
             break  # Якщо 0x00 більше немає, виходимо з циклу
     
+    # Видаляємо порожні строки після декодування
+    segments = [seg for seg in segments if seg.strip()]
+
     # Розподіляємо дані за секціями
     if len(segments) < 5:  # Переконайтеся, що є всі необхідні сегменти
         raise ValueError("Недостатньо даних для парсингу")
