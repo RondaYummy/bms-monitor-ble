@@ -2,6 +2,9 @@ import asyncio
 from bleak import BleakClient, BleakScanner
 from colors import *
 
+MIN_FRAME_SIZE = 300
+MAX_FRAME_SIZE = 320
+
 SERVICE_UUID = "0000FFE0-0000-1000-8000-00805f9b34fb"
 CHARACTERISTIC_UUID = "0000FFE1-0000-1000-8000-00805f9b34fb"
 
@@ -125,8 +128,7 @@ async def notification_handler(sender, data, device_name):
         response_buffer = bytearray()   # Очистка буфера
     response_buffer.extend(data)       # Додавання даних до буфера
 
-    # Мінімальний розмір повного фрейму — 300 байтів
-    if len(response_buffer) >= 300:
+    if MIN_FRAME_SIZE <= len(response_buffer) <= MAX_FRAME_SIZE:
         log(device_name, f"Full frame received: {response_buffer.hex()}")
 
         # Перевірка CRC
