@@ -9,6 +9,8 @@ CMD_HEADER = bytes([0xAA, 0x55, 0x90, 0xEB])
 CMD_TYPE_DEVICE_INFO = 0x97
 CMD_TYPE_CELL_INFO = 0x96
 
+fragment_buffer = {}
+
 def calculate_crc(data):
     return sum(data) & 0xFF
 
