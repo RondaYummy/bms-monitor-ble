@@ -1,10 +1,6 @@
 import asyncio
 from bleak import BleakClient, BleakScanner
-
-# ANSI escape codes
-BLUE = "\033[34m"
-WHITE = "\033[37m"
-RESET = "\033[0m"
+import colors
 
 SERVICE_UUID = "0000FFE0-0000-1000-8000-00805f9b34fb"
 CHARACTERISTIC_UUID = "0000FFE1-0000-1000-8000-00805f9b34fb"
