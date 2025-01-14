@@ -14,7 +14,7 @@ docker run --rm -it --name bms-monitor-ble bms-monitor-ble
 ## Робота з BLE на Raspberry Pi: Щоб надати доступ до BLE пристроїв усередині контейнера, додайте прапор --privileged і змонтуйте необхідні пристрої:
 ```bash
 docker run --rm -it --privileged --name bms-monitor-ble --net=host \
-    --device=/dev/ttyUSB0 \
+    -v /var/run/dbus:/var/run/dbus \
     bms-monitor-ble
 ```
 - `--net=host`: Дозволяє контейнеру використовувати мережу хоста (необхідно для Bluetooth).
