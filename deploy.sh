@@ -44,7 +44,7 @@ function check_deploy() {
     fi
 }
 
-cd /root/bms-monitor-ble
+cd ~/bms-monitor-ble
 
 while [ 1 ]; do
     check_deploy 2>&1
