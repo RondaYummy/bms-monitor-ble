@@ -6,8 +6,9 @@ SERVICE_UUID = "0000FFE0-0000-1000-8000-00805f9b34fb"
 CHARACTERISTIC_UUID = "0000FFE1-0000-1000-8000-00805f9b34fb"
 
 CMD_HEADER = bytes([0xAA, 0x55, 0x90, 0xEB])
-CMD_TYPE_DEVICE_INFO = 0x97
-CMD_TYPE_CELL_INFO = 0x96
+CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Інформація про пристрій
+CMD_TYPE_CELL_INFO = 0x96 # 0x02: Інформація про ячейки
+# CMD_TYPE_SETTINGS = 0x95 # 0x01: Налаштування
 
 def calculate_crc(data):
     return sum(data) & 0xFF
@@ -67,8 +68,7 @@ def parse_device_data(data: bytearray):
     # Видаляємо порожні строки після декодування
     segments = [seg for seg in segments if seg.strip()]
 
-    # Розподіляємо дані за секціями
-    if len(segments) < 5:  # Переконайтеся, що є всі необхідні сегменти
+    if len(segments) < 5:
         raise ValueError("Недостатньо даних для парсингу")
 
     device_info = {
@@ -87,6 +87,7 @@ def parse_cell_info(data, device_name):
     try:
         num_cells = data[5]  # Кількість ячейок
         cell_voltages = []
+        log(device_name, f"Cells: {num_cells}")
 
         # Початковий байт для напруги ячейок
         start_index = 6
@@ -130,7 +131,6 @@ async def notification_handler(sender, data, device_name):
 async def connect_and_run(device):
     try:
         async with BleakClient(device.address) as client:
-            # Використовуємо asyncio.create_task для виклику notification_handler
             def handle_notification(sender, data):
                 asyncio.create_task(notification_handler(sender, data, device.name))
 

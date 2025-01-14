@@ -25,3 +25,9 @@ docker run --rm -it --privileged --name bms-monitor-ble --net=host \
 - `--net=host`: Дозволяє контейнеру використовувати мережу хоста (необхідно для Bluetooth).
 - `--privileged`: Дає розширений доступ до хост-системи.
 - `-v`: Для передачі DBus сокета в контейнер.
+
+### Deploy
+```bash
+chmod +x deploy.sh
+./deploy.sh
+```
