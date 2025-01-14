@@ -20,7 +20,9 @@ function deploy() {
   echo "✅ Докер перезібрався успішно"
 
   echo "====> Запускаємо проект"
-  docker run --rm -it --privileged --name bms-monitor-ble --net=host     -v /var/run/dbus:/var/run/dbus     bms-monitor-ble
+  docker run -d --privileged --name bms-monitor-ble --net=host \
+      -v /var/run/dbus:/var/run/dbus \
+      bms-monitor-ble
   if [ $? -ne 0 ]; then
     echo "❌ Помилка під час запуску проекта"
     exit 1
