@@ -36,21 +36,42 @@ def parse_device_info(data, device_name):
     log(device_name, "Parsing Device Info Frame...")
 
     try:
-        log(device_name, f"Raw data: {data}")
-        # Використання структури протоколу для визначення довжин
-        device_info = parse_device_data(data)
+        log(device_name, f"Raw data: {data.hex()}")
+        
+        # Перевірка заголовку
+        if data[:4] != b'\x55\xAA\xEB\x90':
+            raise ValueError("Invalid frame header")
 
-        log(device_name, "Device Info Parsed:")
-        for key, value in device_info.items():
-            log(device_name, f"{key}: {value}")
+        # Витягуємо поля з фрейму
+        device_info = {
+            "frame_type": data[4],
+            "frame_counter": data[5],
+            "vendor_id": data[6:22].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "hardware_version": data[22:30].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "software_version": data[30:38].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "device_uptime": int.from_bytes(data[38:42], byteorder='little'),
+            "power_on_count": int.from_bytes(data[42:46], byteorder='little'),
+            "device_name": data[46:62].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "device_passcode": data[62:78].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "manufacturing_date": data[78:86].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "serial_number": data[86:97].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "passcode": data[97:102].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "user_data": data[102:118].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "setup_passcode": data[118:134].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+        }
 
         # CRC Validation
         crc_calculated = calculate_crc(data[:-1])
         crc_received = data[-1]
         if crc_calculated != crc_received:
             log(device_name, f"Invalid CRC: {crc_calculated} != {crc_received}")
-        else:
-            log(device_name, "CRC Valid")
+            return None
+        log(device_name, "CRC Valid")
+
+        # Логування розпарсеної інформації
+        log(device_name, "Parsed Device Info:")
+        for key, value in device_info.items():
+            log(device_name, f"{key}: {value}")
 
         return device_info
 
