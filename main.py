@@ -17,6 +17,7 @@ def read_root():
 
 @app.get("/api/device-info")
 def get_device_info():
+    print(f"[/api/device-info] {device_info_data}")
     if not device_info_data:
         return JSONResponse(content={"message": "No device info available yet."}, status_code=404)
     return device_info_data
