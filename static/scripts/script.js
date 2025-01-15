@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const currentPath = window.location.hash;
 
   links.forEach((link) => {
-    const linkPath = link.getAttribute('href') === '/' ? '/' : link.getAttribute('href')?.substring(1);
+    const linkPath = link.getAttribute('href');
     if (linkPath === currentPath) {
       link.classList.add('active'); // Додаємо клас активного посилання
     } else {
