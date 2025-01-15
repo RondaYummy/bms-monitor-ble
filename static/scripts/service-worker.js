@@ -4,8 +4,10 @@ const urlsToCache = [
   '/static/styles.css',
   '/static/script.js',
   '/static/manifest.json',
+  '/static/icons/icon-128x128.png',
   '/static/icons/icon-192x192.png',
-  '/static/icons/icon-512x512.png',
+  '/static/icons/icon-256x256.png',
+  '/static/icons/icon-384x384.png',
 ];
 
 if ('serviceWorker' in navigator) {
@@ -59,4 +61,3 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 });
-
