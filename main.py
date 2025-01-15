@@ -112,31 +112,67 @@ def parse_device_data(data: bytearray):
 def parse_cell_info(data, device_name):
     """Парсинг Cell Info Frame (0x02)."""
     log(device_name, "Parsing Cell Info Frame...")
-    try:
-        num_cells = data[5]  # Кількість ячейок
-        cell_voltages = []
-        log(device_name, f"Cells: {num_cells}")
 
-        # Початковий байт для напруги ячейок
-        start_index = 6
+    try:
+        # Перевірка заголовку
+        if data[:4] != b'\x55\xAA\xEB\x90':
+            raise ValueError("Invalid frame header")
+
+        # Витягуємо дані про ячейки
+        cell_voltages = []
+        start_index = 6  # Початковий індекс для напруги ячейок
+        num_cells = 32   # Максимальна кількість ячейок
         for i in range(num_cells):
             voltage_raw = int.from_bytes(data[start_index:start_index + 2], byteorder='little')
-            voltage = voltage_raw / 1000.0  # Перетворення вольт
-            if voltage > 0:  # Додаємо тільки якщо напруга більше 0
-                cell_voltages.append((i + 1, voltage))  # Зберігаємо номер ячейки і напругу
+            voltage = voltage_raw * 0.001  # Перетворення вольт
+            cell_voltages.append(voltage)
             start_index += 2
 
+        # Витягуємо інші параметри
+        power_tube_temp = int.from_bytes(data[112:114], byteorder='little', signed=True) * 0.1
+        battery_voltage = int.from_bytes(data[118:122], byteorder='little') * 0.001
+        battery_power = int.from_bytes(data[122:126], byteorder='little') * 0.001
+        charge_current = int.from_bytes(data[126:130], byteorder='little', signed=True) * 0.001
+        temperature_sensor_1 = int.from_bytes(data[130:132], byteorder='little', signed=True) * 0.1
+        temperature_sensor_2 = int.from_bytes(data[132:134], byteorder='little', signed=True) * 0.1
+        state_of_charge = data[141]
+        remaining_capacity = int.from_bytes(data[142:146], byteorder='little') * 0.001
+        nominal_capacity = int.from_bytes(data[146:150], byteorder='little') * 0.001
+        cycle_count = int.from_bytes(data[150:154], byteorder='little')
+        state_of_health = data[158]
+
+        # Створення структури для результату
         cell_info = {
-            "num_cells": len(cell_voltages),  # Кількість ячейок з напругою > 0
             "cell_voltages": cell_voltages,
+            "power_tube_temperature": power_tube_temp,
+            "battery_voltage": battery_voltage,
+            "battery_power": battery_power,
+            "charge_current": charge_current,
+            "temperature_sensor_1": temperature_sensor_1,
+            "temperature_sensor_2": temperature_sensor_2,
+            "state_of_charge": state_of_charge,
+            "remaining_capacity": remaining_capacity,
+            "nominal_capacity": nominal_capacity,
+            "cycle_count": cycle_count,
+            "state_of_health": state_of_health,
         }
 
-        log(device_name, f"Number of Cells with voltage > 0: {len(cell_voltages)}")
-        for cell_num, voltage in cell_voltages:
-            if cell_num > 17:
-                log(device_name, f"{YELLOW}Cells Wire Resistance {cell_num}: {voltage:.3f} V{RESET}")
+        # CRC Validation
+        crc_calculated = calculate_crc(data[:-1])
+        crc_received = data[-1]
+        if crc_calculated != crc_received:
+            log(device_name, f"Invalid CRC: {crc_calculated} != {crc_received}")
+            return None
+        log(device_name, "CRC Valid")
+
+        # Логування даних
+        log(device_name, "Parsed Cell Info:")
+        for key, value in cell_info.items():
+            if key == "cell_voltages":
+                for idx, voltage in enumerate(value, start=1):
+                    log(device_name, f"Cell {idx}: {voltage:.3f} V")
             else:
-                log(device_name, f"{GREEN}Cell {cell_num}: {voltage:.3f} V{RESET}")
+                log(device_name, f"{key}: {value}")
 
         return cell_info
 
