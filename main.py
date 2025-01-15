@@ -18,6 +18,18 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 device_info_data = {}
 
+@app.on_event("startup")
+async def add_mock_data():
+    global device_info_data
+    device_info_data = {
+        "frame_type": 3,
+        "vendor_id": "MockVendor",
+        "hardware_version": "1.0",
+        "software_version": "1.0",
+        "device_name": "MockDevice",
+    }
+    print("Added mock data for testing")
+
 @app.get("/")
 def read_root():
     return FileResponse("static/index.html")
