@@ -50,7 +50,7 @@ function loadPageScript(pageId) {
   const script = document.createElement('script');
   script.src = `/static/scripts/${pageId}.js`;
   script.id = 'page-script';
-  script.defer = true; // Додаємо затримку, щоб завантажити після HTML
+  script.async = true;
   document.body.appendChild(script);
 }
 async function loadPage(path) {

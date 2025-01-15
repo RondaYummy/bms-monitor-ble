@@ -13,8 +13,4 @@ async function fetchDeviceInfo() {
     document.getElementById('deviceInfo').innerText = 'Error fetching device info.';
   }
 }
-
-// Викликаємо функцію при завантаженні сторінки
-document.addEventListener('DOMContentLoaded', () => {
-  fetchDeviceInfo();
-});
+fetchDeviceInfo();
