@@ -2,6 +2,8 @@ import asyncio
 from bleak import BleakClient, BleakScanner
 from colors import *
 
+# If the frame starts with 55aaeb9003 it's a device info frame. 55aaeb9002 is a cell info frame.
+
 MIN_FRAME_SIZE = 300
 MAX_FRAME_SIZE = 320
 
