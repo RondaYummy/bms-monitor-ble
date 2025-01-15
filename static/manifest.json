@@ -29,7 +29,7 @@
     {
       "src": "/static/icons/apple-touch-icon.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "180x180"
     },
     {
       "src": "/static/icons/icon-256x256.png",
