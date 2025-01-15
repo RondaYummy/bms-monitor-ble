@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-device_info_data: Dict[str, Any] = {}
+device_info_data = {}
 
 @app.get("/")
 def read_root():
