@@ -6,13 +6,6 @@ html, body {
   flex-direction: column;
 }
 
-header {
-  background-color: #f8f9fa;
-  padding: 10px;
-  text-align: center;
-  flex-shrink: 0; /* Не дозволяє хедеру стискатися */
-}
-
 main {
   flex-grow: 1; /* Займає весь доступний простір */
   display: flex;
@@ -20,6 +13,7 @@ main {
   justify-content: center; /* Центрує контент по вертикалі */
   align-items: center; /* Центрує контент по горизонталі */
   background-color: #e9ecef;
+  overflow: auto;
 }
 
 footer {
@@ -33,6 +27,7 @@ footer {
   background: #F1F1F1;
   position: fixed;
   bottom: 0;
+  left: 0;
   height: 65px;
   width: 100%;
   display: flex;
@@ -50,5 +45,5 @@ footer {
 }
 
 #summary {
-  font-size: 3vh;
+  font-size: 3.5vh;
 }
