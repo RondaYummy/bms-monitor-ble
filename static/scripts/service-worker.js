@@ -4,10 +4,15 @@ const urlsToCache = [
   '/static/styles.css',
   '/static/script.js',
   '/static/manifest.json',
-  '/static/icons/icon-128x128.png',
-  '/static/icons/icon-192x192.png',
+  '/static/icons/icon-144x144.png',
+  '/static/icons/android-chrome-192x192.png',
   '/static/icons/icon-256x256.png',
   '/static/icons/icon-384x384.png',
+  '/static/icons/android-chrome-512x512.png',
+  '/static/icons/apple-touch-icon.png',
+  '/static/icons/favicon.ico',
+  '/static/icons/favicon-16x16.ico',
+  '/static/icons/favicon-32x32.ico',
 ];
 
 if ('serviceWorker' in navigator) {

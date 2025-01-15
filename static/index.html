@@ -8,10 +8,24 @@
 
     <!-- PWA -->
     <link rel="manifest" href="/static/manifest.json" />
-    <link rel="icon" href="/static/icons/icon-128x128.png" sizes="128x128" />
-    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png" sizes="192x192" />
-    <link rel="apple-touch-icon" href="/static/icons/icon-256x256.png" sizes="256x256" />
-    <link rel="apple-touch-icon" href="/static/icons/icon-384x384.png" sizes="384x384" />
+
+    <!-- Favicon для браузера (застосовується у вкладках) -->
+    <link rel="icon" type="image/x-icon" href="/static/icons/favicon.ico" />
+    <link rel="icon" type="image/png" href="/static/icons/favicon-16x16.png" />
+    <link rel="icon" type="image/png" href="/static/icons/favicon-32x32.png" />
+    <!-- Android та Chrome PWA (зчитується з manifest.json) -->
+    <link rel="icon" type="image/png" href="/static/icons/android-chrome-192x192.png" sizes="192x192" />
+    <link rel="icon" type="image/png" href="/static/icons/android-chrome-512x512.png" sizes="512x512" />
+    <!-- Android та Chrome PWA (зчитується з manifest.json) -->
+    <link rel="icon" type="image/png" href="/static/icons/icon-144x144.png" sizes="144x144" />
+
+    <!-- Apple (для додавання на домашній екран) -->
+    <link rel="apple-touch-icon" type="image/png" href="/static/icons/apple-touch-icon.png" sizes="180x180" />
+
+    <!-- Додаткові іконки для більших розмірів -->
+    <link rel="icon" type="image/png" href="/static/icons/icon-256x256.png" sizes="256x256" />
+    <link rel="icon" type="image/png" href="/static/icons/icon-384x384.png" sizes="384x384" />
+
     <meta name="theme-color" content="#6200ea" />
   </head>
   <body>
