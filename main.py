@@ -98,7 +98,8 @@ def parse_device_info(data, device_name):
             return None
         log(device_name, "CRC Valid")
 
-        device_info_data = device_info
+        # Save device-specific info
+        device_info_data[device_name] = device_info
 
         # Logging of parsed information
         log(device_name, "Parsed Device Info:")
