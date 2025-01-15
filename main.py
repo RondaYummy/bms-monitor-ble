@@ -180,7 +180,7 @@ async def notification_handler(sender, data, device_name):
         response_buffer = bytearray()   # Clear the buffer
     response_buffer.extend(data)       # Adding data to a buffer
 
-    if MIN_FRAME_SIZE >= len(response_buffer) <= MAX_FRAME_SIZE:
+    if MIN_FRAME_SIZE <= len(response_buffer) <= MAX_FRAME_SIZE:
         log(device_name, f"Full frame received: {response_buffer.hex()}")
 
         # Checking the CRC
