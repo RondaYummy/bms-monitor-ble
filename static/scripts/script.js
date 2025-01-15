@@ -69,6 +69,7 @@ function loadPageScript(pageId) {
 async function loadPage(path) {
   const content = document.getElementById('content');
   const pageId = path === '/' ? 'summary' : path.substring(1); // Якщо "/", то відкриваємо summary
+  console.log('Page ID: ', pageId);
   content.innerHTML = await fetchPageTemplate(pageId);
   loadPageScript(pageId);
 }
