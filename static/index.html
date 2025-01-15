@@ -3,21 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Static Page</title>
+    <title>BMS Monitor</title>
     <link rel="stylesheet" href="/static/styles.css" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/static/manifest.json" />
+    <meta name="theme-color" content="#6200ea" />
   </head>
   <body>
     <header>
-      <h1>Welcome to My Static Page</h1>
+      <h1>Welcome to BMS Monitor</h1>
     </header>
     <main>
       <p>This is a simple HTML page served with Python!</p>
-      <button id="clickMe">Click Me</button>
+      <button id="refreshApp">Refresh App</button>
     </main>
     <footer>
-      <p>&copy; 2025 My Website</p>
+      <p>&copy; 2025 BMS Monitor</p>
     </footer>
 
     <script src="/static/script.js"></script>
+    <!-- Реєстрація сервісного воркера -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .register('/static/service-worker.js')
+          .then((registration) => {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch((err) => {
+            console.log('Service Worker registration failed:', err);
+          });
+      }
+    </script>
   </body>
 </html>
