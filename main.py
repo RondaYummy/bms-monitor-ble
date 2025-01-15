@@ -16,20 +16,6 @@ app.add_middleware(
 )
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-device_info_data = {}
-
-@app.on_event("startup")
-async def add_mock_data():
-    global device_info_data
-    device_info_data = {
-        "frame_type": 3,
-        "vendor_id": "MockVendor",
-        "hardware_version": "1.0",
-        "software_version": "1.0",
-        "device_name": "MockDevice",
-    }
-    print("Added mock data for testing")
-
 @app.get("/")
 def read_root():
     return FileResponse("static/index.html")
@@ -55,6 +41,7 @@ CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 # CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
 
 response_buffer = bytearray()
+device_info_data = {}
 
 def calculate_crc(data):
     return sum(data) & 0xFF
@@ -70,6 +57,7 @@ def log(device_name, message):
     print(f"{BLUE}[{device_name}]{RESET} {message}")
 
 def parse_device_info(data, device_name):
+    global device_info_data
     """Parsing Device Info Frame (0x03)."""
     log(device_name, "Parsing Device Info Frame...")
 
