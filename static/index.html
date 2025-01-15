@@ -8,10 +8,10 @@
 
     <!-- PWA -->
     <link rel="manifest" href="/static/manifest.json" />
-    <link rel="icon" href="/icons/icon-128x128.png" sizes="128x128" />
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" sizes="192x192" />
-    <link rel="apple-touch-icon" href="/icons/icon-256x256.png" sizes="256x256" />
-    <link rel="apple-touch-icon" href="/icons/icon-384x384.png" sizes="384x384" />
+    <link rel="icon" href="/static/icons/icon-128x128.png" sizes="128x128" />
+    <link rel="apple-touch-icon" href="/static/icons/icon-192x192.png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/static/icons/icon-256x256.png" sizes="256x256" />
+    <link rel="apple-touch-icon" href="/static/icons/icon-384x384.png" sizes="384x384" />
     <meta name="theme-color" content="#6200ea" />
   </head>
   <body>
@@ -26,19 +26,6 @@
       <p>&copy; 2025 BMS Monitor</p>
     </footer>
 
-    <script src="/static/script.js"></script>
-    <!-- Реєстрація сервісного воркера -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker
-          .register('/static/service-worker.js')
-          .then((registration) => {
-            console.log('Service Worker registered with scope:', registration.scope);
-          })
-          .catch((err) => {
-            console.log('Service Worker registration failed:', err);
-          });
-      }
-    </script>
+    <script src="/static/scripts/script.js"></script>
   </body>
 </html>
