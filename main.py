@@ -11,9 +11,9 @@ SERVICE_UUID = "0000FFE0-0000-1000-8000-00805f9b34fb"
 CHARACTERISTIC_UUID = "0000FFE1-0000-1000-8000-00805f9b34fb"
 
 CMD_HEADER = bytes([0xAA, 0x55, 0x90, 0xEB])
-CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Інформація про пристрій
-CMD_TYPE_CELL_INFO = 0x96 # 0x02: Інформація про ячейки
-# CMD_TYPE_SETTINGS = 0x95 # 0x01: Налаштування
+CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Device Info Frame
+CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
+# CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
 
 response_buffer = bytearray()
 
@@ -28,21 +28,20 @@ def create_command(command_type):
     return frame
 
 def log(device_name, message):
-    """Додає назву пристрою до логів."""
     print(f"{BLUE}[{device_name}]{RESET} {message}")
 
 def parse_device_info(data, device_name):
-    """Парсинг Device Info Frame (0x03)."""
+    """Parsing Device Info Frame (0x03)."""
     log(device_name, "Parsing Device Info Frame...")
 
     try:
         log(device_name, f"Raw data: {data.hex()}")
         
-        # Перевірка заголовку
+        # Checking the header
         if data[:4] != b'\x55\xAA\xEB\x90':
             raise ValueError("Invalid frame header")
 
-        # Витягуємо поля з фрейму
+        # Extract fields from the frame
         device_info = {
             "frame_type": data[4],
             "frame_counter": data[5],
@@ -68,7 +67,7 @@ def parse_device_info(data, device_name):
             return None
         log(device_name, "CRC Valid")
 
-        # Логування розпарсеної інформації
+        # Logging of parsed information
         log(device_name, "Parsed Device Info:")
         for key, value in device_info.items():
             log(device_name, f"{key}: {value}")
@@ -80,55 +79,51 @@ def parse_device_info(data, device_name):
         return None
 
 def parse_device_data(data: bytearray):
-    start_index = 5  # Початковий індекс, після якого починається корисна інформація
+    start_index = 5  # The initial index after which useful information begins
     
-    # Послідовно зчитуємо кожен сегмент до 0x00
+    # Read each segment sequentially to 0x00
     segments = []
     while start_index < len(data):
         try:
-            end_index = data.index(0x00, start_index)  # Знаходимо наступний 0x00
-            segment = data[start_index:end_index].decode('utf-8', errors='ignore')  # Декодуємо
+            end_index = data.index(0x00, start_index)  # Find the following 0x00
+            segment = data[start_index:end_index].decode('utf-8', errors='ignore')  # Decode
             segments.append(segment)
-            start_index = end_index + 1  # Переміщаємося до наступного байта після 0x00
+            start_index = end_index + 1  # Move to the next byte after 0x00
         except ValueError:
-            break  # Якщо 0x00 більше немає, виходимо з циклу
+            break  # If 0x00 is no longer present, exit the loop
     
-    # Видаляємо порожні строки після декодування
-    segments = [seg for seg in segments if seg.strip()]
-
     if len(segments) < 5:
-        raise ValueError("Недостатньо даних для парсингу")
+        raise ValueError("Insufficient data for parsing")
 
     device_info = {
         "device_name": segments[0],
         "firmware_version": segments[1],
         "serial_number": segments[2],
         "hardware_version": segments[3],
-        "other_info": segments[4:]  # Усе інше — додаткові дані
+        "other_info": segments[4:]  # Everything else is additional data
     }
     
     return device_info
 
 def parse_cell_info(data, device_name):
-    """Парсинг Cell Info Frame (0x02)."""
+    """Parsing Cell Info Frame (0x02)."""
     log(device_name, "Parsing Cell Info Frame...")
 
     try:
-        # Перевірка заголовку
+        # Checking the header
         if data[:4] != b'\x55\xAA\xEB\x90':
             raise ValueError("Invalid frame header")
 
-        # Витягуємо дані про ячейки
+        # Extract cell data
         cell_voltages = []
-        start_index = 6  # Початковий індекс для напруги ячейок
-        num_cells = 32   # Максимальна кількість ячейок
+        start_index = 6  # Initial index for cell tension
+        num_cells = 32   # Maximum number of cells
         for i in range(num_cells):
             voltage_raw = int.from_bytes(data[start_index:start_index + 2], byteorder='little')
-            voltage = voltage_raw * 0.001  # Перетворення вольт
+            voltage = voltage_raw * 0.001  # Conversion of volts
             cell_voltages.append(voltage)
             start_index += 2
 
-        # Витягуємо інші параметри
         power_tube_temp = int.from_bytes(data[112:114], byteorder='little', signed=True) * 0.1
         battery_voltage = int.from_bytes(data[118:122], byteorder='little') * 0.001
         battery_power = int.from_bytes(data[122:126], byteorder='little') * 0.001
@@ -141,7 +136,6 @@ def parse_cell_info(data, device_name):
         cycle_count = int.from_bytes(data[150:154], byteorder='little')
         state_of_health = data[158]
 
-        # Створення структури для результату
         cell_info = {
             "cell_voltages": cell_voltages,
             "power_tube_temperature": power_tube_temp,
@@ -165,7 +159,6 @@ def parse_cell_info(data, device_name):
             return None
         log(device_name, "CRC Valid")
 
-        # Логування даних
         log(device_name, "Parsed Cell Info:")
         for key, value in cell_info.items():
             if key == "cell_voltages":
@@ -183,21 +176,21 @@ def parse_cell_info(data, device_name):
 async def notification_handler(sender, data, device_name):
     global response_buffer
 
-    if data[:4] == b'\x55\xAA\xEB\x90':  # Початок нового фрейму
-        response_buffer = bytearray()   # Очистка буфера
-    response_buffer.extend(data)       # Додавання даних до буфера
+    if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
+        response_buffer = bytearray()   # Clear the buffer
+    response_buffer.extend(data)       # Adding data to a buffer
 
     if MIN_FRAME_SIZE <= len(response_buffer) <= MAX_FRAME_SIZE:
         log(device_name, f"Full frame received: {response_buffer.hex()}")
 
-        # Перевірка CRC
+        # Checking the CRC
         calculated_crc = calculate_crc(response_buffer[:-1])
         received_crc = response_buffer[-1]
         if calculated_crc != received_crc:
             log(device_name, f"Invalid CRC: {calculated_crc} != {received_crc}")
             return
 
-        # Визначення типу фрейму
+        # Determining the frame type
         frame_type = response_buffer[4]
         if frame_type == 0x03:
             parse_device_info(response_buffer, device_name)
@@ -215,19 +208,19 @@ async def connect_and_run(device):
             await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
             log(device.name, f"Connected and notification started")
 
-            # Надсилаємо команди для Device Info і Cell Info
+            # Send commands for Device Info and Cell Info
             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
 
             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
             log(device.name, f"Device Info command sent: {device_info_command.hex()}")
 
-            await asyncio.sleep(1)  # Очікування між командами
+            await asyncio.sleep(1)  # Expectations between teams
 
             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
             log(device.name, f"Cell Info command sent: {cell_info_command.hex()}")
 
-            await asyncio.sleep(30)  # Час для отримання даних
+            await asyncio.sleep(30)  # Time to receive data
             await client.stop_notify(CHARACTERISTIC_UUID)
             log(device.name, "Notification stopped")
     except Exception as e:
