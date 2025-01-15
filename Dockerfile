@@ -14,6 +14,7 @@ WORKDIR /app
 COPY requirements.txt .
 COPY main.py .
 COPY colors.py .
+COPY static ./static
 
 # Встановлення залежностей
 RUN pip install --no-cache-dir -r requirements.txt

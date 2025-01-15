@@ -1,6 +1,15 @@
 import asyncio
 from bleak import BleakClient, BleakScanner
 from colors import *
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+app = FastAPI()
+app.mount("/static", StaticFiles(directory="static"), name="static")
+@app.get("/")
+def read_root():
+    return FileResponse("static/index.html")
 
 # If the frame starts with 55aaeb9003 it's a device info frame. 55aaeb9002 is a cell info frame.
 
@@ -226,7 +235,7 @@ async def connect_and_run(device):
     except Exception as e:
         log(device.name, f"Error: {str(e)}")
 
-async def main():
+async def ble_main():
     devices = await BleakScanner.discover()
     if not devices:
         print("No BLE devices found.")
@@ -235,5 +244,14 @@ async def main():
     for device in devices:
         await connect_and_run(device)
 
+def start_services():
+    loop = asyncio.get_event_loop()
+
+    loop.create_task(ble_main())
+
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    start_services()
