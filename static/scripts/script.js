@@ -1,3 +1,5 @@
+console.log('SW: ', 'serviceWorker' in navigator);
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker
     .register('/static/scripts/service-worker.js')

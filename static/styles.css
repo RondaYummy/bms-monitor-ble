@@ -14,6 +14,7 @@ main {
   align-items: center; /* Центрує контент по горизонталі */
   background-color: #e9ecef;
   overflow: auto;
+  padding: 10px;
 }
 
 footer {
