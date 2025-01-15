@@ -4,12 +4,22 @@ from colors import *
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+device_info_data: Dict[str, Any] = {}
+
 @app.get("/")
 def read_root():
     return FileResponse("static/index.html")
+
+@app.get("/api/device-info")
+def get_device_info():
+    if not device_info_data:
+        return JSONResponse(content={"message": "No device info available yet."}, status_code=404)
+    return device_info_data
 
 # If the frame starts with 55aaeb9003 it's a device info frame. 55aaeb9002 is a cell info frame.
 
@@ -75,6 +85,8 @@ def parse_device_info(data, device_name):
             log(device_name, f"Invalid CRC: {crc_calculated} != {crc_received}")
             return None
         log(device_name, "CRC Valid")
+
+        device_info_data = device_info
 
         # Logging of parsed information
         log(device_name, "Parsed Device Info:")
