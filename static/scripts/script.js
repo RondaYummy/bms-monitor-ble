@@ -90,4 +90,17 @@ window.addEventListener('popstate', () => {
 window.addEventListener('DOMContentLoaded', () => {
   loadPage(window.location.pathname); // Завантажуємо контент для поточного шляху
 });
-loadPage(window.location.pathname);
+
+document.addEventListener('DOMContentLoaded', () => {
+  const links = document.querySelectorAll('.mobile-nav a');
+  const currentPath = window.location.pathname;
+
+  links.forEach((link) => {
+    const linkPath = link.getAttribute('href');
+    if (linkPath === currentPath) {
+      link.classList.add('active'); // Додаємо клас активного посилання
+    } else {
+      link.classList.remove('active'); // Прибираємо клас, якщо посилання неактивне
+    }
+  });
+});

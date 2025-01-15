@@ -1,7 +1,6 @@
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -47,4 +46,11 @@ footer {
 
 #summary {
   font-size: 3vh;
+}
+
+.active {
+  color: #fff;
+  background-color: #6200ea;
+  border-radius: 5px;
+  padding: 5px 10px;
 }
