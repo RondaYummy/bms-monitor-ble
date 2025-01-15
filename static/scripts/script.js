@@ -78,6 +78,7 @@ document.querySelectorAll('.mobile-nav a').forEach((link) => {
     event.preventDefault();
     const path = link.getAttribute('href');
     history.pushState({}, '', path); // Оновлюємо URL
+    setupActiveLink();
     loadPage(path); // Завантажуємо відповідний контент
   });
 });
@@ -91,7 +92,7 @@ window.addEventListener('DOMContentLoaded', () => {
   loadPage(window.location.hash); // Завантажуємо контент для поточного шляху
 });
 
-document.addEventListener('DOMContentLoaded', () => {
+function setupActiveLink() {
   const links = document.querySelectorAll('.mobile-nav a');
   const currentPath = window.location.hash;
 
@@ -103,4 +104,5 @@ document.addEventListener('DOMContentLoaded', () => {
       link.classList.remove('active'); // Прибираємо клас, якщо посилання неактивне
     }
   });
-});
+}
+document.addEventListener('DOMContentLoaded', () => setupActiveLink());
