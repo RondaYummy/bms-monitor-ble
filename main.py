@@ -43,6 +43,10 @@ CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 response_buffer = bytearray()
 device_info_data = {}
 
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(ble_main())
+
 def calculate_crc(data):
     return sum(data) & 0xFF
 
@@ -265,10 +269,6 @@ async def ble_main():
         await connect_and_run(device)
 
 def start_services():
-    loop = asyncio.get_event_loop()
-
-    loop.create_task(ble_main())
-
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
