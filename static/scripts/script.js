@@ -97,8 +97,8 @@ function setupActiveLink() {
   const currentPath = window.location.hash;
 
   links.forEach((link) => {
-    const href = link.getAttribute('href');
-    const linkPath = href === '#' ? '' : href;
+    let href = link.getAttribute('href');
+    const linkPath = href === '#' || href === '/' ? '' : href;
     if (linkPath === currentPath) {
       link.classList.add('active'); // Додаємо клас активного посилання
     } else {
