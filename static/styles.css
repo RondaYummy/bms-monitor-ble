@@ -1,0 +1,51 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background-color: #f8f9fa;
+  padding: 10px;
+  text-align: center;
+  flex-shrink: 0; /* Не дозволяє хедеру стискатися */
+}
+
+main {
+  flex-grow: 1; /* Займає весь доступний простір */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Центрує контент по вертикалі */
+  align-items: center; /* Центрує контент по горизонталі */
+  background-color: #e9ecef;
+}
+
+footer {
+  background-color: #f8f9fa;
+  padding: 10px;
+  text-align: center;
+  flex-shrink: 0; /* Не дозволяє футеру стискатися */
+}
+
+.mobile-nav {
+  background: #F1F1F1;
+  position: fixed;
+  bottom: 0;
+  height: 65px;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+}
+
+.bloc-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bloc-icon img {
+  width: 30px;
+}
+

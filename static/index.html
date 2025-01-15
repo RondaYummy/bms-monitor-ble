@@ -31,13 +31,19 @@
   <body>
     <header>
       <h1>Welcome to BMS Monitor</h1>
-    </header>
-    <main>
-      <pre id="deviceInfo">Loading...</pre>
       <button id="refreshApp">Refresh App</button>
-    </main>
+    </header>
+
+    <main id="content"></main>
+
     <footer>
-      <p>&copy; 2025 BMS Monitor</p>
+      <nav class="mobile-nav">
+        <a href="/" class="bloc-icon" data-page="summary"> Summary </a>
+        <a href="/devices" class="bloc-icon" data-page="devices"> Devices </a>
+        <a href="/details" class="bloc-icon" data-page="details"> Details </a>
+        <a href="/logs" class="bloc-icon" data-page="logs"> Logs </a>
+        <a href="/settings" class="bloc-icon" data-page="settings"> Settings </a>
+      </nav>
     </footer>
 
     <script src="/static/scripts/script.js"></script>

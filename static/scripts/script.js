@@ -27,23 +27,52 @@ async function refreshApp() {
   await updateServiceWorker();
 }
 
-async function fetchDeviceInfo() {
+async function fetchPageTemplate(pageId) {
   try {
-    const response = await fetch('/api/device-info');
+    const response = await fetch(`/static/pages/${pageId}.html`);
     if (!response.ok) {
-      throw new Error('Failed to fetch device info');
+      throw new Error('Page not found');
     }
-    const data = await response.json();
-    console.log('Device Info:', data);
-    // Відобразіть дані на сторінці
-    document.getElementById('deviceInfo').innerText = JSON.stringify(data, null, 2);
+    return await response.text();
   } catch (error) {
-    console.error('Error fetching device info:', error);
-    document.getElementById('deviceInfo').innerText = 'Error fetching device info.';
+    return `
+      <h2>404</h2>
+      <p>Page not found.</p>
+    `;
   }
 }
+function loadPageScript(pageId) {
+  const existingScript = document.getElementById('page-script');
+  if (existingScript) {
+    existingScript.remove(); // Видаляємо старий JS-файл
+  }
 
-// Викликаємо функцію при завантаженні сторінки
-document.addEventListener('DOMContentLoaded', () => {
-  fetchDeviceInfo();
+  const script = document.createElement('script');
+  script.src = `/static/scripts/${pageId}.js`;
+  script.id = 'page-script';
+  script.defer = true; // Додаємо затримку, щоб завантажити після HTML
+  document.body.appendChild(script);
+}
+async function loadPage(path) {
+  const content = document.getElementById('content');
+  const pageId = path === '/' ? 'summary' : path.substring(1); // Якщо "/", то відкриваємо summary
+  content.innerHTML = await fetchPageTemplate(pageId);
+  loadPageScript(pageId);
+}
+document.querySelectorAll('.mobile-nav a').forEach((link) => {
+  link.addEventListener('click', (event) => {
+    event.preventDefault();
+    const path = link.getAttribute('href');
+    history.pushState({}, '', path); // Оновлюємо URL
+    loadPage(path); // Завантажуємо відповідний контент
+  });
+});
+// Слухач подій для кнопок "Назад" і "Вперед" у браузері
+window.addEventListener('popstate', () => {
+  loadPage(window.location.pathname); // Завантажуємо контент для поточного шляху
+});
+
+// Завантаження початкової сторінки
+window.addEventListener('DOMContentLoaded', () => {
+  loadPage(window.location.pathname); // Завантажуємо контент для поточного шляху
 });
