@@ -89,3 +89,4 @@ window.addEventListener('popstate', () => {
 window.addEventListener('DOMContentLoaded', () => {
   loadPage(window.location.pathname); // Завантажуємо контент для поточного шляху
 });
+loadPage(window.location.pathname);
