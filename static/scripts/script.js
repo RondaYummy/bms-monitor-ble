@@ -68,7 +68,7 @@ function loadPageScript(pageId) {
 }
 async function loadPage(path) {
   const content = document.getElementById('content');
-  const pageId = path === '/' ? 'summary' : path.substring(1); // Якщо "/", то відкриваємо summary
+  const pageId = path === '' ? 'summary' : path.substring(1); // Якщо "/", то відкриваємо summary
   console.log('Page ID: ', pageId);
   content.innerHTML = await fetchPageTemplate(pageId);
   loadPageScript(pageId);
@@ -83,17 +83,17 @@ document.querySelectorAll('.mobile-nav a').forEach((link) => {
 });
 // Слухач подій для кнопок "Назад" і "Вперед" у браузері
 window.addEventListener('popstate', () => {
-  loadPage(window.location.pathname); // Завантажуємо контент для поточного шляху
+  loadPage(window.location.hash); // Завантажуємо контент для поточного шляху
 });
 
 // Завантаження початкової сторінки
 window.addEventListener('DOMContentLoaded', () => {
-  loadPage(window.location.pathname); // Завантажуємо контент для поточного шляху
+  loadPage(window.location.hash); // Завантажуємо контент для поточного шляху
 });
 
 document.addEventListener('DOMContentLoaded', () => {
   const links = document.querySelectorAll('.mobile-nav a');
-  const currentPath = window.location.pathname;
+  const currentPath = window.location.hash;
 
   links.forEach((link) => {
     const linkPath = link.getAttribute('href') === '/' ? '/' : link.getAttribute('href')?.substring(1);
