@@ -1,3 +1,4 @@
+/* FLEX BOX */
 .row {
   display: flex;
 }
@@ -12,4 +13,18 @@
 }
 .justify-between {
   justify-content: space-between;
+}
+
+
+/* MARGINS, PADDINGS */
+.mt-10 {
+  margin-top: 10px;
+}
+.mb-10 {
+  margin-bottom: 10px;
+}
+
+/* POLYGRAPHY */
+.text-center {
+  text-align: center;
 }

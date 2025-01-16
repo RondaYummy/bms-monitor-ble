@@ -40,17 +40,17 @@ async function fetchDeviceInfo() {
 
         li.innerHTML = `
           <li class="column">
-            <div class="row justify-between">
+            <div class="row justify-between mb-10">
               <div class="column">
-                <div id="dev-name">${device.device_name}</div>
+                <div id="dev-name" class="mb-10">${device.device_name}</div>
                 <div id="dev-vi">${device.vendor_id}</div>
               </div>
               <div class="column">
-                <div id="dev-hv">Hardware v. ${device.hardware_version}</div>
+                <div id="dev-hv" class="mb-10">Hardware v. ${device.hardware_version}</div>
                 <div id="dev-sv">Software v. ${device.software_version}</div>
               </div>
             </div>
-            <div id="dev-ut">Uptime: ${formatDuration(device.device_uptime)}.</div>
+            <div class="text-center">Uptime: ${formatDuration(device.device_uptime)}.</div>
           </li>
         `;
 
