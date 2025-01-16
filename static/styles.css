@@ -75,15 +75,20 @@ footer {
   font-size: 3vh;
 }
 
-.row {
-  display: flex;
-}
+#devices-list {
+  list-style-type: none;
 
-.column {
-  display: flex;
-  flex-direction: column;
-}
+  li {
+    margin-top: 10px;
+    margin-bottom: 10px;
 
-.justify-center {
-  justify-content: center;
+    #dev-name {
+      border-radius: 15px;
+      background-color: #03dac6;
+      color: #1e1f26;
+    }
+    #dev-ut {
+      color: coral;
+    }
+  }
 }

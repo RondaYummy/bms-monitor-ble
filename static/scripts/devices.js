@@ -39,15 +39,17 @@ async function fetchDeviceInfo() {
         const li = document.createElement('li');
 
         li.innerHTML = `
-          <div class="row">
-            <div id="dev-name">${device.device_name}</div>
-            <div id="dev-vi">${device.vendor_id}</div>
+          <li class="row">
+            <div class="column">
+              <div id="dev-name">${device.device_name}</div>
+              <div id="dev-vi">${device.vendor_id}</div>
+            </div>
             <div class="column">
               <div id="dev-hv">Hardware v. ${device.hardware_version}</div>
               <div id="dev-sv">Software v. ${device.software_version}</div>
             </div>
             <div id="dev-ut">Uptime: ${formatDuration(device.device_uptime)}.</div>
-          </div>
+          </li>
         `;
 
         devicesList.appendChild(li);

@@ -1,5 +1,3 @@
-console.log('SW: ', 'serviceWorker' in navigator);
-
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker
     .register('/static/scripts/service-worker.js')
@@ -12,30 +10,30 @@ if ('serviceWorker' in navigator) {
 
   let deferredPrompt;
 
-  // window.addEventListener('beforeinstallprompt', (event) => {
-  //   // Запобігти автоматичному показу діалогу
-  //   event.preventDefault();
-  //   // Зберегти подію для подальшого використання
-  //   deferredPrompt = event;
+  window.addEventListener('beforeinstallprompt', (event) => {
+    // Запобігти автоматичному показу діалогу
+    event.preventDefault();
+    // Зберегти подію для подальшого використання
+    deferredPrompt = event;
 
-  //   // Показати кнопку чи елемент для встановлення
-  //   const installButton = document.getElementById('install-button');
-  //   if (installButton) {
-  //     installButton.style.display = 'block';
-  //     installButton.addEventListener('click', () => {
-  //       // Показати діалогове вікно встановлення
-  //       deferredPrompt.prompt();
-  //       deferredPrompt.userChoice.then((choiceResult) => {
-  //         if (choiceResult.outcome === 'accepted') {
-  //           console.log('User accepted the install prompt');
-  //         } else {
-  //           console.log('User dismissed the install prompt');
-  //         }
-  //         deferredPrompt = null;
-  //       });
-  //     });
-  //   }
-  // });
+    // Показати кнопку чи елемент для встановлення
+    const installButton = document.getElementById('install-button');
+    if (installButton) {
+      installButton.style.display = 'block';
+      installButton.addEventListener('click', () => {
+        // Показати діалогове вікно встановлення
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+          } else {
+            console.log('User dismissed the install prompt');
+          }
+          deferredPrompt = null;
+        });
+      });
+    }
+  });
 }
 
 async function fetchPageTemplate(pageId) {
