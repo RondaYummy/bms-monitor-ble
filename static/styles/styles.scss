@@ -1,10 +1,21 @@
-html, body {
-  margin: 0;
-  padding: 0;
+html,
+body {
   display: flex;
   flex-direction: column;
   height: 100%;
   background-color: #1e1f26;
+}
+* {
+  margin: 0;
+  padding: 0;
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+p {
+  text-wrap: pretty;
 }
 
 main {
@@ -37,21 +48,15 @@ footer {
     color: #03dac6;
   }
 
-  a:hover {
-    color: #1e1f26;
-    background: #03dac6;
-    transition: all 0.5s ease;
-  }
-
   .active {
     color: #03dac6;
-    border-top: 3px solid #03dac6;
+    border-top: 4px solid #03dac6;
     height: auto;
   }
 }
 
 .mobile-nav {
-  background: #F1F1F1;
+  background: #f1f1f1;
   position: fixed;
   bottom: 0;
   left: 0;
@@ -77,6 +82,7 @@ footer {
 
 #devices-list {
   list-style-type: none;
+  padding: 0;
 
   li {
     margin-top: 10px;
@@ -122,4 +128,8 @@ footer {
       color: coral;
     }
   }
+}
+
+.unique {
+  color: #ff0266;
 }
