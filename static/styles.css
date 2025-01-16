@@ -17,10 +17,7 @@ main {
   overflow: auto;
   padding: 10px;
   background-color: #1e1f26;
-
-  * {
-    color: #faebd7;
-  }
+  color: #faebd7;
 }
 
 footer {
