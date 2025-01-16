@@ -1,4 +1,5 @@
 import asyncio
+import os
 from bleak import BleakClient, BleakScanner
 from colors import *
 from fastapi import FastAPI
