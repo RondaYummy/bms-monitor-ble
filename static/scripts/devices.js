@@ -50,7 +50,7 @@ async function fetchDeviceInfo() {
                 <div id="dev-sv">Software v. ${device.software_version}</div>
               </div>
             </div>
-            <div class="text-center">Uptime: ${formatDuration(device.device_uptime)}.</div>
+            <div id="dev-ut" class="text-center">Uptime: ${formatDuration(device.device_uptime)}.</div>
           </li>
         `;
 
