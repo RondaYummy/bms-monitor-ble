@@ -23,9 +23,12 @@ footer {
   padding: 10px;
   text-align: center;
   flex-shrink: 0; /* Не дозволяє футеру стискатися */
-  box-shadow: -20px -20px 50px rgba(0, 0, 0, 0.5);
-  background: #1e1f26;
-  transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+  box-shadow: 0px -40px 50px rgba(0, 0, 0, 0.5);
+
+  .mobile-nav {
+    background: #1e1f26;
+    transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+  }
 
   a {
     transition: all 0.5s ease;
@@ -40,8 +43,6 @@ footer {
 
   .active {
     color: #03dac6;
-    border-radius: 5px;
-    padding: 5px 10px;
     border-top: 3px solid #03dac6;
     height: auto;
   }
