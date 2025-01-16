@@ -26,7 +26,7 @@ def get_device_info():
     print(f"[/api/device-info] {device_info_data}")
     if not device_info_data:
         return JSONResponse(content={"message": "No device info available yet."}, status_code=404)
-    fields_to_remove = ["passcode", "setup_passcode", "user_data"]
+    fields_to_remove = ["passcode", "setup_passcode", "user_data", "device_passcode"]
     data_copy = deepcopy(device_info_data)
     for device, info in data_copy.items():
         for field in fields_to_remove:
