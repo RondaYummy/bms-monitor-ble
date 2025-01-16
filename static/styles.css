@@ -42,7 +42,7 @@ footer {
     background-color: #6200ea;
     border-radius: 5px;
     padding: 5px 10px;
-    border-bottom: 3px solid #03dac6;
+    border-top: 3px solid #03dac6;
     height: auto;
   }
 }
