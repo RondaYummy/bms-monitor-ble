@@ -22,6 +22,29 @@ footer {
   padding: 10px;
   text-align: center;
   flex-shrink: 0; /* Не дозволяє футеру стискатися */
+  box-shadow: -20px -20px 50px rgba(0, 0, 0, 0.5);
+  background: #1e1f26;
+  transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
+
+  a {
+    transition: all 0.5s ease;
+    color: #03dac6;
+  }
+
+  a:hover {
+    color: #1e1f26;
+    background: #03dac6;
+    transition: all 0.5s ease;
+  }
+
+  .active {
+    color: #fff;
+    background-color: #6200ea;
+    border-radius: 5px;
+    padding: 5px 10px;
+    border-bottom: 3px solid #03dac6;
+    height: auto;
+  }
 }
 
 .mobile-nav {
@@ -49,9 +72,4 @@ footer {
   font-size: 3vh;
 }
 
-.active {
-  color: #fff;
-  background-color: #6200ea;
-  border-radius: 5px;
-  padding: 5px 10px;
-}
+
