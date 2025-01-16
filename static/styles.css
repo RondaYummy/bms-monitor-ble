@@ -94,13 +94,13 @@ footer {
     }
     #dev-name::before {
       content: '';
-      width: 5px;
-      height: 5px;
+      width: 7px;
+      height: 7px;
       background-color: green;
       border-radius: 50%;
       position: absolute;
-      top: -5px;
-      left: -5px;
+      top: -6px;
+      left: -6px;
       box-shadow: 0 0 5px rgba(0, 128, 0, 0.5);
       animation: pulse 1.5s infinite;
     }
