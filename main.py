@@ -287,7 +287,7 @@ def start_services():
         print("SSL files found. Starting with HTTPS...")
         uvicorn.run(
             app,
-            host="0.0.0.0",
+            host="127.0.0.1",
             port=8443,
             ssl_certfile=ssl_certfile,
             ssl_keyfile=ssl_keyfile
