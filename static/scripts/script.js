@@ -105,3 +105,16 @@ function setupActiveLink() {
   });
 }
 document.addEventListener('DOMContentLoaded', () => setupActiveLink());
+
+if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+  const handler = (e) => {
+    if (e.scale !== 1) {
+      e.preventDefault();
+    }
+  };
+
+  window.addEventListener('touchmove', handler, { passive: false });
+  window.document.addEventListener('touchmove', handler, {
+    passive: false,
+  });
+}

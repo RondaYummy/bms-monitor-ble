@@ -39,7 +39,7 @@ async function fetchDeviceInfo() {
         const li = document.createElement('li');
 
         li.innerHTML = `
-          <li class="column">
+          <div class="column">
             <div class="row justify-between mb-10">
               <div class="column">
                 <div id="dev-name" class="mb-10">${device.device_name}</div>
@@ -51,7 +51,8 @@ async function fetchDeviceInfo() {
               </div>
             </div>
             <div id="dev-ut" class="text-center">Uptime: ${formatDuration(device.device_uptime)}.</div>
-          </li>
+          </div>
+          
         `;
 
         devicesList.appendChild(li);
