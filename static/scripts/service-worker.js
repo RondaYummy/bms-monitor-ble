@@ -37,7 +37,7 @@ self.addEventListener('fetch', (event) => {
 // Очищення застарілого кешу
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
+  event?.waitUntil(
     caches.keys().then((cacheNames) =>
       Promise.all(
         cacheNames.map((cacheName) => {

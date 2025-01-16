@@ -7,10 +7,17 @@ async function fetchDeviceInfo() {
     const data = await response.json();
     console.log('Device Info:', data);
     // Відобразіть дані на сторінці
-    document.getElementById('deviceInfo').innerText = JSON.stringify(data, null, 2);
+    const el = document.getElementById('deviceInfo');
+    if (el) {
+      el.innerText = JSON.stringify(data, null, 2);
+    }
   } catch (error) {
     console.error('Error fetching device info:', error);
-    document.getElementById('deviceInfo').innerText = 'Error fetching device info.';
+    const el = document.getElementById('deviceInfo');
+
+    if (el) {
+      el.innerText = 'Error fetching device info.';
+    }
   }
 }
 fetchDeviceInfo();

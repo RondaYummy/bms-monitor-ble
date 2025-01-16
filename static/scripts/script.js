@@ -11,7 +11,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-document.getElementById('refreshApp').addEventListener('click', async () => {
+document.getElementById('refreshApp')?.addEventListener('click', async () => {
   console.log('Refreshing app...');
   await refreshApp();
 });
@@ -68,9 +68,11 @@ function loadPageScript(pageId) {
 }
 async function loadPage(path) {
   const content = document.getElementById('content');
-  const pageId = path === '' ? 'summary' : path.substring(1); // Якщо "/", то відкриваємо summary
+  const pageId = path === '' || path === '/' || path === '#' ? 'summary' : path.substring(1); // Якщо "/", то відкриваємо summary
   console.log('Page ID: ', pageId);
-  content.innerHTML = await fetchPageTemplate(pageId);
+  if (content) {
+    content.innerHTML = await fetchPageTemplate(pageId);
+  }
   loadPageScript(pageId);
 }
 document.querySelectorAll('.mobile-nav a').forEach((link) => {
