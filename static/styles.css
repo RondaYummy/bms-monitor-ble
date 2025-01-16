@@ -75,4 +75,15 @@ footer {
   font-size: 3vh;
 }
 
+.row {
+  display: flex;
+}
 
+.column {
+  display: flex;
+  flex-direction: column;
+}
+
+.justify-center {
+  justify-content: center;
+}
