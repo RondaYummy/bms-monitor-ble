@@ -86,6 +86,37 @@ footer {
       border-radius: 15px;
       background-color: #03dac6;
       color: #1e1f26;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      position: relative;
+    }
+    #dev-name::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      background-color: green;
+      border-radius: 50%;
+      position: absolute;
+      top: -5px;
+      left: -5px;
+      box-shadow: 0 0 5px rgba(0, 128, 0, 0.5);
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% {
+        transform: scale(1); /* Початковий розмір */
+        opacity: 1; /* Початкова прозорість */
+      }
+      50% {
+        transform: scale(1.2); /* Збільшення розміру */
+        opacity: 0.7; /* Зменшення прозорості */
+      }
+      100% {
+        transform: scale(1); /* Повернення до початкового розміру */
+        opacity: 1; /* Повернення до початкової прозорості */
+      }
     }
     #dev-ut {
       color: coral;
