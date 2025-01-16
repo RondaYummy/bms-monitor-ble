@@ -288,7 +288,7 @@ def start_services():
         uvicorn.run(
             app,
             host="127.0.0.1",
-            port=8443,
+            port=8000,
             ssl_certfile=ssl_certfile,
             ssl_keyfile=ssl_keyfile
         )
