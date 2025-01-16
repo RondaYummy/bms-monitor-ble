@@ -278,23 +278,7 @@ async def ble_main():
 
 def start_services():
     import uvicorn
-
-    ssl_certfile = "./ssl/fullchain.pem"
-    ssl_keyfile = "./ssl/privkey.pem"
-
-    # Запуск з HTTPS або HTTP якщо нема сертифікатів у ./ssl
-    if os.path.exists(ssl_certfile) and os.path.exists(ssl_keyfile):
-        print("SSL files found. Starting with HTTPS...")
-        uvicorn.run(
-            app,
-            host="127.0.0.1",
-            port=8000,
-            ssl_certfile=ssl_certfile,
-            ssl_keyfile=ssl_keyfile
-        )
-    else:
-        print("SSL files not found. Starting without HTTPS...")
-        uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
 if __name__ == "__main__":
