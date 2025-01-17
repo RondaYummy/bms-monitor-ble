@@ -69,16 +69,16 @@ body {
   width: 100%;
   display: flex;
   justify-content: space-around;
-
-  &:hover {
-    animation: jiggle ease-in-out 400ms infinite;
-  }
 }
 
 .bloc-icon {
   display: flex;
   justify-content: center;
   align-items: center;
+
+  &:hover {
+    animation: jiggle ease-in-out 400ms infinite;
+  }
 }
 
 .bloc-icon img {
