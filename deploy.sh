@@ -55,6 +55,5 @@ function check_deploy() {
 while [ 1 ]; do
     check_deploy 2>&1
     sleep 300 # 5 min sleep
-
     # sleep 86400 # 24 hours sleep
 done
