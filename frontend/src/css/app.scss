@@ -28,17 +28,17 @@ body {
   background: #1e1f26;
   transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
 
-  #summary {
-    font-size: 3vh;
-  }
-
   a {
     transition: all 0.5s ease;
     color: #03dac6;
+    font-size: 2.5vh;
+  }
+  #summary {
+    font-size: 3vh;
   }
   .active {
     color: #03dac6;
-    border-top: 4px solid #03dac6;
+    border-bottom: 4px solid #03dac6;
     height: auto;
   }
 }
@@ -69,12 +69,14 @@ body {
   width: 100%;
   display: flex;
   justify-content: space-around;
+  gap: 10px;
 }
 
 .bloc-icon {
   display: flex;
   justify-content: center;
   align-items: center;
+  flex: 1;
 
   span {
     &:hover {
