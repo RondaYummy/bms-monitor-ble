@@ -1,6 +1,6 @@
 <template>
   <q-page class="column items-center justify-evenly">
-    <div>1Loading...</div>
+    <div>Loading...</div>
     <template v-if='devicesList'>
       <h3>
         {{ (Object.values(devicesList)[0] as any)?.average_voltage }}V
@@ -17,6 +17,7 @@
             class="bg-indigo text-white"
             v-if="devicesList">
       <q-tab v-for="device of Object.keys(devicesList)"
+             :key="device"
              :name="device"
              :label="device" />
     </q-tabs>
@@ -24,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { Device } from 'src/interfaces';
+import type { Device } from 'src/interfaces';
 import { ref } from 'vue';
 
 const devicesList = ref<Record<string, Device>>({});
