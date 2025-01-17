@@ -12,8 +12,12 @@ RUN yarn build
 
 FROM nginx:stable-alpine
 
+RUN ls -la /app/dist/pwa
+
 # Копіюємо статичні файли у папку nginx
 COPY --from=0 /app/dist/pwa /usr/share/nginx/html
+
+RUN ls -la /usr/share/nginx/html
 
 # Копіюємо кастомний конфіг для nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
