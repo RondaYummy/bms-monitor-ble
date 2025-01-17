@@ -13,7 +13,7 @@ RUN yarn build
 FROM nginx:stable-alpine
 
 # Копіюємо статичні файли у папку nginx
-# COPY --from=build-stage /usr/src/app/dist /usr/share/nginx/html
+COPY --from=build-stage /usr/src/app/dist /usr/share/nginx/html
 
 # Копіюємо кастомний конфіг для nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
