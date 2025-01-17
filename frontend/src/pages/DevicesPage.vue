@@ -1,7 +1,9 @@
 <template>
   <q-page class="column items-center justify-evenly">
-    <h2>Devices</h2>
-    <p>Here you can manage your devices.</p>
+    <div class="column">
+      <h2>Devices</h2>
+      <p>Here you can manage your devices.</p>
+    </div>
 
     <ul>
       <li v-for="device of devicesList"
@@ -76,6 +78,9 @@ fetchDeviceInfo();
 
 ul {
   list-style-type: none;
+  gap: 15px;
+  display: flex;
+  flex-direction: column;
 }
 
 #dev-name {
@@ -89,8 +94,8 @@ li #dev-name::before {
   background-color: green;
   border-radius: 50%;
   position: absolute;
-  top: -7px;
-  left: -7px;
+  top: -9px;
+  left: -9px;
   box-shadow: 0 0 5px rgba(0, 128, 0, 0.5);
   animation: pulse 1.5s infinite;
 }

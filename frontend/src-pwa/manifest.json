@@ -3,7 +3,7 @@
   "short_name": "BMS",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#027be3",
+  "theme_color": "#1e1f26",
   "icons": [
     {
       "src": "/icons/favicon-16x16.png",
