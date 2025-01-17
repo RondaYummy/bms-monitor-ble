@@ -10,11 +10,7 @@ COPY . .
 
 RUN yarn build
 
-RUN ls -la /app
-
 FROM nginx:stable-alpine
-
-RUN ls -la /app
 
 # Копіюємо статичні файли у папку nginx
 COPY --from=build-stage /app/dist /usr/share/nginx/html
