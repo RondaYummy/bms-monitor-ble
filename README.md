@@ -1,6 +1,11 @@
 # BMS Monitor [BLE]
 Simple application for controlling JK-BMS via Bluetooth low energy
 
+1. Встановити Node 22.
+2. Встановити Yarn.
+3. Встановити Docker-compose.
+4. Встановити PostgreSQL.
+
 ## Створення образу Docker:
 ```bash
 docker build -t bms-monitor-ble .
