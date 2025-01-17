@@ -38,7 +38,7 @@ if (process.env.MODE !== 'ssr' || process.env.PROD) {
 self.skipWaiting();
 registerRoute(({ url }) => url.pathname.startsWith('/'), new NetworkFirst(), 'GET');
 registerRoute(({ url }) => /^http/.test(url.pathname), new NetworkFirst(), 'GET');
-self.addEventListener('activate', function (event: ExtendableEvent) {
+self.addEventListener('activate', function (event: any) {
   console.log('customSw -> @activate :: ', event);
-  event.waitUntil(self.clients.claim());
+  event.waitUntil((self as unknown as any).clients.claim());
 });
