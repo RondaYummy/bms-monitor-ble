@@ -43,6 +43,24 @@ body {
   }
 }
 
+@keyframes jiggle {
+  0% {
+    transform: none;
+  }
+
+  25% {
+    transform: rotateZ(5deg);
+  }
+
+  75% {
+    transform: rotateZ(-5deg);
+  }
+
+  100% {
+    transform: none;
+  }
+}
+
 .mobile-nav {
   position: fixed;
   bottom: 0;
@@ -51,6 +69,10 @@ body {
   width: 100%;
   display: flex;
   justify-content: space-around;
+
+  &: hover {
+    animation: jiggle ease-in-out 400ms infinite;
+  }
 }
 
 .bloc-icon {
