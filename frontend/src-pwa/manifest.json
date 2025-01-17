@@ -56,8 +56,7 @@
     {
       "src": "/screenshots/screenshot2.png",
       "type": "image/png",
-      "sizes": "1920x1080",
-      "form_factor": "wide"
+      "sizes": "1920x1080"
     }
   ]
 }
