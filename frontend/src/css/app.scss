@@ -70,7 +70,7 @@ body {
   display: flex;
   justify-content: space-around;
 
-  &: hover {
+  &:hover {
     animation: jiggle ease-in-out 400ms infinite;
   }
 }
