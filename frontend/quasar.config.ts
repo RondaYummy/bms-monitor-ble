@@ -39,9 +39,6 @@ export default defineConfig((ctx) => {
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     build: {
       distDir: 'dist/pwa',
-      env: {
-        VITE_APP_VERSION: process.env.VITE_APP_VERSION,
-      },
 
       target: {
         browser: ['es2022', 'firefox115', 'chrome115', 'safari14'],
