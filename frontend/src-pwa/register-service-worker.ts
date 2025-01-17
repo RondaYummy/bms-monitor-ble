@@ -1,6 +1,6 @@
 import { register } from 'register-service-worker';
 import { Notify } from 'quasar';
-import packageJson from '../../package.json';
+import packageJson from '../package.json';
 
 // The ready(), registered(), cached(), updatefound() and updated()
 // events passes a ServiceWorkerRegistration instance in their arguments.
