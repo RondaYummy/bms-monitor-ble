@@ -12,7 +12,7 @@ RUN yarn build
 
 FROM nginx:stable-alpine
 
-RUN sudo chown -R $(whoami):$(whoami) /usr/share/nginx/html
+RUN chown -R nginx:nginx /usr/share/nginx/html
 
 # Копіюємо статичні файли у папку nginx
 COPY --from=build-stage /app/dist /usr/share/nginx/html
