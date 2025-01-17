@@ -15,8 +15,8 @@ function deploy() {
   echo "✅ Код успішно оновлено з Git"
 
   echo "====> Ребілдимо Докер-образи через Docker Compose"
-  docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME down
-  docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME --build -d
+  docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down
+  docker compose -f $COMPOSE_FILE -p $PROJECT_NAME --build -d
 
   # Копіюємо статичні файли для фронтенду з докеру в локальну папку
   docker cp $(docker ps -q -f name=$PROJECT_NAME):/usr/share/nginx/html /usr/share/nginx/
