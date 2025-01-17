@@ -29,7 +29,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
       # - /usr/share/nginx/html:/usr/share/nginx/html
-    command: sh -c "cp -R /usr/share/nginx/html /usr/share/nginx/html"
+    command: sh -c "cp -R /usr/share/nginx/html /usr/share/nginx/"
 
   python-app:
     build:
