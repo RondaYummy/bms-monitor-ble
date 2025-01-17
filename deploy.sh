@@ -17,14 +17,24 @@ function deploy() {
   echo "====> Ребілдимо Докер-образи через Docker Compose"
   docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down
   docker compose -f $COMPOSE_FILE -p $PROJECT_NAME up --build -d
-
-  # Копіюємо статичні файли для фронтенду з докеру в локальну папку
-  docker cp $(docker ps -q -f name=$PROJECT_NAME):/usr/share/nginx/html /usr/share/nginx/
   if [ $? -ne 0 ]; then
     echo "❌ Помилка під час ребілду та запуску контейнерів"
     exit 1
   fi
   echo "✅ Контейнери успішно перезапущені"
+
+    FRONTEND_CONTAINER=$(docker ps -q -f name="${PROJECT_NAME}_frontend")
+  if [ -z "$FRONTEND_CONTAINER" ]; then
+    echo "❌ Не вдалося знайти контейнер фронтенду"
+    exit 1
+  fi
+
+  docker cp "$FRONTEND_CONTAINER":/usr/share/nginx/html /usr/share/nginx/
+  if [ $? -ne 0 ]; then
+    echo "❌ Помилка копіювання статичних файлів з контейнера"
+    exit 1
+  fi
+  echo "✅ Статичні файли успішно скопійовані"
 
   echo "====> Оновлення проекту завершено успішно"
 }
