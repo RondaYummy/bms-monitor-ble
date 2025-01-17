@@ -23,7 +23,7 @@ function deploy() {
   fi
   echo "✅ Контейнери успішно перезапущені"
 
-    FRONTEND_CONTAINER=$(docker ps -q -f name="${PROJECT_NAME}_frontend")
+    FRONTEND_CONTAINER=$(docker ps -q -f name="${PROJECT_NAME}-frontend")
   if [ -z "$FRONTEND_CONTAINER" ]; then
     echo "❌ Не вдалося знайти контейнер фронтенду"
     exit 1
