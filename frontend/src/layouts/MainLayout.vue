@@ -8,12 +8,12 @@
               class="footer">
       <nav class="mobile-nav">
         <router-link to="/devices"
-                     class="bloc-icon"> Devices </router-link>
+                     class="bloc-icon"> <span>Devices</span> </router-link>
         <router-link to="/"
                      id="summary"
-                     class="bloc-icon"> Summary </router-link>
+                     class="bloc-icon"> <span>Summary</span> </router-link>
         <router-link to="/settings"
-                     class="bloc-icon"> Settings </router-link>
+                     class="bloc-icon"> <span>Settings</span> </router-link>
       </nav>
     </q-footer>
   </q-layout>
@@ -22,5 +22,3 @@
 <script setup lang="ts">
 
 </script>
-
-<style scoped lang='scss'></style>
