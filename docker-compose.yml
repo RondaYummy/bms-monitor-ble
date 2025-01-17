@@ -38,6 +38,12 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
+      - /var/run/dbus:/var/run/dbus  # Доступ до D-Bus
+    environment:
+      - DBUS_SESSION_BUS_ADDRESS=unix:path=/var/run/dbus/system_bus_socket
+    privileged: true  # Дозволяє доступ до Bluetooth-адаптера
+    devices:
+      - "/dev/ttyUSB0:/dev/ttyUSB0"
 
   database:
     image: postgres:latest
