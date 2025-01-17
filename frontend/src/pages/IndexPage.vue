@@ -15,7 +15,6 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
-
 let deferredPrompt: BeforeInstallPromptEvent;
 
 window.addEventListener('beforeinstallprompt', (event: Event) => {

@@ -40,7 +40,7 @@ export default defineConfig((ctx) => {
     build: {
       distDir: 'dist/pwa',
       env: {
-        APP_VERSION: process.env.APP_VERSION,
+        VITE_APP_VERSION: process.env.VITE_APP_VERSION,
       },
 
       target: {
@@ -102,7 +102,7 @@ export default defineConfig((ctx) => {
     devServer: {
       // https: true,
       open: true, // opens browser window automatically
-      port: 8444,
+      port: 8443,
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework

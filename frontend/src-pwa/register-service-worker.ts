@@ -5,7 +5,7 @@ import { Notify } from 'quasar';
 // events passes a ServiceWorkerRegistration instance in their arguments.
 // ServiceWorkerRegistration: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration
 
-const appVersion = process.env.APP_VERSION;
+const appVersion = process.env.VITE_APP_VERSION;
 console.log('%c[APP-VERSION]: ' + appVersion, 'color: #654ef2; font-weight: bold; font-size: 16px;');
 
 register(process.env.SERVICE_WORKER_FILE, {

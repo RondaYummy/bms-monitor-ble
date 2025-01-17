@@ -1,5 +1,5 @@
 <template>
-  <q-page class="column">
+  <q-page class="column items-center justify-evenly">
     <h2>Settings</h2>
     <p>Adjust your preferences and configurations.</p>
   </q-page>
@@ -9,4 +9,4 @@
 
 </script>
 
-<style scoped lang='scss'></style>
+<stylescoped lang='scss'></style>
