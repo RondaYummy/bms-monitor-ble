@@ -1,4 +1,6 @@
 // app global css in SCSS form
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
 body {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   -webkit-font-smoothing: antialiased;
@@ -17,6 +19,7 @@ body {
   -webkit-user-select: none !important;
   -webkit-overflow-scrolling: touch;
   -webkit-text-size-adjust: none !important;
+  font-family: 'Inter', serif;
 }
 
 #q-app {

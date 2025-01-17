@@ -1,15 +1,34 @@
 <template>
   <q-page class="column items-center justify-evenly">
     <div>1Loading...</div>
+    <template v-if='devicesList'>
+      <h3>
+        {{ (Object.values(devicesList)[0] as any)?.average_voltage }}V
+      </h3>
+    </template>
+
     <q-btn @click="installApp"
            color="white"
            text-color="black"
            label="Install App" />
+
+    <q-tabs v-model="tab"
+            dense
+            class="bg-indigo text-white"
+            v-if="devicesList">
+      <q-tab v-for="device of Object.keys(devicesList)"
+             :name="device"
+             :label="device" />
+    </q-tabs>
   </q-page>
 </template>
 
 <script setup lang="ts">
+import { Device } from 'src/interfaces';
 import { ref } from 'vue';
+
+const devicesList = ref<Record<string, Device>>({});
+const tab = ref();
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -29,7 +48,6 @@ function installApp() {
   deferredPrompt.prompt();
 };
 
-const devicesList = ref();
 
 async function fetchCellInfo() {
   try {
