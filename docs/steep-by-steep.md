@@ -47,12 +47,9 @@ npm install pm2 -g
 pm2 start ecosystem.config.js
 ```
 
-## Встановіть необхідні залежності
+## Встановіть необхідні права на папку для статики
 ```
-
-```
-
-## Встановіть необхідні залежності
-```
+sudo chown -R $(whoami):$(whoami) /usr/share/nginx/html
+sudo chmod -R 755 /usr/share/nginx/html
 
 ```
