@@ -5,7 +5,7 @@
  */
 
 declare const self: ServiceWorkerGlobalScope &
-  typeof globalThis & { skipWaiting: () => void };
+  typeof globalThis & { skipWaiting: () => void; };
 
 import { clientsClaim } from 'workbox-core';
 import {
@@ -14,6 +14,7 @@ import {
   createHandlerBoundToURL,
 } from 'workbox-precaching';
 import { registerRoute, NavigationRoute } from 'workbox-routing';
+import { NetworkFirst } from 'workbox-strategies';
 
 self.skipWaiting();
 clientsClaim();
@@ -33,3 +34,11 @@ if (process.env.MODE !== 'ssr' || process.env.PROD) {
     )
   );
 }
+
+self.skipWaiting();
+registerRoute(({ url }) => url.pathname.startsWith('/'), new NetworkFirst(), 'GET');
+registerRoute(({ url }) => /^http/.test(url.pathname), new NetworkFirst(), 'GET');
+self.addEventListener('activate', function (event) {
+  console.log('customSw -> @activate :: ', event);
+  event.waitUntil(self.clients.claim());
+});

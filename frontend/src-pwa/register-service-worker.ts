@@ -1,8 +1,12 @@
 import { register } from 'register-service-worker';
+import { Notify } from 'quasar';
 
 // The ready(), registered(), cached(), updatefound() and updated()
 // events passes a ServiceWorkerRegistration instance in their arguments.
 // ServiceWorkerRegistration: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration
+
+const appVersion = process.env.APP_VERSION;
+console.log('%c[APP-VERSION]: ' + appVersion, 'color: #654ef2; font-weight: bold; font-size: 16px;');
 
 register(process.env.SERVICE_WORKER_FILE, {
   // The registrationOptions object will be passed as the second argument
@@ -11,31 +15,59 @@ register(process.env.SERVICE_WORKER_FILE, {
 
   // registrationOptions: { scope: './' },
 
-  ready (/* registration */) {
+  ready(/* registration */) {
     // console.log('Service worker is active.')
   },
 
-  registered (/* registration */) {
+  registered(/* registration */) {
     // console.log('Service worker has been registered.')
   },
 
-  cached (/* registration */) {
-    // console.log('Content has been cached for offline use.')
+  cached(/* registration */) {
+    console.log('Content has been cached for offline use.');
   },
 
-  updatefound (/* registration */) {
-    // console.log('New content is downloading.')
+  updatefound(/* registration */) {
+    console.log('New content is downloading.');
+    Notify.create({
+      type: 'info',
+      progress: true,
+      message: 'New content is downloading, please refresh the page when it\'s done.',
+      position: 'bottom',
+      multiLine: true,
+      timeout: 2000
+    });
   },
 
-  updated (/* registration */) {
-    // console.log('New content is available; please refresh.')
+  updated(/* registration */) {
+    console.log('New content is available; please refresh.');
+    // force
+    Notify.create({
+      type: 'warning',
+      progress: true,
+      message: 'New content is available. Please click on \'Ok\' to apply changes, or \'Cancel\' and refresh the page yourself later.',
+      position: 'bottom',
+      multiLine: true,
+      actions: [
+        { label: 'Cancel', color: 'white', handler: () => { /**/ } },
+        {
+          label: 'Ok',
+          color: 'white',
+          handler: () => {
+            // localStorage.clear()
+            (location as unknown as any)?.reload();
+          }
+        }
+      ],
+      timeout: 0
+    });
   },
 
-  offline () {
+  offline() {
     // console.log('No internet connection found. App is running in offline mode.')
   },
 
-  error (/* err */) {
+  error(/* err */) {
     // console.error('Error during service worker registration:', err)
   },
 });
