@@ -5,7 +5,7 @@ PROJECT_NAME="bms-monitor-ble"
 
 function deploy() {
   echo "====> Починаємо оновлення проекту"
-  
+
 
   echo "====> Оновлюємо код з Git"
   git pull
@@ -17,7 +17,7 @@ function deploy() {
 
   echo "====> Ребілдимо Докер-образи через Docker Compose"
   docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down
-  docker compose -f $COMPOSE_FILE -p $PROJECT_NAME --build -d
+  docker compose -f $COMPOSE_FILE -p $PROJECT_NAME up --build -d
 
   # Копіюємо статичні файли для фронтенду з докеру в локальну папку
   docker cp $(docker ps -q -f name=$PROJECT_NAME):/usr/share/nginx/html /usr/share/nginx/
