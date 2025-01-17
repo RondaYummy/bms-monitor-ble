@@ -40,5 +40,5 @@ function check_deploy() {
 
 while [ 1 ]; do
     check_deploy 2>&1
-    sleep 120
+    sleep 300
 done
