@@ -1,12 +1,14 @@
 import { register } from 'register-service-worker';
 import { Notify } from 'quasar';
+import packageJson from '../../package.json';
 
 // The ready(), registered(), cached(), updatefound() and updated()
 // events passes a ServiceWorkerRegistration instance in their arguments.
 // ServiceWorkerRegistration: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerRegistration
 
-const randomVersion = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
-console.log('%c[APP-VERSION]: ' + randomVersion, 'color: #654ef2; font-weight: bold; font-size: 16px;');
+// const randomVersion = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+const appVersion = packageJson.version;
+console.log('%c[APP-VERSION]: ' + appVersion, 'color: #654ef2; font-weight: bold; font-size: 16px;');
 
 register(process.env.SERVICE_WORKER_FILE, {
   // The registrationOptions object will be passed as the second argument
