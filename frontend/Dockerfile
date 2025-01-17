@@ -2,13 +2,13 @@ FROM node:22 as build-stage
 
 WORKDIR /usr/src/app
 
-COPY package.json yarn.lock ./
+COPY package.json package-lock.json ./
 
-RUN yarn install
+RUN npm install
 
 COPY . .
 
-RUN yarn build
+RUN npm run build
 
 FROM nginx:stable-alpine
 
