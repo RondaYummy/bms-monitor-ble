@@ -1,5 +1,8 @@
 #!/bin/bash
 
+COMPOSE_FILE="docker-compose.yml"
+PROJECT_NAME="bms-monitor-ble"
+
 function deploy() {
   echo "====> Починаємо оновлення проекту"
 
@@ -11,26 +14,14 @@ function deploy() {
   fi
   echo "✅ Код успішно оновлено з Git"
 
-  echo "====> Ребілдимо Докер"
-  docker build --no-cache -t bms-monitor-ble .
+  echo "====> Ребілдимо Докер-образи через Docker Compose"
+  docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME down
+  docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME up --build -d
   if [ $? -ne 0 ]; then
-    echo "❌ Помилка під час ребілду докера"
+    echo "❌ Помилка під час ребілду та запуску контейнерів"
     exit 1
   fi
-  echo "✅ Докер перезібрався успішно"
-
-  echo "====> Запускаємо проект"
-  docker stop bms-monitor-ble
-  docker rm bms-monitor-ble
-  docker run -d --privileged --name bms-monitor-ble --net=host \
-      -v /var/run/dbus:/var/run/dbus \
-      bms-monitor-ble
-  if [ $? -ne 0 ]; then
-    echo "❌ Помилка під час запуску проекта"
-    exit 1
-  fi
-  echo "✅ Проект успішно запущено"
-
+  echo "✅ Контейнери успішно перезапущені"
 
   echo "====> Оновлення проекту завершено успішно"
 }
@@ -49,5 +40,5 @@ function check_deploy() {
 
 while [ 1 ]; do
     check_deploy 2>&1
-    sleep 60
+    sleep 120
 done
