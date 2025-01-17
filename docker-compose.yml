@@ -28,7 +28,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - ./nginx-html:/usr/share/nginx/html
+      - /usr/share/nginx/html:/usr/share/nginx/html
 
   python-app:
     build:
