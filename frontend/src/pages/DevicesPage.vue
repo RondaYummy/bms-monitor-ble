@@ -3,16 +3,16 @@
     <h2>Devices</h2>
     <p>Here you can manage your devices.</p>
 
-    <ul v-for="device of devicesList"
-        :key="device?.serial_number">
-      <li>
+    <ul>
+      <li v-for="device of devicesList"
+          :key="device?.serial_number">
         <div class="column">
           <div class="row justify-between q-mb-10">
             <div class="column">
               <q-badge id="dev-name"
-                       class="q-mb-10"
+                       class="q-mb-10 text-center"
                        color="cyan">
-                #{{ device.device_name }}
+                {{ device.device_name }}
               </q-badge>
               <div>{{ device.vendor_id }}</div>
             </div>
@@ -31,9 +31,6 @@
         </div>
       </li>
     </ul>
-    <q-badge color="blue">
-      #4D96F2
-    </q-badge>
   </q-page>
 </template>
 
@@ -77,6 +74,14 @@ fetchDeviceInfo();
   }
 }
 
+ul {
+  list-style-type: none;
+}
+
+#dev-name {
+  position: relative;
+}
+
 li #dev-name::before {
   content: "";
   width: 8px;
@@ -88,5 +93,10 @@ li #dev-name::before {
   left: -7px;
   box-shadow: 0 0 5px rgba(0, 128, 0, 0.5);
   animation: pulse 1.5s infinite;
+}
+
+h2,
+p {
+  margin: 0;
 }
 </style>

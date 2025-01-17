@@ -225,33 +225,61 @@ sudo nano /etc/nginx/sites-available/solar.levych.com.conf
 сертифікати SSL
 
 ```
+# Перенаправлення HTTP на HTTPS
 server {
     listen 8080;
     listen [::]:8080;
 
     server_name solar.levych.com;
+
+    # Перенаправлення HTTP на HTTPS
     return 301 https://solar.levych.com$request_uri;
 }
 
+# HTTPS сервер
 server {
-    listen 8443  ssl http2;
+    listen 8443 ssl http2;
     listen [::]:8443 ssl http2;
 
     server_name solar.levych.com;
 
+    # SSL сертифікати
     ssl_certificate /etc/letsencrypt/live/solar.levych.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/solar.levych.com/privkey.pem;
     ssl_trusted_certificate /etc/letsencrypt/live/solar.levych.com/chain.pem;
 
     include snippets/ssl-params.conf;
 
-    location / {
-        proxy_pass http://localhost:8000;
+    # Проксі на Python-додаток
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000; # Проксі-запити до Python-додатка
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto https;
     }
+
+    # Обслуговування фронтенда (статичні файли Quasar)
+    root /usr/share/nginx/html/pwa; # Де розміщені статичні файли Quasar
+    index index.html;
+
+    location / {
+        try_files $uri /index.html; # Файли фронтенда
+    }
+
+    # Кешування статичних файлів
+    location ~* \.(?:ico|css|js|woff2?|eot|ttf|otf|svg|jpg|jpeg|gif|png|webp|avif|mp4|webm|ogg|mp3|wav|flac|aac|m4a)$ {
+        expires 6M;
+        access_log off;
+    }
+
+    # Забезпечення актуальності Service Worker
+    location /service-worker.js {
+        add_header Cache-Control "no-cache";
+    }
+
+    # Перенаправлення помилок 404 на index.html (для SPA)
+    error_page 404 /index.html;
 }
 ```
 
