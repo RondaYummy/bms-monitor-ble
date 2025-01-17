@@ -9,7 +9,8 @@
   "scripts": {
     "build": "docker compose up --build",
     "dev": "docker compose up",
-    "prod": "docker compose -f docker-compose.yml up --build -d"
+    "prod": "docker compose -f docker-compose.yml up --build -d",
+    "postbuild": "docker cp bms-monitor-ble-frontend-1:/usr/share/nginx/html /usr/share/nginx/"
   },
   "repository": {
     "type": "git",

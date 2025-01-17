@@ -17,6 +17,7 @@ function deploy() {
   echo "====> Ребілдимо Докер-образи через Docker Compose"
   docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME down
   docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME up --build -d
+  docker cp bms-monitor-ble-frontend-1:/usr/share/nginx/html /usr/share/nginx/
   if [ $? -ne 0 ]; then
     echo "❌ Помилка під час ребілду та запуску контейнерів"
     exit 1
