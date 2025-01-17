@@ -1,6 +1,6 @@
 <template>
   <q-page class="column items-center justify-evenly">
-    <div>Loading...</div>
+    <div>1Loading...</div>
     <q-btn @click="installApp"
            color="white"
            text-color="black"
