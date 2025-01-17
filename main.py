@@ -26,6 +26,13 @@ def get_device_info():
             info.pop(field, None)
     return data_copy
 
+@app.get("/api/cell-info")
+def get_cell_info():
+    print(f"[/api/cell-info] {cell_info_data}")
+    if not cell_info_data:
+        return JSONResponse(content={"message": "No cell info available yet."}, status_code=404)
+    return cell_info_data
+
 # If the frame starts with 55aaeb9003 it's a device info frame. 55aaeb9002 is a cell info frame.
 
 MIN_FRAME_SIZE = 300
@@ -41,6 +48,7 @@ CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 
 response_buffer = bytearray()
 device_info_data = {}
+cell_info_data = {}
 
 @app.on_event("startup")
 async def startup_event():
@@ -140,6 +148,7 @@ def parse_device_data(data: bytearray):
 
 def parse_cell_info(data, device_name):
     """Parsing Cell Info Frame (0x02)."""
+    global cell_info_data
     log(device_name, "Parsing Cell Info Frame...")
 
     try:
@@ -169,7 +178,12 @@ def parse_cell_info(data, device_name):
         cycle_count = int.from_bytes(data[150:154], byteorder='little')
         state_of_health = data[158]
 
+        average_voltage = sum(cell_voltages) / len(cell_voltages)
+        voltage_diff = max(cell_voltages) - min(cell_voltages)
+
         cell_info = {
+            "voltage_difference": voltage_diff,
+            "average_voltage": average_voltage,
             "cell_voltages": cell_voltages,
             "power_tube_temperature": power_tube_temp,
             "battery_voltage": battery_voltage,
@@ -183,6 +197,8 @@ def parse_cell_info(data, device_name):
             "cycle_count": cycle_count,
             "state_of_health": state_of_health,
         }
+
+        cell_info_data[device_name] = cell_info
 
         # CRC Validation
         crc_calculated = calculate_crc(data[:-1])

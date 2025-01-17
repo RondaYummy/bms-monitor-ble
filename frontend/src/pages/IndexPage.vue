@@ -9,6 +9,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
+
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
   readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string; }>;
@@ -26,4 +28,21 @@ window.addEventListener('beforeinstallprompt', (event: Event) => {
 function installApp() {
   deferredPrompt.prompt();
 };
+
+const devicesList = ref();
+
+async function fetchCellInfo() {
+  try {
+    const response = await fetch('/api/cell-info');
+    if (!response.ok) {
+      throw new Error('Failed to fetch cell info');
+    }
+    const data = await response.json();
+    console.log('Cell Info:', data);
+    devicesList.value = data;
+  } catch (error) {
+    console.error('Error fetching cell info:', error);
+  }
+}
+fetchCellInfo();
 </script>
