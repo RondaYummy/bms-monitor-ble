@@ -10,6 +10,8 @@ RUN yarn install
 
 RUN yarn build
 
+RUN ls -la /app/dist
+
 FROM nginx:stable-alpine
 
 RUN ls -la /app/dist
