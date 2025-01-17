@@ -15,6 +15,8 @@ FROM nginx:stable-alpine
 # Копіюємо статичні файли у папку nginx
 COPY --from=build-stage /app/dist /usr/share/nginx/html
 
+RUN ls -l /usr/share/nginx/html
+
 # Копіюємо кастомний конфіг для nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
