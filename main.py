@@ -2,8 +2,6 @@ import asyncio
 from bleak import BleakClient, BleakScanner
 from colors import *
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from copy import deepcopy
@@ -15,11 +13,6 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-@app.get("/")
-def read_root():
-    return FileResponse("static/index.html")
 
 @app.get("/api/device-info")
 def get_device_info():
