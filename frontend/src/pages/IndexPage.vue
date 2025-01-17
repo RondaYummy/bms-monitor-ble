@@ -3,7 +3,12 @@
     <div>Loading...</div>
     <template v-if='devicesList'>
       <h3>
-        {{ (Object.values(devicesList)[0] as any)?.average_voltage }}V
+        {{ (Object.values(devicesList)[0] as any)?.average_voltage?.toFixed(2) }}
+        <sup>V</sup>
+      </h3>
+      <h3 class='unique'>
+        {{ (Object.values(devicesList)[0] as any)?.remaining_capacity?.toFixed(2) }}
+        <sup>Ah</sup>
       </h3>
     </template>
 
