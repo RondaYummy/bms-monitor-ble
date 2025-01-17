@@ -6,7 +6,6 @@ PROJECT_NAME="bms-monitor-ble"
 function deploy() {
   echo "====> Починаємо оновлення проекту"
 
-
   echo "====> Оновлюємо код з Git"
   git pull
   if [ $? -ne 0 ]; then
@@ -26,7 +25,6 @@ function deploy() {
     exit 1
   fi
   echo "✅ Контейнери успішно перезапущені"
-
 
   echo "====> Оновлення проекту завершено успішно"
 }
