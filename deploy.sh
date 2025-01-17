@@ -17,6 +17,8 @@ function deploy() {
   echo "====> Ребілдимо Докер-образи через Docker Compose"
   docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME down
   docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME --build -d
+
+  # Копіюємо статичні файли для фронтенду з докеру
   docker cp $(docker ps -q -f name=$PROJECT_NAME):/usr/share/nginx/html /usr/share/nginx/
   if [ $? -ne 0 ]; then
     echo "❌ Помилка під час ребілду та запуску контейнерів"
