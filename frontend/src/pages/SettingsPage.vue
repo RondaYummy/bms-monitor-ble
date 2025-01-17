@@ -1,8 +1,8 @@
 <template>
-  <div>
+  <q-page class="column">
     <h2>Settings</h2>
     <p>Adjust your preferences and configurations.</p>
-  </div>
+  </q-page>
 </template>
 
 <script setup lang='ts'>
