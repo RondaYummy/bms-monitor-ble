@@ -37,11 +37,13 @@
            text-color="black"
            label="Install App" />
 
-    <div class='row q-gutter-sm'
-         v-for='(d, idx) of calculatedList.cell_voltages'
-         :key="`cv_${idx}`">
-      <div class='row q-gutter-sm'>
-        <q-chip icon="event">{{ String(idx + 1).padStart(2, '0') }}</q-chip> -
+    <div class='row q-gutter-sm'>
+      <div class='row q-gutter-sm items-center'
+           v-for='(d, idx) of calculatedList.cell_voltages'
+           :key="`cv_${idx}`">
+        <q-chip color="primary"
+                text-color="white">{{ String(idx + 1).padStart(2, '0') }}</q-chip>
+        -
         {{ d?.toFixed(2) }} v.
       </div>
     </div>
@@ -49,8 +51,10 @@
     <div class='row q-gutter-sm q-mt-md'
          v-for='(d, idx) of calculatedList.cell_resistances'
          :key="`cr_${idx}`">
-      <div class='row q-gutter-sm'>
-        <q-chip icon="event">{{ String(idx + 1).padStart(2, '0') }}</q-chip> -
+      <div class='row q-gutter-sm items-center'>
+        <q-chip color="primary"
+                text-color="white">{{ String(idx + 1).padStart(2, '0') }}</q-chip>
+        -
         {{ d?.toFixed(2) }} v.
       </div>
     </div>
