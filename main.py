@@ -177,7 +177,7 @@ def parse_cell_info(data, device_name):
 
         # Filter only those cells that have a voltage > 0
         filtered_voltages = [v for v in cell_voltages if v > 0]
-        filtered_resistances = [v for v in cell_voltages if v > 0]
+        filtered_resistances = [v for v in cell_resistances if v > 0]
 
         power_tube_temp = int.from_bytes(data[112:114], byteorder='little', signed=True) * 0.1
         battery_voltage = int.from_bytes(data[118:122], byteorder='little') * 0.001
