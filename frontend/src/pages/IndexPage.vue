@@ -1,15 +1,16 @@
 <template>
   <q-page class="column items-center justify-evenly">
-    <div>Loading...</div>
     <template v-if='devicesList'>
-      <h3>
-        {{ (Object.values(devicesList)[0] as any)?.average_voltage?.toFixed(2) }}
-        <sup>V</sup>
-      </h3>
-      <h3 class='unique'>
-        {{ (Object.values(devicesList)[0] as any)?.remaining_capacity?.toFixed(2) }}
-        <sup>Ah</sup>
-      </h3>
+      <div class='row q-gutter-sm'>
+        <h3>
+          {{ calculatedList?.average_voltage?.toFixed(2) }}
+          <sup>V</sup>
+        </h3>
+        <h3 class='unique'>
+          {{ calculatedList?.remaining_capacity?.toFixed(2) }}
+          <sup>Ah</sup>
+        </h3>
+      </div>
     </template>
 
     <q-btn @click="installApp"
@@ -31,9 +32,13 @@
 
 <script setup lang="ts">
 import type { Device } from 'src/interfaces';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 const devicesList = ref<Record<string, Device>>({});
+const calculatedList = ref({
+  average_voltage: 0,
+  remaining_capacity: 0,
+});
 const tab = ref();
 
 interface BeforeInstallPromptEvent extends Event {
@@ -48,6 +53,48 @@ window.addEventListener('beforeinstallprompt', (event: Event) => {
   // Запобігти автоматичному показу діалогу
   // event.preventDefault();
   deferredPrompt = event as BeforeInstallPromptEvent;
+});
+
+watch(devicesList, () => {
+  const values = Object.values(devicesList);
+  if (values?.length) {
+    values.forEach((v) => {
+      calculatedList.value.average_voltage += v.average_voltage;
+      calculatedList.value.remaining_capacity += v.remaining_capacity;
+    });
+  }
+
+  // const g = {
+  //   "Andrii 1": {
+  //     "voltage_difference": 0.006000000000000227,
+  //     "average_voltage": 3.961166666666667,
+  //     "cell_voltages": [
+  //       3.956,
+  //       3.9610000000000003,
+  //       3.962,
+  //       3.962,
+  //       3.962,
+  //       3.962,
+  //       3.962,
+  //       3.962,
+  //       3.9610000000000003,
+  //       3.962,
+  //       3.962,
+  //       3.96
+  //     ],
+  //     "power_tube_temperature": 0,
+  //     "battery_voltage": 0,
+  //     "battery_power": 0,
+  //     "charge_current": 0,
+  //     "temperature_sensor_1": 0,
+  //     "temperature_sensor_2": 0,
+  //     "state_of_charge": 0,
+  //     "remaining_capacity": 8912.896,
+  //     "nominal_capacity": 0,
+  //     "cycle_count": 47537,
+  //     "state_of_health": 199;
+  //   }
+  // };
 });
 
 function installApp() {
