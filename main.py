@@ -158,8 +158,6 @@ def parse_cell_info(data, device_name):
 
         # Extract cell data
         cell_voltages = []
-        cell_resistances = []
-
         start_index = 6  # Initial index for cell tension
         num_cells = 32   # Maximum number of cells
         for i in range(num_cells):
@@ -168,19 +166,8 @@ def parse_cell_info(data, device_name):
             cell_voltages.append(voltage)
             start_index += 2
 
-        # Extract cell data for resistances
-        cell_voltages = []
-        start_index = 64  # Initial index for cell tension
-        num_cells = 32   # Maximum number of cells
-        for i in range(num_cells):
-            resistance_raw = int.from_bytes(data[start_index:start_index + 2], byteorder='little')
-            resistance = resistance_raw * 0.001  # Conversion to ohms
-            cell_resistances.append(resistance)
-            start_index += 2
-
         # Filter only those cells that have a voltage > 0
         filtered_voltages = [v for v in cell_voltages if v > 0]
-        filtered_resistances = [v for v in cell_resistances if v > 0]
 
         power_tube_temp = int.from_bytes(data[112:114], byteorder='little', signed=True) * 0.1
         battery_voltage = int.from_bytes(data[118:122], byteorder='little') * 0.001
@@ -194,18 +181,13 @@ def parse_cell_info(data, device_name):
         cycle_count = int.from_bytes(data[150:154], byteorder='little')
         state_of_health = data[158]
 
-        if filtered_voltages:
-            average_voltage = sum(filtered_voltages) / len(filtered_voltages)
-            voltage_diff = max(filtered_voltages) - min(filtered_voltages)
-        else:
-            average_voltage = 0.0
-            voltage_diff = 0.0
+        average_voltage = sum(filtered_voltages) / len(filtered_voltages)
+        voltage_diff = max(filtered_voltages) - min(filtered_voltages)
 
         cell_info = {
             "voltage_difference": voltage_diff,
             "average_voltage": average_voltage,
             "cell_voltages": filtered_voltages,
-            "filtered_resistances": filtered_resistances,
             "power_tube_temperature": power_tube_temp,
             "battery_voltage": battery_voltage,
             "battery_power": battery_power,
