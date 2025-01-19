@@ -166,8 +166,19 @@ def parse_cell_info(data, device_name):
             cell_voltages.append(voltage)
             start_index += 2
 
+        # Extract cell data for resistances
+        cell_resistances = []
+        start_index = 70  # Initial index for cell tension
+        num_cells = 32   # Maximum number of cells
+        for i in range(num_cells):
+            voltage_raw = int.from_bytes(data[start_index:start_index + 2], byteorder='little')
+            voltage = voltage_raw * 0.001  # Conversion of volts
+            cell_resistances.append(voltage)
+            start_index += 2
+
         # Filter only those cells that have a voltage > 0
         filtered_voltages = [v for v in cell_voltages if v > 0]
+        filtered_resistances = [v for v in cell_voltages if v > 0]
 
         power_tube_temp = int.from_bytes(data[112:114], byteorder='little', signed=True) * 0.1
         battery_voltage = int.from_bytes(data[118:122], byteorder='little') * 0.001
@@ -188,6 +199,7 @@ def parse_cell_info(data, device_name):
             "voltage_difference": voltage_diff,
             "average_voltage": average_voltage,
             "cell_voltages": filtered_voltages,
+            "filtered_resistances": filtered_resistances,
             "power_tube_temperature": power_tube_temp,
             "battery_voltage": battery_voltage,
             "battery_power": battery_power,
