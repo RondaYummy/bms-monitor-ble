@@ -211,7 +211,7 @@ def parse_cell_info(data, device_name):
         log(device_name, data)
         log(device_name, f"Data Length: {len(data)}")
         for i in range(100, 130):
-        log(device_name, f"Byte at {i}: {data[i]:02x}")
+            log(device_name, f"Byte at {i}: {data[i]:02x}")
 
         cell_info = {
             "charging_status": charging_status,
