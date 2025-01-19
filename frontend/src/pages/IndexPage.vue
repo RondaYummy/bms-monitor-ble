@@ -37,29 +37,33 @@
            text-color="black"
            label="Install App" />
 
-    <h6>Cell Voltages:</h6>
-    <div class='row q-gutter-sm q-pl-md q-pr-md'>
-      <div class='row q-gutter-sm items-center'
-           v-for='(d, idx) of calculatedList.cell_voltages'
-           :key="`cv_${idx}`">
-        <q-chip dense
-                color="primary"
-                text-color="white">{{ String(idx + 1).padStart(2, '0') }}</q-chip>
-        -
-        {{ d?.toFixed(2) }} v.
+    <div>
+      <h6>Cell Voltages:</h6>
+      <div class='row justify-center q-gutter-sm q-pl-md q-pr-md'>
+        <div class='row q-gutter-sm items-center'
+             v-for='(d, idx) of calculatedList.cell_voltages'
+             :key="`cv_${idx}`">
+          <q-chip dense
+                  color="primary"
+                  text-color="white">{{ String(idx + 1).padStart(2, '0') }}</q-chip>
+          -
+          {{ d?.toFixed(2) }} v.
+        </div>
       </div>
     </div>
 
-    <h6>Cell Wire Resistance:</h6>
-    <div class='row q-gutter-sm q-mt-md q-pl-md q-pr-md'>
-      <div class='row q-gutter-sm items-center'
-           v-for='(d, idx) of calculatedList.cell_resistances'
-           :key="`cr_${idx}`">
-        <q-chip dense
-                color="primary"
-                text-color="white">{{ String(idx + 1).padStart(2, '0') }}</q-chip>
-        -
-        {{ d?.toFixed(2) }} v.
+    <div>
+      <h6>Cell Wire Resistance:</h6>
+      <div class='row justify-center q-gutter-sm q-pl-md q-pr-md'>
+        <div class='row q-gutter-sm items-center'
+             v-for='(d, idx) of calculatedList.cell_resistances'
+             :key="`cr_${idx}`">
+          <q-chip dense
+                  color="primary"
+                  text-color="white">{{ String(idx + 1).padStart(2, '0') }}</q-chip>
+          -
+          {{ d?.toFixed(2) }} v.
+        </div>
       </div>
     </div>
 
