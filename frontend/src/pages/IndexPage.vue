@@ -68,8 +68,9 @@
     </div>
 
     <q-tabs v-model="tab"
+            @update:model-value="selectSingleDevice"
             dense
-            class="bg-indigo text-white"
+            class="q-mt-sm bg-indigo text-white"
             v-if="devicesList">
       <q-tab v-for="device of Object.keys(devicesList)"
              :key="device"
@@ -135,6 +136,9 @@ function installApp() {
   deferredPrompt.prompt();
 };
 
+function selectSingleDevice(tab: string) {
+  calculatedList.value = devicesList.value[tab];
+}
 
 async function fetchCellInfo() {
   try {
