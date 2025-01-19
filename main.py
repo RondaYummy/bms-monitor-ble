@@ -209,6 +209,7 @@ def parse_cell_info(data, device_name):
         log(device_name, f"Endian Value: {int.from_bytes(data[126+32:130+32], byteorder='little', signed=True) * 0.001}")
         log(device_name, f"Power: {int.from_bytes(data[122+32:126+32], byteorder='little', signed=True) * 0.001}")
         log(device_name, f"Nominal capacity: {int.from_bytes(data[146+32:149+32], byteorder='little', signed=True) * 0.001}")
+        log(device_name, f"Discharging MOSFET status: {data[167+32]}")
 
         log(device_name, data)
 
