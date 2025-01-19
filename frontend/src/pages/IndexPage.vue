@@ -70,7 +70,7 @@
     <q-tabs v-model="tab"
             @update:model-value="selectSingleDevice"
             dense
-            class="q-mt-sm bg-indigo text-white"
+            class="q-mt-sm bg-indigo text-white wrap"
             v-if="devicesList">
       <q-tab name="All"
              label="All" />
@@ -88,14 +88,7 @@ import type { Device } from 'src/interfaces';
 import { ref, watch } from 'vue';
 
 const devicesList = ref<Record<string, Device>>({});
-const calculatedList = ref<any>({
-  average_voltage: 0,
-  remaining_capacity: 0,
-  nominal_capacity: 0,
-  cell_resistances: [],
-  cell_voltages: [],
-
-});
+const calculatedList = ref<any>();
 const tab = ref();
 
 interface BeforeInstallPromptEvent extends Event {
@@ -118,6 +111,14 @@ watch(devicesList, () => {
 
 function calculateData() {
   const values = Object.values(devicesList.value);
+  calculatedList.value = {
+    average_voltage: 0,
+    remaining_capacity: 0,
+    nominal_capacity: 0,
+    cell_resistances: [],
+    cell_voltages: [],
+
+  };
 
   if (values?.length) {
     const numbers: number[] = [];
