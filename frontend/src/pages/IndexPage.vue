@@ -56,7 +56,7 @@
       <h6>Cell Wire Resistance:</h6>
       <div class='row justify-center q-gutter-sm q-pl-md q-pr-md'>
         <div class='row q-gutter-sm items-center'
-             v-for='(d, idx) of calculatedList.cell_resistances'
+             v-for='(d, idx) of calculatedList?.cell_resistances'
              :key="`cr_${idx}`">
           <q-chip dense
                   color="primary"
