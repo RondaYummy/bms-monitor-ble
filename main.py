@@ -206,8 +206,10 @@ def parse_cell_info(data, device_name):
         average_voltage = sum(filtered_voltages) / len(filtered_voltages)
         voltage_diff = max(filtered_voltages) - min(filtered_voltages)
         
-        log(device_name, f"Raw Bytes Before Parsing: {data[118:122].hex()}")
+        log(device_name, f"Raw Bytes Before Parsing: {data[118+32:122+32].hex()}")
         log(device_name, f"Endian Value: {int.from_bytes(data[122+32:126+32])}")
+        log(device_name, f"Endian Value: {int.from_bytes(data[126+32:130+32], byteorder='little', signed=True) * 0.001)}")
+
         log(device_name, data)
 
         cell_info = {
