@@ -166,14 +166,13 @@ def parse_cell_info(data, device_name):
             cell_voltages.append(voltage)
             start_index += 2
 
-        # Extract cell data for resistances
+        # Extract cell resistances
         cell_resistances = []
-        start_index = 70  # Initial index for cell tension
-        num_cells = 32   # Maximum number of cells
+        start_index = 70  # Adjust this index based on the protocol specification
         for i in range(num_cells):
-            voltage_raw = int.from_bytes(data[start_index:start_index + 2], byteorder='little')
-            voltage = voltage_raw * 0.001  # Conversion of volts
-            cell_resistances.append(voltage)
+            resistance_raw = int.from_bytes(data[start_index:start_index + 2], byteorder='little')
+            resistance = resistance_raw * 0.001  # Conversion of resistance
+            cell_resistances.append(resistance)
             start_index += 2
 
         # Filter only those cells that have a voltage > 0
