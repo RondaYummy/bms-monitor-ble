@@ -184,24 +184,27 @@ def parse_cell_info(data, device_name):
         filtered_voltages = [v for v in cell_voltages if v > 0]
         filtered_resistances = [v for v in cell_resistances if v > 0]
 
-        power_tube_temp = int.from_bytes(data[112:114], byteorder='little', signed=True) * 0.1
-        battery_voltage = int.from_bytes(data[118:122], byteorder='little', signed=True) * 0.001
-        battery_power = int.from_bytes(data[122:126], byteorder='little', signed=True) * 0.001
-        charge_current = int.from_bytes(data[126:130], byteorder='little', signed=True) * 0.001
-        temperature_sensor_1 = int.from_bytes(data[130:132], byteorder='little', signed=True) * 0.1
-        temperature_sensor_2 = int.from_bytes(data[132:134], byteorder='little', signed=True) * 0.1
-        temperature_sensor_5 = int.from_bytes(data[222:224], byteorder='little', signed=True) * 0.1
-        temperature_sensor_4 = int.from_bytes(data[224:226], byteorder='little', signed=True) * 0.1
-        temperature_sensor_3 = int.from_bytes(data[226:228], byteorder='little', signed=True) * 0.1
+        # TODO need add 32 to pos, after cell resistance?
+        power_tube_temp = int.from_bytes(data[112+32:114+32], byteorder='little', signed=True) * 0.1
+        battery_voltage = int.from_bytes(data[118+32:122+32], byteorder='little', signed=True) * 0.001
+        battery_power = int.from_bytes(data[122+32:126+32], byteorder='little', signed=True) * 0.001
+        charge_current = int.from_bytes(data[126+32:130+32], byteorder='little', signed=True) * 0.001
+        temperature_sensor_1 = int.from_bytes(data[130+32:132+32], byteorder='little', signed=True) * 0.1
+        temperature_sensor_2 = int.from_bytes(data[132+32:134+32], byteorder='little', signed=True) * 0.1
 
-        state_of_charge = data[141]
-        remaining_capacity = int.from_bytes(data[142:146], byteorder='little') * 0.001
-        nominal_capacity = int.from_bytes(data[146:150], byteorder='little') * 0.001
-        cycle_count = int.from_bytes(data[150:154], byteorder='little')
-        state_of_health = data[158]
-        charging_status = data[166]
-        discharging_status = data[167]
-        precharging_status = data[168]
+        state_of_charge = data[141+32]
+        remaining_capacity = int.from_bytes(data[142+32:146+32], byteorder='little') * 0.001
+        nominal_capacity = int.from_bytes(data[146+32:150+32], byteorder='little') * 0.001
+        cycle_count = int.from_bytes(data[150+32:154+32], byteorder='little')
+        state_of_health = data[158+32]
+        charging_status = data[166+32]
+        discharging_status = data[167+32]
+        precharging_status = data[168+32]
+
+        temperature_sensor_5 = int.from_bytes(data[222+32:224+32], byteorder='little', signed=True) * 0.1
+        temperature_sensor_4 = int.from_bytes(data[224+32:226+32], byteorder='little', signed=True) * 0.1
+        temperature_sensor_3 = int.from_bytes(data[226+32:228+32], byteorder='little', signed=True) * 0.1
+        emergency_time_countdown = int.from_bytes(data[168+32:187+32], byteorder='little')
 
         average_voltage = sum(filtered_voltages) / len(filtered_voltages)
         voltage_diff = max(filtered_voltages) - min(filtered_voltages)
@@ -236,6 +239,7 @@ def parse_cell_info(data, device_name):
             "nominal_capacity": nominal_capacity,
             "cycle_count": cycle_count,
             "state_of_health": state_of_health,
+            "emergency_time_countdown": emergency_time_countdown,
         }
 
         cell_info_data[device_name] = cell_info
