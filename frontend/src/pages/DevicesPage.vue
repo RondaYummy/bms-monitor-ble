@@ -59,23 +59,6 @@ fetchDeviceInfo();
 </script>
 
 <style scoped lang='scss'>
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-
-  50% {
-    transform: scale(1.2);
-    opacity: 0.7;
-  }
-
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
 ul {
   list-style-type: none;
   gap: 15px;
@@ -92,7 +75,7 @@ li #dev-name::before {
   content: "";
   width: 8px;
   height: 8px;
-  background-color: green;
+  background-color: #0f0;
   border-radius: 50%;
   position: absolute;
   top: -9px;

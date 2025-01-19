@@ -13,5 +13,7 @@ export interface Device {
   state_of_health?: number;
   cell_voltages: number[];
   cell_resistances: number[];
+  charging_status: number;
+  discharging_status: number;
 }
 

@@ -61,6 +61,23 @@ sup {
   }
 }
 
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 @keyframes jiggle {
   0% {
     transform: none;
@@ -120,4 +137,17 @@ sup {
 
 .coral {
   color: coral;
+}
+
+.indicate::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background-color: #0f0;
+  border-radius: 50%;
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  box-shadow: 0 0 5px rgba(0, 128, 0, 0.5);
+  animation: pulse 1.5s infinite;
 }

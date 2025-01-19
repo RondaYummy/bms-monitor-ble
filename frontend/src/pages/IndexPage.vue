@@ -2,15 +2,35 @@
   <q-page class="column items-center justify-evenly">
     <template v-if='devicesList'>
       <div class='row q-gutter-sm'>
-        <h3>
-          {{ calculatedList?.average_voltage?.toFixed(2) }}
-          <sup>V</sup>
+        <div>
+          <span
+                :class="{ indicate: calculatedList?.charging_status === 1 }">Charge</span>
+          <span
+                :class="{ indicate: calculatedList?.discharging_status === 1 }">Discharge</span>
+        </div>
+        <div class='row justify-between'>
+          <h3>
+            {{ calculatedList?.average_voltage?.toFixed(2) }}
+            <sup>V</sup>
 
-          <q-tooltip>
-            Це середнє значення напруги всіх комірок (ячейок) батареї, які мають
-            ненульову напругу.
-          </q-tooltip>
-        </h3>
+            <q-tooltip>
+              Це середнє значення напруги всіх комірок (ячейок) батареї, які
+              мають
+              ненульову напругу.
+            </q-tooltip>
+          </h3>
+          <h3
+              :class="{ unique: calculatedList?.charge_current < 0, charge: calculatedList?.charge_current > 0 }">
+            {{ calculatedList?.charge_current?.toFixed(2) }}
+            <sup>Ah</sup>
+
+            <q-tooltip>
+              Струм заряду, якщо число додатнє, йде заряджання а якщо відємне -
+              розряжання.
+            </q-tooltip>
+          </h3>
+        </div>
+
         <h3 class='unique'>
           {{ calculatedList?.remaining_capacity?.toFixed(2) }}
           <sup>Ah</sup>
@@ -117,6 +137,8 @@ function calculateData() {
     nominal_capacity: 0,
     cell_resistances: [],
     cell_voltages: [],
+    charging_status: 0,
+    discharging_status: 0,
 
   };
 
@@ -133,6 +155,8 @@ function calculateData() {
       cell_resistances.push(v.cell_resistances);
     });
 
+    calculatedList.value.discharging_status = values.some(obj => obj.discharging_status === 1) ? 1 : 0;
+    calculatedList.value.charging_status = values.some(obj => obj.charging_status === 1) ? 1 : 0;
     calculatedList.value.average_voltage = numbers.reduce((sum, num) => sum + num, 0) / numbers.length;
     calculatedList.value.cell_voltages = calculateAveragePerIndex(cell_voltages);
     calculatedList.value.cell_resistances = calculateAveragePerIndex(cell_resistances);
