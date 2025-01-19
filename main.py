@@ -201,6 +201,11 @@ def parse_cell_info(data, device_name):
         average_voltage = sum(filtered_voltages) / len(filtered_voltages)
         voltage_diff = max(filtered_voltages) - min(filtered_voltages)
 
+        # Log the specific fields for debugging
+        log(device_name, f"Battery Voltage Raw: {battery_voltage_raw}, Converted: {battery_voltage:.3f} V")
+        log(device_name, f"Battery Power Raw: {battery_power_raw}, Converted: {battery_power:.3f} W")
+        log(device_name, f"Charge Current Raw: {charge_current_raw}, Converted: {charge_current:.3f} A")
+
         cell_info = {
             "charging_status": charging_status,
             "discharging_status": discharging_status,
