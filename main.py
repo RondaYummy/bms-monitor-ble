@@ -190,9 +190,9 @@ def parse_cell_info(data, device_name):
         charge_current = int.from_bytes(data[126:130], byteorder='little', signed=True) * 0.001
         temperature_sensor_1 = int.from_bytes(data[130:132], byteorder='little', signed=True) * 0.1
         temperature_sensor_2 = int.from_bytes(data[132:134], byteorder='little', signed=True) * 0.1
-        temperature_sensor_3 = int.from_bytes(data[222:224], byteorder='little', signed=True) * 0.1
+        temperature_sensor_5 = int.from_bytes(data[222:224], byteorder='little', signed=True) * 0.1
         temperature_sensor_4 = int.from_bytes(data[224:226], byteorder='little', signed=True) * 0.1
-        temperature_sensor_5 = int.from_bytes(data[226:228], byteorder='little', signed=True) * 0.1
+        temperature_sensor_3 = int.from_bytes(data[226:228], byteorder='little', signed=True) * 0.1
 
         state_of_charge = data[141]
         remaining_capacity = int.from_bytes(data[142:146], byteorder='little') * 0.001
@@ -206,8 +206,8 @@ def parse_cell_info(data, device_name):
         average_voltage = sum(filtered_voltages) / len(filtered_voltages)
         voltage_diff = max(filtered_voltages) - min(filtered_voltages)
         
-        log(device_name, f"Raw Bytes Before Parsing: {data[130:160].hex()}")
-        log(device_name, f"Little-Endian Value: {int.from_bytes(data[130:160], byteorder='little')}")
+        log(device_name, f"Raw Bytes Before Parsing: {data[118:122].hex()}")
+        log(device_name, f"Little-Endian Value: {int.from_bytes(data[118:122])}")
         log(device_name, data)
 
         cell_info = {
