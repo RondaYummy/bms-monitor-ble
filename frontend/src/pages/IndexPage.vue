@@ -41,7 +41,7 @@
       <h6>Cell Voltages:</h6>
       <div class='row justify-center q-gutter-sm q-pl-md q-pr-md'>
         <div class='row q-gutter-sm items-center'
-             v-for='(d, idx) of calculatedList.cell_voltages'
+             v-for='(d, idx) of calculatedList?.cell_voltages'
              :key="`cv_${idx}`">
           <q-chip dense
                   color="primary"
