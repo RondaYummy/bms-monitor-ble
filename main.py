@@ -185,6 +185,10 @@ def parse_cell_info(data, device_name):
         charge_current = int.from_bytes(data[126:130], byteorder='little', signed=True) * 0.001
         temperature_sensor_1 = int.from_bytes(data[130:132], byteorder='little', signed=True) * 0.1
         temperature_sensor_2 = int.from_bytes(data[132:134], byteorder='little', signed=True) * 0.1
+        temperature_sensor_3 = int.from_bytes(data[222:224], byteorder='little', signed=True) * 0.1
+        temperature_sensor_4 = int.from_bytes(data[224:226], byteorder='little', signed=True) * 0.1
+        temperature_sensor_5 = int.from_bytes(data[226:228], byteorder='little', signed=True) * 0.1
+
         state_of_charge = data[141]
         remaining_capacity = int.from_bytes(data[142:146], byteorder='little') * 0.001
         nominal_capacity = int.from_bytes(data[146:150], byteorder='little') * 0.001
@@ -211,6 +215,9 @@ def parse_cell_info(data, device_name):
             "charge_current": charge_current,
             "temperature_sensor_1": temperature_sensor_1,
             "temperature_sensor_2": temperature_sensor_2,
+            "temperature_sensor_3": temperature_sensor_3,
+            "temperature_sensor_4": temperature_sensor_4,
+            "temperature_sensor_5": temperature_sensor_5,
             "state_of_charge": state_of_charge,
             "remaining_capacity": remaining_capacity,
             "nominal_capacity": nominal_capacity,
