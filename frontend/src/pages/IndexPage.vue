@@ -42,7 +42,7 @@
          :key="`cv_${idx}`">
       <div class='row q-gutter-sm'>
         <q-chip icon="event">{{ String(idx + 1).padStart(2, '0') }}</q-chip> -
-        {{ d }} v.
+        {{ d?.toFixed(2) }} v.
       </div>
     </div>
 
@@ -51,7 +51,7 @@
          :key="`cr_${idx}`">
       <div class='row q-gutter-sm'>
         <q-chip icon="event">{{ String(idx + 1).padStart(2, '0') }}</q-chip> -
-        {{ d }} v.
+        {{ d?.toFixed(2) }} v.
       </div>
     </div>
 
@@ -73,12 +73,12 @@ import type { Device } from 'src/interfaces';
 import { ref, watch } from 'vue';
 
 const devicesList = ref<Record<string, Device>>({});
-const calculatedList = ref({
+const calculatedList = ref<any>({
   average_voltage: 0,
   remaining_capacity: 0,
   nominal_capacity: 0,
-  cell_resistances: [[]],
-  cell_voltages: [[]],
+  cell_resistances: [],
+  cell_voltages: [],
 
 });
 const tab = ref();
