@@ -209,7 +209,6 @@ def parse_cell_info(data, device_name):
         log(device_name, f"Raw Bytes Before Parsing: {data[130:160].hex()}")
         log(device_name, f"Little-Endian Value: {int.from_bytes(data[130:160], byteorder='little')}")
         log(device_name, data)
-        log(device_name, data[114:160])
 
         cell_info = {
             "charging_status": charging_status,
