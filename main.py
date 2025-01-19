@@ -202,14 +202,8 @@ def parse_cell_info(data, device_name):
         average_voltage = sum(filtered_voltages) / len(filtered_voltages)
         voltage_diff = max(filtered_voltages) - min(filtered_voltages)
         
-        raw_bytes = data[118:122]
-        log(device_name, f"Raw Bytes Before Parsing: {raw_bytes.hex()}")
-        log(device_name, f"Little-Endian Value: {int.from_bytes(data[118:122], byteorder='little')}")
-        log(device_name, f"Big-Endian Value: {int.from_bytes(data[118:122], byteorder='big')}")
-        log(device_name, data)
-        log(device_name, f"Data Length: {len(data)}")
-        log(device_name, f"Data Slice (118–122): {data[118:122].hex()}")
-
+        frame_start = data.find(b'\x55\xAA\xEB\x90')
+        log(device_name, f"Frame Start Position: {frame_start}")
 
         cell_info = {
             "charging_status": charging_status,
