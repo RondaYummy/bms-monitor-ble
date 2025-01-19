@@ -20,3 +20,23 @@ export function formatDuration(seconds: number) {
 
   return result.join(', ');
 }
+
+export function calculateAveragePerIndex(arrays: Array<any>) {
+  if (!arrays.length || !arrays[0]?.length) return [];
+  // Кількість чисел у кожному масиві
+  const length = arrays[0].length;
+  // Ініціалізація масиву для збереження середніх значень
+  const averages = Array(length).fill(0);
+  // Обчислення суми для кожного індексу
+  for (let i = 0; i < length; i++) {
+    let sum = 0;
+    for (const array of arrays) {
+      if (array[i]) {
+        sum += array[i];
+      }
+    }
+    averages[i] = sum / arrays.length;
+  }
+
+  return averages;
+}

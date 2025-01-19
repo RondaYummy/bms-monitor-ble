@@ -45,11 +45,30 @@
              :key="device"
              :name="device"
              :label="device" />
+
+      <div class='row q-gutter-sm'
+           v-for='(d, idx) of calculatedList.cell_voltages'
+           :key="`cv_${idx}`">
+        <div class='row q-gutter-sm'>
+          <q-chip icon="event">{{ String(idx + 1).padStart(2, '0') }}</q-chip> -
+          {{ d }} v.
+        </div>
+      </div>
+
+      <div class='row q-gutter-sm q-mt-md'
+           v-for='(d, idx) of calculatedList.cell_resistances'
+           :key="`cr_${idx}`">
+        <div class='row q-gutter-sm'>
+          <q-chip icon="event">{{ String(idx + 1).padStart(2, '0') }}</q-chip> -
+          {{ d }} v.
+        </div>
+      </div>
     </q-tabs>
   </q-page>
 </template>
 
 <script setup lang="ts">
+import { calculateAveragePerIndex } from 'src/helpers/utils';
 import type { Device } from 'src/interfaces';
 import { ref, watch } from 'vue';
 
@@ -58,6 +77,9 @@ const calculatedList = ref({
   average_voltage: 0,
   remaining_capacity: 0,
   nominal_capacity: 0,
+  cell_resistances: [[]],
+  cell_voltages: [[]],
+
 });
 const tab = ref();
 
@@ -80,13 +102,20 @@ watch(devicesList, () => {
 
   if (values?.length) {
     const numbers: number[] = [];
+    const cell_voltages: number[][] = [];
+    const cell_resistances: number[][] = [];
+
     values.forEach((v) => {
       numbers.push(v.average_voltage || 0);
       calculatedList.value.remaining_capacity += v.remaining_capacity || 0;
       calculatedList.value.nominal_capacity += v.nominal_capacity || 0;
+      cell_voltages.push(v.cell_voltages);
+      cell_resistances.push(v.cell_resistances);
     });
 
     calculatedList.value.average_voltage = numbers.reduce((sum, num) => sum + num, 0) / numbers.length;
+    calculatedList.value.cell_voltages = calculateAveragePerIndex(cell_voltages);
+    calculatedList.value.cell_resistances = calculateAveragePerIndex(cell_resistances);
   }
 });
 
