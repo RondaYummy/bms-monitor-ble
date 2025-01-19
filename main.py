@@ -157,6 +157,9 @@ def parse_cell_info(data, device_name):
             log(device_name, f"Unexpected Header: {data[:4].hex()}")
             raise ValueError("Invalid frame header")
 
+        frame_start = data.find(b'\x55\xAA\xEB\x90')
+        log(device_name, f"Frame Start Position: {frame_start}")
+
         # Extract cell data
         cell_voltages = []
         start_index = 6  # Initial index for cell tension
@@ -202,14 +205,13 @@ def parse_cell_info(data, device_name):
         average_voltage = sum(filtered_voltages) / len(filtered_voltages)
         voltage_diff = max(filtered_voltages) - min(filtered_voltages)
         
-        raw_bytes = data[100:200]
+        raw_bytes = data[118:126]
         log(device_name, f"Raw Bytes Before Parsing: {raw_bytes.hex()}")
         log(device_name, f"Little-Endian Value: {int.from_bytes(data[118+4:122+4], byteorder='little')}")
-        log(device_name, f"Big-Endian Value: {int.from_bytes(data[118+4:122+4], byteorder='big')}")
         log(device_name, data)
         log(device_name, f"Data Length: {len(data)}")
-        log(device_name, f"Data Slice (118–122): {data[118+4:122+4].hex()}")
-
+        for i in range(100, 130):
+        log(device_name, f"Byte at {i}: {data[i]:02x}")
 
         cell_info = {
             "charging_status": charging_status,
