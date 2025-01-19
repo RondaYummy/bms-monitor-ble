@@ -37,6 +37,11 @@ h3 {
   color: white;
 }
 
+sup {
+  vertical-align: super;
+  font-size: calc(1em * 0.5);
+}
+
 .footer {
   min-height: 60px;
   background: #1e1f26;

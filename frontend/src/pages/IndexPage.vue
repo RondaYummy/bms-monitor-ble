@@ -5,10 +5,29 @@
         <h3>
           {{ calculatedList?.average_voltage?.toFixed(2) }}
           <sup>V</sup>
+
+          <q-tooltip>
+            Це середнє значення напруги всіх комірок (ячейок) батареї, які мають
+            ненульову напругу.
+          </q-tooltip>
         </h3>
         <h3 class='unique'>
           {{ calculatedList?.remaining_capacity?.toFixed(2) }}
           <sup>Ah</sup>
+
+          <q-tooltip>
+            Це значення вказує на залишкову ємність батареї. Зазвичай воно
+            обчислюється у міліампер-годинах (mAh) або ампер-годинах (Ah).
+          </q-tooltip>
+        </h3>
+
+        <h3 class='unique'>
+          {{ calculatedList?.nominal_capacity?.toFixed(2) }}
+          <sup>Ah</sup>
+
+          <q-tooltip>
+            Загальна ємність батареї. Виміряється в Ah.
+          </q-tooltip>
         </h3>
       </div>
     </template>
@@ -38,6 +57,7 @@ const devicesList = ref<Record<string, Device>>({});
 const calculatedList = ref({
   average_voltage: 0,
   remaining_capacity: 0,
+  nominal_capacity: 0,
 });
 const tab = ref();
 
@@ -62,6 +82,7 @@ watch(devicesList, () => {
     values.forEach((v) => {
       calculatedList.value.average_voltage += v.average_voltage || 0;
       calculatedList.value.remaining_capacity += v.remaining_capacity || 0;
+      calculatedList.value.nominal_capacity += v.nominal_capacity || 0;
     });
   }
 });
