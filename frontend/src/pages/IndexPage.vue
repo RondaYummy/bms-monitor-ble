@@ -56,16 +56,15 @@ window.addEventListener('beforeinstallprompt', (event: Event) => {
 });
 
 watch(devicesList, () => {
-  const values = Object.values(devicesList);
-  console.log(values, 'values');
+  const values = Object.values(devicesList.value);
 
   if (values?.length) {
     values.forEach((v) => {
-      calculatedList.value.average_voltage += v.average_voltage;
-      calculatedList.value.remaining_capacity += v.remaining_capacity;
+      calculatedList.value.average_voltage += v.average_voltage || 0;
+      calculatedList.value.remaining_capacity += v.remaining_capacity || 0;
     });
   }
-  console.log(calculatedList);
+  console.log(calculatedList.value);
 
   // const g = {
   //   "Andrii 1": {

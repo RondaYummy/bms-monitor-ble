@@ -199,7 +199,7 @@ def parse_cell_info(data, device_name):
             "voltage_difference": voltage_diff,
             "average_voltage": average_voltage,
             "cell_voltages": filtered_voltages,
-            "filtered_resistances": filtered_resistances,
+            "cell_resistances": filtered_resistances,
             "power_tube_temperature": power_tube_temp,
             "battery_voltage": battery_voltage,
             "battery_power": battery_power,
