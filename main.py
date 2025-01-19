@@ -190,11 +190,17 @@ def parse_cell_info(data, device_name):
         nominal_capacity = int.from_bytes(data[146:150], byteorder='little') * 0.001
         cycle_count = int.from_bytes(data[150:154], byteorder='little')
         state_of_health = data[158]
+        charging_status = data[166]
+        discharging_status = data[167]
+        precharging_status = data[168]
 
         average_voltage = sum(filtered_voltages) / len(filtered_voltages)
         voltage_diff = max(filtered_voltages) - min(filtered_voltages)
 
         cell_info = {
+            "charging_status": charging_status,
+            "discharging_status": discharging_status,
+            "precharging_status": precharging_status,
             "voltage_difference": voltage_diff,
             "average_voltage": average_voltage,
             "cell_voltages": filtered_voltages,
