@@ -154,6 +154,7 @@ def parse_cell_info(data, device_name):
     try:
         # Checking the header
         if data[:4] != b'\x55\xAA\xEB\x90':
+            log(device_name, f"Unexpected Header: {data[:4].hex()}")
             raise ValueError("Invalid frame header")
 
         # Extract cell data
@@ -203,8 +204,12 @@ def parse_cell_info(data, device_name):
         
         raw_bytes = data[118:122]
         log(device_name, f"Raw Bytes Before Parsing: {raw_bytes.hex()}")
-        log(device_name, int.from_bytes(data[118:122], byteorder='little'))
+        log(device_name, f"Little-Endian Value: {int.from_bytes(data[118:122], byteorder='little')}")
+        log(device_name, f"Big-Endian Value: {int.from_bytes(data[118:122], byteorder='big')}")
         log(device_name, data)
+        log(device_name, f"Data Length: {len(data)}")
+        log(device_name, f"Data Slice (118–122): {data[118:122].hex()}")
+
 
         cell_info = {
             "charging_status": charging_status,
