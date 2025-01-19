@@ -37,7 +37,7 @@
            text-color="black"
            label="Install App" />
 
-    <div>
+    <div class="column items-center">
       <h6>Cell Voltages:</h6>
       <div class='row justify-center q-gutter-sm q-pl-md q-pr-md'>
         <div class='row q-gutter-sm items-center'
@@ -52,7 +52,7 @@
       </div>
     </div>
 
-    <div>
+    <div class="column items-center">
       <h6>Cell Wire Resistance:</h6>
       <div class='row justify-center q-gutter-sm q-pl-md q-pr-md'>
         <div class='row q-gutter-sm items-center'
@@ -72,6 +72,8 @@
             dense
             class="q-mt-sm bg-indigo text-white"
             v-if="devicesList">
+      <q-tab name="All"
+             label="All" />
       <q-tab v-for="device of Object.keys(devicesList)"
              :key="device"
              :name="device"
@@ -111,6 +113,10 @@ window.addEventListener('beforeinstallprompt', (event: Event) => {
 });
 
 watch(devicesList, () => {
+  calculateData();
+});
+
+function calculateData() {
   const values = Object.values(devicesList.value);
 
   if (values?.length) {
@@ -130,14 +136,19 @@ watch(devicesList, () => {
     calculatedList.value.cell_voltages = calculateAveragePerIndex(cell_voltages);
     calculatedList.value.cell_resistances = calculateAveragePerIndex(cell_resistances);
   }
-});
+}
 
 function installApp() {
   deferredPrompt.prompt();
 };
 
 function selectSingleDevice(tab: string) {
-  calculatedList.value = devicesList.value[tab];
+  if (tab === 'All') {
+    calculateData();
+  } else {
+    calculatedList.value = devicesList.value[tab];
+
+  }
 }
 
 async function fetchCellInfo() {
