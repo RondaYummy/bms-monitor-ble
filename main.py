@@ -208,7 +208,7 @@ def parse_cell_info(data, device_name):
         log(device_name, f"Big-Endian Value: {int.from_bytes(data[118+4:122+4], byteorder='big')}")
         log(device_name, data)
         log(device_name, f"Data Length: {len(data)}")
-        log(device_name, f"Data Slice (118–122): {data[118:122].hex()}")
+        log(device_name, f"Data Slice (118–122): {data[118+4:122+4].hex()}")
 
 
         cell_info = {
