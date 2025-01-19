@@ -173,9 +173,9 @@ def parse_cell_info(data, device_name):
         start_index = 64  # Initial index for cell tension
         num_cells = 32   # Maximum number of cells
         for i in range(num_cells):
-            voltage_raw = int.from_bytes(data[start_index:start_index + 2], byteorder='little')
-            voltage = voltage_raw * 0.001  # Conversion of volts
-            cell_voltages.append(voltage)
+            resistance_raw = int.from_bytes(data[start_index:start_index + 2], byteorder='little')
+            resistance = resistance_raw * 0.001  # Conversion to ohms
+            cell_resistances.append(resistance)
             start_index += 2
 
         # Filter only those cells that have a voltage > 0
