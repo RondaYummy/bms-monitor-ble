@@ -79,11 +79,14 @@ watch(devicesList, () => {
   const values = Object.values(devicesList.value);
 
   if (values?.length) {
+    const numbers: number[] = [];
     values.forEach((v) => {
-      calculatedList.value.average_voltage += v.average_voltage || 0;
+      numbers.push(v.average_voltage || 0);
       calculatedList.value.remaining_capacity += v.remaining_capacity || 0;
       calculatedList.value.nominal_capacity += v.nominal_capacity || 0;
     });
+
+    calculatedList.value.average_voltage = numbers.reduce((sum, num) => sum + num, 0) / numbers.length;
   }
 });
 
