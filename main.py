@@ -168,7 +168,7 @@ def parse_cell_info(data, device_name):
 
         # Extract cell resistances
         cell_resistances = []
-        start_index = 78
+        start_index = 80
         for i in range(num_cells):
             resistance_raw = int.from_bytes(data[start_index:start_index + 2], byteorder='little')
             resistance = resistance_raw * 0.001  # Conversion of resistance
