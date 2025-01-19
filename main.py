@@ -200,9 +200,12 @@ def parse_cell_info(data, device_name):
 
         average_voltage = sum(filtered_voltages) / len(filtered_voltages)
         voltage_diff = max(filtered_voltages) - min(filtered_voltages)
+        
+        raw_power_bytes = data[122:126]
+        battery_power_raw = int.from_bytes(raw_power_bytes, byteorder='little')
+        battery_power = battery_power_raw * 0.001  # Конверсія у Вт
+        log(device_name, f"Raw Bytes: {raw_power_bytes.hex()}, Raw Value: {battery_power_raw}, Converted: {battery_power:.3f} W")
 
-         # Log the specific fields for debugging
-        log(device_name, f"Battery Raw: {data[122:126]}, Converted: {battery_voltage:.3f} V")
 
         cell_info = {
             "charging_status": charging_status,
