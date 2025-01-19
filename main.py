@@ -204,6 +204,7 @@ def parse_cell_info(data, device_name):
         raw_bytes = data[118:122]
         log(device_name, f"Raw Bytes Before Parsing: {raw_bytes.hex()}")
         log(device_name, int.from_bytes(data[118:122], byteorder='little'))
+        log(device_name, data)
 
         cell_info = {
             "charging_status": charging_status,
@@ -237,7 +238,6 @@ def parse_cell_info(data, device_name):
         if crc_calculated != crc_received:
             log(device_name, f"Invalid CRC: {crc_calculated} != {crc_received}")
             return None
-        log(device_name, "CRC Valid")
 
         log(device_name, "Parsed Cell Info:")
         for key, value in cell_info.items():
