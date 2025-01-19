@@ -194,8 +194,12 @@ def parse_cell_info(data, device_name):
         cycle_count = int.from_bytes(data[150:154], byteorder='little')
         state_of_health = data[158]
 
-        average_voltage = sum(filtered_voltages) / len(filtered_voltages)
-        voltage_diff = max(filtered_voltages) - min(filtered_voltages)
+        if filtered_voltages:
+            average_voltage = sum(filtered_voltages) / len(filtered_voltages)
+            voltage_diff = max(filtered_voltages) - min(filtered_voltages)
+        else:
+            average_voltage = 0.0
+            voltage_diff = 0.0
 
         cell_info = {
             "voltage_difference": voltage_diff,
