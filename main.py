@@ -185,8 +185,8 @@ def parse_cell_info(data, device_name):
         filtered_resistances = [v for v in cell_resistances if v > 0]
 
         power_tube_temp = int.from_bytes(data[112:114], byteorder='little', signed=True) * 0.1
-        battery_voltage = int.from_bytes(data[118:122], byteorder='little') * 0.001
-        battery_power = int.from_bytes(data[122:126], byteorder='little') * 0.001
+        battery_voltage = int.from_bytes(data[118:122], byteorder='little', signed=True) * 0.001
+        battery_power = int.from_bytes(data[122:126], byteorder='little', signed=True) * 0.001
         charge_current = int.from_bytes(data[126:130], byteorder='little', signed=True) * 0.001
         temperature_sensor_1 = int.from_bytes(data[130:132], byteorder='little', signed=True) * 0.1
         temperature_sensor_2 = int.from_bytes(data[132:134], byteorder='little', signed=True) * 0.1
@@ -275,15 +275,14 @@ async def notification_handler(sender, data, device_name):
             log(device_name, f"Invalid CRC: {calculated_crc} != {received_crc}")
             return
 
-        test_frame = bytearray.fromhex("55AAEB9002E19C0F9F0FA00FA00F9F0FA00FA00FA00FA00F9F0FA00FA10F000000000000000000000000000000000000000000000000000000000000000000000000000000FF0F0000A00F060001009200900091008B008B008A008A008A008A008B0088008A00000000000000000000000000000000000000000000000000000000000000000000000000000000009400000000007ABB0000F8EF000000FBFFFF7D007D0000000800000000549C670100B0AD01000D000000F42C17006400000097DE410001010000000000000000000000000000FF0001000000CA0300000B0082743F4000000000BF120000000000010407000052785B0100000000940030F830F8C903C98C8109070000008051010000010100000000000000000000FEFF7FDC2F0109810B00000075")
-        parse_cell_info(test_frame, "TestDevice")
-
         # Determining the frame type
         frame_type = response_buffer[4]
         if frame_type == 0x03:
             parse_device_info(response_buffer, device_name)
         elif frame_type == 0x02:
             parse_cell_info(response_buffer, device_name)
+        # elif frame_type == 0x01:
+        #     parse_setting_info(response_buffer, device_name)
         else:
             log(device_name, f"Unknown frame type: {frame_type}")
 
