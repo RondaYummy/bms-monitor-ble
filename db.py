@@ -169,7 +169,7 @@ def insert_data(timestamp, voltage, current, device_address, device_name, min_in
 
 def fetch_all_data(days=None):
     """
-    Отримує записи з таблиці за останні n днів.
+    Отримує записи з таблиці за поточний день, якщо days=1.
     Якщо параметр days не передано, дані не повертаються.
     """
     if days is None:
@@ -180,8 +180,14 @@ def fetch_all_data(days=None):
         with get_connection() as conn:
             cursor = conn.cursor()
             
-            # Розраховуємо дату відсічення
-            cutoff_date = datetime.now() - timedelta(days=days)
+            # Розраховуємо початок дня
+            if days == 1:
+                # Початок поточного дня
+                cutoff_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            else:
+                # Початок дня "n днів тому"
+                cutoff_date = (datetime.now() - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
+            
             cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
             
             # Запит із фільтрацією за timestamp
