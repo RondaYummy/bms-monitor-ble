@@ -309,7 +309,7 @@ async def notification_handler(sender, data, device_name, device_address):
             if device_info_data:
                 device_info_data['connected'] = False
                 await device_data_store.update_device_info(device_name, device_info_data)
-                log(device_name, "Device marked as disconnected due to unknown frame type.", force=True)
+                await BleakClient.disconnect()
 
 async def connect_and_run(device):
     while True:  # Цикл для перепідключення
@@ -334,12 +334,13 @@ async def connect_and_run(device):
                 await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
 
                 while True:  # Постійне опитування
-                 # Перевіряємо, чи пристрій ще підключений
+                # Перевіряємо, чи пристрій ще підключений
                     device_info_data = await device_data_store.get_device_info(device.name)
                     if not device_info_data.get("connected", False):
                         log(device.name, "Device has been disconnected. Stopping polling.", force=True)
                         break
 
+                    device_info_data = await device_data_store.get_device_info(device.name)
                     if not device_info_data or "frame_type" not in device_info_data:
                         # Якщо інформація про пристрій ще не збережена, надсилаємо команду
                         device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
