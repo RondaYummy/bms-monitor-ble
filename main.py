@@ -169,8 +169,7 @@ async def parse_device_info(data, device_name, device_address):
 
 async def parse_cell_info(data, device_name):
     """Parsing Cell Info Frame (0x02)."""
-    global cell_info_data
-    log(device_name, "Parsing Cell Info Frame...")
+    log(device_name, "Parsing Cell Info Frame...", force=True)
 
     try:
         # Checking the header
