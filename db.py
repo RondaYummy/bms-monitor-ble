@@ -1,9 +1,12 @@
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from collections import defaultdict
+import asyncio
 
 # Структура для зберігання проміжних даних
 data_aggregator = defaultdict(lambda: {
+    "device_name": None,
+    "device_address": None,
     "voltage_sum": 0,
     "current_sum": 0,
     "voltage_min": float('inf'),
@@ -16,11 +19,46 @@ data_aggregator = defaultdict(lambda: {
 
 DB_NAME = '/app/data/bms_data.db'
 
-def update_aggregated_data(device_name, voltage, current):
+async def process_devices():
+    """Циклічно викликає update_aggregated_data та зберігає агреговані дані."""
+    global data_aggregator
+    while True:
+        now = datetime.now(timezone.utc)
+        print(f"Processing devices at {now.strftime('%Y-%m-%d %H:%M:%S')}")
+
+        for device_address, device_data in data_aggregator.items():
+            try:
+                device_name = device_data["device_name"]
+                save_aggregated_data(device_name, device_address, device_data)
+                print(f"Data processed for {device_name} ({device_address})")
+            except Exception as e:
+                print(f"Error processing {device_data['device_name']} ({device_address}): {e}")
+
+        await asyncio.sleep(60)  # Чекаємо 1 хвилину
+
+def update_aggregated_data(device_name, device_address, voltage, current):
     """Оновлює проміжні дані для агрегування."""
     global data_aggregator
     now = datetime.now(timezone.utc)
-    device_data = data_aggregator[device_name]
+
+    # Перевірка вхідних даних
+    if not isinstance(device_name, str) or not device_name.strip():
+        raise ValueError(f"Invalid device_name: {device_name}")
+    if not isinstance(device_address, str) or not device_address.strip():
+        raise ValueError(f"Invalid device_address: {device_address}")
+    if not isinstance(voltage, (int, float)) or voltage < 0:
+        raise ValueError(f"Invalid voltage: {voltage}")
+    if not isinstance(current, (int, float)):
+        raise ValueError(f"Invalid current: {current}")
+
+    # Ініціалізуємо дані для пристрою, якщо він ще не доданий
+    device_data = data_aggregator[device_address]
+
+    # Оновлюємо загальні дані пристрою
+    if device_data["device_name"] is None:
+        device_data["device_name"] = device_name
+    if device_data["device_address"] is None:
+        device_data["device_address"] = device_address
 
     # Оновлення сум
     device_data["voltage_sum"] += voltage
@@ -34,18 +72,15 @@ def update_aggregated_data(device_name, voltage, current):
 
     # Збільшуємо кількість записів
     device_data["count"] += 1
-
-    # Оновлюємо час останнього запису
     if device_data["last_insert_time"] is None:
-        device_data["last_insert_time"] = now
+        device_data["last_insert_time"] = now  # Оновлюємо час останнього запису
 
 def save_aggregated_data(device_name, device_address, device_data, interval=60):
     """Зберігає агреговані дані в базу, якщо минув інтервал часу."""
     now = datetime.now(timezone.utc)
     last_insert_time = device_data["last_insert_time"]
-
-    # Перевірка інтервалу часу
-    if last_insert_time and (now - last_insert_time).total_seconds() < interval:
+    
+    if last_insert_time and (now - last_insert_time).total_seconds() < interval: # Перевірка інтервалу часу
         return  # Інтервал ще не минув
 
     # Розрахунок середнього значення
@@ -57,7 +92,6 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
 
     # Формуємо timestamp
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
-
     # Зберігаємо в базу
     try:
         insert_data(
@@ -67,7 +101,7 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
             device_address=device_address,
             device_name=device_name
         )
-        print(f"Aggregated data saved for {device_name} at {timestamp}")
+        print(f"Aggregated data saved for {device_name} ({device_address}) at {timestamp}")
     except Exception as e:
         print(f"Error saving aggregated data: {e}")
 
@@ -121,25 +155,6 @@ def insert_data(timestamp, voltage, current, device_address, device_name, min_in
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-
-            # Отримуємо час останнього запису для цього device_address
-            cursor.execute('''
-            SELECT timestamp FROM bms_data
-            WHERE device_address = ?
-            ORDER BY timestamp DESC
-            LIMIT 1
-            ''', (device_address,))
-            last_record = cursor.fetchone()
-
-            if last_record:
-                last_timestamp = datetime.strptime(last_record[0], '%Y-%m-%d %H:%M:%S')
-                current_timestamp = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
-
-                # Перевіряємо, чи пройшло достатньо часу
-                if (current_timestamp - last_timestamp).total_seconds() < min_interval_seconds:
-                    raise ValueError(f"Cannot insert data for {device_address} more than once every {min_interval_seconds} seconds.")
-
-            # Вставка нового запису
             cursor.execute('''
             INSERT INTO bms_data (timestamp, voltage, current, device_address, device_name)
             VALUES (?, ?, ?, ?, ?)
