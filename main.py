@@ -305,6 +305,7 @@ async def notification_handler(sender, data, device_name, device_address):
         #     await parse_setting_info(buffer, device_name)
         else:
             log(device_name, f"Unknown frame type: {frame_type}", force=True)
+            log(device_name, f"Unknown frame buffer: {buffer}", force=True)
 
 async def connect_and_run(device):
     while True:  # Цикл для перепідключення
