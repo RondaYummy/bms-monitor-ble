@@ -1,0 +1,105 @@
+<template>
+  <q-card class="q-pa-md">
+    <q-card-section>
+      <div class="text-h6">BMS Data Chart</div>
+    </q-card-section>
+    <q-card-section>
+      <apexchart type="line"
+                 :options="chartOptions"
+                 :series="series"></apexchart>
+    </q-card-section>
+  </q-card>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import type { AxiosResponse } from 'axios';
+import axios from 'axios';
+
+interface ChartOptions {
+  chart: {
+    id: string;
+    toolbar: { show: boolean; };
+  };
+  xaxis: { categories: string[]; };
+  title: { text: string; align: string; };
+  yaxis: { title: { text: string; }; };
+  tooltip: { x: { format: string; }; };
+  colors: string[];
+}
+
+interface SeriesData {
+  name: string;
+  data: number[];
+}
+
+// Ініціалізація даних графіка
+const chartOptions = ref<ChartOptions>({
+  chart: {
+    id: 'bms-data-chart',
+    toolbar: { show: true },
+  },
+  xaxis: {
+    categories: [], // Дата або інші категорії
+  },
+  title: {
+    text: 'BMS Data',
+    align: 'left',
+  },
+  yaxis: {
+    title: { text: 'Value' },
+  },
+  tooltip: {
+    x: { format: 'dd MMM yyyy HH:mm:ss' }, // Формат тултіпа
+  },
+  colors: ['#FF4560', '#008FFB'], // Кольори серій
+});
+
+// Серії для графіка
+const series = ref<SeriesData[]>([]);
+
+async function fetchAggregatedData(days: number = 1): Promise<any[]> {
+  try {
+    const response: AxiosResponse<any[]> = await axios.get(`/api/aggregated-data?days=${days}`);
+    if (!response?.data) {
+      throw new Error('Failed to fetch aggregated data');
+    }
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching aggregated data:', error);
+    return [];
+  }
+}
+
+onMounted(async () => {
+  try {
+    const data = await fetchAggregatedData();
+    if (!data) {
+      return;
+    }
+
+    const categories = data.map((item: any) => item[1]); // Дата
+    const voltageSeries = data.map((item: any) => item[2]); // Напруга
+    const currentSeries = data.map((item: any) => item[3]); // Струм
+
+    // Оновлюємо графік
+    chartOptions.value.xaxis.categories = categories;
+    series.value = [
+      {
+        name: 'Voltage',
+        data: voltageSeries,
+      },
+      {
+        name: 'Current',
+        data: currentSeries,
+      },
+    ];
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+});
+</script>
+
+<style scoped>
+/* Додаткові стилі для графіка */
+</style>

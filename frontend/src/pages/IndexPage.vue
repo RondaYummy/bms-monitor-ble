@@ -111,6 +111,8 @@
            text-color="black"
            label="Install App" />
 
+    <BMSChart />
+
     <div class="column items-center q-mt-md">
       <h6>Cell Voltages:</h6>
       <div class='row justify-between'>
@@ -166,6 +168,7 @@
 
 <script setup lang="ts">
 import LoaderComponent from 'src/components/LoaderComponent.vue';
+import BMSChart from 'src/components/BMSChart.vue';
 import { calculateAverage, calculateAveragePerIndex } from 'src/helpers/utils';
 import type { Device } from 'src/interfaces';
 import { ref, watch, onBeforeUnmount } from 'vue';
@@ -266,21 +269,6 @@ async function fetchCellInfo() {
   }
 }
 
-async function fetchAggregatedData(days: number = 1) {
-  try {
-    const response = await fetch(`/api/aggregated-data?days=${days}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch Aggregate dData');
-    }
-    const data = await response.json();
-    console.log('Aggregate dData:', data);
-    devicesList.value = data;
-  } catch (error) {
-    console.error('Error fetching Aggregate dData:', error);
-  }
-}
-
-fetchAggregatedData(1);
 fetchCellInfo();
 const intervalId = setInterval(async () => {
   await fetchCellInfo();
