@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from copy import deepcopy
 from asyncio import Lock
+from datetime import datetime
 
 ENABLE_LOGS = False # True or False
 
@@ -25,9 +26,18 @@ class DeviceDataStore:
     def __init__(self):
         self.device_info = {}
         self.cell_info = {}
+        self.last_cell_info_update = {}
         self.response_buffers = {}
         self.lock = Lock()
 
+    async def update_last_cell_info_update(self, device_name):
+        async with self.lock:
+            self.last_cell_info_update[device_name] = datetime.utcnow()
+
+    async def get_last_cell_info_update(self, device_name):
+        async with self.lock:
+            return self.last_cell_info_update.get(device_name, None)
+        
     async def append_to_buffer(self, device_name, data):
         async with self.lock:
             if device_name not in self.response_buffers:
@@ -289,6 +299,7 @@ async def notification_handler(sender, data, device_name, device_address):
         if frame_type == 0x03:
             await parse_device_info(buffer, device_name, device_address)
         elif frame_type == 0x02:
+            await device_data_store.update_last_cell_info_update(device_name)
             await parse_cell_info(buffer, device_name)
         # elif frame_type == 0x01:
         #     await parse_setting_info(buffer, device_name)
@@ -326,9 +337,12 @@ async def connect_and_run(device):
                         log(device.name, f"Device Info command sent: {device_info_command.hex()}", force=True)
                         await asyncio.sleep(1)
 
-                    cell_info_command = create_command(CMD_TYPE_CELL_INFO)
-                    await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
-                    log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
+                    # Перевіряємо, чи потрібно надсилати cell_info_command
+                    last_update = await device_data_store.get_last_cell_info_update(device.name)
+                    if not last_update or (datetime.utcnow() - last_update).total_seconds() > 30:
+                        cell_info_command = create_command(CMD_TYPE_CELL_INFO)
+                        await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
+                        log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
 
                     await asyncio.sleep(10)
         except Exception as e:
