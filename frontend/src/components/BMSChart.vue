@@ -25,7 +25,7 @@ interface ChartOptions {
 
 interface SeriesData {
   name: string;
-  data: number[];
+  data: any[];
 }
 
 // Ініціалізація даних графіка
@@ -77,13 +77,21 @@ onMounted(async () => {
       return;
     }
 
-    const categories = data.map((item: any) => item[1]); // Дата
-    const voltageSeries = data.map((item: any) => item[2]); // Напруга
-    const currentSeries = data.map((item: any) => item[3]); // Струм
-    console.log(categories, 'categories');
+    const voltageSeries = data.map((item: any) => ({
+      x: new Date(item[1]).toISOString(), // Дата в ISO форматі
+      y: item[2], // Значення напруги
+    }));
+    const currentSeries = data.map((item: any) => ({
+      x: new Date(item[1]).toISOString(), // Дата в ISO форматі
+      y: item[3], // Значення струму
+    }));
+    // const categories = data.map((item: any) => item[1]); // Дата
+    // const voltageSeries = data.map((item: any) => item[2]); // Напруга
+    // const currentSeries = data.map((item: any) => item[3]); // Струм
+    // console.log(categories, 'categories');
 
-    // Оновлюємо графік
-    chartOptions.value.xaxis.categories = categories;
+    // // Оновлюємо графік
+    // chartOptions.value.xaxis.categories = categories;
     series.value = [
       {
         name: 'Voltage',
