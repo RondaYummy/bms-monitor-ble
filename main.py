@@ -176,7 +176,7 @@ async def parse_device_info(data, device_name, device_address):
 
 async def parse_cell_info(data, device_name, device_address):
     """Parsing Cell Info Frame (0x02)."""
-    log(device_name, "Parsing Cell Info Frame...")
+    log(device_name, "Parsing Cell Info Frame...", force=True)
 
     try:
         # Checking the header
@@ -315,6 +315,7 @@ async def notification_handler(device, data, device_name, device_address):
             if device_info_data:
                 device_info_data['connected'] = False
                 await device_data_store.update_device_info(device_name, device_info_data)
+            await device_data_store.update_last_cell_info_update(device_name) # TODO remove, for test
             await device_data_store.clear_buffer(device_name)
 
 async def connect_and_run(device):
