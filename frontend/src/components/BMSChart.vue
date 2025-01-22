@@ -16,7 +16,7 @@ interface ChartOptions {
     id: string;
     toolbar: { show: boolean; };
   };
-  xaxis: { categories: string[]; };
+  xaxis: { categories: string[]; type: string; };
   title: { text: string; align: string; };
   yaxis: { title: { text: string; }, labels: { formatter: (val: number) => string; }; };
   tooltip: { x: { format: string; }; };
@@ -35,6 +35,7 @@ const chartOptions = ref<ChartOptions>({
     toolbar: { show: true },
   },
   xaxis: {
+    type: 'datetime',
     categories: [], // Дата або інші категорії
   },
   title: {
