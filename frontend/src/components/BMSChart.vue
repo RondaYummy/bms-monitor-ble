@@ -16,7 +16,7 @@ interface ChartOptions {
     id: string;
     toolbar: { show: boolean; };
   };
-  xaxis: { categories: string[], type: string, labels: { datetimeFormatter: { hour: string; }; }; };
+  xaxis: { categories: string[]; };
   title: { text: string; align: string; };
   yaxis: { title: { text: string; }, labels: { formatter: (val: number) => string; }; };
   tooltip: { x: { format: string; }; };
@@ -36,12 +36,6 @@ const chartOptions = ref<ChartOptions>({
   },
   xaxis: {
     categories: [], // Дата або інші категорії
-    type: 'datetime', // Вказуємо тип осі як datetime
-    labels: {
-      datetimeFormatter: {
-        hour: 'HH:mm', // Формат часу, наприклад "14:30"
-      },
-    },
   },
   title: {
     text: 'BMS Data',
@@ -82,9 +76,10 @@ onMounted(async () => {
       return;
     }
 
-    const categories = data.map((item: any) => new Date(item[1]).toISOString()); // Дата
+    const categories = data.map((item: any) => item[1]); // Дата
     const voltageSeries = data.map((item: any) => item[2]); // Напруга
     const currentSeries = data.map((item: any) => item[3]); // Струм
+    console.log(categories, 'categories');
 
     // Оновлюємо графік
     chartOptions.value.xaxis.categories = categories;
