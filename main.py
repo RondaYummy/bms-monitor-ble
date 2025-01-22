@@ -300,7 +300,12 @@ async def connect_and_run(device):
     while True:  # Цикл для перепідключення
         try:
             device_info_data = await device_data_store.get_device_info(device.name)
-            device_info_data["connected"] = False
+            if not device_info_data:
+                device_info_data = {
+                    "device_name": device.name,
+                    "device_address": device.address,
+                    "connected": False
+                }
             await device_data_store.update_device_info(device.name, device_info_data)
 
             async with BleakClient(device.address) as client:
@@ -323,20 +328,16 @@ async def connect_and_run(device):
                         await asyncio.sleep(1)
 
                     cell_info_command = create_command(CMD_TYPE_CELL_INFO)
-
-                    await asyncio.sleep(1)
-
                     await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                     log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
 
-                    await asyncio.sleep(30)
+                    await asyncio.sleep(10)
         except Exception as e:
             log(device.name, f"Error: {str(e)}", force=True)
         finally:
-            if device.name in device_info_data:
-                device_info_data["connected"] = False
-                await device_data_store.update_device_info(device.name, device_info_data)
-                log(device.name, "Disconnected, retrying in 5 seconds...", force=True)
+            device_info_data["connected"] = False
+            await device_data_store.update_device_info(device.name, device_info_data)
+            log(device.name, "Disconnected, retrying in 5 seconds...", force=True)
             await asyncio.sleep(5)
 
 async def ble_main():
