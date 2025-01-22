@@ -73,17 +73,19 @@ async function fetchAggregatedData(days: number = 1): Promise<any[]> {
 onMounted(async () => {
   try {
     const data = await fetchAggregatedData();
+    console.log('Aggregated Data: ', data);
+
     if (!data) {
       return;
     }
 
     const voltageSeries = data.map((item: any) => ({
       x: new Date(item[1]).toISOString(), // Дата в ISO форматі
-      y: item[2], // Значення напруги
+      y: item[2]?.toFixed(2), // Значення напруги
     }));
     const currentSeries = data.map((item: any) => ({
       x: new Date(item[1]).toISOString(), // Дата в ISO форматі
-      y: item[3], // Значення струму
+      y: item[3]?.toFixed(2), // Значення струму
     }));
     // const categories = data.map((item: any) => item[1]); // Дата
     // const voltageSeries = data.map((item: any) => item[2]); // Напруга
