@@ -1,14 +1,7 @@
 <template>
-  <q-card class="q-pa-md">
-    <q-card-section>
-      <div class="text-h6">BMS Data Chart</div>
-    </q-card-section>
-    <q-card-section>
-      <apexchart type="line"
-                 :options="chartOptions"
-                 :series="series"></apexchart>
-    </q-card-section>
-  </q-card>
+  <apex-chart type="line"
+              :options="chartOptions"
+              :series="series"></apex-chart>
 </template>
 
 <script setup lang="ts">
@@ -23,7 +16,7 @@ interface ChartOptions {
   };
   xaxis: { categories: string[]; };
   title: { text: string; align: string; };
-  yaxis: { title: { text: string; }; };
+  yaxis: { title: { text: string; }, labels: { formatter: (val: number) => string; }; };
   tooltip: { x: { format: string; }; };
   colors: string[];
 }
@@ -48,6 +41,9 @@ const chartOptions = ref<ChartOptions>({
   },
   yaxis: {
     title: { text: 'Value' },
+    labels: {
+      formatter: (val: number) => Math.round(val).toString(),
+    },
   },
   tooltip: {
     x: { format: 'dd MMM yyyy HH:mm:ss' }, // Формат тултіпа
