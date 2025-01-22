@@ -1,7 +1,9 @@
 <template>
-  <apex-chart type="line"
-              :options="chartOptions"
-              :series="series"></apex-chart>
+  <div class="chart-container">
+    <apex-chart type="line"
+                :options="chartOptions"
+                :series="series"></apex-chart>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -97,5 +99,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Додаткові стилі для графіка */
+.chart-container {
+  width: 100%;
+  height: 500px;
+}
 </style>
