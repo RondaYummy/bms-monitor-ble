@@ -167,24 +167,26 @@ def insert_data(timestamp, voltage, current, device_address, device_name, min_in
         print(f"Error inserting data: {e}")
         raise
 
-def fetch_all_data():
-    """Отримує всі записи з таблиці."""
-    try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('SELECT * FROM bms_data')
-            return cursor.fetchall()
-    except sqlite3.Error as e:
-        print(f"Error fetching all data: {e}")
-        raise
+def fetch_all_data(days=None):
+    """
+    Отримує записи з таблиці за останні n днів.
+    Якщо параметр days не передано, дані не повертаються.
+    """
+    if days is None:
+        print("No 'days' parameter provided. No data will be fetched.")
+        return None  # Або повернути []
 
-def fetch_data_by_voltage(min_voltage):
-    """Отримує записи, де напруга перевищує заданий мінімум."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute('SELECT * FROM bms_data WHERE voltage > ?', (min_voltage,))
+            
+            # Розраховуємо дату відсічення
+            cutoff_date = datetime.now() - timedelta(days=days)
+            cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
+            
+            # Запит із фільтрацією за timestamp
+            cursor.execute('SELECT * FROM bms_data WHERE timestamp >= ?', (cutoff_date_str,))
             return cursor.fetchall()
     except sqlite3.Error as e:
-        print(f"Error fetching data by voltage: {e}")
+        print(f"Error fetching data: {e}")
         raise

@@ -101,6 +101,13 @@ async def get_cell_info():
         return JSONResponse(content={"message": "No cell info available yet."}, status_code=404)
     return cell_info_data
 
+@app.get("/api/aggregated-data")
+async def get_cell_info():
+    aggregated_data = await db.fetch_all_data(days=1)
+    if not aggregated_data:
+        return JSONResponse(content={"message": "No aggregated data available yet."}, status_code=404)
+    return aggregated_data
+
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(ble_main())

@@ -266,6 +266,21 @@ async function fetchCellInfo() {
   }
 }
 
+async function fetchAggregatedData() {
+  try {
+    const response = await fetch('/api/aggregated-data');
+    if (!response.ok) {
+      throw new Error('Failed to fetch Aggregate dData');
+    }
+    const data = await response.json();
+    console.log('Aggregate dData:', data);
+    devicesList.value = data;
+  } catch (error) {
+    console.error('Error fetching Aggregate dData:', error);
+  }
+}
+
+fetchAggregatedData();
 fetchCellInfo();
 const intervalId = setInterval(async () => {
   await fetchCellInfo();
