@@ -8,6 +8,7 @@ from bleak import BleakClient, BleakScanner
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Query
 
 from colors import *
 import db
@@ -102,8 +103,8 @@ async def get_cell_info():
     return cell_info_data
 
 @app.get("/api/aggregated-data")
-async def get_cell_info():
-    aggregated_data = await db.fetch_all_data(days=1)
+async def get_cell_info(days: int = Query(..., ge=1, description="Number of days to fetch data for")):
+    aggregated_data = db.fetch_all_data(days=days)
     if not aggregated_data:
         return JSONResponse(content={"message": "No aggregated data available yet."}, status_code=404)
     return aggregated_data

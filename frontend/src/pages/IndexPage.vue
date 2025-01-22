@@ -266,9 +266,9 @@ async function fetchCellInfo() {
   }
 }
 
-async function fetchAggregatedData() {
+async function fetchAggregatedData(days: number = 1) {
   try {
-    const response = await fetch('/api/aggregated-data');
+    const response = await fetch(`/api/aggregated-data?days=${days}`);
     if (!response.ok) {
       throw new Error('Failed to fetch Aggregate dData');
     }
@@ -280,7 +280,7 @@ async function fetchAggregatedData() {
   }
 }
 
-fetchAggregatedData();
+fetchAggregatedData(1);
 fetchCellInfo();
 const intervalId = setInterval(async () => {
   await fetchCellInfo();
