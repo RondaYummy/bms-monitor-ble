@@ -1,12 +1,17 @@
 import asyncio
+from asyncio import Lock
+from datetime import datetime
+from copy import deepcopy
+
+import uvicorn
 from bleak import BleakClient, BleakScanner
-from colors import *
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from copy import deepcopy
-from asyncio import Lock
-from datetime import datetime
+
+from colors import *
+import db
+
 
 ENABLE_LOGS = False # True or False
 
@@ -129,6 +134,9 @@ async def parse_device_info(data, device_name, device_address):
 
         # Extract fields from the frame
         device_info = {
+            # "setup_passcode": data[118:134].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            # "passcode": data[97:102].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            # "device_passcode": data[62:78].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
             "frame_type": data[4],
             "frame_counter": data[5],
             "vendor_id": data[6:22].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
@@ -138,12 +146,9 @@ async def parse_device_info(data, device_name, device_address):
             "power_on_count": int.from_bytes(data[42:46], byteorder='little'),
             "device_name": data[46:62].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
             "device_address": device_address,
-            # "device_passcode": data[62:78].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
             "manufacturing_date": data[78:86].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
             "serial_number": data[86:97].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
-            # "passcode": data[97:102].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
             "user_data": data[102:118].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
-            # "setup_passcode": data[118:134].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
             "connected": True,
         }
 
@@ -170,7 +175,7 @@ async def parse_device_info(data, device_name, device_address):
 
 async def parse_cell_info(data, device_name):
     """Parsing Cell Info Frame (0x02)."""
-    log(device_name, "Parsing Cell Info Frame...", force=True)
+    log(device_name, "Parsing Cell Info Frame...")
 
     try:
         # Checking the header
@@ -179,7 +184,6 @@ async def parse_cell_info(data, device_name):
             raise ValueError("Invalid frame header")
 
         frame_start = data.find(b'\x55\xAA\xEB\x90')
-        log(device_name, f"Frame Start Position: {frame_start}")
         log(device_name, f"Data Length: {len(data)}")
 
         # Extract cell data
@@ -263,6 +267,7 @@ async def parse_cell_info(data, device_name):
             return None
         
         await device_data_store.update_cell_info(device_name, cell_info)
+        db.update_aggregated_data(device_name=device_name, voltage=battery_voltage, current=charge_current)
 
         log(device_name, "Parsed Cell Info:")
         for key, value in cell_info.items():
@@ -306,10 +311,11 @@ async def notification_handler(device, data, device_name, device_address):
         else:
             log(device_name, f"Unknown frame type {frame_type}: {buffer}", force=True)
             # Якщо невідомий тип очищую буфер, бо така помилка буде весь час падати
-            # device_info_data = await device_data_store.get_device_info(device_name)
-            # if device_info_data:
-            #     device_info_data['connected'] = False
-            #     await device_data_store.update_device_info(device_name, device_info_data)
+            # TODO Можливо ставити False не треба?
+            device_info_data = await device_data_store.get_device_info(device_name)
+            if device_info_data:
+                device_info_data['connected'] = False
+                await device_data_store.update_device_info(device_name, device_info_data)
             await device_data_store.clear_buffer(device_name)
 
 async def connect_and_run(device):
@@ -395,7 +401,7 @@ async def ble_main():
             await asyncio.sleep(10)
 
 def start_services():
-    import uvicorn
+    db.create_table()
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 def load_allowed_devices(filename="allowed_devices.txt"):

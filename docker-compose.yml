@@ -1,23 +1,4 @@
 services:
-  # backend:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - DATABASE_HOST=database
-  #     - DATABASE_PORT=5432
-  #     - DATABASE_USER=myuser
-  #     - DATABASE_PASSWORD=mypassword
-  #     - DATABASE_NAME=mydb
-  #   volumes:
-  #     - ./backend:/app
-  #     - /app/node_modules
-  #   depends_on:
-  #     - database
-  #   command: yarn start:dev
-
   frontend:
     build:
       context: ./frontend
@@ -27,7 +8,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      # - /usr/share/nginx/html:/usr/share/nginx/html
+    restart: unless-stopped
 
   python-app:
     build:
@@ -38,22 +19,13 @@ services:
     volumes:
       - .:/app
       - /var/run/dbus:/var/run/dbus  # Доступ до D-Bus
+      - sqlite_data:/app/data
     environment:
       - DBUS_SESSION_BUS_ADDRESS=unix:path=/var/run/dbus/system_bus_socket
     privileged: true  # Дозволяє доступ до Bluetooth-адаптера
     devices:
       - "/dev/ttyUSB0:/dev/ttyUSB0"
+    restart: unless-stopped
 
-  # database:
-  #   image: postgres:latest
-  #   environment:
-  #     POSTGRES_USER: myuser
-  #     POSTGRES_PASSWORD: mypassword
-  #     POSTGRES_DB: mydb
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   ports:
-  #     - "5432:5432"
-
-# volumes:
-#   postgres_data:
+volumes:
+  sqlite_data:
