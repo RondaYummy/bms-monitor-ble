@@ -402,8 +402,8 @@ async def ble_main():
 
 def start_services():
     db.create_table()
-    uvicorn.run(app, host="0.0.0.0", port=8000)
     asyncio.create_task(db.process_devices())
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 def load_allowed_devices(filename="allowed_devices.txt"):
     try:
