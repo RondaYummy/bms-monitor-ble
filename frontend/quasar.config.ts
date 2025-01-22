@@ -15,7 +15,7 @@ export default defineConfig((ctx) => {
     boot: [
       'i18n',
       'axios',
-      'apex-chart',
+      'apexchart',
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
