@@ -299,16 +299,13 @@ async def notification_handler(sender, data, device_name, device_address):
 async def connect_and_run(device):
     while True:  # Цикл для перепідключення
         try:
-            device_info_data = await device_data_store.get_device_info()
-            await device_data_store.update_device_info(device.name, {
-                "device_name": device.name,
-                "device_address": device.address,
-                "connected": True,
-            })
-            device_info_data[device.name]["connected"] = False
+            device_info_data = await device_data_store.get_device_info(device.name)
+            device_info_data["connected"] = False
+            await device_data_store.update_device_info(device.name, device_info_data)
 
             async with BleakClient(device.address) as client:
-                device_info_data[device.name]["connected"] = True
+                device_info_data["connected"] = True
+                await device_data_store.update_device_info(device.name, device_info_data)
                 log(device.name, f"Connected and notification started", force=True)
 
                 def handle_notification(sender, data):
@@ -317,11 +314,15 @@ async def connect_and_run(device):
                 await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
 
                 while True:  # Постійне опитування
-                    device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
-                    cell_info_command = create_command(CMD_TYPE_CELL_INFO)
+                    device_info_data = await device_data_store.get_device_info(device.name)
+                    if not device_info_data or "frame_type" not in device_info_data:
+                        # Якщо інформація про пристрій ще не збережена, надсилаємо команду
+                        device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
+                        await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
+                        log(device.name, f"Device Info command sent: {device_info_command.hex()}", force=True)
+                        await asyncio.sleep(1)
 
-                    await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
-                    log(device.name, f"Device Info command sent: {device_info_command.hex()}", force=True)
+                    cell_info_command = create_command(CMD_TYPE_CELL_INFO)
 
                     await asyncio.sleep(1)
 
@@ -333,7 +334,8 @@ async def connect_and_run(device):
             log(device.name, f"Error: {str(e)}", force=True)
         finally:
             if device.name in device_info_data:
-                device_info_data[device.name]["connected"] = False
+                device_info_data["connected"] = False
+                await device_data_store.update_device_info(device.name, device_info_data)
                 log(device.name, "Disconnected, retrying in 5 seconds...", force=True)
             await asyncio.sleep(5)
 
