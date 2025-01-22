@@ -1,0 +1,25 @@
+{
+  "name": "bms-monitor-ble",
+  "version": "1.0.0",
+  "description": "Simple application for controlling JK-BMS via Bluetooth low energy",
+  "main": "ecosystem.config.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": "docker compose up --build",
+    "dev": "docker compose up",
+    "prod": "docker compose -f docker-compose.yml up --build -d",
+    "copy-static": "docker cp $(docker ps -q -f name=bms-monitor-ble-frontend):/usr/share/nginx/html /usr/share/nginx/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RondaYummy/bms-monitor-ble.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RondaYummy/bms-monitor-ble/issues"
+  },
+  "homepage": "https://github.com/RondaYummy/bms-monitor-ble#readme"
+}
