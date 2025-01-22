@@ -173,7 +173,7 @@ async def parse_device_info(data, device_name, device_address):
         log(device_name, f"Error parsing Device Info Frame: {e}", force=True)
         return None
 
-async def parse_cell_info(data, device_name):
+async def parse_cell_info(data, device_name, device_address):
     """Parsing Cell Info Frame (0x02)."""
     log(device_name, "Parsing Cell Info Frame...")
 
@@ -267,7 +267,7 @@ async def parse_cell_info(data, device_name):
             return None
         
         await device_data_store.update_cell_info(device_name, cell_info)
-        db.update_aggregated_data(device_name=device_name, voltage=battery_voltage, current=charge_current)
+        db.update_aggregated_data(device_name=device_name, device_address=device_address, voltage=battery_voltage, current=charge_current)
 
         log(device_name, "Parsed Cell Info:")
         for key, value in cell_info.items():
@@ -305,7 +305,7 @@ async def notification_handler(device, data, device_name, device_address):
             await parse_device_info(buffer, device_name, device_address)
         elif frame_type == 0x02:
             await device_data_store.update_last_cell_info_update(device_name)
-            await parse_cell_info(buffer, device_name)
+            await parse_cell_info(buffer, device_name, device_address)
         # elif frame_type == 0x01:
         #     await parse_setting_info(buffer, device_name)
         else:
