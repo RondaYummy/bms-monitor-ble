@@ -104,6 +104,7 @@ async def get_cell_info():
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(ble_main())
+    asyncio.create_task(db.process_devices())
 
 def calculate_crc(data):
     return sum(data) & 0xFF
@@ -182,8 +183,6 @@ async def parse_cell_info(data, device_name, device_address):
         if data[:4] != b'\x55\xAA\xEB\x90':
             log(device_name, f"Unexpected Header: {data[:4].hex()}", force=True)
             raise ValueError("Invalid frame header")
-
-        frame_start = data.find(b'\x55\xAA\xEB\x90')
         log(device_name, f"Data Length: {len(data)}")
 
         # Extract cell data
@@ -402,7 +401,6 @@ async def ble_main():
 
 def start_services():
     db.create_table()
-    asyncio.create_task(db.process_devices())
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 def load_allowed_devices(filename="allowed_devices.txt"):
