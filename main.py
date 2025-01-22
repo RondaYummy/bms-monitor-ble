@@ -160,7 +160,7 @@ async def parse_device_info(data, device_name, device_address):
 async def parse_cell_info(data, device_name):
     """Parsing Cell Info Frame (0x02)."""
     global cell_info_data
-    log(device_name, "Parsing Cell Info Frame...", force=True)
+    log(device_name, "Parsing Cell Info Frame...")
 
     try:
         # Checking the header
@@ -276,7 +276,6 @@ async def notification_handler(sender, data, device_name, device_address):
     buffer = await device_data_store.get_buffer(device_name)
     if MIN_FRAME_SIZE <= len(buffer) <= MAX_FRAME_SIZE:
         log(device_name, f"Full frame received: {buffer.hex()}")
-        log(device_name, f"Full frame received.", force=True)
 
         # Checking the CRC
         calculated_crc = calculate_crc(buffer[:-1])
@@ -362,6 +361,7 @@ async def ble_main():
 
                 log(device.name, f"Connecting to allowed device: {device.address}", force=True)
                 tasks.append(asyncio.create_task(connect_and_run(device)))
+                await asyncio.sleep(10)
 
         # Чекаємо завершення всіх задач (теоретично вони працюватимуть нескінченно)
         if tasks:
