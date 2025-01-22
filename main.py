@@ -113,7 +113,8 @@ def create_command(command_type):
 def log(device_name, message, force=False):
     global ENABLE_LOGS
     if ENABLE_LOGS or force:
-        print(f"{BLUE}[{device_name}]{RESET} {message}")
+        current_time = datetime.now().strftime("%d.%m.%y %H:%M")
+        print(f"{BLUE}[{device_name}] [{current_time}]{RESET} {message}")
 
 async def parse_device_info(data, device_name, device_address):
     """Parsing Device Info Frame (0x03)."""
