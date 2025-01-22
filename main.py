@@ -305,10 +305,11 @@ async def notification_handler(device, data, device_name, device_address):
         #     await parse_setting_info(buffer, device_name)
         else:
             log(device_name, f"Unknown frame type {frame_type}: {buffer}", force=True)
-            device_info_data = await device_data_store.get_device_info(device_name)
-            if device_info_data:
-                device_info_data['connected'] = False
-                await device_data_store.update_device_info(device_name, device_info_data)
+            # Якщо невідомий тип очищую буфер, бо така помилка буде весь час падати
+            # device_info_data = await device_data_store.get_device_info(device_name)
+            # if device_info_data:
+            #     device_info_data['connected'] = False
+            #     await device_data_store.update_device_info(device_name, device_info_data)
             await device_data_store.clear_buffer(device_name)
 
 async def connect_and_run(device):
