@@ -278,7 +278,7 @@ async def parse_cell_info(data, device_name):
         log(device_name, f"Error parsing Cell Info Frame: {e}", force=True)
         return None
 
-async def notification_handler(client, data, device_name, device_address):
+async def notification_handler(device, data, device_name, device_address):
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
         await device_data_store.clear_buffer(device_name)  # Очистити буфер
     await device_data_store.append_to_buffer(device_name, data)  # Додати нові дані
@@ -309,11 +309,7 @@ async def notification_handler(client, data, device_name, device_address):
             if device_info_data:
                 device_info_data['connected'] = False
                 await device_data_store.update_device_info(device_name, device_info_data)
-            
-            # Виконуємо відключення пристрою
-            if client.is_connected:
-                await client.disconnect()
-                log(device_name, "Device disconnected due to unknown frame type.", force=True)
+            await device_data_store.clear_buffer(device_name)
 
 async def connect_and_run(device):
     while True:  # Цикл для перепідключення
@@ -327,28 +323,24 @@ async def connect_and_run(device):
                 }
             await device_data_store.update_device_info(device.name, device_info_data)
 
-            disconnected_event = asyncio.Event()
-            def disconnected_callback(client):
-                log(device.name, "Device disconnected!", force=True)
-                disconnected_event.set()
-
-            async with BleakClient(device.address, disconnected_callback=disconnected_callback) as client:
+            async with BleakClient(device.address) as client:
                 device_info_data["connected"] = True
                 await device_data_store.update_device_info(device.name, device_info_data)
                 log(device.name, f"Connected and notification started", force=True)
 
                 def handle_notification(sender, data):
-                    asyncio.create_task(notification_handler(client, data, device.name, device.address))
+                    asyncio.create_task(notification_handler(device, data, device.name, device.address))
 
                 await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
 
                 while True:  # Постійне опитування
-                    # Перевіряємо, чи пристрій ще підключений
+                # Перевіряємо, чи пристрій ще підключений
                     device_info_data = await device_data_store.get_device_info(device.name)
                     if not device_info_data.get("connected", False):
                         log(device.name, "Device has been disconnected. Stopping polling.", force=True)
                         break
 
+                    device_info_data = await device_data_store.get_device_info(device.name)
                     if not device_info_data or "frame_type" not in device_info_data:
                         # Якщо інформація про пристрій ще не збережена, надсилаємо команду
                         device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
@@ -395,7 +387,6 @@ async def ble_main():
                 log(device.name, f"Connecting to allowed device: {device.address}", force=True)
                 tasks.append(asyncio.create_task(connect_and_run(device)))
                 await asyncio.sleep(10)
-
         # Чекаємо завершення всіх задач (теоретично вони працюватимуть нескінченно)
         if tasks:
             await asyncio.gather(*tasks)
