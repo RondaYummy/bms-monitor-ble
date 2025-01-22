@@ -1,5 +1,5 @@
 <template>
-  <q-page class="column items-center justify-evenly">
+  <q-page class="column items-center justify-evenly q-pa-lg">
     <div class="column">
       <h2>Devices</h2>
       <p>Here you can manage your devices.</p>
