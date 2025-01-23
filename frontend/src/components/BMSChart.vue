@@ -37,14 +37,14 @@ const chartOptions = ref({
   },
   yaxis: [
     {
-      title: { text: 'Voltage / Battery Power' }, // Ліва вісь Y
+      // title: { text: 'Voltage / Battery Power' }, // Ліва вісь Y
       labels: {
         formatter: (val: number) => Math.round(val).toString(),
       },
     },
     {
       opposite: true, // Права вісь Y
-      title: { text: 'Current' },
+      // title: { text: 'Current' },
       labels: {
         formatter: (val: number) => Math.round(val).toString(),
       },
