@@ -101,6 +101,31 @@
         </div>
 
         <div class='row justify-between'>
+          <span>
+            Total Cycle Capacity:
+            {{ calculatedList?.total_cycle_capacity?.toFixed(2) }}
+            <sup>Ah</sup>
+
+            <q-tooltip>
+              CTotal Cycle Capacity - Це загальний обсяг енергії, яку батарея
+              віддала протягом всіх циклів свого використання. Зниження цього
+              показника (відносно номінальної ємності) може свідчити про
+              деградацію батареї.
+            </q-tooltip>
+          </span>
+
+          <span>
+            Cycle count: {{ calculatedList?.cycle_count }}
+
+            <q-tooltip>
+              Cycle count - Один цикл визначається як повний процес розряджання
+              батареї (до
+              певного рівня) і заряджання до повного заряду.
+            </q-tooltip>
+          </span>
+        </div>
+
+        <div>
           <span :class="{ unique: calculatedList?.state_of_health < 30 }">
             SOH: {{ calculatedList?.state_of_health }}%
 
@@ -114,15 +139,7 @@
             </q-tooltip>
           </span>
 
-          <span>
-            Cycle count: {{ calculatedList?.cycle_count }}
-
-            <q-tooltip>
-              Cycle count - Один цикл визначається як повний процес розряджання
-              батареї (до
-              певного рівня) і заряджання до повного заряду.
-            </q-tooltip>
-          </span>
+          <span></span>
         </div>
       </div>
     </template>
@@ -237,6 +254,7 @@ function calculateData() {
     state_of_health: 0,
     battery_voltage: 0,
     battery_power: 0,
+    total_cycle_capacity: 0,
   };
 
   if (values?.length) {
@@ -256,6 +274,7 @@ function calculateData() {
     calculatedList.value.charging_status = values.some(obj => obj.charging_status === 1) ? 1 : 0;
     calculatedList.value.charge_current = values.reduce((sum, obj) => sum + (obj.charge_current || 0), 0);
     calculatedList.value.battery_power = values.reduce((sum, obj) => sum + (obj.battery_power || 0), 0);
+    calculatedList.value.total_cycle_capacity = values.reduce((sum, obj) => sum + (obj.total_cycle_capacity || 0), 0);
     calculatedList.value.average_voltage = calculateAverage(values, 'average_voltage');
     calculatedList.value.battery_voltage = calculateAverage(values, 'battery_voltage');
     calculatedList.value.state_of_charge = calculateAverage(values, 'state_of_charge');

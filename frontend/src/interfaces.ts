@@ -16,5 +16,6 @@ export interface Device {
   charging_status: number;
   discharging_status: number;
   voltage_difference: number;
+  total_cycle_capacity: number;
 }
 

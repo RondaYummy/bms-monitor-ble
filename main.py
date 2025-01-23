@@ -240,7 +240,7 @@ async def parse_cell_info(data, device_name, device_address):
         remaining_capacity = int.from_bytes(data[142+32:146+32], byteorder='little') * 0.001
         nominal_capacity = int.from_bytes(data[146+32:150+32], byteorder='little') * 0.001
         cycle_count = int.from_bytes(data[150+32:154+32], byteorder='little')
-        total_cycle_count = int.from_bytes(data[154+32:157+32], byteorder='little')
+        total_cycle_capacity = int.from_bytes(data[154+32:157+32], byteorder='little') * 0.001
         state_of_health = data[158+32]
         charging_status = data[166+32]
         discharging_status = data[167+32]
@@ -275,7 +275,7 @@ async def parse_cell_info(data, device_name, device_address):
             "remaining_capacity": remaining_capacity,
             "nominal_capacity": nominal_capacity,
             "cycle_count": cycle_count,
-            "total_cycle_count": total_cycle_count,
+            "total_cycle_capacity": total_cycle_capacity,
             "state_of_health": state_of_health,
             "emergency_time_countdown": emergency_time_countdown,
         }
