@@ -103,7 +103,7 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
             timestamp=timestamp,
             voltage=voltage_avg,
             current=current_avg,
-            power=power_avg,  # Зберігаємо потужність
+            power=power_avg,
             device_address=device_address,
             device_name=device_name
         )
@@ -115,7 +115,7 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
     device_data.update({
         "voltage_sum": 0,
         "current_sum": 0,
-        "power_sum": 0,  # Скидаємо суму потужності
+        "power_sum": 0,
         "voltage_min": float('inf'),
         "voltage_max": float('-inf'),
         "current_min": float('inf'),

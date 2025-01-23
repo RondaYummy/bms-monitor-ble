@@ -288,7 +288,9 @@ async def parse_cell_info(data, device_name, device_address):
             return None
         
         await device_data_store.update_cell_info(device_name, cell_info)
-        db.update_aggregated_data(device_name=device_name, device_address=device_address, voltage=battery_voltage, current=charge_current, power=battery_power)
+
+        if await are_all_allowed_devices_connected():
+            db.update_aggregated_data(device_name=device_name, device_address=device_address, voltage=battery_voltage, current=charge_current, power=battery_power)
 
         log(device_name, "Parsed Cell Info:")
         for key, value in cell_info.items():
@@ -420,6 +422,19 @@ async def ble_main():
             await asyncio.gather(*tasks)
         else:
             await asyncio.sleep(10)
+
+async def are_all_allowed_devices_connected() -> bool:
+    """
+    Перевіряє, чи всі пристрої зі списку allowed_devices підключені.
+    """
+    allowed_devices = load_allowed_devices()
+    connected_devices = await device_data_store.get_device_info()
+    connected_addresses = {
+        device_info["device_address"]
+        for device_info in connected_devices.values()
+        if device_info.get("connected", False)
+    }
+    return allowed_devices.issubset(connected_addresses)
 
 def start_services():
     db.create_table()
