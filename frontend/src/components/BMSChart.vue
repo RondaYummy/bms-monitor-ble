@@ -79,7 +79,6 @@ function processAggregatedData(data: any[], tab: string) {
 
     // Групуємо дані за хвилинами
     const groupedData: Record<string, { voltageSum: number; currentSum: number; count: number; powerSum: number; }> = {};
-    console.log('Grouped data:', groupedData);
 
     uniqueData.forEach((item: any) => {
       const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
@@ -91,6 +90,7 @@ function processAggregatedData(data: any[], tab: string) {
       groupedData[minuteKey].powerSum += item[4]; // Сила
       groupedData[minuteKey].count += 1;
     });
+    console.log('Grouped data:', groupedData);
 
     // Формуємо серії для графіка
     const voltageSeries = Object.entries(groupedData).map(([minute, values]) => ({
