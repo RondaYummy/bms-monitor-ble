@@ -255,6 +255,7 @@ function calculateData() {
     battery_voltage: 0,
     battery_power: 0,
     total_cycle_capacity: 0,
+    cycle_count: 0,
   };
 
   if (values?.length) {
@@ -275,6 +276,7 @@ function calculateData() {
     calculatedList.value.charge_current = values.reduce((sum, obj) => sum + (obj.charge_current || 0), 0);
     calculatedList.value.battery_power = values.reduce((sum, obj) => sum + (obj.battery_power || 0), 0);
     calculatedList.value.total_cycle_capacity = values.reduce((sum, obj) => sum + (obj.total_cycle_capacity || 0), 0);
+    calculatedList.value.cycle_count = values.reduce((sum, obj) => sum + (obj.cycle_count || 0), 0);
     calculatedList.value.average_voltage = calculateAverage(values, 'average_voltage');
     calculatedList.value.battery_voltage = calculateAverage(values, 'battery_voltage');
     calculatedList.value.state_of_charge = calculateAverage(values, 'state_of_charge');
