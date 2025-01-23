@@ -64,22 +64,22 @@ async function fetchAggregatedData(days: number = 1): Promise<any[]> {
 
 function processAggregatedData(data: any[], tab: string) {
   if (tab === 'All') {
-    const uniqueDevices: Record<string, any> = {};
+    // const uniqueDevices: Record<string, any> = {};
 
-    data.forEach((item) => {
-      const deviceName = item[6];
-      if (!uniqueDevices[deviceName]) {
-        uniqueDevices[deviceName] = item; // Зберігаємо перший запис для пристрою
-      }
-    });
+    // data.forEach((item) => {
+    //   const deviceName = item[6];
+    //   if (!uniqueDevices[deviceName]) {
+    //     uniqueDevices[deviceName] = item; // Зберігаємо перший запис для пристрою
+    //   }
+    // });
 
-    // Перетворюємо унікальні записи в масив
-    const uniqueData = Object.values(uniqueDevices);
+    // // Перетворюємо унікальні записи в масив
+    // const uniqueData = Object.values(uniqueDevices);
 
     // Групуємо дані за хвилинами
     const groupedData: Record<string, { voltageSum: number; currentSum: number; count: number; powerSum: number; }> = {};
 
-    uniqueData.forEach((item: any) => {
+    data.forEach((item: any) => {
       const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
       if (!groupedData[minuteKey]) {
         groupedData[minuteKey] = { voltageSum: 0, currentSum: 0, powerSum: 0, count: 0 };
