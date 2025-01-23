@@ -212,12 +212,36 @@
               mobile-arrows
               class="q-mt-sm bg-indigo text-white wrap"
               v-if="devicesList">
-        <q-tab name="All"
+        <q-tab class="text-orange"
+               name="All"
                label="All" />
-        <q-tab v-for="device of Object.keys(devicesList)"
+
+        <q-btn-dropdown auto-close
+                        stretch
+                        flat
+                        icon="more"
+                        label="More...">
+          <q-list>
+            <q-item clickable
+                    v-for="device of Object.keys(devicesList)"
+                    :key="device"
+                    :name="device"
+                    :label="device"
+                    @click="tab = device">
+              <q-item-section>Movies</q-item-section>
+            </q-item>
+
+            <q-item clickable
+                    @click="tab = 'photos'">
+              <q-item-section>Photos</q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
+        <!-- <q-tab class="text-orange"
+               v-for="device of Object.keys(devicesList)"
                :key="device"
                :name="device"
-               :label="device" />
+               :label="device" /> -->
       </q-tabs>
     </div>
   </q-page>
