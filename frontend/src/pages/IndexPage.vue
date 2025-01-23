@@ -210,7 +210,7 @@
             outside-arrows
             mobile-arrows
             align="justify"
-            class="q-mt-sm bg-indigo text-white wrap shadow-2 bg-dark"
+            class="q-mt-sm text-white shadow-2 bg-dark full-width"
             v-if="devicesList">
       <q-tab name="All"
              label="All" />

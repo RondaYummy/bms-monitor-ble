@@ -125,7 +125,7 @@ def log(device_name, message, force=False):
     global ENABLE_LOGS
     if ENABLE_LOGS or force:
         current_time = datetime.now().strftime("%d.%m.%y %H:%M")
-        print(f"{BLUE}[{device_name}] [{current_time}]{RESET} {message}")
+        print(f"{BLUE}[{device_name}] {MAGENTA}[{current_time}]{RESET} {message}")
 
 async def parse_device_info(data, device_name, device_address):
     """Parsing Device Info Frame (0x03)."""
