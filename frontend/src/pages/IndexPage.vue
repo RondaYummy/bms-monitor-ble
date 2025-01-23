@@ -86,6 +86,21 @@
         </div>
 
         <div class='row justify-between'>
+          <span :class="{ unique: calculatedList?.battery_power > 6000 }">
+            Power: {{ calculatedList?.battery_power }}
+            <sup>W</sup>
+
+            <q-tooltip>
+              Battery Power — Це потужність, яку батарея видає в даний момент.
+              Обчислюється як добуток напруги та струму (W).
+            </q-tooltip>
+          </span>
+
+          <span>Balance:
+            {{ calculatedList?.state_of_charge?.toFixed(1) }}%</span>
+        </div>
+
+        <div class='row justify-between'>
           <span :class="{ unique: calculatedList?.state_of_health < 30 }">
             SOH: {{ calculatedList?.state_of_health }}%
 
@@ -99,8 +114,7 @@
             </q-tooltip>
           </span>
 
-          <span>Balance:
-            {{ calculatedList?.state_of_charge?.toFixed(1) }}%</span>
+          <span></span>
         </div>
       </div>
     </template>
@@ -214,6 +228,7 @@ function calculateData() {
     state_of_charge: 0,
     state_of_health: 0,
     battery_voltage: 0,
+    battery_power: 0,
   };
 
   if (values?.length) {
@@ -231,8 +246,9 @@ function calculateData() {
 
     calculatedList.value.discharging_status = values.some(obj => obj.discharging_status === 1) ? 1 : 0;
     calculatedList.value.charging_status = values.some(obj => obj.charging_status === 1) ? 1 : 0;
-    calculatedList.value.average_voltage = calculateAverage(values, 'average_voltage');
     calculatedList.value.charge_current = values.reduce((sum, obj) => sum + (obj.charge_current || 0), 0);
+    calculatedList.value.battery_power = values.reduce((sum, obj) => sum + (obj.battery_power || 0), 0);
+    calculatedList.value.average_voltage = calculateAverage(values, 'average_voltage');
     calculatedList.value.battery_voltage = calculateAverage(values, 'battery_voltage');
     calculatedList.value.state_of_charge = calculateAverage(values, 'state_of_charge');
     calculatedList.value.state_of_health = calculateAverage(values, 'state_of_health');

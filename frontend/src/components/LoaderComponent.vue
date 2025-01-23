@@ -66,8 +66,8 @@
 .loader {
   position: absolute;
   z-index: 5;
-  top: 26px;
-  left: 12px;
+  top: 23px;
+  left: 10px;
   width: 8px;
   height: 8px;
   border-radius: 360px;
