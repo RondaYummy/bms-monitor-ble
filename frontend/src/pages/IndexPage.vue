@@ -146,8 +146,6 @@
 
     <q-btn v-if="!isInstalled()"
            @click="installApp"
-           color="white"
-           text-color="black"
            label="Install App" />
 
     <BMSChart :tab="tab" />
