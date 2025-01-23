@@ -61,7 +61,7 @@ async function fetchAggregatedData(days: number = 1): Promise<any[]> {
 
 onMounted(async () => {
   try {
-    const data = await fetchAggregatedData();
+    const data = await fetchAggregatedData(3);
     console.log('Aggregated Data: ', data);
 
     if (!data) {
