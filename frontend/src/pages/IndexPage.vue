@@ -212,8 +212,7 @@
               mobile-arrows
               class="q-mt-sm bg-indigo text-white wrap"
               v-if="devicesList">
-        <q-tab class="text-orange"
-               name="All"
+        <q-tab name="All"
                label="All" />
 
         <q-btn-dropdown auto-close
@@ -229,11 +228,6 @@
                     :label="device"
                     @click="tab = device">
               <q-item-section>{{ device }}</q-item-section>
-            </q-item>
-
-            <q-item clickable
-                    @click="tab = 'photos'">
-              <q-item-section>Photos</q-item-section>
             </q-item>
           </q-list>
         </q-btn-dropdown>
