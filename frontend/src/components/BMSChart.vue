@@ -33,7 +33,7 @@ const chartOptions = ref({
     align: 'left',
   },
   yaxis: {
-    title: { text: 'Value' },
+    // title: { text: 'Value' },
     labels: {
       formatter: (val: number) => Math.round(val).toString(),
     },
@@ -64,10 +64,23 @@ async function fetchAggregatedData(days: number = 1): Promise<any[]> {
 
 function processAggregatedData(data: any[], tab: string) {
   if (tab === 'All') {
+    // Збираємо унікальні пристрої
+    const uniqueDevices: Record<string, any> = {};
+
+    data.forEach((item) => {
+      const deviceName = item[5]; // Ім'я пристрою
+      if (!uniqueDevices[deviceName]) {
+        uniqueDevices[deviceName] = item; // Зберігаємо перший запис для пристрою
+      }
+    });
+
+    // Перетворюємо унікальні записи в масив
+    const uniqueData = Object.values(uniqueDevices);
+
     // Групуємо дані за хвилинами
     const groupedData: Record<string, { voltageSum: number; currentSum: number; count: number; }> = {};
 
-    data.forEach((item) => {
+    uniqueData.forEach((item: any) => {
       const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
       if (!groupedData[minuteKey]) {
         groupedData[minuteKey] = { voltageSum: 0, currentSum: 0, count: 0 };
