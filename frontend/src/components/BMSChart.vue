@@ -16,6 +16,7 @@ const props = defineProps(['tab']);
 interface SeriesData {
   name: string;
   data: any[];
+  yaxis: number;
 }
 
 // Ініціалізація даних графіка
@@ -26,19 +27,26 @@ const chartOptions = ref({
   },
   xaxis: {
     type: 'datetime',
-    // categories: [], // Дата або інші категорії
   },
   title: {
     text: 'BMS Data',
     align: 'left',
   },
-  yaxis: {
-    // title: { text: 'Value' },
-    labels: {
-      formatter: (val: number) => Math.round(val).toString(),
+  yaxis: [
+    {
+      title: { text: 'Voltage / Battery Power' }, // Ліва вісь Y
+      labels: {
+        formatter: (val: number) => Math.round(val).toString(),
+      },
     },
-    min: undefined,
-  },
+    {
+      opposite: true, // Права вісь Y
+      title: { text: 'Current' },
+      labels: {
+        formatter: (val: number) => Math.round(val).toString(),
+      },
+    },
+  ],
   tooltip: {
     x: { format: 'dd MMM yyyy HH:mm:ss' }, // Формат тултіпа
   },
@@ -146,14 +154,17 @@ onMounted(async () => {
       {
         name: 'Voltage',
         data: voltageSeries,
+        yaxis: 0, // Використовує ліву вісь Y
       },
       {
         name: 'Current',
         data: currentSeries,
+        yaxis: 1, // Використовує праву вісь Y
       },
       {
         name: 'Battery Power',
         data: powerSeries,
+        yaxis: 0, // Використовує ліву вісь Y
       },
     ];
   } catch (error) {
@@ -169,14 +180,17 @@ watch(() => props.tab, async (newTab) => {
       {
         name: 'Voltage',
         data: voltageSeries,
+        yaxis: 0, // Використовує ліву вісь Y
       },
       {
         name: 'Current',
         data: currentSeries,
+        yaxis: 1, // Використовує праву вісь Y
       },
       {
         name: 'Battery Power',
         data: powerSeries,
+        yaxis: 0, // Використовує ліву вісь Y
       },
     ];
   } catch (error) {
