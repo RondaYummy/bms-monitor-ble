@@ -207,8 +207,9 @@
       <q-tabs v-model="tab"
               @update:model-value="selectSingleDevice"
               dense
-              shrink
-              stretch
+              inline-label
+              outside-arrows
+              mobile-arrows
               class="q-mt-sm bg-indigo text-white wrap"
               v-if="devicesList">
         <q-tab name="All"
