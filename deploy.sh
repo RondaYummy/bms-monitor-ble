@@ -16,6 +16,10 @@ function deploy() {
 
   echo "====> Ребілдимо Докер-образи через Docker Compose"
   docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down
+
+  docker system prune -f # Видалення непотрібних контейнерів, образів та мереж
+  docker volume prune -f # Видалення неприєднаних томів (не зачіпає sqlite_data)
+
   docker compose -f $COMPOSE_FILE -p $PROJECT_NAME up --build -d
   if [ $? -ne 0 ]; then
     echo "❌ Помилка під час ребілду та запуску контейнерів"
