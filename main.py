@@ -288,7 +288,7 @@ async def parse_cell_info(data, device_name, device_address):
             return None
         
         await device_data_store.update_cell_info(device_name, cell_info)
-        db.update_aggregated_data(device_name=device_name, device_address=device_address, voltage=battery_voltage, current=charge_current)
+        db.update_aggregated_data(device_name=device_name, device_address=device_address, voltage=battery_voltage, current=charge_current, power=battery_power)
 
         log(device_name, "Parsed Cell Info:")
         for key, value in cell_info.items():
