@@ -25,6 +25,9 @@ const chartOptions = ref({
     id: 'bms-data-chart',
     toolbar: { show: true },
   },
+  legend: {
+    show: false,
+  },
   xaxis: {
     type: 'datetime',
   },
