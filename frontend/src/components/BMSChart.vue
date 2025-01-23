@@ -102,6 +102,5 @@ onMounted(async () => {
 <style scoped>
 .chart-container {
   width: 100%;
-  min-height: 300px;
 }
 </style>
