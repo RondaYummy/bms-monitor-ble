@@ -169,22 +169,31 @@
       </div>
     </div>
 
-    <div class="column items-center q-mt-md">
-      <h6>Cell Wire Resistance:</h6>
-      <div class='row justify-between'>
-        <div class='row items-center'
-             v-for='(d, idx) of calculatedList?.cell_resistances'
-             :key="`cr_${idx}`">
-          <q-chip dense
-                  outline
-                  color="primary"
-                  text-color="white">{{ String(idx + 1).padStart(2, '0') }}</q-chip>
-          <span>
-            - {{ d?.toFixed(2) }} v.
-          </span>
-        </div>
-      </div>
-    </div>
+    <q-expansion-item switch-toggle-side
+                      expand-separator
+                      icon="perm_identity"
+                      label="Cell Wire Resistance">
+      <q-card>
+        <q-card-section>
+          <div class="column items-center q-mt-md">
+            <div class='row justify-between'>
+              <div class='row items-center'
+                   v-for='(d, idx) of calculatedList?.cell_resistances'
+                   :key="`cr_${idx}`">
+                <q-chip dense
+                        outline
+                        color="primary"
+                        text-color="white">{{ String(idx + 1).padStart(2, '0') }}</q-chip>
+                <span>
+                  - {{ d?.toFixed(2) }} v.
+                </span>
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-expansion-item>
+
 
     <div style="max-width: 100%;">
       <q-tabs v-model="tab"
