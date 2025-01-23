@@ -420,10 +420,10 @@ async def are_all_allowed_devices_connected() -> bool:
     """
     Перевіряє, чи всі пристрої зі списку allowed_devices підключені.
     """
-    allowed_devices = load_allowed_devices()
+    allowed_devices = {addr.lower() for addr in load_allowed_devices()}
     connected_devices = await device_data_store.get_device_info()
     connected_addresses = {
-        device_info["device_address"]
+        device_info.get("device_address", "").lower()
         for device_info in connected_devices.values()
         if device_info.get("connected", False)
     }
