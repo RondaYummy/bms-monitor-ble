@@ -4,7 +4,6 @@ Simple application for controlling JK-BMS via Bluetooth low energy
 1. Install Node 22.
 2. Install Yarn.
 3. Install Docker-compose.
-4. Install PostgreSQL.
 
 ## Build Docker:
 ```bash
