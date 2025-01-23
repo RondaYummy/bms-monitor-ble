@@ -11,25 +11,13 @@ import { ref, onMounted } from 'vue';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
 
-interface ChartOptions {
-  chart: {
-    id: string;
-    toolbar: { show: boolean; };
-  };
-  xaxis: { categories: string[]; type: string; };
-  title: { text: string; align: string; };
-  yaxis: { title: { text: string; }, labels: { formatter: (val: number) => string; }; };
-  tooltip: { x: { format: string; }; };
-  colors: string[];
-}
-
 interface SeriesData {
   name: string;
   data: any[];
 }
 
 // Ініціалізація даних графіка
-const chartOptions = ref<ChartOptions>({
+const chartOptions = ref({
   chart: {
     id: 'bms-data-chart',
     toolbar: { show: true },
@@ -47,6 +35,7 @@ const chartOptions = ref<ChartOptions>({
     labels: {
       formatter: (val: number) => Math.round(val).toString(),
     },
+    min: undefined,
   },
   tooltip: {
     x: { format: 'dd MMM yyyy HH:mm:ss' }, // Формат тултіпа
@@ -113,6 +102,6 @@ onMounted(async () => {
 <style scoped>
 .chart-container {
   width: 100%;
-  height: 500px;
+  min-height: 300px;
 }
 </style>

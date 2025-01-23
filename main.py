@@ -181,6 +181,18 @@ async def parse_device_info(data, device_name, device_address):
     except Exception as e:
         log(device_name, f"Error parsing Device Info Frame: {e}", force=True)
         return None
+    
+async def parse_setting_info(data, device_name, device_address):
+    """Parsing Cell Info Frame (0x01)."""
+    log(device_name, "Parsing Setting Info Frame...", force=True)  
+
+    try:
+        log(device_name, f"Setting Header: {data[:4].hex()}", force=True)
+
+
+    except Exception as e:
+        log(device_name, f"Error parsing Setting Info Frame: {e}", force=True)
+        return None
 
 async def parse_cell_info(data, device_name, device_address):
     """Parsing Cell Info Frame (0x02)."""
@@ -313,8 +325,8 @@ async def notification_handler(device, data, device_name, device_address):
         elif frame_type == 0x02:
             await device_data_store.update_last_cell_info_update(device_name)
             await parse_cell_info(buffer, device_name, device_address)
-        # elif frame_type == 0x01:
-        #     await parse_setting_info(buffer, device_name)
+        elif frame_type == 0x01:
+            await parse_setting_info(buffer, device_name, device_address)
         else:
             log(device_name, f"Unknown frame type {frame_type}: {buffer}", force=True)
             # Якщо невідомий тип очищую буфер, бо така помилка буде весь час падати
@@ -323,7 +335,6 @@ async def notification_handler(device, data, device_name, device_address):
             if device_info_data:
                 device_info_data['connected'] = False
                 await device_data_store.update_device_info(device_name, device_info_data)
-            await device_data_store.update_last_cell_info_update(device_name) # TODO remove, for test
             await device_data_store.clear_buffer(device_name)
 
 async def connect_and_run(device):
