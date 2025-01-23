@@ -143,6 +143,7 @@ def create_table():
                 timestamp TEXT NOT NULL,
                 voltage REAL NOT NULL,
                 current REAL NOT NULL,
+                power REAL NOT NULL,
                 device_address TEXT NOT NULL,
                 device_name TEXT NOT NULL
             )
