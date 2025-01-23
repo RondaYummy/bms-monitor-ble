@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmoun, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
 
@@ -166,7 +166,7 @@ onMounted(async () => {
   }, 60000);
 });
 
-onBeforeUnmoun(async () => {
+onBeforeUnmount(async () => {
   clearInterval(intervalId.value);
 });
 
