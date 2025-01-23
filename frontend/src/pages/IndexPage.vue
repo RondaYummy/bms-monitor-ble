@@ -125,7 +125,7 @@
            text-color="black"
            label="Install App" />
 
-    <BMSChart />
+    <BMSChart :tab="tab" />
 
     <div class="column items-center q-mt-md">
       <h6>Cell Voltages:</h6>

@@ -7,9 +7,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
+
+const props = defineProps(['tab']);
 
 interface SeriesData {
   name: string;
@@ -45,6 +47,7 @@ const chartOptions = ref({
 
 // Серії для графіка
 const series = ref<SeriesData[]>([]);
+const data = ref();
 
 async function fetchAggregatedData(days: number = 1): Promise<any[]> {
   try {
@@ -59,30 +62,61 @@ async function fetchAggregatedData(days: number = 1): Promise<any[]> {
   }
 }
 
+function processAggregatedData(data: any[], tab: string) {
+  if (tab === 'All') {
+    // Групуємо дані за хвилинами
+    const groupedData: Record<string, { voltageSum: number; currentSum: number; count: number; }> = {};
+
+    data.forEach((item) => {
+      const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
+      if (!groupedData[minuteKey]) {
+        groupedData[minuteKey] = { voltageSum: 0, currentSum: 0, count: 0 };
+      }
+      groupedData[minuteKey].voltageSum += item[2]; // Напруга
+      groupedData[minuteKey].currentSum += item[3]; // Струм
+      groupedData[minuteKey].count += 1;
+    });
+
+    // Формуємо серії для графіка
+    const voltageSeries = Object.entries(groupedData).map(([minute, values]) => ({
+      x: minute,
+      y: values.voltageSum / values.count, // Середнє значення напруги
+    }));
+
+    const currentSeries = Object.entries(groupedData).map(([minute, values]) => ({
+      x: minute,
+      y: values.currentSum, // Сума струму
+    }));
+
+    return { voltageSeries, currentSeries };
+  } else {
+    // Фільтруємо дані за `tab`
+    const filteredData = data.filter((item) => item[5] === tab);
+
+    const voltageSeries = filteredData.map((item) => ({
+      x: new Date(item[1]).toISOString(),
+      y: item[2], // Напруга
+    }));
+
+    const currentSeries = filteredData.map((item) => ({
+      x: new Date(item[1]).toISOString(),
+      y: item[3], // Струм
+    }));
+
+    return { voltageSeries, currentSeries };
+  }
+}
+
 onMounted(async () => {
   try {
-    const data = await fetchAggregatedData(3);
-    console.log('Aggregated Data: ', data);
+    data.value = await fetchAggregatedData(3);
+    console.log('Aggregated Data: ', data.value);
 
-    if (!data) {
+    if (!data.value) {
       return;
     }
 
-    const voltageSeries = data.map((item: any) => ({
-      x: new Date(item[1]).toISOString(), // Дата в ISO форматі
-      y: item[2]?.toFixed(2), // Значення напруги
-    }));
-    const currentSeries = data.map((item: any) => ({
-      x: new Date(item[1]).toISOString(), // Дата в ISO форматі
-      y: item[3]?.toFixed(2), // Значення струму
-    }));
-    // const categories = data.map((item: any) => item[1]); // Дата
-    // const voltageSeries = data.map((item: any) => item[2]); // Напруга
-    // const currentSeries = data.map((item: any) => item[3]); // Струм
-    // console.log(categories, 'categories');
-
-    // // Оновлюємо графік
-    // chartOptions.value.xaxis.categories = categories;
+    const { voltageSeries, currentSeries } = processAggregatedData(data.value, props.tab);
     series.value = [
       {
         name: 'Voltage',
@@ -97,9 +131,28 @@ onMounted(async () => {
     console.error('Error fetching data:', error);
   }
 });
+
+watch(() => props.tab, async (newTab) => {
+  try {
+    const { voltageSeries, currentSeries } = processAggregatedData(data.value, newTab);
+
+    series.value = [
+      {
+        name: 'Voltage',
+        data: voltageSeries,
+      },
+      {
+        name: 'Current',
+        data: currentSeries,
+      },
+    ];
+  } catch (error) {
+    console.error('Error processing data:', error);
+  }
+});
 </script>
 
-<style scoped>
+<style scoped lang='scss'>
 .chart-container {
   width: 100%;
 }
