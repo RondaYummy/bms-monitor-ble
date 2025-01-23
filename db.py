@@ -24,14 +24,10 @@ async def process_devices():
     """Циклічно викликає update_aggregated_data та зберігає агреговані дані."""
     global data_aggregator
     while True:
-        now = datetime.now(timezone.utc)
-        print(f"Processing devices at {now.strftime('%Y-%m-%d %H:%M:%S')}")
-
         for device_address, device_data in data_aggregator.items():
             try:
                 device_name = device_data["device_name"]
                 save_aggregated_data(device_name, device_address, device_data)
-                print(f"Data processed for {device_name} ({device_address})")
             except Exception as e:
                 print(f"Error processing {device_data['device_name']} ({device_address}): {e}")
 

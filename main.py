@@ -15,9 +15,6 @@ import db
 
 
 ENABLE_LOGS = False # True or False
-
-# If the frame starts with 55aaeb9003 it's a device info frame. 55aaeb9002 is a cell info frame.
-# Constants
 MIN_FRAME_SIZE = 300
 MAX_FRAME_SIZE = 320
 SERVICE_UUID = "0000FFE0-0000-1000-8000-00805f9b34fb"
@@ -25,7 +22,7 @@ CHARACTERISTIC_UUID = "0000FFE1-0000-1000-8000-00805f9b34fb"
 CMD_HEADER = bytes([0xAA, 0x55, 0x90, 0xEB])
 CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Device Info Frame
 CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
-# CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
+CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
 
 # Data store class
 class DeviceDataStore:
@@ -188,7 +185,6 @@ async def parse_setting_info(data, device_name, device_address):
 
     try:
         log(device_name, f"Setting Header: {data[:4].hex()}", force=True)
-        await device_data_store.update_last_cell_info_update(device_name) # TODO remove, test
 
 
     except Exception as e:
@@ -197,7 +193,7 @@ async def parse_setting_info(data, device_name, device_address):
 
 async def parse_cell_info(data, device_name, device_address):
     """Parsing Cell Info Frame (0x02)."""
-    log(device_name, "Parsing Cell Info Frame...", force=True)
+    log(device_name, "Parsing Cell Info Frame...")
 
     try:
         # Checking the header
@@ -291,6 +287,7 @@ async def parse_cell_info(data, device_name, device_address):
         await device_data_store.update_cell_info(device_name, cell_info)
 
         if await are_all_allowed_devices_connected():
+            print("All allowed devices are connected.")
             db.update_aggregated_data(device_name=device_name, device_address=device_address, voltage=battery_voltage, current=charge_current, power=battery_power)
 
         log(device_name, "Parsed Cell Info:")
