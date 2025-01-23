@@ -161,6 +161,7 @@ async function fetchDataAndProcess(days: number = 1) {
 }
 
 onMounted(async () => {
+  await fetchDataAndProcess(days.value);
   intervalId.value = setInterval(async () => {
     await fetchDataAndProcess(days.value);
   }, 60000);
