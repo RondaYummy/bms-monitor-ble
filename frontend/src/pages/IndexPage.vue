@@ -171,6 +171,7 @@
 
     <q-expansion-item switch-toggle-side
                       expand-separator
+                      class="fullwidth"
                       icon="electrical_services"
                       label="Cell Wire Resistance">
       <template v-slot:header>
