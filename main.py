@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import Lock
-from datetime import datetime
+from datetime import datetime, timezone
 from copy import deepcopy
 
 import uvicorn
@@ -38,7 +38,7 @@ class DeviceDataStore:
 
     async def update_last_cell_info_update(self, device_name):
         async with self.lock:
-            self.last_cell_info_update[device_name] = datetime.utcnow()
+            self.last_cell_info_update[device_name] = datetime.now(timezone.utc)
 
     async def get_last_cell_info_update(self, device_name):
         async with self.lock:
@@ -188,6 +188,7 @@ async def parse_setting_info(data, device_name, device_address):
 
     try:
         log(device_name, f"Setting Header: {data[:4].hex()}", force=True)
+        await device_data_store.update_last_cell_info_update(device_name) # TODO remove, test
 
 
     except Exception as e:
@@ -334,11 +335,6 @@ async def notification_handler(device, data, device_name, device_address):
         else:
             log(device_name, f"Unknown frame type {frame_type}: {buffer}", force=True)
             # Якщо невідомий тип очищую буфер, бо така помилка буде весь час падати
-            # TODO Можливо ставити False не треба?
-            device_info_data = await device_data_store.get_device_info(device_name)
-            if device_info_data:
-                device_info_data['connected'] = False
-                await device_data_store.update_device_info(device_name, device_info_data)
             await device_data_store.clear_buffer(device_name)
 
 async def connect_and_run(device):
@@ -380,7 +376,7 @@ async def connect_and_run(device):
 
                     # Перевіряємо, чи потрібно надсилати cell_info_command
                     last_update = await device_data_store.get_last_cell_info_update(device.name)
-                    if not last_update or (datetime.utcnow() - last_update).total_seconds() > 30:
+                    if not last_update or (datetime.now(timezone.utc) - last_update).total_seconds() > 30:
                         cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                         await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                         log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)

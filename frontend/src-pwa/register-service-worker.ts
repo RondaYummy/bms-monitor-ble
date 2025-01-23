@@ -26,23 +26,13 @@ register(process.env.SERVICE_WORKER_FILE, {
   },
 
   cached(/* registration */) {
-    console.log('Content has been cached for offline use.');
+    // console.log('Content has been cached for offline use.');
   },
 
-  updatefound(/* registration */) {
-    console.log('New content is downloading.');
-    Notify.create({
-      type: 'info',
-      progress: true,
-      message: 'New content is downloading, please refresh the page when it\'s done.',
-      position: 'bottom',
-      multiLine: true,
-      timeout: 2000
-    });
-  },
+  updatefound(/* registration */) { },
 
   updated(/* registration */) {
-    console.log('New content is available; please refresh.');
+    // console.log('New content is available; please refresh.');
     // force
     Notify.create({
       type: 'warning',

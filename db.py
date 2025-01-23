@@ -187,10 +187,10 @@ def fetch_all_data(days=None):
             # Розраховуємо початок дня
             if days == 1:
                 # Початок поточного дня
-                cutoff_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                cutoff_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
             else:
                 # Початок дня "n днів тому"
-                cutoff_date = (datetime.now() - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
+                cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
             
             cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
             
