@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onBeforeUnmoun, watch } from 'vue';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
 
@@ -19,7 +19,6 @@ interface SeriesData {
   yaxis: number;
 }
 
-// Ініціалізація даних графіка
 const chartOptions = ref({
   chart: {
     id: 'bms-data-chart',
@@ -51,15 +50,16 @@ const chartOptions = ref({
     },
   ],
   tooltip: {
-    x: { format: 'dd MMM yyyy HH:mm:ss' }, // Формат тултіпа
+    x: { format: 'dd MMM yyyy HH:mm:ss' },
     theme: 'dark',
   },
-  colors: ['#FF4560', '#008FFB', '#F2C037'], // Кольори серій
+  colors: ['#FF4560', '#008FFB', '#F2C037'],
 });
 
-// Серії для графіка
 const series = ref<SeriesData[]>([]);
 const data = ref();
+const days = ref(3);
+const intervalId = ref();
 
 async function fetchAggregatedData(days: number = 1): Promise<any[]> {
   try {
@@ -76,19 +76,6 @@ async function fetchAggregatedData(days: number = 1): Promise<any[]> {
 
 function processAggregatedData(data: any[], tab: string) {
   if (tab === 'All') {
-    // const uniqueDevices: Record<string, any> = {};
-
-    // data.forEach((item) => {
-    //   const deviceName = item[6];
-    //   if (!uniqueDevices[deviceName]) {
-    //     uniqueDevices[deviceName] = item; // Зберігаємо перший запис для пристрою
-    //   }
-    // });
-
-    // // Перетворюємо унікальні записи в масив
-    // const uniqueData = Object.values(uniqueDevices);
-
-    // Групуємо дані за хвилинами
     const groupedData: Record<string, { voltageSum: number; currentSum: number; count: number; powerSum: number; }> = {};
 
     data.forEach((item: any) => {
@@ -102,7 +89,6 @@ function processAggregatedData(data: any[], tab: string) {
       groupedData[minuteKey].count += 1;
     });
 
-    // Формуємо серії для графіка
     const voltageSeries = Object.entries(groupedData).map(([minute, values]) => ({
       x: minute,
       y: values.voltageSum / values.count,
@@ -118,7 +104,6 @@ function processAggregatedData(data: any[], tab: string) {
       y: values.powerSum,
     }));
 
-    console.log(voltageSeries, currentSeries, powerSeries);
     return { voltageSeries, currentSeries, powerSeries };
   } else {
     // Фільтруємо дані за `tab`
@@ -139,14 +124,13 @@ function processAggregatedData(data: any[], tab: string) {
       y: item[4],
     }));
 
-    console.log(voltageSeries, currentSeries, powerSeries);
     return { voltageSeries, currentSeries, powerSeries };
   }
 }
 
-onMounted(async () => {
+async function fetchDataAndProcess(days: number = 1) {
   try {
-    data.value = await fetchAggregatedData(1);
+    data.value = await fetchAggregatedData(days);
     console.log('Aggregated Data: ', data.value);
 
     if (!data.value) {
@@ -174,6 +158,16 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error fetching data:', error);
   }
+}
+
+onMounted(async () => {
+  intervalId.value = setInterval(async () => {
+    await fetchDataAndProcess(days.value);
+  }, 60000);
+});
+
+onBeforeUnmoun(async () => {
+  clearInterval(intervalId.value);
 });
 
 watch(() => props.tab, async (newTab) => {
