@@ -110,7 +110,7 @@ function processAggregatedData(data: any[], tab: string) {
     return { voltageSeries, currentSeries, powerSeries };
   } else {
     // Фільтруємо дані за `tab`
-    const filteredData = data.filter((item) => item[5] === tab);
+    const filteredData = data.filter((item) => item[6] === tab);
 
     const voltageSeries = filteredData.map((item) => ({
       x: new Date(item[1]).toISOString(),
