@@ -152,22 +152,29 @@
 
     <BMSChart :tab="tab" />
 
-    <div class="column items-center q-mt-md">
-      <h6>Cell Voltages:</h6>
-      <div class='row justify-between'>
-        <div class='row items-center'
-             v-for='(d, idx) of calculatedList?.cell_voltages'
-             :key="`cv_${idx}`">
-          <q-chip dense
-                  outline
-                  color="primary"
-                  text-color="white">{{ String(idx + 1).padStart(2, '0') }}</q-chip>
-          <span>
-            - {{ d?.toFixed(2) }} v.
-          </span>
+    <q-expansion-item switch-toggle-side
+                      expand-separator
+                      label="Cell Voltages">
+      <template v-slot:header>
+        <h6>Cell Voltages</h6>
+      </template>
+
+      <div class="column items-center q-mt-md">
+        <div class='row justify-between'>
+          <div class='row items-center'
+               v-for='(d, idx) of calculatedList?.cell_voltages'
+               :key="`cv_${idx}`">
+            <q-chip dense
+                    outline
+                    color="primary"
+                    text-color="white">{{ String(idx + 1).padStart(2, '0') }}</q-chip>
+            <span>
+              - {{ d?.toFixed(2) }} v.
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </q-expansion-item>
 
     <q-expansion-item switch-toggle-side
                       expand-separator
