@@ -72,7 +72,6 @@ function processAggregatedData(data: any[], tab: string) {
         uniqueDevices[deviceName] = item; // Зберігаємо перший запис для пристрою
       }
     });
-    console.log('Unique devices:', uniqueDevices);
 
     // Перетворюємо унікальні записи в масив
     const uniqueData = Object.values(uniqueDevices);
@@ -90,23 +89,25 @@ function processAggregatedData(data: any[], tab: string) {
       groupedData[minuteKey].powerSum += item[4]; // Сила
       groupedData[minuteKey].count += 1;
     });
-    console.log('Grouped data:', groupedData);
 
     // Формуємо серії для графіка
     const voltageSeries = Object.entries(groupedData).map(([minute, values]) => ({
       x: minute,
       y: values.voltageSum / values.count,
     }));
+    console.log(voltageSeries, 'voltageSeries');
 
     const currentSeries = Object.entries(groupedData).map(([minute, values]) => ({
       x: minute,
       y: values.currentSum,
     }));
+    console.log(currentSeries, 'currentSeries');
 
     const powerSeries = Object.entries(groupedData).map(([minute, values]) => ({
       x: minute,
       y: values.powerSum,
     }));
+    console.log(powerSeries, 'powerSeries');
 
     return { voltageSeries, currentSeries, powerSeries };
   } else {
