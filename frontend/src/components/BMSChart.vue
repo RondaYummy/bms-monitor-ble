@@ -64,21 +64,22 @@ async function fetchAggregatedData(days: number = 1): Promise<any[]> {
 
 function processAggregatedData(data: any[], tab: string) {
   if (tab === 'All') {
-    // Збираємо унікальні пристрої
     const uniqueDevices: Record<string, any> = {};
 
     data.forEach((item) => {
-      const deviceName = item[6]; // Ім'я пристрою
+      const deviceName = item[6];
       if (!uniqueDevices[deviceName]) {
         uniqueDevices[deviceName] = item; // Зберігаємо перший запис для пристрою
       }
     });
+    console.log('Unique devices:', uniqueDevices);
 
     // Перетворюємо унікальні записи в масив
     const uniqueData = Object.values(uniqueDevices);
 
     // Групуємо дані за хвилинами
     const groupedData: Record<string, { voltageSum: number; currentSum: number; count: number; powerSum: number; }> = {};
+    console.log('Grouped data:', groupedData);
 
     uniqueData.forEach((item: any) => {
       const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
@@ -94,12 +95,12 @@ function processAggregatedData(data: any[], tab: string) {
     // Формуємо серії для графіка
     const voltageSeries = Object.entries(groupedData).map(([minute, values]) => ({
       x: minute,
-      y: values.voltageSum / values.count, // Середнє значення напруги
+      y: values.voltageSum / values.count,
     }));
 
     const currentSeries = Object.entries(groupedData).map(([minute, values]) => ({
       x: minute,
-      y: values.currentSum, // Сума струму
+      y: values.currentSum,
     }));
 
     const powerSeries = Object.entries(groupedData).map(([minute, values]) => ({
