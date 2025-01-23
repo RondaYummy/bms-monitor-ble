@@ -87,7 +87,7 @@
 
         <div class='row justify-between'>
           <span :class="{ unique: calculatedList?.battery_power > 6000 }">
-            Power: {{ calculatedList?.battery_power }}
+            Power: {{ calculatedList?.battery_power?.toFixed(2) }}
             <sup>W</sup>
 
             <q-tooltip>
@@ -114,7 +114,15 @@
             </q-tooltip>
           </span>
 
-          <span></span>
+          <span>
+            Cycle count: {{ calculatedList?.cycle_count }}
+
+            <q-tooltip>
+              Cycle count - Один цикл визначається як повний процес розряджання
+              батареї (до
+              певного рівня) і заряджання до повного заряду.
+            </q-tooltip>
+          </span>
         </div>
       </div>
     </template>
