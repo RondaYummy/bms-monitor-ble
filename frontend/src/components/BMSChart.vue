@@ -114,17 +114,17 @@ function processAggregatedData(data: any[], tab: string) {
 
     const voltageSeries = filteredData.map((item) => ({
       x: new Date(item[1]).toISOString(),
-      y: item[2], // Напруга
+      y: item[2],
     }));
 
     const currentSeries = filteredData.map((item) => ({
       x: new Date(item[1]).toISOString(),
-      y: item[3], // Струм
+      y: item[3],
     }));
 
     const powerSeries = filteredData.map((item) => ({
       x: new Date(item[1]).toISOString(),
-      y: item[4], // Power
+      y: item[4],
     }));
 
     return { voltageSeries, currentSeries, powerSeries };
@@ -162,7 +162,7 @@ onMounted(async () => {
 
 watch(() => props.tab, async (newTab) => {
   try {
-    const { voltageSeries, currentSeries } = processAggregatedData(data.value, newTab);
+    const { voltageSeries, currentSeries, powerSeries } = processAggregatedData(data.value, newTab);
 
     series.value = [
       {
@@ -172,6 +172,10 @@ watch(() => props.tab, async (newTab) => {
       {
         name: 'Current',
         data: currentSeries,
+      },
+      {
+        name: 'Battery Power',
+        data: powerSeries,
       },
     ];
   } catch (error) {
