@@ -422,13 +422,13 @@ async def are_all_allowed_devices_connected() -> bool:
     """
     allowed_devices = load_allowed_devices()
     connected_devices = await device_data_store.get_device_info()
-    print(f"Allowed devices: {allowed_devices}")
-    print(f"Connected devices: {connected_addresses}")
     connected_addresses = {
         device_info["device_address"]
         for device_info in connected_devices.values()
         if device_info.get("connected", False)
     }
+    print(f"Allowed devices: {allowed_devices}")
+    print(f"Connected devices: {connected_addresses}")
     return allowed_devices.issubset(connected_addresses)
 
 def start_services():
