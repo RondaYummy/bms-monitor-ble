@@ -49,7 +49,6 @@ const chartOptions = ref({
   ],
   tooltip: {
     x: { format: 'dd MMM yyyy HH:mm:ss' }, // Формат тултіпа
-    background: '#1e1f26',
   },
   colors: ['#FF4560', '#008FFB', '#F2C037'], // Кольори серій
 });
@@ -203,5 +202,10 @@ watch(() => props.tab, async (newTab) => {
 <style scoped lang='scss'>
 .chart-container {
   width: 100%;
+}
+
+.apexcharts-tooltip {
+  background: #1e1f26;
+  color: white;
 }
 </style>
