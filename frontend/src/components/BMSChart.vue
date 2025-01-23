@@ -42,7 +42,7 @@ const chartOptions = ref({
   tooltip: {
     x: { format: 'dd MMM yyyy HH:mm:ss' }, // Формат тултіпа
   },
-  colors: ['#FF4560', '#008FFB'], // Кольори серій
+  colors: ['#FF4560', '#008FFB', '#F2C037'], // Кольори серій
 });
 
 // Серії для графіка
