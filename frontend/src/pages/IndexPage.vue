@@ -102,7 +102,7 @@
 
         <div class='row justify-between'>
           <span>
-            Total Cycle Capacity:
+            Total C. C.:
             {{ calculatedList?.total_cycle_capacity?.toFixed(2) }}
             <sup>Ah</sup>
 
