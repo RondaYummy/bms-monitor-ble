@@ -129,7 +129,7 @@ def log(device_name, message, force=False):
 
 async def parse_device_info(data, device_name, device_address):
     """Parsing Device Info Frame (0x03)."""
-    log(device_name, "Parsing Device Info Frame...", force=True)
+    log(device_name, "Parsing Device Info Frame...")
 
     try:
         log(device_name, f"Raw data: {data.hex()}")
@@ -181,7 +181,7 @@ async def parse_device_info(data, device_name, device_address):
     
 async def parse_setting_info(data, device_name, device_address):
     """Parsing Cell Info Frame (0x01)."""
-    log(device_name, "Parsing Setting Info Frame...", force=True)  
+    log(device_name, "Parsing Setting Info Frame...")  
 
     try:
         log(device_name, f"Setting Header: {data[:4].hex()}", force=True)
@@ -287,7 +287,7 @@ async def parse_cell_info(data, device_name, device_address):
         await device_data_store.update_cell_info(device_name, cell_info)
 
         if await are_all_allowed_devices_connected():
-            print("All allowed devices are connected.")
+            log(device_name, "All allowed devices are connected.")
             db.update_aggregated_data(device_name=device_name, device_address=device_address, voltage=battery_voltage, current=charge_current, power=battery_power)
 
         log(device_name, "Parsed Cell Info:")
@@ -368,7 +368,7 @@ async def connect_and_run(device):
                         # Якщо інформація про пристрій ще не збережена, надсилаємо команду
                         device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                         await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
-                        log(device.name, f"Device Info command sent: {device_info_command.hex()}", force=True)
+                        log(device.name, f"Device Info command sent: {device_info_command.hex()}")
                         await asyncio.sleep(1)
 
                     # Перевіряємо, чи потрібно надсилати cell_info_command
@@ -376,7 +376,7 @@ async def connect_and_run(device):
                     if not last_update or (datetime.now(timezone.utc) - last_update).total_seconds() > 30:
                         cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                         await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
-                        log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
+                        log(device.name, f"Cell Info command sent: {cell_info_command.hex()}")
 
                     await asyncio.sleep(10)
         except Exception as e:
@@ -427,8 +427,6 @@ async def are_all_allowed_devices_connected() -> bool:
         for device_info in connected_devices.values()
         if device_info.get("connected", False)
     }
-    print(f"Allowed devices: {allowed_devices}")
-    print(f"Connected devices: {connected_addresses}")
     return allowed_devices.issubset(connected_addresses)
 
 def start_services():

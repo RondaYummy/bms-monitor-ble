@@ -68,7 +68,7 @@ function processAggregatedData(data: any[], tab: string) {
     const uniqueDevices: Record<string, any> = {};
 
     data.forEach((item) => {
-      const deviceName = item[5]; // Ім'я пристрою
+      const deviceName = item[6]; // Ім'я пристрою
       if (!uniqueDevices[deviceName]) {
         uniqueDevices[deviceName] = item; // Зберігаємо перший запис для пристрою
       }
@@ -78,15 +78,16 @@ function processAggregatedData(data: any[], tab: string) {
     const uniqueData = Object.values(uniqueDevices);
 
     // Групуємо дані за хвилинами
-    const groupedData: Record<string, { voltageSum: number; currentSum: number; count: number; }> = {};
+    const groupedData: Record<string, { voltageSum: number; currentSum: number; count: number; powerSum: number; }> = {};
 
     uniqueData.forEach((item: any) => {
       const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
       if (!groupedData[minuteKey]) {
-        groupedData[minuteKey] = { voltageSum: 0, currentSum: 0, count: 0 };
+        groupedData[minuteKey] = { voltageSum: 0, currentSum: 0, powerSum: 0, count: 0 };
       }
       groupedData[minuteKey].voltageSum += item[2]; // Напруга
       groupedData[minuteKey].currentSum += item[3]; // Струм
+      groupedData[minuteKey].powerSum += item[4]; // Сила
       groupedData[minuteKey].count += 1;
     });
 
@@ -101,7 +102,12 @@ function processAggregatedData(data: any[], tab: string) {
       y: values.currentSum, // Сума струму
     }));
 
-    return { voltageSeries, currentSeries };
+    const powerSeries = Object.entries(groupedData).map(([minute, values]) => ({
+      x: minute,
+      y: values.powerSum,
+    }));
+
+    return { voltageSeries, currentSeries, powerSeries };
   } else {
     // Фільтруємо дані за `tab`
     const filteredData = data.filter((item) => item[5] === tab);
@@ -116,7 +122,12 @@ function processAggregatedData(data: any[], tab: string) {
       y: item[3], // Струм
     }));
 
-    return { voltageSeries, currentSeries };
+    const powerSeries = filteredData.map((item) => ({
+      x: new Date(item[1]).toISOString(),
+      y: item[4], // Power
+    }));
+
+    return { voltageSeries, currentSeries, powerSeries };
   }
 }
 
@@ -129,7 +140,7 @@ onMounted(async () => {
       return;
     }
 
-    const { voltageSeries, currentSeries } = processAggregatedData(data.value, props.tab);
+    const { voltageSeries, currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
     series.value = [
       {
         name: 'Voltage',
@@ -138,6 +149,10 @@ onMounted(async () => {
       {
         name: 'Current',
         data: currentSeries,
+      },
+      {
+        name: 'Battery Power',
+        data: powerSeries,
       },
     ];
   } catch (error) {
