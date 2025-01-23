@@ -137,7 +137,7 @@ async function fetchDataAndProcess(days: number = 1) {
       return;
     }
 
-    const { voltageSeries, currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
+    const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
     series.value = [
       // {
       //   name: 'Voltage',
