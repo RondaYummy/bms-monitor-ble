@@ -203,41 +203,39 @@
     </q-expansion-item>
 
 
-    <div style="max-width: 100%;">
-      <q-tabs v-model="tab"
-              @update:model-value="selectSingleDevice"
-              dense
-              inline-label
-              outside-arrows
-              mobile-arrows
-              class="q-mt-sm bg-indigo text-white wrap"
-              v-if="devicesList">
-        <q-tab name="All"
-               label="All" />
+    <q-tabs v-model="tab"
+            @update:model-value="selectSingleDevice"
+            dense
+            inline-label
+            outside-arrows
+            mobile-arrows
+            align="justify"
+            class="q-mt-sm bg-indigo text-white wrap"
+            v-if="devicesList">
+      <q-tab name="All"
+             label="All" />
 
-        <q-btn-dropdown auto-close
-                        stretch
-                        flat
-                        icon="more"
-                        label="More...">
-          <q-list>
-            <q-item clickable
-                    v-for="device of Object.keys(devicesList)"
-                    :key="device"
-                    :name="device"
-                    :label="device"
-                    @click="tab = device">
-              <q-item-section>{{ device }}</q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
-        <!-- <q-tab class="text-orange"
+      <q-btn-dropdown auto-close
+                      stretch
+                      flat
+                      label="Devices">
+        <q-list>
+          <q-item clickable
+                  v-for="device of Object.keys(devicesList)"
+                  :key="device"
+                  :name="device"
+                  :label="device"
+                  @click="tab = device">
+            <q-item-section>{{ device }}</q-item-section>
+          </q-item>
+        </q-list>
+      </q-btn-dropdown>
+      <!-- <q-tab class="text-orange"
                v-for="device of Object.keys(devicesList)"
                :key="device"
                :name="device"
                :label="device" /> -->
-      </q-tabs>
-    </div>
+    </q-tabs>
   </q-page>
 </template>
 
