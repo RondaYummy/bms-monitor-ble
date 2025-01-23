@@ -228,7 +228,7 @@
                     :name="device"
                     :label="device"
                     @click="tab = device">
-              <q-item-section>Movies</q-item-section>
+              <q-item-section>{{ device }}</q-item-section>
             </q-item>
 
             <q-item clickable
