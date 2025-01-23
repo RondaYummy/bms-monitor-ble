@@ -63,7 +63,6 @@ async function fetchAggregatedData(days: number = 1): Promise<any[]> {
 }
 
 function processAggregatedData(data: any[], tab: string) {
-  console.log(tab, 'tab');
   if (tab === 'All') {
     const uniqueDevices: Record<string, any> = {};
 
@@ -96,20 +95,18 @@ function processAggregatedData(data: any[], tab: string) {
       x: minute,
       y: values.voltageSum / values.count,
     }));
-    console.log(voltageSeries, 'voltageSeries');
 
     const currentSeries = Object.entries(groupedData).map(([minute, values]) => ({
       x: minute,
       y: values.currentSum,
     }));
-    console.log(currentSeries, 'currentSeries');
 
     const powerSeries = Object.entries(groupedData).map(([minute, values]) => ({
       x: minute,
       y: values.powerSum,
     }));
-    console.log(powerSeries, 'powerSeries');
 
+    console.log(voltageSeries, currentSeries, powerSeries);
     return { voltageSeries, currentSeries, powerSeries };
   } else {
     // Фільтруємо дані за `tab`
@@ -130,6 +127,7 @@ function processAggregatedData(data: any[], tab: string) {
       y: item[4],
     }));
 
+    console.log(voltageSeries, currentSeries, powerSeries);
     return { voltageSeries, currentSeries, powerSeries };
   }
 }
