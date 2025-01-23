@@ -122,7 +122,7 @@ function processAggregatedData(data: any[], tab: string) {
 
 onMounted(async () => {
   try {
-    data.value = await fetchAggregatedData(3);
+    data.value = await fetchAggregatedData(1);
     console.log('Aggregated Data: ', data.value);
 
     if (!data.value) {
