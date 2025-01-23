@@ -333,3 +333,9 @@ onBeforeUnmount(() => {
   clearInterval(intervalId);
 });
 </script>
+
+<style scoped lang='scss'>
+:deep(.q-expansion-item) {
+  width: 100%;
+}
+</style>
