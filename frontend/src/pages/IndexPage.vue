@@ -1,5 +1,5 @@
 <template>
-  <q-page class="column items-center justify-evenly q-pa-lg"
+  <q-page class="column items-center justify-evenly q-pt-lg q-pr-lg q-pl-lg"
           v-if="!calculatedList">
     <LoaderComponent />
   </q-page>
@@ -218,6 +218,7 @@
       <q-btn-dropdown auto-close
                       stretch
                       flat
+                      class="text-black"
                       label="Devices">
         <q-list>
           <q-item clickable
