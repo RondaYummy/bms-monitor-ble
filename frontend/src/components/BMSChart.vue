@@ -49,6 +49,7 @@ const chartOptions = ref({
   ],
   tooltip: {
     x: { format: 'dd MMM yyyy HH:mm:ss' }, // Формат тултіпа
+    background: '#1e1f26',
   },
   colors: ['#FF4560', '#008FFB', '#F2C037'], // Кольори серій
 });
