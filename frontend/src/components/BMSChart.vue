@@ -26,7 +26,7 @@ const chartOptions = ref({
   },
   xaxis: {
     type: 'datetime',
-    categories: [], // Дата або інші категорії
+    // categories: [], // Дата або інші категорії
   },
   title: {
     text: 'BMS Data',
@@ -63,6 +63,7 @@ async function fetchAggregatedData(days: number = 1): Promise<any[]> {
 }
 
 function processAggregatedData(data: any[], tab: string) {
+  console.log(tab, 'tab');
   if (tab === 'All') {
     const uniqueDevices: Record<string, any> = {};
 
