@@ -286,7 +286,6 @@ async def parse_cell_info(data, device_name, device_address):
         
         await device_data_store.update_cell_info(device_name, cell_info)
 
-        print(f"ALLOWED: {await are_all_allowed_devices_connected()}")
         if await are_all_allowed_devices_connected():
             print("All allowed devices are connected.")
             db.update_aggregated_data(device_name=device_name, device_address=device_address, voltage=battery_voltage, current=charge_current, power=battery_power)
@@ -423,6 +422,8 @@ async def are_all_allowed_devices_connected() -> bool:
     """
     allowed_devices = load_allowed_devices()
     connected_devices = await device_data_store.get_device_info()
+    print(f"Allowed devices: {allowed_devices}")
+    print(f"Connected devices: {connected_addresses}")
     connected_addresses = {
         device_info["device_address"]
         for device_info in connected_devices.values()
