@@ -1,8 +1,7 @@
 <template>
   <div class="chart-container">
-    <apex-chart :options="chartOptions"
-                :series="series"></apex-chart>
-    <apex-chart :options="chartOptions2"
+    <apex-chart type="line"
+                :options="chartOptions"
                 :series="series"></apex-chart>
   </div>
 </template>
@@ -22,108 +21,92 @@ interface SeriesData {
 
 const chartOptions = ref({
   chart: {
-    id: "chart2",
+    id: 'bms-data-chart',
     type: "area",
-    height: 230,
-    foreColor: "#ccc",
-    toolbar: {
-      autoSelected: "pan",
-      show: false
-    }
+    background: "#1e1f26",
+    zoom: {
+      enabled: false
+    },
+    animations: {
+      enabled: true,
+      easing: "linear",
+      dynamicAnimation: {
+        speed: 1000
+      }
+    },
+    dropShadow: {
+      enabled: true,
+      opacity: 0.3,
+      blur: 5,
+      left: -7,
+      top: 22
+    },
   },
-  colors: ["#00BAEC"],
   stroke: {
-    width: 3
+    curve: "smooth",
+    width: 3,
   },
   grid: {
-    borderColor: "#555",
-    clipMarkers: false,
-    yaxis: {
-      lines: {
-        show: false
-      }
-    }
+    borderColor: "#222226",
+    padding: {
+      left: 0,
+      right: 0,
+    },
+  },
+  markers: {
+    colors: ["#FFFFFF"]
   },
   dataLabels: {
     enabled: false
   },
-  fill: {
-    gradient: {
-      enabled: true,
-      opacityFrom: 0.55,
-      opacityTo: 0
-    }
-  },
-  markers: {
-    size: 5,
-    colors: ["#000524"],
-    strokeColor: "#00BAEC",
-    strokeWidth: 3
-  },
-  series: [
-    {
-      // data: data
-    }
-  ],
-  tooltip: {
-    theme: "dark"
+  legend: {
+    show: false,
   },
   xaxis: {
-    type: "datetime"
-  },
-  yaxis: {
-    min: 0,
-    tickAmount: 4
-  }
-});
-
-const chartOptions2 = {
-  chart: {
-    id: "chart1",
-    height: 130,
-    type: "bar",
-    foreColor: "#ccc",
-    brush: {
-      target: "chart2",
-      enabled: true
+    type: 'datetime',
+    axisBorder: {
+      show: false
     },
-    selection: {
-      enabled: true,
-      fill: {
-        color: "#fff",
-        opacity: 0.4
-      },
-      xaxis: {
-        min: new Date("27 Jul 2017 10:00:00").getTime(),
-        max: new Date("14 Aug 2017 10:00:00").getTime()
+    axisTicks: {
+      show: false
+    },
+    labels: {
+      style: {
+        colors: "#aaa"
       }
     }
   },
-  colors: ["#FF0080"],
-  series: [
+  title: {
+    text: 'BMS Data',
+    align: 'left',
+  },
+  yaxis: [
     {
-      // data: data
-    }
+      // title: { text: 'Battery Power' },
+      labels: {
+        formatter: (val: number) => Math.round(val).toString(),
+      },
+    },
+    {
+      opposite: true, // Права вісь Y
+      // title: { text: 'Current' },
+      labels: {
+        formatter: (val: number) => Math.round(val).toString(),
+      },
+    },
   ],
-  stroke: {
-    width: 2
+  tooltip: {
+    shared: true,
+    intersect: false,
+    theme: 'dark',
+    y: [{
+      formatter: (val: number) => `${val?.toFixed(2)} A`,
+    }, {
+      formatter: (val: number) => `${val?.toFixed(2)} W`,
+    }],
   },
-  grid: {
-    borderColor: "#444"
-  },
-  markers: {
-    size: 0
-  },
-  xaxis: {
-    type: "datetime",
-    tooltip: {
-      enabled: false
-    }
-  },
-  yaxis: {
-    tickAmount: 2
-  }
-};
+  // colors: ['#FF4560', '#008FFB', '#F2C037'],
+});
 
 const series = ref<SeriesData[]>([]);
 const data = ref();
@@ -194,13 +177,13 @@ async function fetchDataAndProcess(days: number = 1) {
     if (!data.value) {
       return;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
     series.value = [
-      // {
-      //   name: 'Current',
-      //   data: currentSeries,
-      // },
+      {
+        name: 'Current',
+        data: currentSeries,
+      },
       {
         name: 'Battery Power',
         data: powerSeries,
@@ -224,14 +207,13 @@ onBeforeUnmount(async () => {
 
 watch(() => props.tab, async (newTab) => {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { currentSeries, powerSeries } = processAggregatedData(data.value, newTab);
 
     series.value = [
-      // {
-      //   name: 'Current',
-      //   data: currentSeries,
-      // },
+      {
+        name: 'Current',
+        data: currentSeries,
+      },
       {
         name: 'Battery Power',
         data: powerSeries,
