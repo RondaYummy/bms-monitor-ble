@@ -98,17 +98,26 @@ const chartOptions = ref({
     // },
   ],
   tooltip: {
-    x: { format: 'dd MMM yyyy HH:mm:ss' },
-    y: [
-      {
-        formatter: (val: number) => `${val} A`
-      },
-      {
-        formatter: (val: number) => `${val} W`
-      },
-    ],
-    theme: 'dark',
+    shared: true,
+    intersect: false,
+    y: [{
+      formatter: (val: number) => `${val} A`,
+    }, {
+      formatter: (val: number) => `${val} W`,
+    }],
   },
+  // tooltip: {
+  //   x: { format: 'dd MMM yyyy HH:mm:ss' },
+  //   y: [
+  //     {
+  //       formatter: (val: number) => `${val} A`
+  //     },
+  //     {
+  //       formatter: (val: number) => `${val}`
+  //     },
+  //   ],
+  //   theme: 'dark',
+  // },
   // colors: ['#FF4560', '#008FFB', '#F2C037'],
 });
 
