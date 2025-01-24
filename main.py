@@ -288,7 +288,7 @@ async def parse_cell_info(data, device_name, device_address):
 
         if await are_all_allowed_devices_connected():
             log(device_name, "All allowed devices are connected.")
-            db.update_aggregated_data(device_name=device_name, device_address=device_address, voltage=battery_voltage, current=charge_current, power=battery_power)
+            db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power)
 
         log(device_name, "Parsed Cell Info:")
         for key, value in cell_info.items():

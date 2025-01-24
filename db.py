@@ -7,11 +7,8 @@ import asyncio
 data_aggregator = defaultdict(lambda: {
     "device_name": None,
     "device_address": None,
-    "voltage_sum": 0,
     "current_sum": 0,
     "power_sum": 0,
-    "voltage_min": float('inf'),
-    "voltage_max": float('-inf'),
     "current_min": float('inf'),
     "current_max": float('-inf'),
     "count": 0,
@@ -33,7 +30,7 @@ async def process_devices():
 
         await asyncio.sleep(60)  # Чекаємо 1 хвилину
 
-def update_aggregated_data(device_name, device_address, voltage, current, power):
+def update_aggregated_data(device_name, device_address, current, power):
     """Оновлює проміжні дані для агрегування."""
     global data_aggregator
     now = datetime.now(timezone.utc)
@@ -43,8 +40,6 @@ def update_aggregated_data(device_name, device_address, voltage, current, power)
         raise ValueError(f"Invalid device_name: {device_name}")
     if not isinstance(device_address, str) or not device_address.strip():
         raise ValueError(f"Invalid device_address: {device_address}")
-    if not isinstance(voltage, (int, float)) or voltage < 0:
-        raise ValueError(f"Invalid voltage: {voltage}")
     if not isinstance(current, (int, float)):
         raise ValueError(f"Invalid current: {current}")
     if not isinstance(power, (int, float)) or power < 0:
@@ -60,13 +55,10 @@ def update_aggregated_data(device_name, device_address, voltage, current, power)
         device_data["device_address"] = device_address
 
     # Оновлення сум
-    device_data["voltage_sum"] += voltage
     device_data["current_sum"] += current
     device_data["power_sum"] += power
 
     # Оновлення мінімуму та максимуму
-    device_data["voltage_min"] = min(device_data["voltage_min"], voltage)
-    device_data["voltage_max"] = max(device_data["voltage_max"], voltage)
     device_data["current_min"] = min(device_data["current_min"], current)
     device_data["current_max"] = max(device_data["current_max"], current)
 
@@ -85,7 +77,6 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
 
     # Розрахунок середнього значення
     if device_data["count"] > 0:
-        voltage_avg = device_data["voltage_sum"] / device_data["count"]
         current_avg = device_data["current_sum"] / device_data["count"]
         power_avg = device_data["power_sum"] / device_data["count"]
     else:
@@ -97,7 +88,6 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
     try:
         insert_data(
             timestamp=timestamp,
-            voltage=voltage_avg,
             current=current_avg,
             power=power_avg,
             device_address=device_address,
@@ -109,11 +99,8 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
 
     # Скидаємо агреговані дані
     device_data.update({
-        "voltage_sum": 0,
         "current_sum": 0,
         "power_sum": 0,
-        "voltage_min": float('inf'),
-        "voltage_max": float('-inf'),
         "current_min": float('inf'),
         "current_max": float('-inf'),
         "count": 0,
@@ -137,7 +124,6 @@ def create_table():
             CREATE TABLE IF NOT EXISTS bms_data (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT NOT NULL,
-                voltage REAL NOT NULL,
                 current REAL NOT NULL,
                 power REAL NOT NULL,
                 device_address TEXT NOT NULL,
@@ -153,15 +139,15 @@ def create_table():
         print(f"Error creating table: {e}")
         raise
 
-def insert_data(timestamp, voltage, current, power, device_address, device_name):
+def insert_data(timestamp, current, power, device_address, device_name):
     """Додає новий запис у таблицю."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-            INSERT INTO bms_data (timestamp, voltage, current, power, device_address, device_name)
+            INSERT INTO bms_data (timestamp, current, power, device_address, device_name)
             VALUES (?, ?, ?, ?, ?, ?)
-            ''', (timestamp, voltage, current, power, device_address, device_name))
+            ''', (timestamp, current, power, device_address, device_name))
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error inserting data: {e}")
