@@ -16,7 +16,7 @@ const props = defineProps(['tab']);
 interface SeriesData {
   name: string;
   data: any[];
-  yaxis: number;
+  yaxis?: number;
 }
 
 const chartOptions = ref({
@@ -183,12 +183,10 @@ async function fetchDataAndProcess(days: number = 1) {
       {
         name: 'Current',
         data: currentSeries,
-        yaxis: 0, // Використовує праву вісь Y
       },
       {
         name: 'Battery Power',
         data: powerSeries,
-        yaxis: 0, // Використовує ліву вісь Y
       },
     ];
   } catch (error) {
@@ -215,12 +213,10 @@ watch(() => props.tab, async (newTab) => {
       {
         name: 'Current',
         data: currentSeries,
-        yaxis: 0, // Використовує праву вісь Y
       },
       {
         name: 'Battery Power',
         data: powerSeries,
-        yaxis: 0, // Використовує ліву вісь Y
       },
     ];
   } catch (error) {
