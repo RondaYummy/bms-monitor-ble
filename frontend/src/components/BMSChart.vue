@@ -23,6 +23,7 @@ interface SeriesData {
   data: any[];
   yaxis?: number;
 }
+const series = ref<SeriesData[]>([]);
 
 const chartOptions = ref({
   chart: {
@@ -50,6 +51,9 @@ const chartOptions = ref({
   },
   dataLabels: {
     enabled: false
+  },
+  series: {
+    data: series.value,
   },
   fill: {
     gradient: {
@@ -84,6 +88,9 @@ const chartOptions2 = ref({
     brush: {
       target: "chart2",
       enabled: true
+    },
+    series: {
+      data: series.value,
     },
     selection: {
       enabled: true,
@@ -130,7 +137,6 @@ const chartOptions2 = ref({
   }
 });
 
-const series = ref<SeriesData[]>([]);
 const data = ref();
 const days = ref(1);
 const intervalId = ref();
