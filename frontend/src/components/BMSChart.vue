@@ -76,23 +76,17 @@ async function fetchAggregatedData(days: number = 1): Promise<any[]> {
 
 function processAggregatedData(data: any[], tab: string) {
   if (tab === 'All') {
-    const groupedData: Record<string, { voltageSum: number; currentSum: number; count: number; powerSum: number; }> = {};
+    const groupedData: Record<string, { currentSum: number; count: number; powerSum: number; }> = {};
 
     data.forEach((item: any) => {
       const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
       if (!groupedData[minuteKey]) {
-        groupedData[minuteKey] = { voltageSum: 0, currentSum: 0, powerSum: 0, count: 0 };
+        groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
       }
-      groupedData[minuteKey].voltageSum += item[2]; // Напруга
       groupedData[minuteKey].currentSum += item[3]; // Струм
       groupedData[minuteKey].powerSum += item[4]; // Сила
       groupedData[minuteKey].count += 1;
     });
-
-    const voltageSeries = Object.entries(groupedData).map(([minute, values]) => ({
-      x: minute,
-      y: values.voltageSum / values.count,
-    }));
 
     const currentSeries = Object.entries(groupedData).map(([minute, values]) => ({
       x: minute,
@@ -104,7 +98,7 @@ function processAggregatedData(data: any[], tab: string) {
       y: values.powerSum,
     }));
 
-    return { voltageSeries, currentSeries, powerSeries };
+    return { currentSeries, powerSeries };
   } else {
     // Фільтруємо дані за `tab`
     const filteredData = data.filter((item) => item[6] === tab);
@@ -137,13 +131,8 @@ async function fetchDataAndProcess(days: number = 1) {
       return;
     }
 
-    const { voltageSeries, currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
+    const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
     series.value = [
-      {
-        name: 'Voltage',
-        data: voltageSeries,
-        yaxis: 0, // Використовує ліву вісь Y
-      },
       {
         name: 'Current',
         data: currentSeries,
@@ -173,14 +162,9 @@ onBeforeUnmount(async () => {
 
 watch(() => props.tab, async (newTab) => {
   try {
-    const { voltageSeries, currentSeries, powerSeries } = processAggregatedData(data.value, newTab);
+    const { currentSeries, powerSeries } = processAggregatedData(data.value, newTab);
 
     series.value = [
-      {
-        name: 'Voltage',
-        data: voltageSeries,
-        yaxis: 0, // Використовує ліву вісь Y
-      },
       {
         name: 'Current',
         data: currentSeries,
