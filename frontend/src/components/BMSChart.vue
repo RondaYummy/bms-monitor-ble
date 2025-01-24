@@ -89,13 +89,13 @@ const chartOptions = ref({
         formatter: (val: number) => Math.round(val).toString(),
       },
     },
-    // {
-    //   opposite: true, // Права вісь Y
-    //   // title: { text: 'Current' },
-    //   labels: {
-    //     formatter: (val: number) => Math.round(val).toString(),
-    //   },
-    // },
+    {
+      opposite: true, // Права вісь Y
+      // title: { text: 'Current' },
+      labels: {
+        formatter: (val: number) => Math.round(val).toString(),
+      },
+    },
   ],
   tooltip: {
     shared: true,
@@ -185,7 +185,7 @@ async function fetchDataAndProcess(days: number = 1) {
       {
         name: 'Current',
         data: currentSeries,
-        yaxis: 0, // Використовує праву вісь Y
+        yaxis: 1, // Використовує праву вісь Y
       },
       {
         name: 'Battery Power',
@@ -217,7 +217,7 @@ watch(() => props.tab, async (newTab) => {
       {
         name: 'Current',
         data: currentSeries,
-        yaxis: 0, // Використовує праву вісь Y
+        yaxis: 1, // Використовує праву вісь Y
       },
       {
         name: 'Battery Power',
