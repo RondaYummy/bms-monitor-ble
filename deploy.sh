@@ -14,9 +14,11 @@ function deploy() {
   fi
   echo "✅ Код успішно оновлено з Git"
 
-  echo "====> Видаляємо непотрібні  Докер-образи, контейнери та мережі"
-  docker system prune -f # Видалення непотрібних контейнерів, образів та мереж
-  docker volume prune -f # Видалення неприєднаних томів (не зачіпає sqlite_data)
+  echo "====> Видаляємо непотрібні  Докер-образи, контейнери, імеджі та мережі"
+  docker system prune --all --force --volumes
+  # docker system prune -f # Видалення непотрібних контейнерів, образів та мереж
+  # docker volume prune -f # Видалення неприєднаних томів (не зачіпає sqlite_data)
+  # docker image prune -f
 
   echo "====> Ребілдимо Докер-образи через Docker Compose"
   docker compose -f $COMPOSE_FILE -p $PROJECT_NAME build
