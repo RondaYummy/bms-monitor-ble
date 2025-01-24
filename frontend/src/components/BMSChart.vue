@@ -16,16 +16,12 @@ const props = defineProps(['tab']);
 interface SeriesData {
   name: string;
   data: any[];
-  yaxis: number;
 }
 
 const chartOptions = ref({
   chart: {
     id: 'bms-data-chart',
     toolbar: { show: true },
-  },
-  legend: {
-    show: false,
   },
   xaxis: {
     type: 'datetime',
@@ -34,26 +30,17 @@ const chartOptions = ref({
     text: 'BMS Data',
     align: 'left',
   },
-  yaxis: [
-    {
-      // title: { text: 'Voltage / Battery Power' }, // Ліва вісь Y
-      labels: {
-        formatter: (val: number) => Math.round(val).toString(),
-      },
+  yaxis: {
+    title: { text: 'Normalized Values (0-100)' },
+    labels: {
+      formatter: (val: number) => Math.round(val).toString(),
     },
-    {
-      opposite: true, // Права вісь Y
-      // title: { text: 'Current' },
-      labels: {
-        formatter: (val: number) => Math.round(val).toString(),
-      },
-    },
-  ],
+  },
   tooltip: {
     x: { format: 'dd MMM yyyy HH:mm:ss' },
     theme: 'dark',
   },
-  colors: ['#FF4560', '#008FFB', '#F2C037'],
+  colors: ['#FF4560', '#008FFB'], // Червоний і синій кольори
 });
 
 const series = ref<SeriesData[]>([]);
@@ -74,74 +61,59 @@ async function fetchAggregatedData(days: number = 1): Promise<any[]> {
   }
 }
 
+function calculateMinMax(series: any[]) {
+  const values = series.map(item => item.y);
+  return { min: Math.min(...values), max: Math.max(...values) };
+}
+
+function normalizeData(series: any[], min: number, max: number) {
+  return series.map(item => ({
+    x: item.x,
+    y: ((item.y - min) / (max - min)) * 100, // Масштабування до 0-100
+  }));
+}
+
 function processAggregatedData(data: any[], tab: string) {
-  if (tab === 'All') {
-    const groupedData: Record<string, { currentSum: number; count: number; powerSum: number; }> = {};
+  const filteredData = data.filter((item) => item[6] === tab);
 
-    data.forEach((item: any) => {
-      const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
-      if (!groupedData[minuteKey]) {
-        groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
-      }
-      groupedData[minuteKey].currentSum += item[3]; // Струм
-      groupedData[minuteKey].powerSum += item[4]; // Сила
-      groupedData[minuteKey].count += 1;
-    });
+  const currentSeries = filteredData.map((item) => ({
+    x: new Date(item[1]).toISOString(),
+    y: item[3], // Струм
+  }));
 
-    const currentSeries = Object.entries(groupedData).map(([minute, values]) => ({
-      x: minute,
-      y: values.currentSum,
-    }));
+  const powerSeries = filteredData.map((item) => ({
+    x: new Date(item[1]).toISOString(),
+    y: item[4], // Потужність
+  }));
 
-    const powerSeries = Object.entries(groupedData).map(([minute, values]) => ({
-      x: minute,
-      y: values.powerSum,
-    }));
+  // Розрахунок min/max
+  const { min: currentMin, max: currentMax } = calculateMinMax(currentSeries);
+  const { min: powerMin, max: powerMax } = calculateMinMax(powerSeries);
 
-    return { currentSeries, powerSeries };
-  } else {
-    // Фільтруємо дані за `tab`
-    const filteredData = data.filter((item) => item[6] === tab);
+  // Нормалізація даних
+  const normalizedCurrent = normalizeData(currentSeries, currentMin, currentMax);
+  const normalizedPower = normalizeData(powerSeries, powerMin, powerMax);
 
-    const voltageSeries = filteredData.map((item) => ({
-      x: new Date(item[1]).toISOString(),
-      y: item[2],
-    }));
-
-    const currentSeries = filteredData.map((item) => ({
-      x: new Date(item[1]).toISOString(),
-      y: item[3],
-    }));
-
-    const powerSeries = filteredData.map((item) => ({
-      x: new Date(item[1]).toISOString(),
-      y: item[4],
-    }));
-
-    return { voltageSeries, currentSeries, powerSeries };
-  }
+  return { normalizedCurrent, normalizedPower };
 }
 
 async function fetchDataAndProcess(days: number = 1) {
   try {
     data.value = await fetchAggregatedData(days);
-    console.log('Aggregated Data: ', data.value);
 
     if (!data.value) {
       return;
     }
 
-    const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
+    const { normalizedCurrent, normalizedPower } = processAggregatedData(data.value, props.tab);
     series.value = [
       {
-        name: 'Current',
-        data: currentSeries,
-        yaxis: 1, // Використовує праву вісь Y
+        name: 'Current (Normalized)',
+        data: normalizedCurrent,
       },
       {
-        name: 'Battery Power',
-        data: powerSeries,
-        yaxis: 0, // Використовує ліву вісь Y
+        name: 'Battery Power (Normalized)',
+        data: normalizedPower,
       },
     ];
   } catch (error) {
@@ -162,18 +134,16 @@ onBeforeUnmount(async () => {
 
 watch(() => props.tab, async (newTab) => {
   try {
-    const { currentSeries, powerSeries } = processAggregatedData(data.value, newTab);
+    const { normalizedCurrent, normalizedPower } = processAggregatedData(data.value, newTab);
 
     series.value = [
       {
-        name: 'Current',
-        data: currentSeries,
-        yaxis: 1, // Використовує праву вісь Y
+        name: 'Current (Normalized)',
+        data: normalizedCurrent,
       },
       {
-        name: 'Battery Power',
-        data: powerSeries,
-        yaxis: 0, // Використовує ліву вісь Y
+        name: 'Battery Power (Normalized)',
+        data: normalizedPower,
       },
     ];
   } catch (error) {
@@ -182,7 +152,7 @@ watch(() => props.tab, async (newTab) => {
 });
 </script>
 
-<style scoped lang='scss'>
+<style scoped lang="scss">
 .chart-container {
   width: 100%;
 }
