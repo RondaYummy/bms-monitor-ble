@@ -84,7 +84,7 @@ const chartOptions = ref({
   },
   yaxis: [
     {
-      // title: { text: 'Battery Power' }, // Ліва вісь Y
+      // title: { text: 'Battery Power' },
       labels: {
         formatter: (val: number) => Math.round(val).toString(),
       },
@@ -101,7 +101,7 @@ const chartOptions = ref({
     x: { format: 'dd MMM yyyy HH:mm:ss' },
     theme: 'dark',
   },
-  colors: ['#FF4560', '#008FFB', '#F2C037'],
+  // colors: ['#FF4560', '#008FFB', '#F2C037'],
 });
 
 const series = ref<SeriesData[]>([]);
