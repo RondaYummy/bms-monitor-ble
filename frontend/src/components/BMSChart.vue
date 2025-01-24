@@ -74,7 +74,7 @@ const chartOptions = ref({
   }
 });
 
-const chartOptions2 = {
+const chartOptions2 = ref({
   chart: {
     id: "chart1",
     height: 130,
@@ -125,7 +125,7 @@ const chartOptions2 = {
   yaxis: {
     tickAmount: 2
   }
-};
+});
 
 const series = ref<SeriesData[]>([]);
 const data = ref();
