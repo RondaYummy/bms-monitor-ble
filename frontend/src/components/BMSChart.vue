@@ -21,7 +21,6 @@ interface SeriesData {
 
 const chartOptions = ref({
   chart: {
-    id: 'bms-data-chart',
     type: "area",
     background: "#1e1f26",
     zoom: {
@@ -110,7 +109,7 @@ const chartOptions = ref({
 
 const series = ref<SeriesData[]>([]);
 const data = ref();
-const days = ref(3);
+const days = ref(1);
 const intervalId = ref();
 
 async function fetchAggregatedData(days: number = 1): Promise<any[]> {
@@ -179,6 +178,9 @@ async function fetchDataAndProcess(days: number = 1) {
     }
 
     const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
+    console.log('currentSeries', JSON.stringify(currentSeries));
+    console.log('powerSeries', JSON.stringify(powerSeries));
+
     series.value = [
       {
         name: 'Current',
