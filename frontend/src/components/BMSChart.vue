@@ -22,7 +22,41 @@ interface SeriesData {
 const chartOptions = ref({
   chart: {
     id: 'bms-data-chart',
+    stacked: true,
     toolbar: { show: true },
+    animations: {
+      enabled: true,
+      easing: "linear",
+      dynamicAnimation: {
+        speed: 1000
+      }
+    },
+    dropShadow: {
+      enabled: true,
+      opacity: 0.3,
+      blur: 5,
+      left: -7,
+      top: 22
+    },
+  },
+  grid: {
+    padding: {
+      left: 0,
+      right: 0
+    }
+  },
+  markers: {
+    size: 0,
+    hover: {
+      size: 0
+    }
+  },
+  stroke: {
+    curve: "monotoneCubic",
+    width: 3,
+  },
+  dataLabels: {
+    enabled: false
   },
   legend: {
     show: false,
