@@ -92,18 +92,20 @@ const chartOptions2 = ref({
         opacity: 0.4
       },
       xaxis: {
-        type: 'datetime',
-        axisBorder: {
-          show: false
-        },
-        axisTicks: {
-          show: false
-        },
-        labels: {
-          style: {
-            colors: "#aaa"
-          }
-        }
+        // type: 'datetime',
+        // axisBorder: {
+        //   show: false
+        // },
+        // axisTicks: {
+        //   show: false
+        // },
+        // labels: {
+        //   style: {
+        //     colors: "#aaa"
+        //   }
+        // }
+        min: undefined, // Автоматично розраховується
+        max: undefined, // Автоматично розраховується
       },
     }
   },
