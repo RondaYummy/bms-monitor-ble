@@ -23,9 +23,7 @@ const chartOptions = ref({
   chart: {
     id: 'bms-data-chart',
     type: "area",
-    stacked: true,
     background: "#1e1f26",
-    toolbar: { show: true },
     zoom: {
       enabled: false
     },
@@ -185,7 +183,7 @@ async function fetchDataAndProcess(days: number = 1) {
       {
         name: 'Current',
         data: currentSeries,
-        yaxis: 1, // Використовує праву вісь Y
+        yaxis: 0, // Використовує праву вісь Y
       },
       {
         name: 'Battery Power',
@@ -217,7 +215,7 @@ watch(() => props.tab, async (newTab) => {
       {
         name: 'Current',
         data: currentSeries,
-        yaxis: 1, // Використовує праву вісь Y
+        yaxis: 0, // Використовує праву вісь Y
       },
       {
         name: 'Battery Power',
