@@ -24,7 +24,7 @@ const chartOptions = ref({
     id: 'bms-data-chart',
     type: "area",
     stacked: true,
-    // background: "#19191E",
+    background: "#1e1f26",
     toolbar: { show: true },
     zoom: {
       enabled: false
