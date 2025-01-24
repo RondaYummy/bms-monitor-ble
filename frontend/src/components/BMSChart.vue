@@ -1,9 +1,11 @@
 <template>
   <div class="chart-container">
-    <apex-chart type="area"
+    <apex-chart id='chart2'
+                type="area"
                 :options="chartOptions"
                 :series="series"></apex-chart>
-    <apex-chart type="bar"
+    <apex-chart id='chart1'
+                type="bar"
                 :options="chartOptions2"
                 :series="series"></apex-chart>
   </div>
