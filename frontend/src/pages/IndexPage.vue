@@ -216,6 +216,7 @@
       <q-btn-dropdown auto-close
                       stretch
                       flat
+                      style='flex: 1 1 50%;'
                       class="text-black"
                       label="Devices">
         <q-list>

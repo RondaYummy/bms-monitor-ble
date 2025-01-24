@@ -14,8 +14,8 @@ function deploy() {
   fi
   echo "✅ Код успішно оновлено з Git"
 
-  echo "====> Ребілдимо Докер-образи через Docker Compose"
-  docker compose -f $COMPOSE_FILE -p $PROJECT_NAME build
+  echo "====> Ребілдимо паралельно Докер-образи через Docker Compose"
+  docker compose -f $COMPOSE_FILE -p $PROJECT_NAME build --parallel
 
   echo "====> Перезапускаємо Докер-контейнери"
   docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down

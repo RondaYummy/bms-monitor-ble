@@ -61,6 +61,26 @@ const data = ref();
 const days = ref(3);
 const intervalId = ref();
 
+function normalizeData(data: any[], min: number, max: number) {
+  return data.map((item) => ({
+    x: item.x,
+    y: (item.y - min) / (max - min),
+  }));
+}
+
+function exponentialSmoothing(data: any[], alpha: number) {
+  const smoothed = [];
+  let prev = data[0].y; // Початкове значення
+
+  for (const point of data) {
+    const smoothedValue = alpha * point.y + (1 - alpha) * prev;
+    smoothed.push({ x: point.x, y: smoothedValue });
+    prev = smoothedValue;
+  }
+
+  return smoothed;
+}
+
 async function fetchAggregatedData(days: number = 1): Promise<any[]> {
   try {
     const response: AxiosResponse<any[]> = await axios.get(`/api/aggregated-data?days=${days}`);
@@ -127,15 +147,28 @@ async function fetchDataAndProcess(days: number = 1) {
     }
 
     const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
+
+    // Нормалізуємо обидві серії
+    const currentMin = Math.min(...currentSeries.map((d) => d.y));
+    const currentMax = Math.max(...currentSeries.map((d) => d.y));
+    const powerMin = Math.min(...powerSeries.map((d) => d.y));
+    const powerMax = Math.max(...powerSeries.map((d) => d.y));
+
+    const normalizedCurrentSeries = normalizeData(currentSeries, currentMin, currentMax);
+    const normalizedPowerSeries = normalizeData(powerSeries, powerMin, powerMax);
+
+    const smoothedCurrentSeries = exponentialSmoothing(normalizedCurrentSeries, 0.3); // 0.3 — параметр згладжування
+    const smoothedPowerSeries = exponentialSmoothing(normalizedPowerSeries, 0.3);
+
     series.value = [
       {
         name: 'Current',
-        data: currentSeries,
+        data: smoothedCurrentSeries,
         yaxis: 1, // Використовує праву вісь Y
       },
       {
         name: 'Battery Power',
-        data: powerSeries,
+        data: smoothedPowerSeries,
         yaxis: 0, // Використовує ліву вісь Y
       },
     ];
