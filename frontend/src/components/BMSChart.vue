@@ -71,7 +71,6 @@ const chartOptions = ref({
     type: "datetime"
   },
   yaxis: {
-    min: 0,
     tickAmount: 4
   }
 });
