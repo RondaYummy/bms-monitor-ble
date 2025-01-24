@@ -24,7 +24,7 @@ const chartOptions = ref({
     id: 'bms-data-chart',
     type: "area",
     stacked: true,
-    background: "#19191E",
+    // background: "#19191E",
     toolbar: { show: true },
     zoom: {
       enabled: false
@@ -89,13 +89,13 @@ const chartOptions = ref({
         formatter: (val: number) => Math.round(val).toString(),
       },
     },
-    {
-      opposite: true, // Права вісь Y
-      // title: { text: 'Current' },
-      labels: {
-        formatter: (val: number) => Math.round(val).toString(),
-      },
-    },
+    // {
+    //   opposite: true, // Права вісь Y
+    //   // title: { text: 'Current' },
+    //   labels: {
+    //     formatter: (val: number) => Math.round(val).toString(),
+    //   },
+    // },
   ],
   tooltip: {
     x: { format: 'dd MMM yyyy HH:mm:ss' },
