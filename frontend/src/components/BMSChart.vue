@@ -22,8 +22,13 @@ interface SeriesData {
 const chartOptions = ref({
   chart: {
     id: 'bms-data-chart',
+    type: "area",
     stacked: true,
+    background: "#19191E",
     toolbar: { show: true },
+    zoom: {
+      enabled: false
+    },
     animations: {
       enabled: true,
       easing: "linear",
@@ -39,21 +44,19 @@ const chartOptions = ref({
       top: 22
     },
   },
+  stroke: {
+    curve: "smooth",
+    width: 3,
+  },
   grid: {
+    borderColor: "#222226",
     padding: {
       left: 0,
-      right: 0
-    }
+      right: 0,
+    },
   },
   markers: {
-    size: 0,
-    hover: {
-      size: 0
-    }
-  },
-  stroke: {
-    curve: "monotoneCubic",
-    width: 3,
+    colors: ["#FFFFFF"]
   },
   dataLabels: {
     enabled: false
@@ -63,6 +66,17 @@ const chartOptions = ref({
   },
   xaxis: {
     type: 'datetime',
+    axisBorder: {
+      show: false
+    },
+    axisTicks: {
+      show: false
+    },
+    labels: {
+      style: {
+        colors: "#aaa"
+      }
+    }
   },
   title: {
     text: 'BMS Data',
