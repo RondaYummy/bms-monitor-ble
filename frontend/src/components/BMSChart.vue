@@ -164,7 +164,7 @@ async function fetchDataAndProcess(days: number = 1) {
       {
         name: 'Current',
         data: smoothedCurrentSeries,
-        yaxis: 1, // Використовує праву вісь Y
+        yaxis: 0, // Використовує праву вісь Y
       },
       {
         name: 'Battery Power',
@@ -196,7 +196,7 @@ watch(() => props.tab, async (newTab) => {
       {
         name: 'Current',
         data: currentSeries,
-        yaxis: 1, // Використовує праву вісь Y
+        yaxis: 0, // Використовує праву вісь Y
       },
       {
         name: 'Battery Power',
