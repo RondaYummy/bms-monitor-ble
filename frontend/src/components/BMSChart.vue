@@ -1,8 +1,10 @@
 <template>
   <div class="chart-container">
-    <apex-chart :options="chartOptions"
+    <apex-chart type="area"
+                :options="chartOptions"
                 :series="series"></apex-chart>
-    <apex-chart :options="chartOptions2"
+    <apex-chart type="bar"
+                :options="chartOptions2"
                 :series="series"></apex-chart>
   </div>
 </template>
@@ -60,11 +62,6 @@ const chartOptions = ref({
     strokeColor: "#00BAEC",
     strokeWidth: 3
   },
-  series: [
-    {
-      // data: data
-    }
-  ],
   tooltip: {
     theme: "dark"
   },
@@ -94,17 +91,22 @@ const chartOptions2 = {
         opacity: 0.4
       },
       xaxis: {
-        min: new Date("27 Jul 2017 10:00:00").getTime(),
-        max: new Date("14 Aug 2017 10:00:00").getTime()
-      }
+        type: 'datetime',
+        axisBorder: {
+          show: false
+        },
+        axisTicks: {
+          show: false
+        },
+        labels: {
+          style: {
+            colors: "#aaa"
+          }
+        }
+      },
     }
   },
   colors: ["#FF0080"],
-  series: [
-    {
-      // data: data
-    }
-  ],
   stroke: {
     width: 2
   },
