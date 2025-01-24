@@ -102,9 +102,9 @@ const chartOptions = ref({
     intersect: false,
     theme: 'dark',
     y: [{
-      formatter: (val: number) => `${val} A`,
+      formatter: (val: number) => `${val?.toFixed(2)} A`,
     }, {
-      formatter: (val: number) => `${val} W`,
+      formatter: (val: number) => `${val?.toFixed(2)} W`,
     }],
   },
   // colors: ['#FF4560', '#008FFB', '#F2C037'],
