@@ -1,13 +1,25 @@
 # BMS Monitor [BLE]
-Simple application for controlling JK-BMS via Bluetooth low energy
+# Battery Management System JK-BMS control via Bluetooth low energy
 
-1. Install Node 22.
+## First steeps:
+### Clone project:
+```bash
+git clone https://github.com/RondaYummy/bms-monitor-ble.git
+```
+1. Install Node.
 2. Install Yarn.
 3. Install Docker-compose.
+4. Setup Nginx and SSL ( https://github.com/RondaYummy/bms-monitor-ble/blob/main/docs/nginx.md )
+5. To access from outside the local network, you need to get a static IP address.
 
 ## Build Docker:
 ```bash
 yarn build
+```
+
+## To copy static resources after a manual build:
+```bash
+yarn copy
 ```
 
 ## [PROD]
@@ -20,17 +32,18 @@ yarn prod
 yarn dev
 ```
 
-### Deploy
+### [AUTO] Deploy via PM2
 ```bash
 chmod +x deploy.sh
-```
-
-### PM2
-```bash
 npm install pm2 -g
-```
-```bash
 pm2 start ecosystem.config.js
+```
+### Clear Database
+```bash
+docker exec -it python-app bash
+rm /app/data/*.db
+exit
+docker-compose restart
 ```
 
 ## Motivation
