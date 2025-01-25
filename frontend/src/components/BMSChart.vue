@@ -135,8 +135,8 @@ function processAggregatedData(data: any[], tab: string) {
       if (!groupedData[minuteKey]) {
         groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
       }
-      groupedData[minuteKey].currentSum += item[3];
-      groupedData[minuteKey].powerSum += item[4];
+      groupedData[minuteKey].currentSum += item[2];
+      groupedData[minuteKey].powerSum += item[3];
       groupedData[minuteKey].count += 1;
     });
 
