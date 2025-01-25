@@ -125,7 +125,7 @@
           </span>
         </div>
 
-        <div>
+        <div class='row justify-between'>
           <span :class="{ unique: calculatedList?.state_of_health < 30 }">
             SOH: {{ calculatedList?.state_of_health }}%
 
