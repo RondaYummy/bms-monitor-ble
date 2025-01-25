@@ -64,7 +64,7 @@ const chartOptions = ref({
     size: 2,
     colors: ["#000524"],
     strokeColor: "#00BAEC",
-    strokeWidth: 3
+    strokeWidth: 1
   },
   tooltip: {
     theme: "dark"
