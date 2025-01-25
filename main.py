@@ -437,7 +437,7 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
 
     # Перевіряємо, чи є дані cell_info для кожного підключеного пристрою
     cell_info = await device_data_store.get_cell_info()
-    log("CELL INFO", f"[{cell_info["device_address"]}]", force=True)
+    log("CELL INFO", f"[{cell_info['device_address']}]", force=True)
 
     for device_address in allowed_devices:
         if device_address not in cell_info:
