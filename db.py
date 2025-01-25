@@ -3,7 +3,6 @@ from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 import asyncio
 
-# Структура для зберігання проміжних даних
 data_aggregator = defaultdict(lambda: {
     "device_name": None,
     "device_address": None,
@@ -18,7 +17,7 @@ data_aggregator = defaultdict(lambda: {
 DB_NAME = '/app/data/bms_data.db'
 
 async def process_devices():
-    """Циклічно викликає update_aggregated_data та зберігає агреговані дані."""
+    """Cyclically calls update_aggregated_data and saves the aggregated data."""
     global data_aggregator
     while True:
         for device_address, device_data in data_aggregator.items():
@@ -31,7 +30,7 @@ async def process_devices():
         await asyncio.sleep(60)
 
 def update_aggregated_data(device_name, device_address, current, power):
-    """Оновлює проміжні дані для агрегування."""
+    """Updates intermediate data for aggregation."""
     global data_aggregator
     now = datetime.now(timezone.utc)
 
@@ -44,44 +43,40 @@ def update_aggregated_data(device_name, device_address, current, power):
     if not isinstance(power, (int, float)) or power < 0:
         raise ValueError(f"Invalid power: {power}")
 
-    # Ініціалізуємо дані для пристрою, якщо він ще не доданий
     device_data = data_aggregator[device_address]
 
-    # Оновлюємо загальні дані пристрою
     if device_data["device_name"] is None:
         device_data["device_name"] = device_name
     if device_data["device_address"] is None:
         device_data["device_address"] = device_address
 
-    # Оновлення сум
     device_data["current_sum"] += current
     device_data["power_sum"] += power
 
-    # Оновлення мінімуму та максимуму
     device_data["current_min"] = min(device_data["current_min"], current)
     device_data["current_max"] = max(device_data["current_max"], current)
 
-    # Збільшуємо кількість записів
+    # Increase the number of records
     device_data["count"] += 1
     if device_data["last_insert_time"] is None:
         device_data["last_insert_time"] = now
 
 def save_aggregated_data(device_name, device_address, device_data, interval=60):
-    """Зберігає агреговані дані в базу, якщо минув інтервал часу."""
+    """Saves the aggregated data to the database if the time interval has passed."""
     now = datetime.now(timezone.utc)
     last_insert_time = device_data["last_insert_time"]
 
     if last_insert_time and (now - last_insert_time).total_seconds() < interval:
-        return  # Інтервал ще не минув
+        return  # The interval has not yet expired
 
-    # Розрахунок середнього значення
+    # Calculating the average value
     if device_data["count"] > 0:
         current_avg = device_data["current_sum"] / device_data["count"]
         power_avg = device_data["power_sum"] / device_data["count"]
     else:
-        return  # Немає даних для збереження
+        return  # No data to save
 
-    # Формуємо timestamp
+    # Generate timestamp
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
     
     try:
@@ -92,11 +87,10 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
             device_address=device_address,
             device_name=device_name
         )
-        print(f"Aggregated data saved for {device_name} ({device_address}) at {timestamp}")
+        # print(f"Aggregated data saved for {device_name} ({device_address}) at {timestamp}")
     except Exception as e:
         print(f"Error saving aggregated data: {e}")
 
-    # Скидаємо агреговані дані
     device_data.update({
         "current_sum": 0,
         "power_sum": 0,
@@ -107,7 +101,7 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
     })
 
 def get_connection():
-    """Створює і повертає з'єднання з базою даних."""
+    """Creates and returns a connection to the database."""
     try:
         return sqlite3.connect(DB_NAME)
     except sqlite3.Error as e:
@@ -115,7 +109,7 @@ def get_connection():
         raise
 
 def create_table():
-    """Створює таблицю, якщо вона не існує."""
+    """Creates a table if it does not exist."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -139,7 +133,7 @@ def create_table():
         raise
 
 def insert_data(timestamp, current, power, device_address, device_name):
-    """Додає новий запис у таблицю."""
+    """Adds a new record to the table."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -154,29 +148,27 @@ def insert_data(timestamp, current, power, device_address, device_name):
 
 def fetch_all_data(days=None):
     """
-    Отримує записи з таблиці за поточний день, якщо days=1.
-    Якщо параметр days не передано, дані не повертаються.
+    Gets records from the table for the current day if days=1.
+    If the days parameter is not passed, no data is returned.
     """
     if days is None:
         print("No 'days' parameter provided. No data will be fetched.")
-        return None  # Або повернути []
+        return None
 
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
             
-            # Розраховуємо початок дня
             if days == 1:
-                # Початок поточного дня
+                # Start of the current day
                 cutoff_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
             else:
-                # Початок дня "n днів тому"
+                # Start of day “n days ago”
                 cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
             
             cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
             
-            # Запит із фільтрацією за timestamp
-            cursor.execute('SELECT * FROM bms_data WHERE timestamp >= ?', (cutoff_date_str,))
+            cursor.execute('SELECT * FROM bms_data WHERE timestamp >= ?', (cutoff_date_str,)) # Query with filtering by timestamp
             return cursor.fetchall()
     except sqlite3.Error as e:
         print(f"Error fetching data: {e}")

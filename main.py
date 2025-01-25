@@ -184,8 +184,7 @@ async def parse_setting_info(data, device_name, device_address):
     log(device_name, "Parsing Setting Info Frame...")  
 
     try:
-        log(device_name, f"Setting Header: {data[:4].hex()}", force=True)
-
+        log(device_name, f"Setting Header: {data[:5].hex()}", force=True)
 
     except Exception as e:
         log(device_name, f"Error parsing Setting Info Frame: {e}", force=True)
@@ -252,6 +251,7 @@ async def parse_cell_info(data, device_name, device_address):
         voltage_diff = max(filtered_voltages) - min(filtered_voltages)
         
         cell_info = {
+            "device_address": device_address.lower(),
             "charging_status": charging_status,
             "discharging_status": discharging_status,
             "precharging_status": precharging_status,
@@ -286,8 +286,7 @@ async def parse_cell_info(data, device_name, device_address):
         
         await device_data_store.update_cell_info(device_name, cell_info)
 
-        if await are_all_allowed_devices_connected():
-            log(device_name, "All allowed devices are connected.")
+        if await are_all_allowed_devices_connected_and_have_data():
             db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power)
 
         log(device_name, "Parsed Cell Info:")
@@ -306,8 +305,8 @@ async def parse_cell_info(data, device_name, device_address):
 
 async def notification_handler(device, data, device_name, device_address):
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
-        await device_data_store.clear_buffer(device_name)  # Очистити буфер
-    await device_data_store.append_to_buffer(device_name, data)  # Додати нові дані
+        await device_data_store.clear_buffer(device_name)
+    await device_data_store.append_to_buffer(device_name, data)
 
     buffer = await device_data_store.get_buffer(device_name)
     if MIN_FRAME_SIZE <= len(buffer) <= MAX_FRAME_SIZE:
@@ -331,11 +330,10 @@ async def notification_handler(device, data, device_name, device_address):
             await parse_setting_info(buffer, device_name, device_address)
         else:
             log(device_name, f"Unknown frame type {frame_type}: {buffer}", force=True)
-            # Якщо невідомий тип очищую буфер, бо така помилка буде весь час падати
             await device_data_store.clear_buffer(device_name)
 
 async def connect_and_run(device):
-    while True:  # Цикл для перепідключення
+    while True:  # Cycle to reconnect
         try:
             device_info_data = await device_data_store.get_device_info(device.name)
             if not device_info_data:
@@ -383,6 +381,7 @@ async def connect_and_run(device):
             log(device.name, f"Error: {str(e)}", force=True)
         finally:
             device_info_data["connected"] = False
+            await client.disconnect()
             await device_data_store.update_device_info(device.name, device_info_data)
             log(device.name, "Disconnected, retrying in 5 seconds...", force=True)
             await asyncio.sleep(5)
@@ -399,13 +398,11 @@ async def ble_main():
 
         tasks = []
         for device in devices:
-            # Перевіряємо, чи пристрій дозволений
-            if device.address.lower() in allowed_devices:
-                # Перевіряємо, чи пристрій уже підключений
-                device_info = await device_data_store.get_device_info(device.name)
+            if device.address.lower() in allowed_devices: # Check if the device is allowed
+                device_info = await device_data_store.get_device_info(device.name) # Check if the device is already connected
                 if device_info and device_info.get("connected", False):
                     log(device.name, f"Device {device.name} is already connected, skipping.")
-                    continue  # Пропускаємо, якщо пристрій вже підключений
+                    continue  # Skip if the device is already connected
 
                 log(device.name, f"Connecting to allowed device: {device.address}", force=True)
                 tasks.append(asyncio.create_task(connect_and_run(device)))
@@ -416,9 +413,19 @@ async def ble_main():
         else:
             await asyncio.sleep(10)
 
-async def are_all_allowed_devices_connected() -> bool:
+def is_device_address_in_cell_info(device_address, cell_info):
     """
-    Перевіряє, чи всі пристрої зі списку allowed_devices підключені.
+    Checks if `device_address' exists in the nested values of `cell_info'.
+    """
+    for device_data in cell_info.values():
+        if device_data.get("device_address") == device_address:
+            return True
+    return False
+
+async def are_all_allowed_devices_connected_and_have_data() -> bool:
+    """
+    Checks if all devices from the allowed_devices list are connected
+    and whether there is data for each in cell_info.
     """
     allowed_devices = {addr.lower() for addr in load_allowed_devices()}
     connected_devices = await device_data_store.get_device_info()
@@ -427,7 +434,20 @@ async def are_all_allowed_devices_connected() -> bool:
         for device_info in connected_devices.values()
         if device_info.get("connected", False)
     }
-    return allowed_devices.issubset(connected_addresses)
+    log("ALLOWED DEVICES", f"[{allowed_devices}]")
+    log("CONNECTED DEVICES", f"[{connected_addresses}]")
+
+    if not allowed_devices.issubset(connected_addresses):
+        log("CHECK DEVICES", "All allowed devices are not connected", force=True)
+        return False
+
+    cell_info = await device_data_store.get_cell_info()
+    for device_address in allowed_devices:
+        if not is_device_address_in_cell_info(device_address, cell_info):
+            log("CHECK DEVICES", f"Device [{device_address}] have no data.", force=True)
+            return False
+
+    return True
 
 def start_services():
     db.create_table()

@@ -88,7 +88,7 @@ const chartOptions = ref({
       },
     },
     {
-      opposite: true, // Права вісь Y
+      opposite: true, // Right Y-axis
       // title: { text: 'Current' },
       labels: {
         formatter: (val: number) => Math.round(val).toString(),
@@ -135,8 +135,8 @@ function processAggregatedData(data: any[], tab: string) {
       if (!groupedData[minuteKey]) {
         groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
       }
-      groupedData[minuteKey].currentSum += item[3]; // Струм
-      groupedData[minuteKey].powerSum += item[4]; // Сила
+      groupedData[minuteKey].currentSum += item[2];
+      groupedData[minuteKey].powerSum += item[3];
       groupedData[minuteKey].count += 1;
     });
 
@@ -152,17 +152,17 @@ function processAggregatedData(data: any[], tab: string) {
 
     return { currentSeries, powerSeries };
   } else {
-    // Фільтруємо дані за `tab`
-    const filteredData = data.filter((item) => item[6] === tab);
+    // Filter data by `tab`
+    const filteredData = data.filter((item) => item[5] === tab);
 
     const currentSeries = filteredData.map((item) => ({
       x: new Date(item[1]).toISOString(),
-      y: item[3],
+      y: item[2],
     }));
 
     const powerSeries = filteredData.map((item) => ({
       x: new Date(item[1]).toISOString(),
-      y: item[4],
+      y: item[3],
     }));
 
     return { currentSeries, powerSeries };
@@ -209,6 +209,7 @@ onBeforeUnmount(async () => {
 
 watch(() => props.tab, async (newTab) => {
   try {
+    console.log('WATCH');
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { currentSeries, powerSeries } = processAggregatedData(data.value, newTab);
 
