@@ -373,6 +373,7 @@ async def connect_and_run(device):
                     # Перевіряємо, чи потрібно надсилати cell_info_command
                     last_update = await device_data_store.get_last_cell_info_update(device.name)
                     if not last_update or (datetime.now(timezone.utc) - last_update).total_seconds() > 30:
+                        log(device.name, f"Last Cell update: {(datetime.now(timezone.utc) - last_update).total_seconds()}")
                         cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                         await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                         log(device.name, f"Cell Info command sent: {cell_info_command.hex()}")
@@ -430,14 +431,14 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
 
     # Перевіряємо, чи всі дозволені пристрої підключені
     if not allowed_devices.issubset(connected_addresses):
-        log("[CHECK DEVICES]", "All allowed devices are not connected", force=True)
+        log("CHECK DEVICES", "All allowed devices are not connected", force=True)
         return False
 
     # Перевіряємо, чи є дані cell_info для кожного підключеного пристрою
     cell_info = await device_data_store.get_cell_info()
     for device_address in allowed_devices:
         if device_address not in cell_info:
-            log("[CHECK DEVICES]", f"Device [{device_address}] have no data.", force=True)
+            log("CHECK DEVICES", f"Device [{device_address}] have no data.", force=True)
             return False
 
     return True
