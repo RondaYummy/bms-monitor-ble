@@ -415,6 +415,15 @@ async def ble_main():
         else:
             await asyncio.sleep(10)
 
+def is_device_address_in_cell_info(device_address, cell_info):
+    """
+    Перевіряє, чи існує `device_address` у вкладених значеннях `cell_info`.
+    """
+    for device_data in cell_info.values():
+        if device_data.get("device_address") == device_address:
+            return True
+    return False
+    
 async def are_all_allowed_devices_connected_and_have_data() -> bool:
     """
     Перевіряє, чи всі пристрої зі списку allowed_devices підключені
@@ -439,8 +448,9 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
     cell_info = await device_data_store.get_cell_info()
     log("CELL INFO", f"[{cell_info}]", force=True)
 
+    cell_info = await device_data_store.get_cell_info()
     for device_address in allowed_devices:
-        if device_address not in cell_info:
+        if not is_device_address_in_cell_info(device_address, cell_info):
             log("CHECK DEVICES", f"Device [{device_address}] have no data.", force=True)
             return False
 
