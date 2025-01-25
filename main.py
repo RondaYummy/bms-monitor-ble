@@ -437,7 +437,7 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
     cell_info = await device_data_store.get_cell_info()
     for device_address in allowed_devices:
         if device_address not in cell_info:
-            log("[CHECK DEVICES]", "All allowed devices have no data.", force=True)
+            log("[CHECK DEVICES]", f"Device [{device_address}] have no data.", force=True)
             return False
 
     return True
