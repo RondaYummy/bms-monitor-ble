@@ -1,10 +1,7 @@
 <template>
   <div class="chart-container">
-    <apex-chart type="area"
+    <apex-chart type="line"
                 :options="chartOptions"
-                :series="series"></apex-chart>
-    <apex-chart type="bar"
-                :options="chartOptions2"
                 :series="series"></apex-chart>
   </div>
 </template>
@@ -21,122 +18,99 @@ interface SeriesData {
   data: any[];
   yaxis?: number;
 }
-const series = ref<SeriesData[]>([]);
 
 const chartOptions = ref({
   chart: {
-    id: "chart2",
+    id: 'bms-data-chart',
     type: "area",
-    height: 230,
-    foreColor: "#ccc",
-    toolbar: {
-      autoSelected: "pan",
-      show: false
-    }
+    background: "#1e1f26",
+    zoom: {
+      enabled: false
+    },
+    animations: {
+      enabled: true,
+      easing: "linear",
+      dynamicAnimation: {
+        speed: 1000
+      }
+    },
+    dropShadow: {
+      enabled: true,
+      opacity: 0.3,
+      blur: 5,
+      left: -7,
+      top: 22
+    },
   },
-  colors: ["#00BAEC"],
   stroke: {
-    width: 3
+    curve: "smooth",
+    width: 3,
   },
   grid: {
-    borderColor: "#555",
-    clipMarkers: false,
-    yaxis: {
-      lines: {
-        show: false
-      }
-    }
+    borderColor: "#222226",
+    padding: {
+      left: 0,
+      right: 0,
+    },
+  },
+  markers: {
+    colors: ["#FFFFFF"]
   },
   dataLabels: {
     enabled: false
   },
-  series: {
-    data: series.value,
+  legend: {
+    show: false,
   },
-  fill: {
-    gradient: {
-      enabled: true,
-      opacityFrom: 0.55,
-      opacityTo: 0
+  xaxis: {
+    type: 'datetime',
+    axisBorder: {
+      show: false
+    },
+    axisTicks: {
+      show: false
+    },
+    labels: {
+      style: {
+        colors: "#aaa"
+      }
     }
   },
-  markers: {
-    size: 5,
-    colors: ["#000524"],
-    strokeColor: "#00BAEC",
-    strokeWidth: 3
+  title: {
+    text: 'BMS Data',
+    align: 'left',
   },
+  yaxis: [
+    {
+      // title: { text: 'Battery Power' },
+      labels: {
+        formatter: (val: number) => Math.round(val).toString(),
+      },
+    },
+    {
+      opposite: true, // Права вісь Y
+      // title: { text: 'Current' },
+      labels: {
+        formatter: (val: number) => Math.round(val).toString(),
+      },
+    },
+  ],
   tooltip: {
-    theme: "dark"
+    shared: true,
+    intersect: false,
+    theme: 'dark',
+    y: [{
+      formatter: (val: number) => `${val?.toFixed(2)} A`,
+    }, {
+      formatter: (val: number) => `${val?.toFixed(2)} W`,
+    }],
   },
-  xaxis: {
-    type: "datetime"
-  },
-  yaxis: {
-    tickAmount: 4
-  }
+  // colors: ['#FF4560', '#008FFB', '#F2C037'],
 });
 
-const chartOptions2 = ref({
-  chart: {
-    id: "chart1",
-    height: 130,
-    type: "bar",
-    foreColor: "#ccc",
-    brush: {
-      target: "apexchartschart2",
-      enabled: true
-    },
-    series: {
-      data: series.value,
-    },
-    selection: {
-      enabled: true,
-      fill: {
-        color: "#fff",
-        opacity: 0.4
-      },
-      xaxis: {
-        // type: 'datetime',
-        // axisBorder: {
-        //   show: false
-        // },
-        // axisTicks: {
-        //   show: false
-        // },
-        // labels: {
-        //   style: {
-        //     colors: "#aaa"
-        //   }
-        // }
-        min: 0,
-        max: 8000,
-      },
-    }
-  },
-  colors: ["#FF0080"],
-  stroke: {
-    width: 2
-  },
-  grid: {
-    borderColor: "#444"
-  },
-  markers: {
-    size: 0
-  },
-  xaxis: {
-    type: "datetime",
-    tooltip: {
-      enabled: false
-    }
-  },
-  yaxis: {
-    tickAmount: 2
-  }
-});
-
+const series = ref<SeriesData[]>([]);
 const data = ref();
-const days = ref(3);
+const days = ref(1);
 const intervalId = ref();
 
 async function fetchAggregatedData(days: number = 1): Promise<any[]> {
@@ -203,6 +177,7 @@ async function fetchDataAndProcess(days: number = 1) {
     if (!data.value) {
       return;
     }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
     series.value = [
