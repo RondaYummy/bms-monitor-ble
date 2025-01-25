@@ -40,10 +40,15 @@ pm2 start ecosystem.config.js
 ```
 ### Clear Database
 ```bash
-docker exec -it python-app bash
+docker ps
+```
+
+### docker exec -it <python-app-name> bash
+```bash
+docker exec -it bms-monitor-ble-python-app-1 bash
 rm /app/data/*.db
 exit
-docker-compose restart
+docker compose restart
 ```
 
 ## Motivation
