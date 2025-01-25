@@ -141,7 +141,7 @@
 
           <span>
             Autonomy:
-            {{ calculateAutonomyTime(calculatedList?.remaining_capacity, calculatedList?.chargeCurrent, 0.95) }}
+            {{ calculateAutonomyTime(calculatedList?.remaining_capacity, calculatedList?.charge_current, 0.95) }}
             hrs
 
             <q-tooltip>

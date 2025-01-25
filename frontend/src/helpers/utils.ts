@@ -56,13 +56,13 @@ export function calculateAverage(array: any[], field: string) {
  * @param {number} inverterEfficiency - Ефективність інвертора (за замовчуванням 0.95).
  * @returns {number|string} - Час автономної роботи в годинах або '∞', якщо споживання дорівнює 0.
  */
-export function calculateAutonomyTime(remainingCapacity: number, chargeCurrent: number, inverterEfficiency = 0.95) {
-  if (chargeCurrent >= 0) {
+export function calculateAutonomyTime(remainingCapacity: number, charge_current: number, inverterEfficiency = 0.95) {
+  if (charge_current >= 0) {
     return '∞'; // Уникаємо ділення на нуль.
   }
 
   // Врахування ефективності інвертора
-  const effectiveCurrent = Math.abs(chargeCurrent) / inverterEfficiency;
+  const effectiveCurrent = Math.abs(charge_current) / inverterEfficiency;
   console.log(effectiveCurrent, 'effectiveCurrent');
 
   const autonomyTime = remainingCapacity / effectiveCurrent;
