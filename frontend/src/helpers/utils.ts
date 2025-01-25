@@ -47,3 +47,25 @@ export function calculateAverage(array: any[], field: string) {
   const total = array.reduce((sum, item) => sum + item[field], 0);
   return total / array.length;
 }
+
+/**
+ * Розраховує час автономної роботи системи.
+ *
+ * @param {number} remainingCapacity - Залишковий заряд батареї в Ah.
+ * @param {number} chargeCurrent - Поточне споживання в A.
+ * @param {number} inverterEfficiency - Ефективність інвертора (за замовчуванням 0.95).
+ * @returns {number|string} - Час автономної роботи в годинах або '∞', якщо споживання дорівнює 0.
+ */
+export function calculateAutonomyTime(remainingCapacity: number, chargeCurrent: number, inverterEfficiency = 0.95) {
+  if (chargeCurrent <= 0) {
+    return '∞'; // Уникаємо ділення на нуль.
+  }
+
+  // Врахування ефективності інвертора
+  const effectiveCurrent = chargeCurrent / inverterEfficiency;
+
+  // Розрахунок часу автономної роботи
+  const autonomyTime = remainingCapacity / effectiveCurrent;
+
+  return autonomyTime.toFixed(2); // Повертаємо результат із двома знаками після коми
+}

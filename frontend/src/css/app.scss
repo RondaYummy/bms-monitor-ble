@@ -25,7 +25,10 @@ body {
 #q-app {
   background: #1e1f26;
 }
-
+main {
+  max-width: 500px;
+  margin: 0 auto;
+}
 span {
   color: white;
   font-weight: 500;

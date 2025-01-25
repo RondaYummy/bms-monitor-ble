@@ -139,7 +139,15 @@
             </q-tooltip>
           </span>
 
-          <span></span>
+          <span>
+            Autonomy:
+            {{ calculateAutonomyTime(calculatedList?.remaining_capacity, calculatedList?.chargeCurrent, 0.95) }}
+
+            <q-tooltip>
+              Autonomy - Час автономної роботи при поточних навантаженнях. Також
+              враховується ефективність інвертора в коефіцієнті 0.95.
+            </q-tooltip>
+          </span>
         </div>
       </div>
     </template>
@@ -230,11 +238,6 @@
           </q-item>
         </q-list>
       </q-btn-dropdown>
-      <!-- <q-tab class="text-orange"
-               v-for="device of Object.keys(devicesList)"
-               :key="device"
-               :name="device"
-               :label="device" /> -->
     </q-tabs>
   </q-page>
 </template>
@@ -242,7 +245,7 @@
 <script setup lang="ts">
 import LoaderComponent from 'src/components/LoaderComponent.vue';
 import BMSChart from 'src/components/old/BMSChart.vue';
-import { calculateAverage, calculateAveragePerIndex } from 'src/helpers/utils';
+import { calculateAutonomyTime, calculateAverage, calculateAveragePerIndex } from 'src/helpers/utils';
 import type { Device } from 'src/interfaces';
 import { ref, watch, onBeforeUnmount } from 'vue';
 
