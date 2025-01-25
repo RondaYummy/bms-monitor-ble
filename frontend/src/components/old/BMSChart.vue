@@ -3,9 +3,6 @@
     <apex-chart type="area"
                 :options="chartOptions"
                 :series="series"></apex-chart>
-    <apex-chart type="bar"
-                :options="chartOptions2"
-                :series="series"></apex-chart>
   </div>
 </template>
 
@@ -32,14 +29,32 @@ const chartOptions = ref({
     toolbar: {
       autoSelected: "pan",
       show: false
-    }
+    },
+    animations: {
+      enabled: true,
+      easing: "linear",
+      dynamicAnimation: {
+        speed: 1000
+      }
+    },
+    dropShadow: {
+      enabled: true,
+      opacity: 0.3,
+      blur: 5,
+      left: -7,
+      top: 22
+    },
   },
   colors: ["#00BAEC"],
   stroke: {
     width: 3
   },
   grid: {
-    borderColor: "#555",
+    borderColor: "#222226",
+    padding: {
+      left: 0,
+      right: 0,
+    },
     clipMarkers: false,
     yaxis: {
       lines: {
@@ -71,9 +86,9 @@ const chartOptions = ref({
     intersect: false,
     theme: 'dark',
     y: [{
-      formatter: (val: number) => `${val?.toFixed(2)} A`,
-    }, {
       formatter: (val: number) => `${val?.toFixed(2)} W`,
+    }, {
+      formatter: (val: number) => `${val?.toFixed(2)} A`,
     }],
   },
   xaxis: {
@@ -81,76 +96,6 @@ const chartOptions = ref({
   },
   yaxis: {
     tickAmount: 4,
-    labels: {
-      formatter: (val: number) => Math.round(val).toString(),
-    },
-  }
-});
-
-const chartOptions2 = ref({
-  chart: {
-    id: "chart1",
-    height: 150,
-    type: "bar",
-    foreColor: "#ccc",
-    brush: {
-      target: "chart2",
-      enabled: true
-    },
-    series: {
-      data: series.value,
-    },
-    grid: {
-      borderColor: "#222226"
-    },
-    legend: {
-      show: false,
-    },
-    selection: {
-      enabled: true,
-      fill: {
-        color: "#fff",
-        opacity: 0.4
-      },
-      xaxis: {
-        // type: 'datetime',
-        // axisBorder: {
-        //   show: false
-        // },
-        // axisTicks: {
-        //   show: false
-        // },
-        // labels: {
-        //   style: {
-        //     colors: "#aaa"
-        //   }
-        // }
-        // min: 0,
-        // max: 8000,
-      },
-    }
-  },
-  colors: ["#FF0080"],
-  stroke: {
-    width: 2
-  },
-  legend: {
-    show: false,
-  },
-  grid: {
-    borderColor: "#222226"
-  },
-  markers: {
-    size: 0
-  },
-  xaxis: {
-    type: "datetime",
-    tooltip: {
-      enabled: false
-    }
-  },
-  yaxis: {
-    tickAmount: 2,
     labels: {
       formatter: (val: number) => Math.round(val).toString(),
     },
