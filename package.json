@@ -1,6 +1,6 @@
 {
   "name": "bms-monitor-ble",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Simple application for controlling JK-BMS via Bluetooth low energy",
   "main": "ecosystem.config.js",
   "directories": {
