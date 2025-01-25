@@ -67,14 +67,23 @@ const chartOptions = ref({
     strokeWidth: 1
   },
   tooltip: {
-    theme: "dark"
+    shared: true,
+    intersect: false,
+    theme: 'dark',
+    y: [{
+      formatter: (val: number) => `${val?.toFixed(2)} A`,
+    }, {
+      formatter: (val: number) => `${val?.toFixed(2)} W`,
+    }],
   },
   xaxis: {
     type: "datetime"
   },
   yaxis: {
     tickAmount: 4,
-    formatter: (val: number) => Math.round(val).toString(),
+    labels: {
+      formatter: (val: number) => Math.round(val).toString(),
+    },
   }
 });
 
