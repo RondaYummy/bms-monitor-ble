@@ -142,7 +142,6 @@
           <span>
             Autonomy:
             {{ calculateAutonomyTime(calculatedList?.remaining_capacity, calculatedList?.charge_current, 0.95) }}
-            hrs
 
             <q-tooltip>
               Autonomy - Час автономної роботи при поточних навантаженнях. Також
@@ -221,17 +220,18 @@
             class="q-mt-sm text-white shadow-2 bg-dark full-width"
             v-if="devicesList">
       <q-tab name="All"
+             style='flex: 1 1 50%;'
              label="All" />
 
       <q-btn-dropdown auto-close
                       stretch
                       flat
                       style='flex: 1 1 50%;'
-                      class="text-black"
                       label="Devices">
         <q-list>
           <q-item clickable
                   v-for="device of Object.keys(devicesList)"
+                  class="text-black"
                   :key="device"
                   :name="device"
                   :label="device"

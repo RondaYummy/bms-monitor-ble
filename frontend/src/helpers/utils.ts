@@ -63,9 +63,7 @@ export function calculateAutonomyTime(remainingCapacity: number, charge_current:
 
   // Врахування ефективності інвертора
   const effectiveCurrent = Math.abs(charge_current) / inverterEfficiency;
-  console.log(effectiveCurrent, 'effectiveCurrent');
 
   const autonomyTime = remainingCapacity / effectiveCurrent;
-  console.log(autonomyTime, 'autonomyTime');
-  return autonomyTime.toFixed(2);
+  return `${autonomyTime.toFixed(2)} hrs`;
 }
