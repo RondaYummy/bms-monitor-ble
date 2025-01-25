@@ -302,7 +302,7 @@ async def parse_cell_info(data, device_name, device_address):
         log(device_name, f"Error parsing Cell Info Frame: {e}", force=True)
         return None
 
-async def notification_handler(device, data, device_name, device_address):
+async def notification_handler(device, data, device_name, device_address, client):
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
         await device_data_store.clear_buffer(device_name)  # Очистити буфер
     await device_data_store.append_to_buffer(device_name, data)  # Додати нові дані
@@ -331,6 +331,7 @@ async def notification_handler(device, data, device_name, device_address):
             log(device_name, f"Unknown frame type {frame_type}: {buffer}", force=True)
             # Якщо невідомий тип очищую буфер, бо така помилка буде весь час падати
             await device_data_store.clear_buffer(device_name)
+            await client.disconnect()
 
 async def connect_and_run(device):
     while True:  # Цикл для перепідключення
@@ -350,7 +351,7 @@ async def connect_and_run(device):
                 log(device.name, f"Connected and notification started", force=True)
 
                 def handle_notification(sender, data):
-                    asyncio.create_task(notification_handler(device, data, device.name, device.address))
+                    asyncio.create_task(notification_handler(device, data, device.name, device.address, client))
 
                 await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
 
@@ -381,7 +382,6 @@ async def connect_and_run(device):
             log(device.name, f"Error: {str(e)}", force=True)
         finally:
             device_info_data["connected"] = False
-            await client.disconnect()
             await device_data_store.update_device_info(device.name, device_info_data)
             log(device.name, "Disconnected, retrying in 5 seconds...", force=True)
             await asyncio.sleep(5)
