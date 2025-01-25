@@ -19,7 +19,7 @@ yarn build
 
 ## To copy static resources after a manual build:
 ```bash
-yarn copy
+yarn static
 ```
 
 ## [PROD]

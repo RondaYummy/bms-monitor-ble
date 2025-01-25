@@ -241,7 +241,7 @@
 
 <script setup lang="ts">
 import LoaderComponent from 'src/components/LoaderComponent.vue';
-import BMSChart from 'src/components/BMSChart.vue';
+import BMSChart from 'src/components/old/BMSChart.vue';
 import { calculateAverage, calculateAveragePerIndex } from 'src/helpers/utils';
 import type { Device } from 'src/interfaces';
 import { ref, watch, onBeforeUnmount } from 'vue';

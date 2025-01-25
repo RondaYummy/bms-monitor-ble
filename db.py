@@ -85,7 +85,6 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
     
     try:
-        print(f"timestamp: {timestamp},device_name: {device_name}, device_address: {device_address}, current: {current_avg}, power: {power_avg}")
         insert_data(
             timestamp=timestamp,
             current=current_avg,
