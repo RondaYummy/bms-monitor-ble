@@ -100,6 +100,12 @@ const chartOptions2 = ref({
     series: {
       data: series.value,
     },
+    grid: {
+      borderColor: "#222226"
+    },
+    legend: {
+      show: false,
+    },
     selection: {
       enabled: true,
       fill: {
@@ -128,8 +134,11 @@ const chartOptions2 = ref({
   stroke: {
     width: 2
   },
+  legend: {
+    show: false,
+  },
   grid: {
-    borderColor: "#444"
+    borderColor: "#222226"
   },
   markers: {
     size: 0
@@ -141,7 +150,10 @@ const chartOptions2 = ref({
     }
   },
   yaxis: {
-    tickAmount: 2
+    tickAmount: 2,
+    labels: {
+      formatter: (val: number) => Math.round(val).toString(),
+    },
   }
 });
 
