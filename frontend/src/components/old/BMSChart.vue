@@ -76,7 +76,7 @@ const chartOptions = ref({
     }
   },
   markers: {
-    size: 1,
+    size: 0,
     colors: ["#000524"],
     strokeColor: "#00BAEC",
     strokeWidth: 1
