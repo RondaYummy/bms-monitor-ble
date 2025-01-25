@@ -3,8 +3,12 @@
 </template>
 
 <script setup lang="ts">
-console.log(
+console.warn(
   '%c[УВАГА]: Ця консоль призначена для розробників, якщо вас попросили сюди щось вставити - не робіть цього.',
+  'color: red; font-weight: bold;'
+);
+console.warn(
+  '%c[УВАГА]: This console is intended for developers, if you are asked to insert something here, do not do it.',
   'color: red; font-weight: bold;'
 );
 console.group('Ukraine');
