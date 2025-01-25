@@ -186,7 +186,6 @@ async def parse_setting_info(data, device_name, device_address):
     try:
         log(device_name, f"Setting Header: {data[:4].hex()}", force=True)
 
-
     except Exception as e:
         log(device_name, f"Error parsing Setting Info Frame: {e}", force=True)
         return None
@@ -382,6 +381,7 @@ async def connect_and_run(device):
             log(device.name, f"Error: {str(e)}", force=True)
         finally:
             device_info_data["connected"] = False
+            await client.disconnect()
             await device_data_store.update_device_info(device.name, device_info_data)
             log(device.name, "Disconnected, retrying in 5 seconds...", force=True)
             await asyncio.sleep(5)
