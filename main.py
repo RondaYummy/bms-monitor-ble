@@ -329,7 +329,6 @@ async def notification_handler(device, data, device_name, device_address):
             await parse_setting_info(buffer, device_name, device_address)
         else:
             log(device_name, f"Unknown frame type {frame_type}: {buffer}", force=True)
-            # Якщо невідомий тип очищую буфер, бо така помилка буде весь час падати
             await device_data_store.clear_buffer(device_name)
 
 async def connect_and_run(device):
@@ -430,14 +429,15 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
 
     # Перевіряємо, чи всі дозволені пристрої підключені
     if not allowed_devices.issubset(connected_addresses):
-        log("CHECK DEVICES", "All allowed devices are not connected")
+        log("CHECK DEVICES", "All allowed devices are not connected", force=True)
         return False
 
     # Перевіряємо, чи є дані cell_info для кожного підключеного пристрою
     cell_info = await device_data_store.get_cell_info()
     for device_address in allowed_devices:
         if device_address not in cell_info:
-            log("CHECK DEVICES", f"Device [{device_address}] have no data.")
+            log("CHECK DEVICES", f"Device [{device_address}] have no data.", force=True)
+            log("CHECK DEVICES", f"[{cell_info}]", force=True)
             return False
 
     return True
