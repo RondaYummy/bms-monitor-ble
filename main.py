@@ -287,7 +287,6 @@ async def parse_cell_info(data, device_name, device_address):
         await device_data_store.update_cell_info(device_name, cell_info)
 
         if await are_all_allowed_devices_connected_and_have_data():
-            log(device_name, "All allowed devices are connected.")
             db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power)
 
         log(device_name, "Parsed Cell Info:")
@@ -431,12 +430,14 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
 
     # Перевіряємо, чи всі дозволені пристрої підключені
     if not allowed_devices.issubset(connected_addresses):
+        log("[CHECK DEVICES]", "All allowed devices are not connected")
         return False
 
     # Перевіряємо, чи є дані cell_info для кожного підключеного пристрою
     cell_info = await device_data_store.get_cell_info()
     for device_address in allowed_devices:
         if device_address not in cell_info:
+            log("[CHECK DEVICES]", "All allowed devices have no data.")
             return False
 
     return True
