@@ -251,6 +251,7 @@ async def parse_cell_info(data, device_name, device_address):
         voltage_diff = max(filtered_voltages) - min(filtered_voltages)
         
         cell_info = {
+            "device_address": device_address,
             "charging_status": charging_status,
             "discharging_status": discharging_status,
             "precharging_status": precharging_status,
