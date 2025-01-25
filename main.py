@@ -184,7 +184,7 @@ async def parse_setting_info(data, device_name, device_address):
     log(device_name, "Parsing Setting Info Frame...")  
 
     try:
-        log(device_name, f"Setting Header: {data[:6].hex()}", force=True)
+        log(device_name, f"Setting Header: {data[:5].hex()}", force=True)
 
     except Exception as e:
         log(device_name, f"Error parsing Setting Info Frame: {e}", force=True)
