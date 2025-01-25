@@ -154,6 +154,7 @@ function processAggregatedData(data: any[], tab: string) {
   } else {
     // Filter data by `tab`
     const filteredData = data.filter((item) => item[5] === tab);
+    console.log(filteredData, 'filteredData');
 
     const currentSeries = filteredData.map((item) => ({
       x: new Date(item[1]).toISOString(),
@@ -164,6 +165,7 @@ function processAggregatedData(data: any[], tab: string) {
       x: new Date(item[1]).toISOString(),
       y: item[4],
     }));
+    console.log(powerSeries, 'powerSeries');
 
     return { currentSeries, powerSeries };
   }
