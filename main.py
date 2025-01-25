@@ -373,7 +373,6 @@ async def connect_and_run(device):
                     # Перевіряємо, чи потрібно надсилати cell_info_command
                     last_update = await device_data_store.get_last_cell_info_update(device.name)
                     if not last_update or (datetime.now(timezone.utc) - last_update).total_seconds() > 30:
-                        log(device.name, f"Last Cell update: {(datetime.now(timezone.utc) - last_update).total_seconds()}")
                         cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                         await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                         log(device.name, f"Cell Info command sent: {cell_info_command.hex()}")
