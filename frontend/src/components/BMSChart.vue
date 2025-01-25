@@ -1,11 +1,9 @@
 <template>
   <div class="chart-container">
-    <apex-chart id='chart2'
-                type="area"
+    <apex-chart type="area"
                 :options="chartOptions"
                 :series="series"></apex-chart>
-    <apex-chart id='chart1'
-                type="bar"
+    <apex-chart type="bar"
                 :options="chartOptions2"
                 :series="series"></apex-chart>
   </div>
@@ -86,7 +84,7 @@ const chartOptions2 = ref({
     type: "bar",
     foreColor: "#ccc",
     brush: {
-      target: "chart2",
+      target: "apexchartschart2",
       enabled: true
     },
     series: {
@@ -111,8 +109,8 @@ const chartOptions2 = ref({
         //     colors: "#aaa"
         //   }
         // }
-        min: 0, // Автоматично розраховується
-        max: 100, // Автоматично розраховується
+        min: 0,
+        max: 8000,
       },
     }
   },

@@ -10,7 +10,7 @@
     "build": "docker compose up --build",
     "dev": "docker compose up",
     "prod": "docker compose -f docker-compose.yml up --build -d",
-    "copy-static": "docker cp $(docker ps -q -f name=bms-monitor-ble-frontend):/usr/share/nginx/html /usr/share/nginx/"
+    "static": "docker cp $(docker ps -q -f name=bms-monitor-ble-frontend):/usr/share/nginx/html /usr/share/nginx/"
   },
   "repository": {
     "type": "git",
