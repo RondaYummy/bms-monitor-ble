@@ -161,8 +161,8 @@ function processAggregatedData(data: any[], tab: string) {
       if (!groupedData[minuteKey]) {
         groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
       }
-      groupedData[minuteKey].currentSum += item[3]; // Струм
-      groupedData[minuteKey].powerSum += item[4]; // Сила
+      groupedData[minuteKey].currentSum += item[2]; // Струм
+      groupedData[minuteKey].powerSum += item[3]; // Сила
       groupedData[minuteKey].count += 1;
     });
 
@@ -186,12 +186,12 @@ function processAggregatedData(data: any[], tab: string) {
 
     const currentSeries = filteredData.map((item) => ({
       x: new Date(item[1]).toISOString(),
-      y: item[3],
+      y: item[2],
     }));
 
     const powerSeries = filteredData.map((item) => ({
       x: new Date(item[1]).toISOString(),
-      y: item[4],
+      y: item[2],
     }));
 
     return { currentSeries, powerSeries };
