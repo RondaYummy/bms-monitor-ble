@@ -28,14 +28,13 @@ async def process_devices():
             except Exception as e:
                 print(f"Error processing {device_data['device_name']} ({device_address}): {e}")
 
-        await asyncio.sleep(60)  # Чекаємо 1 хвилину
+        await asyncio.sleep(60)
 
 def update_aggregated_data(device_name, device_address, current, power):
     """Оновлює проміжні дані для агрегування."""
     global data_aggregator
     now = datetime.now(timezone.utc)
 
-    # Перевірка вхідних даних
     if not isinstance(device_name, str) or not device_name.strip():
         raise ValueError(f"Invalid device_name: {device_name}")
     if not isinstance(device_address, str) or not device_address.strip():
@@ -84,8 +83,9 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
 
     # Формуємо timestamp
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
-    # Зберігаємо в базу
+    
     try:
+        print(f"timestamp: {timestamp},device_name: {device_name}, device_address: {device_address}, current: {current_avg}, power: {power_avg}")
         insert_data(
             timestamp=timestamp,
             current=current_avg,

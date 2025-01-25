@@ -362,4 +362,9 @@ onBeforeUnmount(() => {
 :deep(.q-expansion-item) {
   width: 100%;
 }
+
+:deep(.q-menu) {
+  color: black;
+  font-weight: 600;
+}
 </style>
