@@ -142,10 +142,12 @@
           <span>
             Autonomy:
             {{ calculateAutonomyTime(calculatedList?.remaining_capacity, calculatedList?.chargeCurrent, 0.95) }}
+            hrs
 
             <q-tooltip>
               Autonomy - Час автономної роботи при поточних навантаженнях. Також
               враховується ефективність інвертора в коефіцієнті 0.95.
+              Показується в годинах.
             </q-tooltip>
           </span>
         </div>
