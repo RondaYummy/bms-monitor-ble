@@ -61,7 +61,7 @@ const chartOptions = ref({
     }
   },
   markers: {
-    size: 5,
+    size: 2,
     colors: ["#000524"],
     strokeColor: "#00BAEC",
     strokeWidth: 3
@@ -73,14 +73,15 @@ const chartOptions = ref({
     type: "datetime"
   },
   yaxis: {
-    tickAmount: 4
+    tickAmount: 4,
+    formatter: (val: number) => Math.round(val).toString(),
   }
 });
 
 const chartOptions2 = ref({
   chart: {
     id: "chart1",
-    height: 130,
+    height: 150,
     type: "bar",
     foreColor: "#ccc",
     brush: {
