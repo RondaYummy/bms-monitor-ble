@@ -146,7 +146,7 @@ def insert_data(timestamp, current, power, device_address, device_name):
             cursor = conn.cursor()
             cursor.execute('''
             INSERT INTO bms_data (timestamp, current, power, device_address, device_name)
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?)
             ''', (timestamp, current, power, device_address, device_name))
             conn.commit()
     except sqlite3.Error as e:
