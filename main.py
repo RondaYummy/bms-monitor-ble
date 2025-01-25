@@ -251,7 +251,7 @@ async def parse_cell_info(data, device_name, device_address):
         voltage_diff = max(filtered_voltages) - min(filtered_voltages)
         
         cell_info = {
-            "device_address": device_address,
+            "device_address": device_address.lower(),
             "charging_status": charging_status,
             "discharging_status": discharging_status,
             "precharging_status": precharging_status,
@@ -438,6 +438,7 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
     # Перевіряємо, чи є дані cell_info для кожного підключеного пристрою
     cell_info = await device_data_store.get_cell_info()
     log("CELL INFO", f"[{cell_info}]", force=True)
+
     for device_address in allowed_devices:
         if device_address not in cell_info:
             log("CHECK DEVICES", f"Device [{device_address}] have no data.", force=True)
