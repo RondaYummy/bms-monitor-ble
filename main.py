@@ -327,11 +327,14 @@ async def notification_handler(device, data, device_name, device_address, client
             await parse_cell_info(buffer, device_name, device_address)
         elif frame_type == 0x01:
             await parse_setting_info(buffer, device_name, device_address)
+            await client.disconnect()
+            device_info_data = await device_data_store.get_device_info(device.name)
+            device_info_data["connected"] = False
+            await device_data_store.update_device_info(device.name, device_info_data)
         else:
             log(device_name, f"Unknown frame type {frame_type}: {buffer}", force=True)
             # Якщо невідомий тип очищую буфер, бо така помилка буде весь час падати
             await device_data_store.clear_buffer(device_name)
-            await client.disconnect()
 
 async def connect_and_run(device):
     while True:  # Цикл для перепідключення
