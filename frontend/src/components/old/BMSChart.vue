@@ -76,7 +76,7 @@ const chartOptions = ref({
     }
   },
   markers: {
-    size: 2,
+    size: 1,
     colors: ["#000524"],
     strokeColor: "#00BAEC",
     strokeWidth: 1
@@ -97,6 +97,7 @@ const chartOptions = ref({
   yaxis: {
     tickAmount: 4,
     labels: {
+      show: false,
       formatter: (val: number) => Math.round(val).toString(),
     },
   }
