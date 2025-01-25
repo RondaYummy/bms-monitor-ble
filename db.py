@@ -87,7 +87,7 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
             device_address=device_address,
             device_name=device_name
         )
-        print(f"Aggregated data saved for {device_name} ({device_address}) at {timestamp}")
+        # print(f"Aggregated data saved for {device_name} ({device_address}) at {timestamp}")
     except Exception as e:
         print(f"Error saving aggregated data: {e}")
 
