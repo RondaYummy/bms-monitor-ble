@@ -430,14 +430,14 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
 
     # Перевіряємо, чи всі дозволені пристрої підключені
     if not allowed_devices.issubset(connected_addresses):
-        log("CHECK DEVICES", "All allowed devices are not connected", force=True)
+        log("CHECK DEVICES", "All allowed devices are not connected")
         return False
 
     # Перевіряємо, чи є дані cell_info для кожного підключеного пристрою
     cell_info = await device_data_store.get_cell_info()
     for device_address in allowed_devices:
         if device_address not in cell_info:
-            log("CHECK DEVICES", f"Device [{device_address}] have no data.", force=True)
+            log("CHECK DEVICES", f"Device [{device_address}] have no data.")
             return False
 
     return True
