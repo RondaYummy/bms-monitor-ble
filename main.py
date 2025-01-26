@@ -1,6 +1,6 @@
 import asyncio
 from asyncio import Lock
-from datetime import datetime, timezone
+from datetime import datetime
 from copy import deepcopy
 
 import uvicorn
@@ -36,7 +36,7 @@ class DeviceDataStore:
 
     async def update_last_cell_info_update(self, device_name):
         async with self.lock:
-            self.last_cell_info_update[device_name] = datetime.now(timezone.utc)
+            self.last_cell_info_update[device_name] = datetime.now()
 
     async def get_last_cell_info_update(self, device_name):
         async with self.lock:
@@ -291,7 +291,7 @@ async def parse_cell_info(data, device_name, device_address):
             db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power)
 
         log(device_name, "Parsed Cell Info.")
-        await alerts.evaluate_alerts(device_name=device_name, cell_info=cell_info)
+        await alerts.evaluate_alerts(device_address=device_address, device_name=device_name, cell_info=cell_info)
         return cell_info
 
     except Exception as e:
@@ -366,7 +366,7 @@ async def connect_and_run(device):
 
                     # Перевіряємо, чи потрібно надсилати cell_info_command
                     last_update = await device_data_store.get_last_cell_info_update(device.name)
-                    if not last_update or (datetime.now(timezone.utc) - last_update).total_seconds() > 30:
+                    if not last_update or (datetime.now() - last_update).total_seconds() > 30:
                         cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                         await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                         log(device.name, f"Cell Info command sent: {cell_info_command.hex()}")

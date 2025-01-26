@@ -1,6 +1,8 @@
-from typing import TypedDict, List, Dict, Any
+from typing import TypedDict, List
+import db as db
 import json
 import os
+from datetime import datetime
 
 file_path = os.path.join("configs", "error_codes.json")
 def load_error_codes(file_path):
@@ -43,13 +45,13 @@ class CellInfo(TypedDict):
     state_of_health: int
     emergency_time_countdown: int
 
-async def evaluate_alerts(device_name: str, cell_info: CellInfo):
+async def evaluate_alerts(device_address: str, device_name: str, cell_info: CellInfo):
     try:
         alerts = []
 
         if cell_info["state_of_charge"] < 10:
             alerts.append(error_codes["1001"])
-        elif cell_info["state_of_charge"] < 20:
+        elif cell_info["state_of_charge"] < 111: # TODO change to 20
             alerts.append(error_codes["1002"])
         elif cell_info["state_of_charge"] < 30 and cell_info["charging_status"] == 0:
             alerts.append(error_codes["1003"])
@@ -114,6 +116,7 @@ async def evaluate_alerts(device_name: str, cell_info: CellInfo):
             alerts.append(error_codes["1025"])
 
         for alert in alerts:
+            # db.insert_alert_data(device_address, alert, datetime.now())
             print(f"[{device_name}] ALERT: {alert['message']}", force=True)
 
         return alerts
