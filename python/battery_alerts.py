@@ -1,5 +1,5 @@
 from typing import TypedDict, List
-import db as db
+import db
 import json
 import os
 from datetime import datetime
