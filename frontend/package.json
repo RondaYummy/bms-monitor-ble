@@ -1,6 +1,6 @@
 {
-  "name": "BMS-Monitor",
-  "version": "3.0.0",
+  "name": "bms-monitor-ble",
+  "version": "4.0.0",
   "description": "BMS Monitor",
   "productName": "BMS Monitor",
   "author": "RondoYummy <basrers@ukr.net>",

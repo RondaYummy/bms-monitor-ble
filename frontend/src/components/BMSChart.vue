@@ -73,7 +73,7 @@ const chartOptions = ref({
       color: "#555",
       height: 6,
     },
-    tickAmount: 8,
+    tickAmount: 6,
     labels: {
       style: {
         colors: "#aaa"
@@ -84,18 +84,6 @@ const chartOptions = ref({
         const localDate = new Date(date.getTime() - offset * 60 * 1000);
         return `${localDate.toISOString().slice(11, 16)}`;
       }
-      // formatter: function (value: string | number) {
-      //   const date = new Date(value);
-      //   const offset = date.getTimezoneOffset();
-      //   const localDate = new Date(date.getTime() - offset * 60 * 1000);
-      //   return `${localDate.toLocaleDateString('en-GB', {
-      //     day: '2-digit',
-      //     month: 'short'
-      //   })} ${localDate.toLocaleTimeString('en-GB', {
-      //     hour: '2-digit',
-      //     minute: '2-digit'
-      //   })}`;
-      // }
     }
   },
   title: {

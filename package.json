@@ -1,6 +1,6 @@
 {
   "name": "bms-monitor-ble",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Simple application for controlling JK-BMS via Bluetooth low energy",
   "main": "ecosystem.config.js",
   "directories": {
@@ -16,7 +16,7 @@
     "type": "git",
     "url": "git+https://github.com/RondaYummy/bms-monitor-ble.git"
   },
-  "author": "",
+  "author": "RondoYummy <basrers@ukr.net>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/RondaYummy/bms-monitor-ble/issues"
