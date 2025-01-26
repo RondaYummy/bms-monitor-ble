@@ -117,8 +117,9 @@ const chartOptions = ref({
         })}`;
       }
     },
-    // colors: ['#FF4560', '#008FFB', '#F2C037'],
-  });
+  },
+  // colors: ['#FF4560', '#008FFB', '#F2C037'],
+});
 
 const series = ref<SeriesData[]>([]);
 const data = ref();
