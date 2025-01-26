@@ -5,9 +5,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8444:8444"
+    environment:
+      - TZ=Europe/Kiev
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     restart: unless-stopped
 
   python-app:
@@ -20,8 +24,11 @@ services:
       - .:/app
       - /var/run/dbus:/var/run/dbus  # Доступ до D-Bus
       - sqlite_data:/app/data
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     environment:
       - DBUS_SESSION_BUS_ADDRESS=unix:path=/var/run/dbus/system_bus_socket
+      - TZ=Europe/Kiev
     privileged: true  # Дозволяє доступ до Bluetooth-адаптера
     devices:
       - "/dev/ttyUSB0:/dev/ttyUSB0"
