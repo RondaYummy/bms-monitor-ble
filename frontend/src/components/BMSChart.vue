@@ -132,6 +132,8 @@ function processAggregatedData(data: any[], tab: string) {
 
     data.forEach((item: any) => {
       const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
+      console.log(item[1], minuteKey);
+
       if (!groupedData[minuteKey]) {
         groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
       }
