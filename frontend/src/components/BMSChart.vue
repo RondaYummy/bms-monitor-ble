@@ -164,6 +164,7 @@ function processAggregatedData(data: any[], tab: string) {
       x: new Date(item[1]).toISOString(),
       y: item[3],
     }));
+    console.log(powerSeries, 'powerSeries');
 
     return { currentSeries, powerSeries };
   }
