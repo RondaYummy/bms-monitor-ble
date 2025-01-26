@@ -120,4 +120,4 @@ async def evaluate_alerts(device_name: str, cell_info: CellInfo):
 
         return alerts
     except Exception as e:
-        print(f"Error EA: {str(e)}")
+        # print(f"Error EA: {str(e)}")
