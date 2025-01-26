@@ -39,7 +39,7 @@ const chartOptions = ref({
       opacity: 0.3,
       blur: 5,
       left: -7,
-      top: 22
+      top: 7
     },
   },
   stroke: {
@@ -92,7 +92,6 @@ const chartOptions = ref({
   },
   yaxis: [
     {
-      // title: { text: 'Battery Power' },
       show: false,
       labels: {
         formatter: (val: number) => Math.round(val).toString(),
@@ -101,7 +100,6 @@ const chartOptions = ref({
     {
       show: false,
       opposite: true, // Right Y-axis
-      // title: { text: 'Current' },
       labels: {
         formatter: (val: number) => Math.round(val).toString(),
       },
