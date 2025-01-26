@@ -65,12 +65,15 @@ const chartOptions = ref({
   xaxis: {
     type: 'datetime',
     axisBorder: {
-      show: false
+      show: true, // Показує основну лінію осі
+      color: "#555"
     },
     axisTicks: {
-      show: false
+      show: true, // Увімкнення вертикальних ліній
+      color: "#555",
+      height: 6, // Довжина лінії від підпису до графіка
     },
-    tickAmount: 10,
+    tickAmount: 11,
     labels: {
       style: {
         colors: "#aaa"
