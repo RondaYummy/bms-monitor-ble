@@ -131,11 +131,10 @@ function processAggregatedData(data: any[], tab: string) {
     const groupedData: Record<string, { currentSum: number; count: number; powerSum: number; }> = {};
 
     data.forEach((item: any) => {
-      // const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
       const date = new Date(item[1]);
-      const offset = date.getTimezoneOffset(); // Різниця між UTC і локальним часом в хвилинах
-      const minuteKey = new Date(date.getTime() - offset * 60 * 1000).toISOString().slice(0, 16);
-      console.log(item[1], minuteKey);
+      const offset = date.getTimezoneOffset();
+      const localDate = new Date(date.getTime() - offset * 60 * 1000);
+      const minuteKey = localDate.toISOString().slice(0, 16);
 
       if (!groupedData[minuteKey]) {
         groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
@@ -164,7 +163,7 @@ function processAggregatedData(data: any[], tab: string) {
       const offset = date.getTimezoneOffset();
       const localDate = new Date(date.getTime() - offset * 60 * 1000);
       return {
-        x: localDate,
+        x: localDate.toISOString().slice(0, 16),
         y: item[2],
       };
     });
@@ -174,11 +173,10 @@ function processAggregatedData(data: any[], tab: string) {
       const offset = date.getTimezoneOffset();
       const localDate = new Date(date.getTime() - offset * 60 * 1000);
       return {
-        x: localDate,
+        x: localDate.toISOString().slice(0, 16),
         y: item[3],
       };
     });
-    console.log(powerSeries, 'powerSeries');
 
     return { currentSeries, powerSeries };
   }
