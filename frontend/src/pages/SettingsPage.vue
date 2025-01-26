@@ -45,7 +45,7 @@ import { ref } from 'vue';
 const tab = ref('Alerts');
 const alerts = ref();
 
-async function fetchCellInfo() {
+async function fetchErrorAlerts() {
   try {
     const response = await fetch('/api/error-alerts');
     if (!response.ok) {
@@ -58,6 +58,8 @@ async function fetchCellInfo() {
     console.error('Error fetching error alerts:', error);
   }
 }
+
+fetchErrorAlerts();
 </script>
 
 <style scoped lang='scss'></style>
