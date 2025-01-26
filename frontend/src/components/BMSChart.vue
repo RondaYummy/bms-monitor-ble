@@ -78,7 +78,10 @@ const chartOptions = ref({
         const date = new Date(value);
         const offset = date.getTimezoneOffset();
         const localDate = new Date(date.getTime() - offset * 60 * 1000);
-        return `${localDate.toISOString().slice(0, 16)}`;
+        return localDate.toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
       }
       // formatter: function (value: string | number) {
       //   const date = new Date(value);
