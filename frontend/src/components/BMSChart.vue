@@ -49,8 +49,8 @@ const chartOptions = ref({
       type: 'vertical',
       gradientToColors: ['#008FFB'],
       stops: [0, 100],
-      opacityFrom: 0.7,
-      opacityTo: 0.2,
+      opacityFrom: 0.9,
+      opacityTo: 0.5,
     },
   },
   stroke: {
