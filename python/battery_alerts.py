@@ -2,7 +2,7 @@ from typing import TypedDict, List, Dict, Any
 import json
 import os
 
-file_path = os.path.join("..", "configs", "error_codes.json")
+file_path = os.path.join("configs", "error_codes.json")
 def load_error_codes(file_path):
     try:
         with open(file_path, "r", encoding="utf-8") as file:
@@ -15,10 +15,6 @@ def load_error_codes(file_path):
         print(f"Error: Failed to decode JSON - {e}")
         return {}
     
-print("Current working directory:", os.getcwd())
-print("Files and directories in current directory:")
-for item in os.listdir(os.getcwd()):
-    print(item)
 error_codes = load_error_codes(file_path)
 
 class CellInfo(TypedDict):
