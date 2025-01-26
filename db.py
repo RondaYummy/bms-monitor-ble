@@ -134,6 +134,7 @@ def create_table():
 
 def insert_data(timestamp, current, power, device_address, device_name):
     """Adds a new record to the table."""
+    print(f"timestamp: {timestamp}")
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
