@@ -74,15 +74,18 @@ const chartOptions = ref({
       style: {
         colors: "#aaa"
       },
-      formatter: function (value: string | number) {
-        const date = new Date(value);
-        const offset = date.getTimezoneOffset();
-        const localDate = new Date(date.getTime() - offset * 60 * 1000);
-        return `${localDate.toLocaleTimeString('en-GB', {
-          hour: '2-digit',
-          minute: '2-digit'
-        })}`;
-      }
+      // formatter: function (value) {
+      //   const date = new Date(value);
+      //   const offset = date.getTimezoneOffset();
+      //   const localDate = new Date(date.getTime() - offset * 60 * 1000);
+      //   return `${localDate.toLocaleDateString('en-GB', {
+      //     day: '2-digit',
+      //     month: 'short'
+      //   })} ${localDate.toLocaleTimeString('en-GB', {
+      //     hour: '2-digit',
+      //     minute: '2-digit'
+      //   })}`;
+      // }
     }
   },
   title: {
