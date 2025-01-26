@@ -1,7 +1,7 @@
 from typing import TypedDict, List, Dict, Any
 import json
 
-file_path = "config/error_codes.json"
+file_path = "../configs/error_codes.json"
 def load_error_codes(file_path):
     try:
         with open(file_path, "r", encoding="utf-8") as file:
