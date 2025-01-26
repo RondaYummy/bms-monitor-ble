@@ -104,9 +104,21 @@ const chartOptions = ref({
     }, {
       formatter: (val: number) => `${val?.toFixed(2)} W`,
     }],
-  },
-  // colors: ['#FF4560', '#008FFB', '#F2C037'],
-});
+    x: {
+      formatter: (value: string) => {
+        const date = new Date(value);
+        return `${date.toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        })} ${date.toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })}`;
+      }
+    },
+    // colors: ['#FF4560', '#008FFB', '#F2C037'],
+  });
 
 const series = ref<SeriesData[]>([]);
 const data = ref();
@@ -135,8 +147,6 @@ function processAggregatedData(data: any[], tab: string) {
       const offset = date.getTimezoneOffset();
       const localDate = new Date(date.getTime() - offset * 60 * 1000);
       const minuteKey = localDate.toISOString().slice(0, 16);
-      console.log(localDate, minuteKey);
-      console.log(new Date(item[1]).toISOString().slice(0, 16));
 
       if (!groupedData[minuteKey]) {
         groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
@@ -179,7 +189,6 @@ function processAggregatedData(data: any[], tab: string) {
         y: item[3],
       };
     });
-    console.log(powerSeries, 'powerSeries');
 
     return { currentSeries, powerSeries };
   }
