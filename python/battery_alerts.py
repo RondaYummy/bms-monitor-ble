@@ -15,6 +15,7 @@ def load_error_codes(file_path):
         print(f"Error: Failed to decode JSON - {e}")
         return {}
     
+print("Current working directory:", os.getcwd())
 error_codes = load_error_codes(file_path)
 
 class CellInfo(TypedDict):
