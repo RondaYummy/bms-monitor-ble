@@ -93,11 +93,13 @@ const chartOptions = ref({
   yaxis: [
     {
       // title: { text: 'Battery Power' },
+      show: false,
       labels: {
         formatter: (val: number) => Math.round(val).toString(),
       },
     },
     {
+      show: false,
       opposite: true, // Right Y-axis
       // title: { text: 'Current' },
       labels: {
