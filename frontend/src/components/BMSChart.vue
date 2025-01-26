@@ -70,6 +70,7 @@ const chartOptions = ref({
     axisTicks: {
       show: false
     },
+    tickAmount: 10,
     labels: {
       style: {
         colors: "#aaa"
