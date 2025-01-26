@@ -149,6 +149,7 @@ function processAggregatedData(data: any[], tab: string) {
       x: minute,
       y: values.powerSum,
     }));
+    console.log(powerSeries, 'powerSeries');
 
     return { currentSeries, powerSeries };
   } else {
