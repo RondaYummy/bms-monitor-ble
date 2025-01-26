@@ -133,6 +133,7 @@ def create_table():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 device_address TEXT NOT NULL,
                 error_code TEXT NOT NULL,
+                device_name TEXT NOT NULL,
                 occurred_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(device_address, error_code) ON CONFLICT IGNORE
             )
@@ -142,15 +143,15 @@ def create_table():
         print(f"Error creating table: {e}")
         raise
     
-def insert_alert_data(device_address, error_code, occurred_at):
+def insert_alert_data(device_address, device_name, error_code, occurred_at):
     """Adds a new record to the table."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-            INSERT INTO error_notifications (device_address, error_code, occurred_at)
+            INSERT INTO error_notifications (device_address, error_code, occurred_at, device_name)
             VALUES (?, ?, ?)
-            ''', (device_address, error_code, occurred_at))
+            ''', (device_address, error_code, occurred_at, device_name))
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error inserting alerts data: {e}")
