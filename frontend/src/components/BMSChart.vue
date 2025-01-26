@@ -135,6 +135,7 @@ function processAggregatedData(data: any[], tab: string) {
       const offset = date.getTimezoneOffset();
       const localDate = new Date(date.getTime() - offset * 60 * 1000);
       const minuteKey = localDate.toISOString().slice(0, 16);
+      console.log(minuteKey, 'minuteKey');
 
       if (!groupedData[minuteKey]) {
         groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
@@ -177,6 +178,7 @@ function processAggregatedData(data: any[], tab: string) {
         y: item[3],
       };
     });
+    console.log(powerSeries, 'powerSeries');
 
     return { currentSeries, powerSeries };
   }
