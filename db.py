@@ -32,7 +32,7 @@ async def process_devices():
 def update_aggregated_data(device_name, device_address, current, power):
     """Updates intermediate data for aggregation."""
     global data_aggregator
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
 
     if not isinstance(device_name, str) or not device_name.strip():
         raise ValueError(f"Invalid device_name: {device_name}")
@@ -63,7 +63,7 @@ def update_aggregated_data(device_name, device_address, current, power):
 
 def save_aggregated_data(device_name, device_address, device_data, interval=60):
     """Saves the aggregated data to the database if the time interval has passed."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     last_insert_time = device_data["last_insert_time"]
 
     if last_insert_time and (now - last_insert_time).total_seconds() < interval:
@@ -161,10 +161,10 @@ def fetch_all_data(days=None):
             
             if days == 1:
                 # Start of the current day
-                cutoff_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+                cutoff_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
             else:
                 # Start of day “n days ago”
-                cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
+                cutoff_date = (datetime.now() - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
             
             cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
             

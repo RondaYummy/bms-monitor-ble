@@ -180,7 +180,6 @@ async function fetchDataAndProcess(days: number = 1) {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
-    console.log(powerSeries, 'powerSeries');
     series.value = [
       // {
       //   name: 'Current',
