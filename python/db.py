@@ -144,7 +144,6 @@ def create_table():
     
 def insert_alert_data(device_address, error_code, occurred_at):
     """Adds a new record to the table."""
-    print(f"insert_alert_data: {error_code}")
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
