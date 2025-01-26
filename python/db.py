@@ -127,6 +127,17 @@ def create_table():
             CREATE INDEX IF NOT EXISTS idx_timestamp
             ON bms_data (timestamp)
             ''')
+
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS error_notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                device_address TEXT NOT NULL,
+                error_code TEXT NOT NULL,
+                occurred_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                notification_received INTEGER DEFAULT 0,
+                UNIQUE(device_address, error_code) ON CONFLICT IGNORE
+            )
+            ''')
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
@@ -134,7 +145,6 @@ def create_table():
 
 def insert_data(timestamp, current, power, device_address, device_name):
     """Adds a new record to the table."""
-    print(f"timestamp: {timestamp}")
     try:
         with get_connection() as conn:
             cursor = conn.cursor()

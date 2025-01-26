@@ -10,7 +10,7 @@ WORKDIR /app
 # Копіюємо файли проекту в контейнер
 COPY requirements.txt .
 COPY main.py .
-COPY colors.py .
+COPY python/colors.py .
 
 # Встановлення залежностей
 RUN pip install --no-cache-dir -r requirements.txt

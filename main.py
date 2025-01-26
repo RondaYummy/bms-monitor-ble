@@ -10,8 +10,9 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Query
 
-from colors import *
-import db
+from python.colors import *
+import python.db as db
+import python.battery_alerts as alerts
 
 
 ENABLE_LOGS = False # True or False
@@ -289,14 +290,8 @@ async def parse_cell_info(data, device_name, device_address):
         if await are_all_allowed_devices_connected_and_have_data():
             db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power)
 
-        log(device_name, "Parsed Cell Info:")
-        for key, value in cell_info.items():
-            if key == "cell_voltages":
-                for idx, voltage in enumerate(value, start=1):
-                    log(device_name, f"Cell {idx}: {voltage:.3f} V")
-            else:
-                log(device_name, f"{key}: {value}")
-
+        log(device_name, "Parsed Cell Info.")
+        await alerts.evaluate_alerts(device_name=device_name, cell_info=cell_info)
         return cell_info
 
     except Exception as e:
@@ -452,7 +447,7 @@ def start_services():
     db.create_table()
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
-def load_allowed_devices(filename="allowed_devices.txt"):
+def load_allowed_devices(filename="configs/allowed_devices.txt"):
     try:
         with open(filename, 'r') as file:
             allowed_devices = {line.strip().lower() for line in file if line.strip()}
