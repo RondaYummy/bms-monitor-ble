@@ -70,7 +70,7 @@ const chartOptions = ref({
     },
     axisTicks: {
       show: true,
-      color: "#222226",
+      color: "#555",
       height: 6,
     },
     tickAmount: 8,
