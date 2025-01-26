@@ -23,6 +23,10 @@
             <div class="text-h6">Alerts</div>
 
             Тут відображаються всі важливі сповіщення про роботу системи
+
+            <pre>
+            {{ alerts }}
+            </pre>
           </q-tab-panel>
 
           <q-tab-panel name="Settings">
@@ -39,6 +43,21 @@
 import { ref } from 'vue';
 
 const tab = ref('Alerts');
+const alerts = ref();
+
+async function fetchCellInfo() {
+  try {
+    const response = await fetch('/api/error-alerts');
+    if (!response.ok) {
+      throw new Error('Failed to error alerts');
+    }
+    const data = await response.json();
+    console.log('Error alerts:', data);
+    alerts.value = data;
+  } catch (error) {
+    console.error('Error fetching error alerts:', error);
+  }
+}
 </script>
 
 <style scoped lang='scss'></style>

@@ -86,6 +86,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/api/error-alerts")
+async def get_device_info():
+    data = db.fetch_all_notifications()
+    if not data:
+        return JSONResponse(content={"message": "No error alerts available yet."}, status_code=404)
+    return data
+
 @app.get("/api/device-info")
 async def get_device_info():
     data = await device_data_store.get_device_info()

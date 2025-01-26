@@ -197,3 +197,18 @@ def fetch_all_data(days=None):
     except sqlite3.Error as e:
         print(f"Error fetching data: {e}")
         raise
+
+def fetch_all_notifications():
+    """
+    Fetches all records from the error_notifications table.
+    Returns:
+        List of tuples containing all rows from the table.
+    """
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM error_notifications')
+            return cursor.fetchall()
+    except sqlite3.Error as e:
+        print(f"Error fetching notifications: {e}")
+        raise

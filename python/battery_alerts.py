@@ -56,7 +56,7 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
 
         if cell_info["state_of_charge"] < 10:
             add_alert(alerts, "1001")
-        elif cell_info["state_of_charge"] < 111: # TODO change to 20
+        elif cell_info["state_of_charge"] < 20:
             add_alert(alerts, "1002")
         elif cell_info["state_of_charge"] < 30 and cell_info["charging_status"] == 0:
             add_alert(alerts, "1003")
@@ -121,7 +121,7 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
             add_alert(alerts, "1025")
 
         for alert in alerts:
-            # db.insert_alert_data(device_address, alert['message'], datetime.now())
+            db.insert_alert_data(device_address, alert['id'], datetime.now())
             print(f"[{device_name}] ALERT: {alert['message']}")
 
         return alerts
