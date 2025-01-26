@@ -150,7 +150,7 @@ def insert_alert_data(device_address, device_name, error_code, occurred_at):
             cursor = conn.cursor()
             cursor.execute('''
             INSERT INTO error_notifications (device_address, error_code, occurred_at, device_name)
-            VALUES (?, ?, ?)
+            VALUES (?, ?, ?, ?)
             ''', (device_address, error_code, occurred_at, device_name))
             conn.commit()
     except sqlite3.Error as e:
