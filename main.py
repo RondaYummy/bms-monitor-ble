@@ -2,6 +2,8 @@ import asyncio
 from asyncio import Lock
 from datetime import datetime
 from copy import deepcopy
+import json
+import os
 
 import uvicorn
 from bleak import BleakClient, BleakScanner
@@ -24,6 +26,20 @@ CMD_HEADER = bytes([0xAA, 0x55, 0x90, 0xEB])
 CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Device Info Frame
 CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
+
+error_codes_path = os.path.join("configs", "error_codes.json")
+
+def load_error_codes(file_path):
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        print(f"Error: File not found at {file_path}")
+        return {}
+    except json.JSONDecodeError as e:
+        print(f"Error: Failed to decode JSON - {e}")
+        return {}
+error_codes = load_error_codes(error_codes_path)
 
 # Data store class
 class DeviceDataStore:
@@ -89,10 +105,17 @@ app.add_middleware(
 @app.get("/api/error-alerts")
 async def get_device_info():
     data = db.fetch_all_notifications()
-    print(f"DATA: {data}")
     if not data:
         return JSONResponse(content={"message": "No error alerts available yet."}, status_code=404)
-    return data
+    
+    enriched_data = []
+    for alert in data:
+        error_code = str(alert.get("error_code"))
+        message = error_codes.get(error_code, {}).get("message", "Message not found")
+        enriched_alert = {**alert, "message": message}
+        enriched_data.append(enriched_alert)
+
+    return enriched_data
 
 @app.get("/api/device-info")
 async def get_device_info():
