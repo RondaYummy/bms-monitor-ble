@@ -18,7 +18,7 @@
                       animated
                       transition-prev="scale"
                       transition-next="scale"
-                      class="bg-purple text-white text-center">
+                      class="text-white text-center">
           <q-tab-panel name="Alerts">
             <div class="text-h6">Alerts</div>
 

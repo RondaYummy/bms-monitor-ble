@@ -44,6 +44,7 @@ class CellInfo(TypedDict):
 
 async def evaluate_alerts(device_name: str, cell_info: CellInfo):
     alerts = []
+    print(f"error_codes: {error_codes}")
 
     if cell_info["state_of_charge"] < 10:
         alerts.append(error_codes["1001"])
