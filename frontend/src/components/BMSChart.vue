@@ -65,7 +65,7 @@ const chartOptions = ref({
   xaxis: {
     type: 'datetime',
     axisBorder: {
-      show: false,
+      show: true,
       color: "#222226"
     },
     axisTicks: {
