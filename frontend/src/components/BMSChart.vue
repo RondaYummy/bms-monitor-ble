@@ -131,7 +131,10 @@ function processAggregatedData(data: any[], tab: string) {
     const groupedData: Record<string, { currentSum: number; count: number; powerSum: number; }> = {};
 
     data.forEach((item: any) => {
-      const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
+      // const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
+      const date = new Date(item[1]);
+      const offset = date.getTimezoneOffset(); // Різниця між UTC і локальним часом в хвилинах
+      const minuteKey = new Date(date.getTime() - offset * 60 * 1000).toISOString().slice(0, 16);
       console.log(item[1], minuteKey);
 
       if (!groupedData[minuteKey]) {
@@ -151,22 +154,30 @@ function processAggregatedData(data: any[], tab: string) {
       x: minute,
       y: values.powerSum,
     }));
-    console.log(powerSeries, 'powerSeries');
 
     return { currentSeries, powerSeries };
   } else {
     // Filter data by `tab`
     const filteredData = data.filter((item) => item[5] === tab);
+    const currentSeries = filteredData.map((item) => {
+      const date = new Date(item[1]);
+      const offset = date.getTimezoneOffset();
+      const localDate = new Date(date.getTime() - offset * 60 * 1000);
+      return {
+        x: localDate,
+        y: item[2],
+      };
+    });
 
-    const currentSeries = filteredData.map((item) => ({
-      x: new Date(item[1]).toISOString(),
-      y: item[2],
-    }));
-
-    const powerSeries = filteredData.map((item) => ({
-      x: new Date(item[1]).toISOString(),
-      y: item[3],
-    }));
+    const powerSeries = filteredData.map((item) => {
+      const date = new Date(item[1]);
+      const offset = date.getTimezoneOffset();
+      const localDate = new Date(date.getTime() - offset * 60 * 1000);
+      return {
+        x: localDate,
+        y: item[3],
+      };
+    });
     console.log(powerSeries, 'powerSeries');
 
     return { currentSeries, powerSeries };
