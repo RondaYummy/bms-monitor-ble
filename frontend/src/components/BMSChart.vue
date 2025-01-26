@@ -136,6 +136,7 @@ function processAggregatedData(data: any[], tab: string) {
       const localDate = new Date(date.getTime() - offset * 60 * 1000);
       const minuteKey = localDate.toISOString().slice(0, 16);
       console.log(localDate, minuteKey);
+      console.log(new Date(item[1]).toISOString().slice(0, 16));
 
       if (!groupedData[minuteKey]) {
         groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
