@@ -42,17 +42,6 @@ const chartOptions = ref({
       top: 7
     },
   },
-  fill: {
-    type: 'gradient',
-    gradient: {
-      shade: 'dark',
-      type: 'vertical',
-      gradientToColors: ['#008FFB'],
-      stops: [0, 100],
-      opacityFrom: 0.9,
-      opacityTo: 0.5,
-    },
-  },
   stroke: {
     curve: "smooth",
     width: 3,
