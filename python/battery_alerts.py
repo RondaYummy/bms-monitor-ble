@@ -122,7 +122,7 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
 
         for alert in alerts:
             db.insert_alert_data(device_address, alert['id'], datetime.now())
-            print(f"[{device_name}] ALERT: {alert['message']}")
+            # print(f"[{device_name}] ALERT: {alert['message']}")
 
         return alerts
     except Exception as e:
