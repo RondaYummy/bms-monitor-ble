@@ -42,6 +42,13 @@ const chartOptions = ref({
       top: 7
     },
   },
+  fill: {
+    gradient: {
+      enabled: true,
+      opacityFrom: 0.55,
+      opacityTo: 0
+    }
+  },
   stroke: {
     curve: "smooth",
     width: 3,
