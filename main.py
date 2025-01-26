@@ -114,9 +114,10 @@ async def get_device_info():
             # Припускаємо, що кортеж має структуру (id, device_name, error_code, timestamp)
             alert = {
                 "id": alert[0],
-                "device_name": alert[1],
+                "device_address": alert[1],
                 "error_code": alert[2],
                 "timestamp": alert[3],
+                "device_name": alert[4],
             }
         error_code = str(alert.get("error_code"))
         message = error_codes.get(error_code, {}).get("message", "Message not found")
