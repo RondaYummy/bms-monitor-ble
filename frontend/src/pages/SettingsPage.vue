@@ -1,6 +1,6 @@
 <template>
   <div class="q-pa-md">
-    <div>
+    <div class="bg-black">
       <q-tabs v-model="tab"
               align="justify"
               narrow-indicator
