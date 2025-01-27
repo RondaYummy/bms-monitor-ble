@@ -7,12 +7,16 @@ from uuid import uuid4
 
 import uvicorn
 from bleak import BleakClient, BleakScanner
-from fastapi import FastAPI
-from fastapi import FastAPI
+from fastapi import (
+    FastAPI,
+    HTTPException,
+    Request,
+    Depends,
+    Query
+)
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Query
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials
 
 from python.colors import *
 import python.db as db
