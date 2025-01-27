@@ -107,7 +107,7 @@ import { ref, computed } from 'vue';
 const tab = ref('Alerts');
 const alerts = ref();
 
-function formatTimestamp(timestamp) {
+function formatTimestamp(timestamp: string) {
   const cleanTimestamp = timestamp.split('.')[0];
   const date = new Date(cleanTimestamp.replace(' ', 'T'));
 
