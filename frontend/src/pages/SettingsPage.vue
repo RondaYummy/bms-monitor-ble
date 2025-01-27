@@ -54,6 +54,26 @@
                 </q-chip>
               </div>
             </div>
+
+            <div class='column'>
+              <q-banner v-for="alert of alerts"
+                        :key="alert?.id"
+                        inline-actions
+                        :class="{
+                          'bg-negative': alert?.level === 'critical',
+                          'bg-red': alert?.level === 'error',
+                          'bg-orange': alert?.level === 'warning',
+                          'bg-bg-primary': alert?.level === 'info',
+                        }"
+                        class="text-white">
+                You have lost connection to the internet. This app is offline.
+                <template v-slot:action>
+                  <q-btn flat
+                         color="white"
+                         label="Turn ON Wifi" />
+                </template>
+              </q-banner>
+            </div>
             <pre>
             {{ alerts }}
             </pre>
