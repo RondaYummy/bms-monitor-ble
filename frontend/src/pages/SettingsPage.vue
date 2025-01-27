@@ -21,6 +21,9 @@
         <q-tab class="text-orange"
                name="Settings"
                label="Settings" />
+        <q-tab class="text-orange"
+               name="Devices"
+               label="Devices" />
       </q-tabs>
 
       <div class="q-gutter-y-sm">
@@ -119,6 +122,11 @@
           <q-tab-panel name="Settings">
             <div class="text-h6">Settings</div>
             Тут будуть ваші налаштування...
+          </q-tab-panel>
+
+          <q-tab-panel name="Devices">
+            <div class="text-h6">Devices</div>
+            Тут ви можете керувати вашими пристроями...
           </q-tab-panel>
         </q-tab-panels>
       </div>
