@@ -38,25 +38,29 @@
               </p>
 
               <div class='row justify-center'>
-                <q-chip outline
+                <q-chip @click="filterAlertsByLevel('info')"
+                        outline
                         color="primary"
                         text-color="white"
                         icon="priority_high">
                   Info
                 </q-chip>
-                <q-chip outline
+                <q-chip @click="filterAlertsByLevel('warning')"
+                        outline
                         color="orange"
                         text-color="white"
                         icon="warning">
                   Warning
                 </q-chip>
-                <q-chip outline
+                <q-chip @click="filterAlertsByLevel('error')"
+                        outline
                         color="deep-orange"
                         text-color="white"
                         icon="error">
                   Error
                 </q-chip>
-                <q-chip outline
+                <q-chip @click="filterAlertsByLevel('critical')"
+                        outline
                         color="red"
                         text-color="white"
                         icon="flash_on">
@@ -107,6 +111,8 @@
                 </div>
 
               </q-banner>
+
+              <p v-if="!alerts?.length">Не знайдено жодних повідомлень.</p>
             </div>
           </q-tab-panel>
 
@@ -137,8 +143,17 @@ interface Alert {
 const tab = ref('Alerts');
 const password = ref('');
 const alerts = ref<Alert[]>();
+const alertsMain = ref<Alert[]>();
 const holdAlert = ref<Alert>();
 const token = ref(sessionStorage.getItem("access_token"));
+
+function filterAlertsByLevel(level?: string): void {
+  if (!level) {
+    alerts.value = alertsMain.value;
+    return;
+  }
+  alerts.value = alerts.value?.filter((a) => a.level === level);
+}
 
 function formatTimestamp(timestamp?: any): string {
   if (!timestamp) {
@@ -182,6 +197,7 @@ async function fetchErrorAlerts() {
     const data = await response.json();
     console.log('Error alerts:', data);
     alerts.value = data;
+    alertsMain.value = data;
   } catch (error) {
     console.error('Error fetching error alerts:', error);
   }
