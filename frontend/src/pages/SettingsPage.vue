@@ -1,6 +1,6 @@
 <template>
   <div class="q-pa-md">
-    <div class="bg-black">
+    <div>
       <q-tabs v-model="tab"
               align="justify"
               narrow-indicator
@@ -18,7 +18,7 @@
                       animated
                       transition-prev="scale"
                       transition-next="scale"
-                      class="text-white text-center">
+                      class="text-white text-center transparent">
           <q-tab-panel name="Alerts">
             <div class="text-h6">Alerts</div>
 
