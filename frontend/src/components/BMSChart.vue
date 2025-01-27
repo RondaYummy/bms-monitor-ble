@@ -39,7 +39,7 @@ const chartOptions = ref({
       opacity: 0.3,
       blur: 5,
       left: -7,
-      top: 22
+      top: 7
     },
   },
   stroke: {
@@ -65,14 +65,24 @@ const chartOptions = ref({
   xaxis: {
     type: 'datetime',
     axisBorder: {
-      show: false
+      show: true,
+      color: "#222226"
     },
     axisTicks: {
-      show: false
+      show: true,
+      color: "#555",
+      height: 6,
     },
+    tickAmount: 6,
     labels: {
       style: {
         colors: "#aaa"
+      },
+      formatter: function (value: string | number) {
+        const date = new Date(value);
+        const offset = date.getTimezoneOffset();
+        const localDate = new Date(date.getTime() - offset * 60 * 1000);
+        return `${localDate.toISOString().slice(11, 16)}`;
       }
     }
   },
@@ -82,14 +92,14 @@ const chartOptions = ref({
   },
   yaxis: [
     {
-      // title: { text: 'Battery Power' },
+      show: false,
       labels: {
         formatter: (val: number) => Math.round(val).toString(),
       },
     },
     {
+      show: false,
       opposite: true, // Right Y-axis
-      // title: { text: 'Current' },
       labels: {
         formatter: (val: number) => Math.round(val).toString(),
       },
@@ -104,6 +114,19 @@ const chartOptions = ref({
     }, {
       formatter: (val: number) => `${val?.toFixed(2)} W`,
     }],
+    x: {
+      formatter: (value: string) => {
+        const date = new Date(value);
+        return `${date.toLocaleDateString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        })} ${date.toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit'
+        })}`;
+      }
+    },
   },
   // colors: ['#FF4560', '#008FFB', '#F2C037'],
 });
@@ -131,7 +154,11 @@ function processAggregatedData(data: any[], tab: string) {
     const groupedData: Record<string, { currentSum: number; count: number; powerSum: number; }> = {};
 
     data.forEach((item: any) => {
-      const minuteKey = new Date(item[1]).toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
+      const date = new Date(item[1]);
+      const offset = date.getTimezoneOffset();
+      const localDate = new Date(date.getTime() - offset * 60 * 1000);
+      const minuteKey = localDate.toISOString().slice(0, 16);
+
       if (!groupedData[minuteKey]) {
         groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
       }
@@ -154,16 +181,25 @@ function processAggregatedData(data: any[], tab: string) {
   } else {
     // Filter data by `tab`
     const filteredData = data.filter((item) => item[5] === tab);
+    const currentSeries = filteredData.map((item) => {
+      const date = new Date(item[1]);
+      const offset = date.getTimezoneOffset();
+      const localDate = new Date(date.getTime() - offset * 60 * 1000);
+      return {
+        x: localDate.toISOString().slice(0, 16),
+        y: item[2],
+      };
+    });
 
-    const currentSeries = filteredData.map((item) => ({
-      x: new Date(item[1]).toISOString(),
-      y: item[2],
-    }));
-
-    const powerSeries = filteredData.map((item) => ({
-      x: new Date(item[1]).toISOString(),
-      y: item[3],
-    }));
+    const powerSeries = filteredData.map((item) => {
+      const date = new Date(item[1]);
+      const offset = date.getTimezoneOffset();
+      const localDate = new Date(date.getTime() - offset * 60 * 1000);
+      return {
+        x: localDate.toISOString().slice(0, 16),
+        y: item[3],
+      };
+    });
 
     return { currentSeries, powerSeries };
   }
@@ -180,7 +216,6 @@ async function fetchDataAndProcess(days: number = 1) {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
-    console.log(powerSeries, 'powerSeries');
     series.value = [
       // {
       //   name: 'Current',

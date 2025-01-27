@@ -1,5 +1,3 @@
-# colors.py
-
 # ANSI escape codes
 RESET = "\033[0m"       # Скидання стилів
 

@@ -32,7 +32,7 @@ async def process_devices():
 def update_aggregated_data(device_name, device_address, current, power):
     """Updates intermediate data for aggregation."""
     global data_aggregator
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
 
     if not isinstance(device_name, str) or not device_name.strip():
         raise ValueError(f"Invalid device_name: {device_name}")
@@ -63,7 +63,7 @@ def update_aggregated_data(device_name, device_address, current, power):
 
 def save_aggregated_data(device_name, device_address, device_data, interval=60):
     """Saves the aggregated data to the database if the time interval has passed."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     last_insert_time = device_data["last_insert_time"]
 
     if last_insert_time and (now - last_insert_time).total_seconds() < interval:
@@ -127,9 +127,48 @@ def create_table():
             CREATE INDEX IF NOT EXISTS idx_timestamp
             ON bms_data (timestamp)
             ''')
+
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS error_notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                device_address TEXT NOT NULL,
+                error_code TEXT NOT NULL,
+                device_name TEXT NOT NULL,
+                occurred_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            ''')
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
+        raise
+    
+def insert_alert_data(device_address, device_name, error_code, occurred_at, n_hours=1):
+    """Adds a new record to the table."""
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            now = datetime.now()
+            time_limit = now - timedelta(hours=n_hours)
+            time_limit_str = time_limit.strftime('%Y-%m-%d %H:%M:%S')
+
+            cursor.execute('''
+            SELECT id FROM error_notifications
+            WHERE device_address = ? AND error_code = ? AND occurred_at > ?
+            ''', (device_address, error_code, time_limit_str))
+
+            existing = cursor.fetchone()
+            if existing:
+                print(f"Notification already exists for {device_address} and {error_code} within {n_hours} hours.")
+                return
+
+            cursor.execute('''
+            INSERT INTO error_notifications (device_address, error_code, occurred_at, device_name)
+            VALUES (?, ?, ?, ?)
+            ''', (device_address, error_code, occurred_at, device_name))
+            conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error inserting alerts data: {e}")
         raise
 
 def insert_data(timestamp, current, power, device_address, device_name):
@@ -161,10 +200,10 @@ def fetch_all_data(days=None):
             
             if days == 1:
                 # Start of the current day
-                cutoff_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+                cutoff_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
             else:
                 # Start of day “n days ago”
-                cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
+                cutoff_date = (datetime.now() - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
             
             cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
             
@@ -172,4 +211,19 @@ def fetch_all_data(days=None):
             return cursor.fetchall()
     except sqlite3.Error as e:
         print(f"Error fetching data: {e}")
+        raise
+
+def fetch_all_notifications():
+    """
+    Fetches all records from the error_notifications table.
+    Returns:
+        List of tuples containing all rows from the table.
+    """
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM error_notifications')
+            return cursor.fetchall()
+    except sqlite3.Error as e:
+        print(f"Error fetching notifications: {e}")
         raise

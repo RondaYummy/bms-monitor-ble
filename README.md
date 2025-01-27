@@ -51,6 +51,8 @@ exit
 docker compose restart
 ```
 
+Спершу ми підключаємось до усіх пристроїв добавлених в configs/allowed_devices.txt, як тільки ми доєднались до усіх пристроїв та отримали з них усіх Cell info, ми починаємо зберігати дані в базу даних ( для графіків ). При кожному отриманні Cell info ми викликаємо функцію evaluate_alerts(), яка перевіряє чи значення в межах норми для кожної з BMS і якщо є якісь відхилення надсилає сповіщення з configs/error_codes.yml. Одне і те саме сповіщення не може бути збережено та надіслано швидше чим N_HOURS ( Стандартно 12 годин ).
+
 ## Motivation
 The official app left me dissatisfied due to its lack of essential features. It doesn't provide critical notifications, such as alerts in Telegram for a low battery level, missing charging, or potential issues with the BMS itself. Monitoring these parameters while standing next to the BMS with my phone felt inefficient and inconvenient. I envisioned a solution where I could access all this data and functionality from anywhere in the world, without being tethered to a specific location.
 

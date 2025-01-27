@@ -1,7 +1,10 @@
 import asyncio
 from asyncio import Lock
-from datetime import datetime, timezone
+from datetime import datetime
 from copy import deepcopy
+import json
+import os
+import yaml
 
 import uvicorn
 from bleak import BleakClient, BleakScanner
@@ -10,9 +13,12 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Query
 
-from colors import *
-import db
+from python.colors import *
+import python.db as db
+import python.battery_alerts as alerts
 
+with open('configs/error_codes.yaml', 'r') as file:
+    error_codes = yaml.safe_load(file)
 
 ENABLE_LOGS = False # True or False
 MIN_FRAME_SIZE = 300
@@ -35,7 +41,7 @@ class DeviceDataStore:
 
     async def update_last_cell_info_update(self, device_name):
         async with self.lock:
-            self.last_cell_info_update[device_name] = datetime.now(timezone.utc)
+            self.last_cell_info_update[device_name] = datetime.now()
 
     async def get_last_cell_info_update(self, device_name):
         async with self.lock:
@@ -84,6 +90,31 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+@app.get("/api/error-alerts")
+async def get_device_info():
+    data = db.fetch_all_notifications()
+    if not data:
+        return JSONResponse(content={"message": "No error alerts available yet."}, status_code=404)
+    
+    enriched_data = []
+    for alert in data:
+        if isinstance(alert, tuple):
+            alert = {
+                "id": alert[0],
+                "device_address": alert[1],
+                "error_code": alert[2],
+                "device_name": alert[3],
+                "timestamp": alert[4],
+                "level": "",
+            }
+        error_code = int(alert.get("error_code"))
+        message = error_codes.get(error_code, {}).get('message', 'Message not found')
+        level = error_codes.get(error_code, {}).get('level', 'Level not found')
+        enriched_alert = {**alert, "message": message, "level": level}
+        enriched_data.append(enriched_alert)
+
+    return enriched_data
 
 @app.get("/api/device-info")
 async def get_device_info():
@@ -285,18 +316,12 @@ async def parse_cell_info(data, device_name, device_address):
             return None
         
         await device_data_store.update_cell_info(device_name, cell_info)
+        await alerts.evaluate_alerts(device_address=device_address, device_name=device_name, cell_info=cell_info)
 
         if await are_all_allowed_devices_connected_and_have_data():
             db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power)
 
-        log(device_name, "Parsed Cell Info:")
-        for key, value in cell_info.items():
-            if key == "cell_voltages":
-                for idx, voltage in enumerate(value, start=1):
-                    log(device_name, f"Cell {idx}: {voltage:.3f} V")
-            else:
-                log(device_name, f"{key}: {value}")
-
+        log(device_name, "Parsed Cell Info.")
         return cell_info
 
     except Exception as e:
@@ -371,7 +396,7 @@ async def connect_and_run(device):
 
                     # Перевіряємо, чи потрібно надсилати cell_info_command
                     last_update = await device_data_store.get_last_cell_info_update(device.name)
-                    if not last_update or (datetime.now(timezone.utc) - last_update).total_seconds() > 30:
+                    if not last_update or (datetime.now() - last_update).total_seconds() > 30:
                         cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                         await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                         log(device.name, f"Cell Info command sent: {cell_info_command.hex()}")
@@ -381,7 +406,6 @@ async def connect_and_run(device):
             log(device.name, f"Error: {str(e)}", force=True)
         finally:
             device_info_data["connected"] = False
-            await client.disconnect()
             await device_data_store.update_device_info(device.name, device_info_data)
             log(device.name, "Disconnected, retrying in 5 seconds...", force=True)
             await asyncio.sleep(5)
@@ -453,7 +477,7 @@ def start_services():
     db.create_table()
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
-def load_allowed_devices(filename="allowed_devices.txt"):
+def load_allowed_devices(filename="configs/allowed_devices.txt"):
     try:
         with open(filename, 'r') as file:
             allowed_devices = {line.strip().lower() for line in file if line.strip()}
