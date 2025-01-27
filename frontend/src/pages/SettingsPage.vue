@@ -67,8 +67,7 @@
                           'bg-bg-primary': alert?.level === 'info',
                         }"
                         class="text-white q-mt-sm q-mb-sm">
-                <div class="column"
-                     v-if="alert?.id !== holdAlert?.id">
+                <div class="column">
                   <div class='row justify-between'>
                     <q-chip outline
                             color="white"
@@ -88,13 +87,14 @@
                     </span>
                   </div>
 
-                  <p class='q-mt-md text-left'>{{ alert?.message }}</p>
-                </div>
-                <div v-else>
-                  <q-btn color="white"
+                  <p v-if="alert?.id !== holdAlert?.id"
+                     class='q-mt-md text-left'>{{ alert?.message }}</p>
+                  <q-btn v-else
+                         color="white"
                          text-color="black"
                          label="Видалити сповіщення" />
                 </div>
+
               </q-banner>
             </div>
           </q-tab-panel>
