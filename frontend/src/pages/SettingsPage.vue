@@ -115,6 +115,10 @@ function formatTimestamp(timestamp?: string): string {
   const cleanTimestamp = timestamp.split('.')[0];
   const date = new Date(cleanTimestamp.replace(' ', 'T'));
 
+  if (isNaN(date.getTime())) {
+    return 'Invalid date';
+  }
+
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0'); // Місяці від 0 до 11
   const year = String(date.getFullYear()).slice(2); // Останні дві цифри року
