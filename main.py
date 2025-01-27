@@ -4,6 +4,7 @@ from datetime import datetime
 from copy import deepcopy
 import json
 import os
+import yaml
 
 import uvicorn
 from bleak import BleakClient, BleakScanner
@@ -16,6 +17,8 @@ from python.colors import *
 import python.db as db
 import python.battery_alerts as alerts
 
+with open('configs/error_codes.yaml', 'r') as file:
+    error_codes = yaml.safe_load(file)
 
 ENABLE_LOGS = False # True or False
 MIN_FRAME_SIZE = 300
@@ -26,20 +29,6 @@ CMD_HEADER = bytes([0xAA, 0x55, 0x90, 0xEB])
 CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Device Info Frame
 CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
-
-error_codes_path = os.path.join("configs", "error_codes.json")
-
-def load_error_codes(file_path):
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            return json.load(file)
-    except FileNotFoundError:
-        print(f"Error: File not found at {file_path}")
-        return {}
-    except json.JSONDecodeError as e:
-        print(f"Error: Failed to decode JSON - {e}")
-        return {}
-error_codes = load_error_codes(error_codes_path)
 
 # Data store class
 class DeviceDataStore:

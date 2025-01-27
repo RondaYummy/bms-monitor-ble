@@ -1,23 +1,13 @@
 from typing import TypedDict, List
 import python.db as db
-import json
-import os
 from datetime import datetime
+import yaml
 
-file_path = os.path.join("configs", "error_codes.json")
-def load_error_codes(file_path):
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            error_codes = json.load(file)
-        return error_codes
-    except FileNotFoundError:
-        print(f"Error: File not found at {file_path}")
-        return {}
-    except json.JSONDecodeError as e:
-        print(f"Error: Failed to decode JSON - {e}")
-        return {}
-    
-error_codes = load_error_codes(file_path)
+with open('configs/config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+
+with open('configs/error_codes.yaml', 'r') as file:
+    error_codes = yaml.safe_load(file)
 
 class CellInfo(TypedDict):
     device_address: str
@@ -121,9 +111,8 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
             add_alert(alerts, "1025")
 
         for alert in alerts:
-            db.insert_alert_data(device_address, device_name, alert['id'], datetime.now())
+            db.insert_alert_data(device_address, device_name, alert['id'], datetime.now(), config['alerts']['n_hours'])
 
         return alerts
     except Exception as e:
         pass  
-        # print(f"Error EA: {str(e)}")

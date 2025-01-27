@@ -135,7 +135,6 @@ def create_table():
                 error_code TEXT NOT NULL,
                 device_name TEXT NOT NULL,
                 occurred_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(device_address, error_code) ON CONFLICT IGNORE
             )
             ''')
             conn.commit()
@@ -143,11 +142,26 @@ def create_table():
         print(f"Error creating table: {e}")
         raise
     
-def insert_alert_data(device_address, device_name, error_code, occurred_at):
+def insert_alert_data(device_address, device_name, error_code, occurred_at, n_hours=1):
     """Adds a new record to the table."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
+
+            now = datetime.now()
+            time_limit = now - timedelta(hours=n_hours)
+            time_limit_str = time_limit.strftime('%Y-%m-%d %H:%M:%S')
+
+            cursor.execute('''
+            SELECT id FROM error_notifications
+            WHERE device_address = ? AND error_code = ? AND occurred_at > ?
+            ''', (device_address, error_code, time_limit_str))
+
+            existing = cursor.fetchone()
+            if existing:
+                print(f"Notification already exists for {device_address} and {error_code} within {n_hours} hours.")
+                return
+
             cursor.execute('''
             INSERT INTO error_notifications (device_address, error_code, occurred_at, device_name)
             VALUES (?, ?, ?, ?)
