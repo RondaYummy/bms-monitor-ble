@@ -69,9 +69,6 @@
                 <div class="column">
                   <div class='row justify-between'>
                     <div>
-                      <q-badge outline
-                               color="secondary"
-                               :label="alert?.error_code" />
                       <q-chip v-if="alert?.level === 'info'"
                               outline
                               color="primary"
@@ -81,7 +78,7 @@
                       </q-chip>
                       <q-chip v-if="alert?.level === 'warning'"
                               outline
-                              color="orange"
+                              color="white"
                               text-color="white"
                               icon="warning">
                         {{ alert?.device_name }}
@@ -104,16 +101,14 @@
 
                     <span>
                       {{ alert?.timestamp }}
+                      <q-badge outline
+                               color="white"
+                               :label="alert?.error_code" />
                     </span>
                   </div>
 
                   <p>{{ alert?.message }}</p>
                 </div>
-                <template v-slot:action>
-                  <q-btn flat
-                         color="white"
-                         label="Turn ON" />
-                </template>
               </q-banner>
             </div>
           </q-tab-panel>
