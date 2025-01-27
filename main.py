@@ -16,7 +16,7 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from python.colors import *
 import python.db as db
@@ -107,6 +107,7 @@ class DataStore:
 data_store = DataStore()
 
 app = FastAPI()
+auth_scheme = HTTPBearer()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
