@@ -89,10 +89,11 @@
 
                   <p v-if="alert?.id !== holdAlert?.id"
                      class='q-mt-md text-left'>{{ alert?.message }}</p>
-                  <q-btn v-else
-                         color="white"
-                         text-color="black"
-                         label="Видалити сповіщення" />
+                  <div v-else>
+                    <q-btn color="black"
+                           text-color="black"
+                           label="Видалити сповіщення" />
+                  </div>
                 </div>
 
               </q-banner>
