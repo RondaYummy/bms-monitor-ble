@@ -70,7 +70,7 @@
                   <div class='row justify-between'>
                     <div>
                       <q-chip outline
-                              color="primary"
+                              color="white"
                               text-color="white"
                               :icon="getAlertIcon(alert?.level)">
                         {{ alert?.device_name }}
@@ -78,7 +78,7 @@
                     </div>
 
                     <span class='row items-center'>
-                      {{ alert?.timestamp }}
+                      {{ formatTimestamp(alert?.timestamp) }}
                       <q-badge outline
                                color="white"
                                :label="alert?.error_code" />
@@ -102,10 +102,23 @@
 </template>
 
 <script setup lang='ts'>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 const tab = ref('Alerts');
 const alerts = ref();
+
+function formatTimestamp(timestamp) {
+  const cleanTimestamp = timestamp.split('.')[0];
+  const date = new Date(cleanTimestamp.replace(' ', 'T'));
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Місяці від 0 до 11
+  const year = String(date.getFullYear()).slice(2); // Останні дві цифри року
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${month}.${day}.${year} ${hours}.${minutes}`;
+}
 
 function getAlertIcon(level: string | undefined): string {
   if (level === 'info') return 'priority_high';
