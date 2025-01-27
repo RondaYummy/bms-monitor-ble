@@ -109,6 +109,7 @@ async def get_device_info():
                 "level": "",
             }
         error_code = str(alert.get("error_code"))
+        print(f"error_codes: {error_codes}")
         message = error_codes.get(error_code, {}).get("message", "Message not found")
         level = error_codes.get(error_code, {}).get("level", "Level not found")
         enriched_alert = {**alert, "message": message, "level": level}
