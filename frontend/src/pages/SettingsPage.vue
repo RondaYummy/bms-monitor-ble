@@ -102,7 +102,7 @@
 </template>
 
 <script setup lang='ts'>
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 
 const tab = ref('Alerts');
 const alerts = ref();
