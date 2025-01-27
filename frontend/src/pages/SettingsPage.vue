@@ -187,9 +187,14 @@ async function fetchErrorAlerts() {
 
 async function deleteErrorAlert() {
   try {
+    const token = sessionStorage.getItem("access_token");
     const response = await fetch('/api/error-alerts', {
       method: "POST",
-      body: JSON.stringify(holdAlert.value),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ id: holdAlert.value?.id }),
     });
     if (!response.ok) {
       throw new Error('Failed to remove error alerts');
