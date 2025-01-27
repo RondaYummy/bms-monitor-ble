@@ -91,7 +91,6 @@
                      class='q-mt-md text-left'>{{ alert?.message }}</p>
                   <div v-else>
                     <q-btn color="black"
-                           text-color="black"
                            label="Видалити сповіщення" />
                   </div>
                 </div>
