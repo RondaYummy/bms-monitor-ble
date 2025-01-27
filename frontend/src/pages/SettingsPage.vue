@@ -107,7 +107,7 @@ import { ref } from 'vue';
 const tab = ref('Alerts');
 const alerts = ref();
 
-function formatTimestamp(timestamp?: string): string {
+function formatTimestamp(timestamp?: any): string {
   if (!timestamp) {
     return 'Invalid timestamp';
   }
