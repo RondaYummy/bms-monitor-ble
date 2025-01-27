@@ -136,7 +136,7 @@ const intervalId = ref();
 
 async function fetchAggregatedData(days: number = 1): Promise<any[]> {
   try {
-    const response = await fetch(`/api/aggregated-data?days=${days}`);
+    const response: any = await fetch(`/api/aggregated-data?days=${days}`);
     if (!response?.data) {
       throw new Error('Failed to fetch aggregated data');
     }
