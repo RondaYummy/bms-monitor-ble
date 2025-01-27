@@ -67,7 +67,8 @@
                           'bg-bg-primary': alert?.level === 'info',
                         }"
                         class="text-white q-mt-sm q-mb-sm">
-                <div class="column">
+                <div class="column"
+                     v-if="alert?.id !== holdAlert?.id">
                   <div class='row justify-between'>
                     <div>
                       <q-chip outline
@@ -87,6 +88,11 @@
                   </div>
 
                   <p>{{ alert?.message }}</p>
+                </div>
+                <div v-else>
+                  <q-btn color="white"
+                         text-color="black"
+                         label="Видалити сповіщення" />
                 </div>
               </q-banner>
             </div>
@@ -118,6 +124,7 @@ interface Alert {
 
 const tab = ref('Alerts');
 const alerts = ref<Alert[]>();
+const holdAlert = ref<Alert[]>();
 
 function formatTimestamp(timestamp?: any): string {
   if (!timestamp) {
@@ -149,7 +156,7 @@ function getAlertIcon(level: string | undefined): string {
 }
 
 function handleHold(alert: Alert): void {
-  console.log(alert, 'details');
+  holdAlert.value = alert;
 }
 
 async function fetchErrorAlerts() {
