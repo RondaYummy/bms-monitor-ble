@@ -77,16 +77,18 @@
                       {{ alert?.device_name }}
                     </q-chip>
 
-                    <q-badge outline
-                             color="white"
-                             :label="alert?.error_code" />
+                    <div class="row items-center">
+                      <q-badge outline
+                               color="white"
+                               :label="alert?.error_code" />
+                    </div>
 
                     <span class='row items-center'>
                       {{ formatTimestamp(alert?.timestamp) }}
                     </span>
                   </div>
 
-                  <p class='text-left'>{{ alert?.message }}</p>
+                  <p class='q-mt-md text-left'>{{ alert?.message }}</p>
                 </div>
                 <div v-else>
                   <q-btn color="white"
