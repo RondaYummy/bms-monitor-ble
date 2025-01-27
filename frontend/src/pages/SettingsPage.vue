@@ -58,7 +58,7 @@
             <div class='column alerts-box'>
               <q-banner v-for="alert of alerts"
                         :key="alert?.id"
-                        v-touch-hold.mouse="handleHold"
+                        v-touch-hold.mouse="() => handleHold(alert)"
                         inline-actions
                         :class="{
                           'bg-negative': alert?.level === 'critical',
@@ -105,8 +105,19 @@
 <script setup lang='ts'>
 import { ref } from 'vue';
 
+interface Alert {
+  id: number;
+  device_address: string;
+  device_name: string;
+  error_code: string;
+  level: 'info' | 'warning' | 'error' | 'critical';
+  message: string;
+  timestamp: string;
+}
+
+
 const tab = ref('Alerts');
-const alerts = ref();
+const alerts = ref<Alert[]>();
 
 function formatTimestamp(timestamp?: any): string {
   if (!timestamp) {
@@ -137,8 +148,8 @@ function getAlertIcon(level: string | undefined): string {
   return '';
 }
 
-function handleHold(details: any): void {
-  console.log(details, 'details');
+function handleHold(alert: Alert): void {
+  console.log(alert, 'details');
 }
 
 async function fetchErrorAlerts() {
