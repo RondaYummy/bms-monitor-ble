@@ -58,7 +58,7 @@
             <div class='column alerts-box'>
               <q-banner v-for="alert of alerts"
                         :key="alert?.id"
-                        v-touch-hold="handleHold"
+                        v-touch-hold.mouse="handleHold"
                         inline-actions
                         :class="{
                           'bg-negative': alert?.level === 'critical',
