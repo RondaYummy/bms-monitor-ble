@@ -27,7 +27,7 @@
                 Тут відображаються всі важливі сповіщення про роботу системи
               </p>
 
-              <div class='row'>
+              <div class='row justify-center'>
                 <q-chip outline
                         color="primary"
                         text-color="white"
