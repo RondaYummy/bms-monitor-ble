@@ -85,26 +85,3 @@ export const login = async (password: string) => {
   console.log("Login successful");
   return true;
 };
-
-export const fetchProtectedData = async (route: string) => {
-  const token = sessionStorage.getItem("access_token");
-  if (!token) {
-    console.log("Not authenticated. Please log in.");
-    return;
-  }
-
-  const response = await fetch(route, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    console.log("Access denied");
-    return;
-  }
-
-  const data = await response.json();
-  return data;
-};
