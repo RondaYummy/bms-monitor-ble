@@ -55,7 +55,7 @@
               </div>
             </div>
 
-            <div class='column'>
+            <div class='column alerts-box'>
               <q-banner v-for="alert of alerts"
                         :key="alert?.id"
                         inline-actions
@@ -65,18 +65,55 @@
                           'bg-orange': alert?.level === 'warning',
                           'bg-bg-primary': alert?.level === 'info',
                         }"
-                        class="text-white">
-                You have lost connection to the internet. This app is offline.
+                        class="text-white q-mt-sm q-mb-sm">
+                <div class="column">
+                  <div class='row justify-between'>
+                    <q-badge outline
+                             color="secondary"
+                             :label="alert?.error_code" />
+                    <q-chip v-if="alert?.level === 'info'"
+                            outline
+                            color="primary"
+                            text-color="white"
+                            icon="priority_high">
+                      {{ alert?.device_name }}
+                    </q-chip>
+                    <q-chip v-if="alert?.level === 'warning'"
+                            outline
+                            color="orange"
+                            text-color="white"
+                            icon="warning">
+                      {{ alert?.device_name }}
+                    </q-chip>
+                    <q-chip v-if="alert?.level === 'error'"
+                            outline
+                            color="deep-orange"
+                            text-color="white"
+                            icon="error">
+                      {{ alert?.device_name }}
+                    </q-chip>
+                    <q-chip v-if="alert?.level === 'critical'"
+                            outline
+                            color="red"
+                            text-color="white"
+                            icon="flash_on">
+                      {{ alert?.device_name }}
+                    </q-chip>
+
+                    <span>
+                      {{ alert?.timestamp }}
+                    </span>
+                  </div>
+
+                  <p>{{ alert?.message }}</p>
+                </div>
                 <template v-slot:action>
                   <q-btn flat
                          color="white"
-                         label="Turn ON Wifi" />
+                         label="Turn ON" />
                 </template>
               </q-banner>
             </div>
-            <pre>
-            {{ alerts }}
-            </pre>
           </q-tab-panel>
 
           <q-tab-panel name="Settings">
@@ -112,4 +149,8 @@ async function fetchErrorAlerts() {
 fetchErrorAlerts();
 </script>
 
-<style scoped lang='scss'></style>
+<style scoped lang='scss'>
+.alerts-box {
+  gap: 10px;
+}
+</style>
