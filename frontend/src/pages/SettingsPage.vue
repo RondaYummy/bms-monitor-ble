@@ -23,7 +23,36 @@
             <div class="text-h6">Alerts</div>
 
             Тут відображаються всі важливі сповіщення про роботу системи
-
+            <q-chip outline
+                    color="primary"
+                    text-color="white"
+                    icon="info">
+              Info
+            </q-chip>
+            <q-chip outline
+                    color="primary"
+                    text-color="white"
+                    icon="priority_high">
+              Info
+            </q-chip>
+            <q-chip outline
+                    color="orange"
+                    text-color="white"
+                    icon="warning">
+              Warning
+            </q-chip>
+            <q-chip outline
+                    color="deep-orange"
+                    text-color="white"
+                    icon="error">
+              Error
+            </q-chip>
+            <q-chip outline
+                    color="red"
+                    text-color="white"
+                    icon="event">
+              Critical
+            </q-chip>
             <pre>
             {{ alerts }}
             </pre>
