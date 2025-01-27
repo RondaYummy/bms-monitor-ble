@@ -67,3 +67,44 @@ export function calculateAutonomyTime(remainingCapacity: number, charge_current:
   const autonomyTime = remainingCapacity / effectiveCurrent;
   return `${autonomyTime.toFixed(2)} hrs`;
 }
+
+export const login = async (password: string) => {
+  const response = await fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+
+  if (!response.ok) {
+    console.log("Invalid password");
+    return false;
+  }
+
+  const data = await response.json();
+  sessionStorage.setItem("access_token", data.access_token);
+  console.log("Login successful");
+  return true;
+};
+
+export const fetchProtectedData = async (route: string) => {
+  const token = sessionStorage.getItem("access_token");
+  if (!token) {
+    console.log("Not authenticated. Please log in.");
+    return;
+  }
+
+  const response = await fetch(route, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    console.log("Access denied");
+    return;
+  }
+
+  const data = await response.json();
+  return data;
+};

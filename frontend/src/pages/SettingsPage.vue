@@ -1,5 +1,15 @@
 <template>
   <div class="q-pa-md">
+    <div class='row'>
+      <q-input filled
+               v-model="password"
+               dense />
+      <q-btn color="white"
+             @click="login(password)"
+             text-color="black"
+             label="Авторизуватись" />
+    </div>
+
     <div>
       <q-tabs v-model="tab"
               align="justify"
@@ -111,6 +121,7 @@
 
 <script setup lang='ts'>
 import { ref } from 'vue';
+import { login } from '../helpers/utils';
 
 interface Alert {
   id: number;
@@ -124,6 +135,7 @@ interface Alert {
 
 
 const tab = ref('Alerts');
+const password = ref('');
 const alerts = ref<Alert[]>();
 const holdAlert = ref<Alert>();
 

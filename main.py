@@ -2,16 +2,17 @@ import asyncio
 from asyncio import Lock
 from datetime import datetime
 from copy import deepcopy
-import json
-import os
 import yaml
+from uuid import uuid4
 
 import uvicorn
 from bleak import BleakClient, BleakScanner
 from fastapi import FastAPI
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Query
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from python.colors import *
 import python.db as db
@@ -21,6 +22,7 @@ with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
 
 ENABLE_LOGS = False # True or False
+
 MIN_FRAME_SIZE = 300
 MAX_FRAME_SIZE = 320
 SERVICE_UUID = "0000FFE0-0000-1000-8000-00805f9b34fb"
@@ -30,14 +32,31 @@ CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Device Info Frame
 CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
 
+PASSWORD = "your_secure_password"
+TOKEN_LIFETIME_SECONDS = 3600
+
 # Data store class
-class DeviceDataStore:
+class DataStore:
     def __init__(self):
         self.device_info = {}
         self.cell_info = {}
         self.last_cell_info_update = {}
         self.response_buffers = {}
+        self.active_tokens = {}
         self.lock = Lock()
+
+    async def add_token(self, token: str, device_name: str):
+        async with self.lock:
+            self.active_tokens[token] = {"device_name": device_name}
+
+    async def remove_token(self, token: str):
+        async with self.lock:
+            if token in self.active_tokens:
+                del self.active_tokens[token]
+
+    async def is_token_valid(self, token: str) -> bool:
+        async with self.lock:
+            return token in self.active_tokens
 
     async def update_last_cell_info_update(self, device_name):
         async with self.lock:
@@ -81,7 +100,7 @@ class DeviceDataStore:
             return deepcopy(self.cell_info)
 
 # Initialize data store
-device_data_store = DeviceDataStore()
+data_store = DataStore()
 
 app = FastAPI()
 app.add_middleware(
@@ -90,6 +109,18 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+@app.post("/api/login")
+async def login(request: Request):
+    body = await request.json()
+    password = body.get("password", "")
+    if password != PASSWORD:
+        raise HTTPException(status_code=401, detail="Invalid password")
+
+    token = str(uuid4())
+    await data_store.add_token(token, "admin")
+
+    return {"access_token": token}
 
 @app.get("/api/error-alerts")
 async def get_device_info():
@@ -118,14 +149,14 @@ async def get_device_info():
 
 @app.get("/api/device-info")
 async def get_device_info():
-    data = await device_data_store.get_device_info()
+    data = await data_store.get_device_info()
     if not data:
         return JSONResponse(content={"message": "No device info available yet."}, status_code=404)
     return data
 
 @app.get("/api/cell-info")
 async def get_cell_info():
-    cell_info_data = await device_data_store.get_cell_info()
+    cell_info_data = await data_store.get_cell_info()
     if not cell_info_data:
         return JSONResponse(content={"message": "No cell info available yet."}, status_code=404)
     return cell_info_data
@@ -152,11 +183,21 @@ def create_command(command_type):
     frame[19] = calculate_crc(frame[:19])
     return frame
 
+async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(auth_scheme)):
+    token = credentials.credentials
+    if not await data_store.is_token_valid(token):
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
 def log(device_name, message, force=False):
     global ENABLE_LOGS
     if ENABLE_LOGS or force:
         current_time = datetime.now().strftime("%d.%m.%y %H:%M")
         print(f"{BLUE}[{device_name}] {MAGENTA}[{current_time}]{RESET} {message}")
+
+# TODO приклад захищеного маршруту
+@app.get("/api/protected-data", dependencies=[Depends(verify_token)]) 
+async def protected_data():
+    return {"message": "You have access to protected data."}
 
 async def parse_device_info(data, device_name, device_address):
     """Parsing Device Info Frame (0x03)."""
@@ -197,7 +238,7 @@ async def parse_device_info(data, device_name, device_address):
             return None
         
         # Save device-specific info
-        await device_data_store.update_device_info(device_name, device_info)
+        await data_store.update_device_info(device_name, device_info)
 
         # Logging of parsed information
         log(device_name, "Parsed Device Info:")
@@ -315,7 +356,7 @@ async def parse_cell_info(data, device_name, device_address):
             log(device_name, f"Invalid CRC: {crc_calculated} != {crc_received}")
             return None
         
-        await device_data_store.update_cell_info(device_name, cell_info)
+        await data_store.update_cell_info(device_name, cell_info)
         await alerts.evaluate_alerts(device_address=device_address, device_name=device_name, cell_info=cell_info)
 
         if await are_all_allowed_devices_connected_and_have_data():
@@ -330,10 +371,10 @@ async def parse_cell_info(data, device_name, device_address):
 
 async def notification_handler(device, data, device_name, device_address):
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
-        await device_data_store.clear_buffer(device_name)
-    await device_data_store.append_to_buffer(device_name, data)
+        await data_store.clear_buffer(device_name)
+    await data_store.append_to_buffer(device_name, data)
 
-    buffer = await device_data_store.get_buffer(device_name)
+    buffer = await data_store.get_buffer(device_name)
     if MIN_FRAME_SIZE <= len(buffer) <= MAX_FRAME_SIZE:
         log(device_name, f"Full frame received: {buffer.hex()}")
 
@@ -349,29 +390,29 @@ async def notification_handler(device, data, device_name, device_address):
         if frame_type == 0x03:
             await parse_device_info(buffer, device_name, device_address)
         elif frame_type == 0x02:
-            await device_data_store.update_last_cell_info_update(device_name)
+            await data_store.update_last_cell_info_update(device_name)
             await parse_cell_info(buffer, device_name, device_address)
         elif frame_type == 0x01:
             await parse_setting_info(buffer, device_name, device_address)
         else:
             log(device_name, f"Unknown frame type {frame_type}: {buffer}", force=True)
-            await device_data_store.clear_buffer(device_name)
+            await data_store.clear_buffer(device_name)
 
 async def connect_and_run(device):
     while True:  # Cycle to reconnect
         try:
-            device_info_data = await device_data_store.get_device_info(device.name)
+            device_info_data = await data_store.get_device_info(device.name)
             if not device_info_data:
                 device_info_data = {
                     "device_name": device.name,
                     "device_address": device.address,
                     "connected": False
                 }
-            await device_data_store.update_device_info(device.name, device_info_data)
+            await data_store.update_device_info(device.name, device_info_data)
 
             async with BleakClient(device.address) as client:
                 device_info_data["connected"] = True
-                await device_data_store.update_device_info(device.name, device_info_data)
+                await data_store.update_device_info(device.name, device_info_data)
                 log(device.name, f"Connected and notification started", force=True)
 
                 def handle_notification(sender, data):
@@ -381,12 +422,12 @@ async def connect_and_run(device):
 
                 while True:  # Постійне опитування
                 # Перевіряємо, чи пристрій ще підключений
-                    device_info_data = await device_data_store.get_device_info(device.name)
+                    device_info_data = await data_store.get_device_info(device.name)
                     if not device_info_data.get("connected", False):
                         log(device.name, "Device has been disconnected. Stopping polling.", force=True)
                         break
 
-                    device_info_data = await device_data_store.get_device_info(device.name)
+                    device_info_data = await data_store.get_device_info(device.name)
                     if not device_info_data or "frame_type" not in device_info_data:
                         # Якщо інформація про пристрій ще не збережена, надсилаємо команду
                         device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
@@ -395,7 +436,7 @@ async def connect_and_run(device):
                         await asyncio.sleep(1)
 
                     # Перевіряємо, чи потрібно надсилати cell_info_command
-                    last_update = await device_data_store.get_last_cell_info_update(device.name)
+                    last_update = await data_store.get_last_cell_info_update(device.name)
                     if not last_update or (datetime.now() - last_update).total_seconds() > 30:
                         cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                         await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
@@ -406,7 +447,7 @@ async def connect_and_run(device):
             log(device.name, f"Error: {str(e)}", force=True)
         finally:
             device_info_data["connected"] = False
-            await device_data_store.update_device_info(device.name, device_info_data)
+            await data_store.update_device_info(device.name, device_info_data)
             log(device.name, "Disconnected, retrying in 5 seconds...", force=True)
             await asyncio.sleep(5)
 
@@ -423,7 +464,7 @@ async def ble_main():
         tasks = []
         for device in devices:
             if device.address.lower() in allowed_devices: # Check if the device is allowed
-                device_info = await device_data_store.get_device_info(device.name) # Check if the device is already connected
+                device_info = await data_store.get_device_info(device.name) # Check if the device is already connected
                 if device_info and device_info.get("connected", False):
                     log(device.name, f"Device {device.name} is already connected, skipping.")
                     continue  # Skip if the device is already connected
@@ -452,7 +493,7 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
     and whether there is data for each in cell_info.
     """
     allowed_devices = {addr.lower() for addr in load_allowed_devices()}
-    connected_devices = await device_data_store.get_device_info()
+    connected_devices = await data_store.get_device_info()
     connected_addresses = {
         device_info.get("device_address", "").lower()
         for device_info in connected_devices.values()
@@ -465,7 +506,7 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
         log("CHECK DEVICES", "All allowed devices are not connected", force=True)
         return False
 
-    cell_info = await device_data_store.get_cell_info()
+    cell_info = await data_store.get_cell_info()
     for device_address in allowed_devices:
         if not is_device_address_in_cell_info(device_address, cell_info):
             log("CHECK DEVICES", f"Device [{device_address}] have no data.", force=True)
