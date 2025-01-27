@@ -134,7 +134,7 @@ def create_table():
                 device_address TEXT NOT NULL,
                 error_code TEXT NOT NULL,
                 device_name TEXT NOT NULL,
-                occurred_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                occurred_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             ''')
             conn.commit()
