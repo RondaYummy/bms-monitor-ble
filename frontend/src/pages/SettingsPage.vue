@@ -123,7 +123,7 @@ interface Alert {
 
 const tab = ref('Alerts');
 const alerts = ref<Alert[]>();
-const holdAlert = ref<Alert[]>();
+const holdAlert = ref<Alert>();
 
 function formatTimestamp(timestamp?: any): string {
   if (!timestamp) {
