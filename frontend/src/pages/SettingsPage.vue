@@ -22,31 +22,38 @@
           <q-tab-panel name="Alerts">
             <div class="text-h6">Alerts</div>
 
-            Тут відображаються всі важливі сповіщення про роботу системи
-            <q-chip outline
-                    color="primary"
-                    text-color="white"
-                    icon="priority_high">
-              Info
-            </q-chip>
-            <q-chip outline
-                    color="orange"
-                    text-color="white"
-                    icon="warning">
-              Warning
-            </q-chip>
-            <q-chip outline
-                    color="deep-orange"
-                    text-color="white"
-                    icon="error">
-              Error
-            </q-chip>
-            <q-chip outline
-                    color="red"
-                    text-color="white"
-                    icon="flash_on">
-              Critical
-            </q-chip>
+            <div class='column items-center justify-center'>
+              <p>
+                Тут відображаються всі важливі сповіщення про роботу системи
+              </p>
+
+              <div class='row'>
+                <q-chip outline
+                        color="primary"
+                        text-color="white"
+                        icon="priority_high">
+                  Info
+                </q-chip>
+                <q-chip outline
+                        color="orange"
+                        text-color="white"
+                        icon="warning">
+                  Warning
+                </q-chip>
+                <q-chip outline
+                        color="deep-orange"
+                        text-color="white"
+                        icon="error">
+                  Error
+                </q-chip>
+                <q-chip outline
+                        color="red"
+                        text-color="white"
+                        icon="flash_on">
+                  Critical
+                </q-chip>
+              </div>
+            </div>
             <pre>
             {{ alerts }}
             </pre>
