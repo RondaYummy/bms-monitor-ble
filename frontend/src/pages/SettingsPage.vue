@@ -26,12 +26,6 @@
             <q-chip outline
                     color="primary"
                     text-color="white"
-                    icon="info">
-              Info
-            </q-chip>
-            <q-chip outline
-                    color="primary"
-                    text-color="white"
                     icon="priority_high">
               Info
             </q-chip>
@@ -50,7 +44,7 @@
             <q-chip outline
                     color="red"
                     text-color="white"
-                    icon="event">
+                    icon="flash_on">
               Critical
             </q-chip>
             <pre>
