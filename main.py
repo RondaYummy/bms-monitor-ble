@@ -17,6 +17,7 @@ from fastapi import (
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel
 
 from python.colors import *
 import python.db as db
@@ -115,6 +116,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(auth_scheme)):
+    token = credentials.credentials
+    if not await data_store.is_token_valid(token):
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
 @app.post("/api/login")
 async def login(request: Request):
     body = await request.json()
@@ -127,6 +133,16 @@ async def login(request: Request):
 
     return {"access_token": token}
 
+class DeleteAlertRequest(BaseModel):
+    id: int
+@app.post("/api/error-alerts")
+async def delete_error_alert(request: DeleteAlertRequest, token: str = Depends(verify_token)):
+    try:
+        db.delete_alert_by_id(alert_id=request.id)
+        return {"message": f"Alert with ID {request.id} has been deleted successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting alert: {str(e)}")
+    
 @app.get("/api/error-alerts")
 async def get_device_info():
     data = db.fetch_all_notifications()
@@ -187,11 +203,6 @@ def create_command(command_type):
     frame[4] = command_type
     frame[19] = calculate_crc(frame[:19])
     return frame
-
-async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(auth_scheme)):
-    token = credentials.credentials
-    if not await data_store.is_token_valid(token):
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
     
 def log(device_name, message, force=False):
     global ENABLE_LOGS

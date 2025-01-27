@@ -2,3 +2,4 @@ bleak==0.20.2
 fastapi
 uvicorn[standard]
 PyYAML==6.0
+pydantic

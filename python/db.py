@@ -141,7 +141,34 @@ def create_table():
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
         raise
-    
+
+def delete_alert_by_id(alert_id):
+    """Deletes a record from the table by its ID."""
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute('''
+            SELECT id FROM error_notifications
+            WHERE id = ?
+            ''', (alert_id,))
+            existing = cursor.fetchone()
+
+            if not existing:
+                print(f"No notification found with ID {alert_id}.")
+                return
+
+            cursor.execute('''
+            DELETE FROM error_notifications
+            WHERE id = ?
+            ''', (alert_id,))
+            conn.commit()
+
+            print(f"Notification with ID {alert_id} has been deleted successfully.")
+    except sqlite3.Error as e:
+        print(f"Error deleting alert data: {e}")
+        raise
+
 def insert_alert_data(device_address, device_name, error_code, occurred_at, n_hours=1):
     """Adds a new record to the table."""
     try:
