@@ -58,6 +58,7 @@
             <div class='column alerts-box'>
               <q-banner v-for="alert of alerts"
                         :key="alert?.id"
+                        v-touch-hold="handleHold"
                         inline-actions
                         :class="{
                           'bg-negative': alert?.level === 'critical',
@@ -134,6 +135,10 @@ function getAlertIcon(level: string | undefined): string {
   if (level === 'error') return 'error';
   if (level === 'critical') return 'flash_on';
   return '';
+}
+
+function handleHold({ evt, ...newInfo }) {
+  console.log(newInfo, 'newInfo');
 }
 
 async function fetchErrorAlerts() {
