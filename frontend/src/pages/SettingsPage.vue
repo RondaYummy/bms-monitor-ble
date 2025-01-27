@@ -70,24 +70,23 @@
                 <div class="column"
                      v-if="alert?.id !== holdAlert?.id">
                   <div class='row justify-between'>
-                    <div>
-                      <q-chip outline
-                              color="white"
-                              text-color="white"
-                              :icon="getAlertIcon(alert?.level)">
-                        {{ alert?.device_name }}
-                      </q-chip>
-                    </div>
+                    <q-chip outline
+                            color="white"
+                            text-color="white"
+                            :icon="getAlertIcon(alert?.level)">
+                      {{ alert?.device_name }}
+                    </q-chip>
+
+                    <q-badge outline
+                             color="white"
+                             :label="alert?.error_code" />
 
                     <span class='row items-center'>
                       {{ formatTimestamp(alert?.timestamp) }}
-                      <q-badge outline
-                               color="white"
-                               :label="alert?.error_code" />
                     </span>
                   </div>
 
-                  <p>{{ alert?.message }}</p>
+                  <p class='text-left'>{{ alert?.message }}</p>
                 </div>
                 <div v-else>
                   <q-btn color="white"
