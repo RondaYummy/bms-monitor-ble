@@ -1,6 +1,7 @@
 <template>
   <div class="q-pa-md">
-    <div class='row justify-center q-gutter-sm'>
+    <div class='row justify-center q-gutter-sm'
+         v-if='!token'>
       <q-input filled
                v-model="password"
                dense />
@@ -67,7 +68,7 @@
             <div class='column alerts-box'>
               <q-banner v-for="alert of alerts"
                         :key="alert?.id"
-                        v-touch-hold.mouse="() => handleHold(alert)"
+                        v-touch-hold.mouse="() => token && handleHold(alert)"
                         inline-actions
                         :class="{
                           'bg-negative': alert?.level === 'critical',
@@ -137,6 +138,7 @@ const tab = ref('Alerts');
 const password = ref('');
 const alerts = ref<Alert[]>();
 const holdAlert = ref<Alert>();
+const token = ref(sessionStorage.getItem("access_token"));
 
 function formatTimestamp(timestamp?: any): string {
   if (!timestamp) {
@@ -187,12 +189,12 @@ async function fetchErrorAlerts() {
 
 async function deleteErrorAlert() {
   try {
-    const token = sessionStorage.getItem("access_token");
+    token.value = sessionStorage.getItem("access_token");
     const response = await fetch('/api/error-alerts', {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Authorization": `Bearer ${token.value}`
       },
       body: JSON.stringify({ id: holdAlert.value?.id }),
     });
@@ -204,6 +206,7 @@ async function deleteErrorAlert() {
     console.error('Error remove error alerts:', error);
   }
 }
+
 fetchErrorAlerts();
 </script>
 
