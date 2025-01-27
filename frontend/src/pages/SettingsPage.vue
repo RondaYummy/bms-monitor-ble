@@ -70,9 +70,14 @@
                   <div class='row justify-between'>
                     <div>
                       <q-chip outline
-                              color="white"
+                              color="primary"
                               text-color="white"
-                              icon="priority_high">
+                              :icon="{
+                                'priority_high': alert?.level === 'info',
+                                'warning': alert?.level === 'warning',
+                                'error': alert?.level === 'error',
+                                'flash_on': alert?.level === 'critical',
+                              }">
                         {{ alert?.device_name }}
                       </q-chip>
                     </div>
