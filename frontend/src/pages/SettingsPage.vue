@@ -103,7 +103,6 @@
 </template>
 
 <script setup lang='ts'>
-import type { TouchHoldDetails } from 'quasar';
 import { ref } from 'vue';
 
 const tab = ref('Alerts');
@@ -138,7 +137,7 @@ function getAlertIcon(level: string | undefined): string {
   return '';
 }
 
-function handleHold(details: TouchHoldDetails): void {
+function handleHold(details: any): void {
   console.log(details, 'details');
 }
 
