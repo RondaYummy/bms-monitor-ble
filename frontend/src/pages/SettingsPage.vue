@@ -69,37 +69,15 @@
                 <div class="column">
                   <div class='row justify-between'>
                     <div>
-                      <q-chip v-if="alert?.level === 'info'"
-                              outline
-                              color="primary"
+                      <q-chip outline
+                              color="white"
                               text-color="white"
                               icon="priority_high">
                         {{ alert?.device_name }}
                       </q-chip>
-                      <q-chip v-if="alert?.level === 'warning'"
-                              outline
-                              color="white"
-                              text-color="white"
-                              icon="warning">
-                        {{ alert?.device_name }}
-                      </q-chip>
-                      <q-chip v-if="alert?.level === 'error'"
-                              outline
-                              color="deep-orange"
-                              text-color="white"
-                              icon="error">
-                        {{ alert?.device_name }}
-                      </q-chip>
-                      <q-chip v-if="alert?.level === 'critical'"
-                              outline
-                              color="red"
-                              text-color="white"
-                              icon="flash_on">
-                        {{ alert?.device_name }}
-                      </q-chip>
                     </div>
 
-                    <span>
+                    <span class='row items-center'>
                       {{ alert?.timestamp }}
                       <q-badge outline
                                color="white"
