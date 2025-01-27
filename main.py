@@ -36,7 +36,7 @@ CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Device Info Frame
 CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
 
-PASSWORD = "your_secure_password"
+PASSWORD = "123456"
 TOKEN_LIFETIME_SECONDS = 3600
 
 # Data store class
