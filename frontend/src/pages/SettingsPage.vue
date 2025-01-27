@@ -1,12 +1,11 @@
 <template>
   <div class="q-pa-md">
-    <div class='row'>
+    <div class='row justify-center q-gutter-sm'>
       <q-input filled
                v-model="password"
                dense />
-      <q-btn color="white"
-             @click="login(password)"
-             text-color="black"
+      <q-btn @click="login(password)"
+             color="black"
              label="Авторизуватись" />
     </div>
 
@@ -100,7 +99,8 @@
                   <p v-if="alert?.id !== holdAlert?.id"
                      class='q-mt-md text-left'>{{ alert?.message }}</p>
                   <div v-else>
-                    <q-btn color="black"
+                    <q-btn @click="deleteErrorAlert"
+                           color="black"
                            label="Видалити сповіщення" />
                   </div>
                 </div>
@@ -132,7 +132,6 @@ interface Alert {
   message: string;
   timestamp: string;
 }
-
 
 const tab = ref('Alerts');
 const password = ref('');
@@ -186,6 +185,20 @@ async function fetchErrorAlerts() {
   }
 }
 
+async function deleteErrorAlert() {
+  try {
+    const response = await fetch('/api/error-alerts', {
+      method: "POST",
+      body: JSON.stringify(holdAlert.value),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to remove error alerts');
+    }
+    fetchErrorAlerts();
+  } catch (error) {
+    console.error('Error remove error alerts:', error);
+  }
+}
 fetchErrorAlerts();
 </script>
 
