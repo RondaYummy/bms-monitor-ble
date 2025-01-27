@@ -72,12 +72,7 @@
                       <q-chip outline
                               color="primary"
                               text-color="white"
-                              :icon="{
-                                'priority_high': alert?.level === 'info',
-                                'warning': alert?.level === 'warning',
-                                'error': alert?.level === 'error',
-                                'flash_on': alert?.level === 'critical',
-                              }">
+                              :icon="getAlertIcon(alert?.level)">
                         {{ alert?.device_name }}
                       </q-chip>
                     </div>
@@ -111,6 +106,14 @@ import { ref } from 'vue';
 
 const tab = ref('Alerts');
 const alerts = ref();
+
+function getAlertIcon(level: string | undefined): string {
+  if (level === 'info') return 'priority_high';
+  if (level === 'warning') return 'warning';
+  if (level === 'error') return 'error';
+  if (level === 'critical') return 'flash_on';
+  return '';
+}
 
 async function fetchErrorAlerts() {
   try {
