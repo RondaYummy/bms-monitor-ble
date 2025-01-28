@@ -43,6 +43,7 @@
               <div class='row justify-center'>
                 <q-chip @click="filterAlertsByLevel('info')"
                         outline
+                        clickable
                         color="primary"
                         text-color="white"
                         icon="priority_high">
@@ -50,6 +51,7 @@
                 </q-chip>
                 <q-chip @click="filterAlertsByLevel('warning')"
                         outline
+                        clickable
                         color="orange"
                         text-color="white"
                         icon="warning">
@@ -57,6 +59,7 @@
                 </q-chip>
                 <q-chip @click="filterAlertsByLevel('error')"
                         outline
+                        clickable
                         color="deep-orange"
                         text-color="white"
                         icon="error">
@@ -64,6 +67,7 @@
                 </q-chip>
                 <q-chip @click="filterAlertsByLevel('critical')"
                         outline
+                        clickable
                         color="red"
                         text-color="white"
                         icon="flash_on">
