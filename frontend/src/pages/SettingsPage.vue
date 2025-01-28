@@ -161,6 +161,7 @@ const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
 const holdAlert = ref<Alert>();
 const token = useSessionStorage("access_token");
+token.value = sessionStorage.getItem('access_token');
 
 function filterAlertsByLevel(level?: string): void {
   console.log('Selected level: ', level);
