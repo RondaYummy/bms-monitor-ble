@@ -1,7 +1,7 @@
 
 import { ref, watch } from "vue";
 
-export const useSessionStorage = (key?: string) => {
+export const useSessionStorage = (key: string) => {
   const storedValue = sessionStorage.getItem(key);
   const value = ref(storedValue);
 
