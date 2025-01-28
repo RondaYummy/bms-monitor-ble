@@ -90,7 +90,7 @@
                           'bg-orange': alert?.level === 'warning',
                           'bg-bg-primary': alert?.level === 'info',
                         }"
-                        class="text-white q-mt-sm q-mb-sm">
+                        class="text-white q-mt-sm q-mb-sm cursor-pointer">
                 <div class="column">
                   <div class='row justify-between'>
                     <q-chip outline
