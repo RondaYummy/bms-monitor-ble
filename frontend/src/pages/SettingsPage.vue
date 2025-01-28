@@ -165,6 +165,7 @@ function filterAlertsByLevel(level?: string): void {
     alerts.value = alertsMain.value;
     return;
   }
+  console.log(alerts.value[0]);
   alerts.value = alerts.value?.filter((a) => a.level === level);
 }
 
