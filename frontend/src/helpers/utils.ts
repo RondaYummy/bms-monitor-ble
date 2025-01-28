@@ -12,7 +12,7 @@ export const useSessionStorage = (key: string) => {
     }
   });
 
-  const syncWithStorage = (event) => {
+  const syncWithStorage = (event: any) => {
     if (event.key === key) {
       value.value = event.newValue;
     }
