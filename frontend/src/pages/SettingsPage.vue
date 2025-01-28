@@ -21,7 +21,7 @@
         <q-tab class="text-orange"
                name="Settings"
                label="Settings" />
-        <q-tab class="text-orange"
+        <q-tab class="text-blue"
                name="Devices"
                label="Devices" />
       </q-tabs>
