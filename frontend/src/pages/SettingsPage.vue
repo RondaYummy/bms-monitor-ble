@@ -165,8 +165,7 @@ function filterAlertsByLevel(level?: string): void {
     alerts.value = alertsMain.value;
     return;
   }
-  console.log(alerts.value[0]);
-  alerts.value = alerts.value?.filter((a) => a.level === level);
+  alerts.value = alertsMain.value?.filter((a) => a.level === level);
 }
 
 function formatTimestamp(timestamp?: any): string {
