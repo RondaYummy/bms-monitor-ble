@@ -143,7 +143,7 @@
 
 <script setup lang='ts'>
 import { ref } from 'vue';
-import { login, useSessionStorage } from '../helpers/utils';
+import { useSessionStorage } from '../helpers/utils';
 
 interface Alert {
   id: number;
@@ -161,7 +161,6 @@ const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
 const holdAlert = ref<Alert>();
 const token = useSessionStorage("access_token");
-token.value = sessionStorage.getItem('access_token');
 
 function filterAlertsByLevel(level?: string): void {
   console.log('Selected level: ', level);
@@ -245,6 +244,26 @@ async function deleteErrorAlert() {
     console.error('Error remove error alerts:', error);
   }
 }
+
+const login = async (password: string) => {
+  const response = await fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+
+  if (!response.ok) {
+    console.log("Invalid password");
+    return false;
+  }
+
+  const data = await response.json();
+  sessionStorage.setItem("access_token", data.access_token);
+  token.value = data?.access_token;
+  console.log("Login successful");
+  return true;
+};
+
 
 fetchErrorAlerts();
 </script>
