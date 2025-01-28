@@ -45,7 +45,7 @@
                         outline
                         clickable
                         color="white"
-                        icon="priority_high">
+                        icon="apps">
                   Info
                 </q-chip>
                 <q-chip @click="filterAlertsByLevel('info')"
