@@ -1,9 +1,8 @@
 
-import { ref, watch } from "vue";
+import { onBeforeUnmount, ref, watch } from "vue";
 
 export const useSessionStorage = (key: string) => {
-  const storedValue = sessionStorage.getItem(key);
-  const value = ref(storedValue);
+  const value = ref(sessionStorage.getItem(key));
 
   watch(value, (newValue) => {
     if (newValue === null || newValue === undefined) {
@@ -11,6 +10,18 @@ export const useSessionStorage = (key: string) => {
     } else {
       sessionStorage.setItem(key, newValue);
     }
+  });
+
+  const syncWithStorage = (event) => {
+    if (event.key === key) {
+      value.value = event.newValue;
+    }
+  };
+
+  window.addEventListener("storage", syncWithStorage);
+
+  onBeforeUnmount(() => {
+    window.removeEventListener("storage", syncWithStorage);
   });
 
   return value;
