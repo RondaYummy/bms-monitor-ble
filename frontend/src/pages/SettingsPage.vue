@@ -46,7 +46,7 @@
                         clickable
                         color="white"
                         icon="apps">
-                  Info
+                  All
                 </q-chip>
                 <q-chip @click="filterAlertsByLevel('info')"
                         outline
@@ -143,7 +143,7 @@
 
 <script setup lang='ts'>
 import { ref } from 'vue';
-import { login } from '../helpers/utils';
+import { login, useSessionStorage } from '../helpers/utils';
 
 interface Alert {
   id: number;
@@ -160,7 +160,7 @@ const password = ref('');
 const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
 const holdAlert = ref<Alert>();
-const token = ref(sessionStorage.getItem("access_token"));
+const token = useSessionStorage("access_token");
 
 function filterAlertsByLevel(level?: string): void {
   console.log('Selected level: ', level);
@@ -210,6 +210,9 @@ async function fetchErrorAlerts() {
     if (!response.ok) {
       throw new Error('Failed to error alerts');
     }
+    if (response.status === 301) {
+      sessionStorage.removeItem('access_token');
+    }
     const data = await response.json();
     console.log('Error alerts:', data);
     alerts.value = data;
@@ -232,6 +235,9 @@ async function deleteErrorAlert() {
     });
     if (!response.ok) {
       throw new Error('Failed to remove error alerts');
+    }
+    if (response.status === 301) {
+      sessionStorage.removeItem('access_token');
     }
     fetchErrorAlerts();
   } catch (error) {

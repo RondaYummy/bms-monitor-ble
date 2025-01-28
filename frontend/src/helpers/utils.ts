@@ -1,3 +1,21 @@
+
+import { ref, watch } from "vue";
+
+export const useSessionStorage = (key) => {
+  const storedValue = sessionStorage.getItem(key);
+  const value = ref(storedValue);
+
+  watch(value, (newValue) => {
+    if (newValue === null || newValue === undefined) {
+      sessionStorage.removeItem(key);
+    } else {
+      sessionStorage.setItem(key, newValue);
+    }
+  });
+
+  return value;
+};
+
 export function formatDuration(seconds: number) {
   const units = [
     { label: 'year', seconds: 31536000 }, // 365 днів
