@@ -135,9 +135,22 @@
             <div class="text-h6">Devices</div>
             <p>Тут ви можете керувати вашими пристроями...</p>
 
-            <q-btn @click="fetchDevices"
+            <q-btn :loading="loadingDevices"
+                   @click="fetchDevices"
                    color="black"
                    label="Пошук пристроїв" />
+
+
+            <q-list v-if='devices.length'
+                    bordered
+                    separator>
+              <q-item v-for="device of devices"
+                      :key="device.address"
+                      clickable
+                      v-ripple>
+                <q-item-section>{{ device?.name }}</q-item-section>
+              </q-item>
+            </q-list>
           </q-tab-panel>
         </q-tab-panels>
       </div>
@@ -161,6 +174,8 @@ interface Alert {
 
 const tab = ref('Alerts');
 const password = ref('');
+const loadingDevices = ref(false);
+const devices = ref([]);
 const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
 const holdAlert = ref<Alert>();
@@ -265,10 +280,18 @@ const login = async (password: string) => {
 };
 
 async function fetchDevices() {
-  const response = await fetch('/api/devices');
-  checkResponse(response);
-  const data = await response.json();
-  console.log('Discovered devices: ', data);
+  try {
+    loadingDevices.value = true;
+    const response = await fetch('/api/devices');
+    checkResponse(response);
+    const data = await response.json();
+    devices.value = data?.devices;
+    console.log('Discovered devices: ', data);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loadingDevices.value = false;
+  }
 }
 
 
