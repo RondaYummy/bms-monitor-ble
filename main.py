@@ -181,7 +181,7 @@ async def connect_device(request: DeviceRequest):
             raise HTTPException(status_code=400, detail="Device address is required.")
 
         async with BleakClient(device_address) as client:
-            if not await client.is_connected():
+            if not client.is_connected:
                 raise HTTPException(status_code=500, detail=f"Failed to connect to device {device_address}")
 
         if os.path.exists(ALLOWED_DEVICES_FILE):
