@@ -133,7 +133,11 @@
 
           <q-tab-panel name="Devices">
             <div class="text-h6">Devices</div>
-            Тут ви можете керувати вашими пристроями...
+            <p>Тут ви можете керувати вашими пристроями...</p>
+
+            <q-btn @click="fetchDevices"
+                   color="black"
+                   label="Пошук пристроїв" />
           </q-tab-panel>
         </q-tab-panels>
       </div>
@@ -204,15 +208,20 @@ function handleHold(alert: Alert): void {
   holdAlert.value = alert;
 }
 
+function checkResponse(response: Response) {
+  if (!response.ok) {
+    throw new Error('Failed to error alerts');
+  }
+  if (response.status === 301) {
+    sessionStorage.removeItem('access_token');
+    throw new Error('Have no access');
+  }
+}
+
 async function fetchErrorAlerts() {
   try {
     const response = await fetch('/api/error-alerts');
-    if (!response.ok) {
-      throw new Error('Failed to error alerts');
-    }
-    if (response.status === 301) {
-      sessionStorage.removeItem('access_token');
-    }
+    checkResponse(response);
     const data = await response.json();
     console.log('Error alerts:', data);
     alerts.value = data;
@@ -233,12 +242,7 @@ async function deleteErrorAlert() {
       },
       body: JSON.stringify({ id: holdAlert.value?.id }),
     });
-    if (!response.ok) {
-      throw new Error('Failed to remove error alerts');
-    }
-    if (response.status === 301) {
-      sessionStorage.removeItem('access_token');
-    }
+    checkResponse(response);
     fetchErrorAlerts();
   } catch (error) {
     console.error('Error remove error alerts:', error);
@@ -251,11 +255,7 @@ const login = async (password: string) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password }),
   });
-
-  if (!response.ok) {
-    console.log("Invalid password");
-    return false;
-  }
+  checkResponse(response);
 
   const data = await response.json();
   sessionStorage.setItem("access_token", data.access_token);
@@ -263,6 +263,13 @@ const login = async (password: string) => {
   console.log("Login successful");
   return true;
 };
+
+async function fetchDevices() {
+  const response = await fetch('/api/devices');
+  checkResponse(response);
+  const data = await response.json();
+  console.log('Discovered devices: ', data);
+}
 
 
 fetchErrorAlerts();

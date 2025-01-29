@@ -168,6 +168,18 @@ async def get_device_info():
 
     return enriched_data
 
+@app.get("/api/devices")
+async def discover_devices():
+    try:
+        devices = await BleakScanner.discover()
+        device_list = [
+            {"name": device.name or "Unknown", "address": device.address}
+            for device in devices
+        ]
+        return {"devices": device_list}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Помилка при пошуку пристроїв: {str(e)}")
+
 @app.get("/api/device-info")
 async def get_device_info():
     data = await data_store.get_device_info()
