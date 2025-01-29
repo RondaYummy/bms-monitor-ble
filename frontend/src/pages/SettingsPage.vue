@@ -142,13 +142,16 @@
 
 
             <template v-if='devices.length'>
-              <h6>Знайдені пристрої:</h6>
+              <h6 class="q-mt-md">Знайдені пристрої:</h6>
+              <p>Щоб приєднатись до девайсу, просто нажміть на нього. Доданий
+                вами девайс, буде підключений приблизно за 10 секунд і ви
+                зможете побачити його на головному екрані.</p>
               <q-list bordered
                       separator>
                 <q-item v-for="device of devices"
                         :key="device.address"
                         clickable
-                        @click="connectToDevice(device.address)"
+                        @click="token && connectToDevice(device.address)"
                         v-ripple>
                   <q-item-section>{{ device?.name }}</q-item-section>
                 </q-item>
