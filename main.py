@@ -168,6 +168,39 @@ async def get_device_info():
 
     return enriched_data
 
+class DeviceRequest(BaseModel):
+    address: str
+
+@app.post("/api/connect-device")
+async def connect_device(request: DeviceRequest):
+    ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
+    try:
+        device_address = request.address.strip().lower()
+        if not device_address:
+            raise HTTPException(status_code=400, detail="Device address is required.")
+
+        async with BleakClient(device_address) as client:
+            if not await client.is_connected():
+                raise HTTPException(status_code=500, detail=f"Failed to connect to device {device_address}")
+
+        if os.path.exists(ALLOWED_DEVICES_FILE):
+            with open(ALLOWED_DEVICES_FILE, "r", encoding="utf-8") as file:
+                allowed_devices = {line.strip().lower() for line in file if line.strip()}
+
+            if device_address in allowed_devices:
+                return JSONResponse(
+                    content={"message": "Device is already in the allowed list."},
+                    status_code=200,
+                )
+
+        with open(ALLOWED_DEVICES_FILE, "a", encoding="utf-8") as file:
+            file.write(f"{device_address}\n")
+
+        return {"message": f"Successfully connected to {device_address} and added to allowed list."}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error connecting to device: {str(e)}")
+    
 @app.get("/api/devices")
 async def discover_devices():
     try:
@@ -484,9 +517,8 @@ async def connect_and_run(device):
             await asyncio.sleep(5)
 
 async def ble_main():
-    allowed_devices = load_allowed_devices()
-
     while True:
+        allowed_devices = load_allowed_devices()
         devices = await BleakScanner.discover()
         if not devices:
             print("No BLE devices found.")

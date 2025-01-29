@@ -141,16 +141,18 @@
                    label="Пошук пристроїв" />
 
 
-            <q-list v-if='devices.length'
-                    bordered
-                    separator>
-              <q-item v-for="device of devices"
-                      :key="device.address"
-                      clickable
-                      v-ripple>
-                <q-item-section>{{ device?.name }}</q-item-section>
-              </q-item>
-            </q-list>
+            <template v-if='devices.length'>
+              <h6>Знайдені пристрої:</h6>
+              <q-list bordered
+                      separator>
+                <q-item v-for="device of devices"
+                        :key="device.address"
+                        clickable
+                        v-ripple>
+                  <q-item-section>{{ device?.name }}</q-item-section>
+                </q-item>
+              </q-list>
+            </template>
           </q-tab-panel>
         </q-tab-panels>
       </div>
@@ -285,6 +287,18 @@ async function fetchDevices() {
   }
 }
 
+async function connectToDevice(address: string) {
+  const response = await fetch('/connect-device', , {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token.value}`
+    },
+    body: JSON.stringify({ address }),
+  });
+  checkResponse(response);
+  await fetchDevices();
+}
 
 fetchErrorAlerts();
 </script>
