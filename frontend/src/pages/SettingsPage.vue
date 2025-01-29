@@ -148,6 +148,7 @@
                 <q-item v-for="device of devices"
                         :key="device.address"
                         clickable
+                        @click="connectToDevice(device.address)"
                         v-ripple>
                   <q-item-section>{{ device?.name }}</q-item-section>
                 </q-item>
@@ -288,7 +289,7 @@ async function fetchDevices() {
 }
 
 async function connectToDevice(address: string) {
-  const response = await fetch('/connect-device', , {
+  const response = await fetch('/connect-device', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
