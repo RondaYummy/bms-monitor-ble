@@ -173,7 +173,7 @@ class DeviceRequest(BaseModel):
     address: str
 
 @app.post("/api/connect-device")
-async def connect_device(request: DeviceRequest):
+async def connect_device(request: DeviceRequest, token: str = Depends(verify_token)):
     ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
     try:
         device_address = request.address.strip().lower()
