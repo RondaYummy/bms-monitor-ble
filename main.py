@@ -508,7 +508,7 @@ async def connect_and_run(device):
                         await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                         log(device.name, f"Cell Info command sent: {cell_info_command.hex()}")
 
-                    await asyncio.sleep(10)
+                    await asyncio.sleep(5)
         except Exception as e:
             log(device.name, f"Error: {str(e)}", force=True)
         finally:
@@ -523,7 +523,7 @@ async def ble_main():
         devices = await BleakScanner.discover()
         if not devices:
             print("No BLE devices found.")
-            await asyncio.sleep(10)
+            await asyncio.sleep(5)
             continue
 
         tasks = []
@@ -536,12 +536,12 @@ async def ble_main():
 
                 log(device.name, f"Connecting to allowed device: {device.address}", force=True)
                 tasks.append(asyncio.create_task(connect_and_run(device)))
-                await asyncio.sleep(10)
+                await asyncio.sleep(5)
         # Чекаємо завершення всіх задач (теоретично вони працюватимуть нескінченно)
         if tasks:
             await asyncio.gather(*tasks)
         else:
-            await asyncio.sleep(10)
+            await asyncio.sleep(5)
 
 def is_device_address_in_cell_info(device_address, cell_info):
     """
