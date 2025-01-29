@@ -161,21 +161,12 @@
 <script setup lang='ts'>
 import { ref } from 'vue';
 import { useSessionStorage } from '../helpers/utils';
-
-interface Alert {
-  id: number;
-  device_address: string;
-  device_name: string;
-  error_code: string;
-  level: 'info' | 'warning' | 'error' | 'critical';
-  message: string;
-  timestamp: string;
-}
+import type { Alert, Device } from '../models';
 
 const tab = ref('Alerts');
 const password = ref('');
 const loadingDevices = ref(false);
-const devices = ref([]);
+const devices = ref<Device[]>([]);
 const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
 const holdAlert = ref<Alert>();
