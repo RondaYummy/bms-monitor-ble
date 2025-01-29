@@ -289,7 +289,7 @@ async function fetchDevices() {
 }
 
 async function connectToDevice(address: string) {
-  const response = await fetch('/connect-device', {
+  const response = await fetch('/api/connect-device', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
