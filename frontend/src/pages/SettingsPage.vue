@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-md">
+  <q-page class="column items-center justify-evenly q-pa-lg">
     <p class='text-center full-width'
        v-if='!token'>
       Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
@@ -180,7 +180,7 @@
         </q-tab-panels>
       </div>
     </div>
-  </div>
+  </q-page>
 </template>
 
 <script setup lang='ts'>
