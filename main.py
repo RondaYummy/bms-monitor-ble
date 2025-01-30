@@ -593,7 +593,7 @@ async def ble_main():
             device_address = device.address.lower()
 
             if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
-                print("SKIPPING")
+                print(f"SKIPPING: {device_address}")
                 continue  # Skip devices that are not JK-BMS
 
             if device.address.lower() in allowed_devices: # Check if the device is allowed
