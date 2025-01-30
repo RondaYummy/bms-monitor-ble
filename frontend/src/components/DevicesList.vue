@@ -96,6 +96,7 @@ async function disconnectDevice(address: string) {
 
 async function reconnectDevice(address: string) {
   try {
+    console.log('address: ', address);
     const response = await fetch('/api/reconnect-device', {
       method: "POST",
       headers: {
