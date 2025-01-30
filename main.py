@@ -253,17 +253,28 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         if not device_address:
             raise HTTPException(status_code=400, detail="Device address is required.")
 
+        # Перевіряємо, чи пристрій вже підключений
+        existing_device_info = await data_store.get_device_info(device_address)
+        if existing_device_info and existing_device_info.get("connected", False):
+            return JSONResponse(content={"message": f"Device {device_address} is already connected."}, status_code=200)
+
         async with ble_scan_lock:
-            async with BleakClient(device_address) as client:
-                await client.connect()
-                
-                if not client.is_connected:
-                    raise HTTPException(status_code=500, detail=f"Failed to connect to device {device_address}")
+            # Переконуємося, що інші процеси сканування не конфліктують
+            log(device_address, "Starting connection process...", force=True)
 
-        with open(ALLOWED_DEVICES_FILE, "a", encoding="utf-8") as file:
-            file.write(f"{device_address}\n")
+        # Додаємо пристрій до списку дозволених, якщо його там ще немає
+        allowed_devices = load_allowed_devices()
+        if device_address not in allowed_devices:
+            with open(ALLOWED_DEVICES_FILE, "a", encoding="utf-8") as file:
+                file.write(f"{device_address}\n")
 
-        return {"message": f"Successfully connected to {device_address} and added to allowed list."}
+        # Створюємо Bleak пристрій для передачі в connect_and_run
+        device = type("Device", (object,), {"address": device_address, "name": f"JK-BMS-{device_address}"})()
+
+        # Запускаємо підключення в асинхронному режимі
+        asyncio.create_task(connect_and_run(device))
+
+        return {"message": f"Connection initiated for {device_address}. Check logs for updates."}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error connecting to device: {str(e)}")
