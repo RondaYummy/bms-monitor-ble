@@ -26,12 +26,13 @@
         </span>
       </div>
 
-      <template v-if="disconnectBtn">
+      <div v-if="disconnectBtn"
+           class="row justify-around">
         <q-btn color="black"
                label="Disconnect" />
         <q-btn color="black"
                label="Reconnect" />
-      </template>
+      </div>
       <q-separator color="orange"
                    inset />
     </li>
