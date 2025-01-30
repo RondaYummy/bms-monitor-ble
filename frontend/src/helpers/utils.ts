@@ -33,8 +33,8 @@ export function formatDuration(seconds: number) {
     { label: 'm', seconds: 2592000 }, // 30 днів
     { label: 'd', seconds: 86400 }, // 24 години
     { label: 'h', seconds: 3600 }, // 60 хвилин
-    { label: 'm', seconds: 60 }, // 60 секунд
-    // { label: 's', seconds: 1 },
+    { label: 'min', seconds: 60 }, // 60 секунд
+    { label: 's', seconds: 1 },
   ];
 
   const result = [];
@@ -42,7 +42,7 @@ export function formatDuration(seconds: number) {
   for (const unit of units) {
     const value = Math.floor(seconds / unit.seconds);
     if (value > 0) {
-      result.push(`${value} ${unit.label}${value > 1 ? 's' : ''}`);
+      result.push(`${value} ${unit.label}`);
       seconds %= unit.seconds;
     }
   }
@@ -53,7 +53,6 @@ export function formatDuration(seconds: number) {
 export function calculateAveragePerIndex(arrays: Array<any>) {
   if (!arrays.length || !arrays[0]?.length) return [];
   const length = arrays[0].length;
-  // Ініціалізація масиву для збереження середніх значень
   const averages = Array(length).fill(0);
   for (let i = 0; i < length; i++) {
     let sum = 0;
