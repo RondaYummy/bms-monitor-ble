@@ -580,7 +580,7 @@ async def connect_and_run(device):
 
 async def ble_main():
     while True:
-        log("ble_main", "Start scanning...")
+        log("ble_main", "Start scanning...", force=True)
         try:
             allowed_devices = load_allowed_devices()
             devices = await BleakScanner.discover()
