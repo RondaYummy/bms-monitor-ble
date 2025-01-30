@@ -194,13 +194,14 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
                     file.write(f"{addr}\n")
 
         device_info = await data_store.get_device_info(device_address)
-        async with BleakClient(device_address) as client:
-            if client.is_connected:
-                await client.disconnect()
-                log(device_address, "Successfully disconnected from BLE device.", force=True)
+        if device_info and device_info.get("connected", False):
+            async with BleakClient(device_address) as client:
+                if client.is_connected:
+                    await client.disconnect()
+                    log(device_address, "Successfully disconnected from BLE device.", force=True)
 
-        device_info["connected"] = False
-        await data_store.update_device_info(device_address, device_info)
+            device_info["connected"] = False
+            await data_store.update_device_info(device_address, device_info)
 
         return {"message": f"Successfully disconnected from {device_address} and removed from allowed list."}
 
@@ -592,6 +593,7 @@ async def ble_main():
             device_address = device.address.lower()
 
             if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
+                print("SKIPPING")
                 continue  # Skip devices that are not JK-BMS
 
             if device.address.lower() in allowed_devices: # Check if the device is allowed
