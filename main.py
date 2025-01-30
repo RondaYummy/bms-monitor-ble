@@ -578,6 +578,12 @@ async def connect_and_run(device):
             log(device.name, "Disconnected, retrying in 5 seconds...", force=True)
             await asyncio.sleep(5)
 
+async def manage_tasks(tasks):
+    try:
+        await asyncio.gather(*tasks)
+    except Exception as e:
+        log("manage_tasks", f"Task error: {str(e)}", force=True)
+
 async def ble_main():
     while True:
         log("ble_main", "Start scanning...", force=True)
@@ -605,10 +611,10 @@ async def ble_main():
 
                     log(device.name, f"Connecting to allowed device: {device.address}", force=True)
                     tasks.append(asyncio.create_task(connect_and_run(device)))
-                    await asyncio.sleep(5)
             if tasks:
-                asyncio.create_task(asyncio.gather(*tasks))
+                asyncio.create_task(manage_tasks(tasks))
 
+            await asyncio.sleep(5)
         except Exception as e:
             print(f"BLE scan error: {str(e)}")
             await asyncio.sleep(5)
