@@ -7,6 +7,7 @@
       </p>
       <q-input filled
                v-model="password"
+               outlined
                label="Введіть пароль"
                label-color="white"
                dense />
@@ -168,6 +169,12 @@
                 </q-item>
               </q-list>
             </template>
+
+            <template>
+              <div class="text-h6">Ваші підключені пристрої:</div>
+
+              <DevicesList :disconnect-btn="true" />
+            </template>
           </q-tab-panel>
         </q-tab-panels>
       </div>
@@ -179,6 +186,7 @@
 import { ref } from 'vue';
 import { useSessionStorage } from '../helpers/utils';
 import type { Alert, Device } from '../models';
+import DevicesList from '../components/DevicesList.vue';
 
 const tab = ref('Alerts');
 const password = ref('');
