@@ -28,6 +28,10 @@
 
       <div v-if="disconnectBtn"
            class="row justify-around q-pa-sm">
+
+        <pre>
+        {{ device }}
+        </pre>
         <q-btn color="black"
                :disable="!token"
                dense
