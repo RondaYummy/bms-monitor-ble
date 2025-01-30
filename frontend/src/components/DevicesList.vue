@@ -29,17 +29,14 @@
       <div v-if="disconnectBtn"
            class="row justify-around q-pa-sm">
 
-        <pre>
-        {{ device }}
-        </pre>
         <q-btn color="black"
                :disable="!token"
                dense
-               @click="disconnectDevice(device.address)"
+               @click="disconnectDevice(device.device_address)"
                label="Disconnect" />
         <q-btn color="black"
                dense
-               @click="reconnectDevice(device.address)"
+               @click="reconnectDevice(device.device_address)"
                :disable="!token"
                label="Reconnect" />
       </div>
