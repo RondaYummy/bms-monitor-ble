@@ -188,26 +188,26 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
             if device_address not in allowed_devices:
                 raise HTTPException(status_code=404, detail="Device not found in allowed list.")
 
-            allowed_devices.remove(device_address)
-            with open(ALLOWED_DEVICES_FILE, "w", encoding="utf-8") as file:
-                for addr in allowed_devices:
-                    file.write(f"{addr}\n")
-
-        device_info = await data_store.get_device_info(device_address)
-        if device_info:
-            device_info["connected"] = False
-            await data_store.update_device_info(device_address, device_info)
-
         try:
             async with BleakClient(device_address) as client:
                 if client.is_connected:
                     await client.disconnect()
+
+                    device_info = await data_store.get_device_info(device_address)
+                    if device_info:
+                        device_info["connected"] = False
+                        await data_store.update_device_info(device_address, device_info)
+
+                    allowed_devices.remove(device_address)
+                    with open(ALLOWED_DEVICES_FILE, "w", encoding="utf-8") as file:
+                        for addr in allowed_devices:
+                            file.write(f"{addr}\n")
                     log(device_address, "Successfully disconnected from BLE device.", force=True)
         except Exception as e:
             log(device_address, f"BLE disconnect failed: {e}", force=True)
-
-            device_info["connected"] = False
-            await data_store.update_device_info(device_address, device_info)
+            if device_info:
+                device_info["connected"] = False
+                await data_store.update_device_info(device_address, device_info)
 
         return {"message": f"Successfully disconnected from {device_address} and removed from allowed list."}
 
