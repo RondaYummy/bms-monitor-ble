@@ -81,7 +81,7 @@ async function disconnectDevice(address: string) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Authorization": `Bearer ${token.value}`
       },
       body: JSON.stringify({ address }),
     });
@@ -100,7 +100,7 @@ async function reconnectDevice(address: string) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
+        "Authorization": `Bearer ${token.value}`
       },
       body: JSON.stringify({ address }),
     });
