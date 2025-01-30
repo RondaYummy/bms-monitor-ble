@@ -582,6 +582,7 @@ async def connect_and_run(device):
 async def ble_main():
     while True:
         allowed_devices = load_allowed_devices()
+        print(f"allowed_devices: {allowed_devices}")
         devices = await BleakScanner.discover()
         if not devices:
             print("No BLE devices found.")
@@ -596,7 +597,7 @@ async def ble_main():
                 print(f"SKIPPING: {device_address}")
                 continue  # Skip devices that are not JK-BMS
 
-            if device.address.lower() in allowed_devices: # Check if the device is allowed
+            if device_address in allowed_devices: # Check if the device is allowed
                 device_info = await data_store.get_device_info(device.name) # Check if the device is already connected
                 if device_info and device_info.get("connected", False):
                     log(device.name, f"Device {device.name} is already connected, skipping.")
