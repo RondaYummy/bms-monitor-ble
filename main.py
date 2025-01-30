@@ -195,10 +195,16 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
 
         device_info = await data_store.get_device_info(device_address)
         if device_info:
+            device_info["connected"] = False
+            await data_store.update_device_info(device_address, device_info)
+
+        try:
             async with BleakClient(device_address) as client:
                 if client.is_connected:
                     await client.disconnect()
                     log(device_address, "Successfully disconnected from BLE device.", force=True)
+        except Exception as e:
+            log(device_address, f"BLE disconnect failed: {e}", force=True)
 
             device_info["connected"] = False
             await data_store.update_device_info(device_address, device_info)
