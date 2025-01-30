@@ -581,37 +581,38 @@ async def connect_and_run(device):
 
 async def ble_main():
     while True:
-        allowed_devices = load_allowed_devices()
-        print(f"allowed_devices: {allowed_devices}")
-        devices = await BleakScanner.discover()
-        if not devices:
-            print("No BLE devices found.")
-            await asyncio.sleep(5)
-            continue
-
-        tasks = []
-        for device in devices:
-            device_address = device.address.lower()
-
-            if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
-                print(f"SKIPPING: {device_address}")
-                continue  # Skip devices that are not JK-BMS
-
-            if device_address in allowed_devices: # Check if the device is allowed
-                device_info = await data_store.get_device_info(device.name) # Check if the device is already connected
-                if device_info and device_info.get("connected", False):
-                    log(device.name, f"Device {device.name} is already connected, skipping.")
-                    continue  # Skip if the device is already connected
-
-                log(device.name, f"Connecting to allowed device: {device.address}", force=True)
-                tasks.append(asyncio.create_task(connect_and_run(device)))
+        try:
+            allowed_devices = load_allowed_devices()
+            devices = await BleakScanner.discover()
+            if not devices:
+                print("No BLE devices found.")
                 await asyncio.sleep(5)
-        # Чекаємо завершення всіх задач (теоретично вони працюватимуть нескінченно)
-        if tasks:
-            await asyncio.gather(*tasks)
-        else:
-            await asyncio.sleep(5)
+                continue
 
+            tasks = []
+            for device in devices:
+                device_address = device.address.lower()
+
+                if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
+                    print(f"SKIPPING: {device_address}")
+                    continue  # Skip devices that are not JK-BMS
+
+                if device_address in allowed_devices: # Check if the device is allowed
+                    device_info = await data_store.get_device_info(device.name) # Check if the device is already connected
+                    if device_info and device_info.get("connected", False):
+                        log(device.name, f"Device {device.name} is already connected, skipping.")
+                        continue  # Skip if the device is already connected
+
+                    log(device.name, f"Connecting to allowed device: {device.address}", force=True)
+                    tasks.append(asyncio.create_task(connect_and_run(device)))
+                    await asyncio.sleep(5)
+            # Чекаємо завершення всіх задач (теоретично вони працюватимуть нескінченно)
+            if tasks:
+                await asyncio.gather(*tasks)
+        except Exception as e:
+            print(f"BLE scan error: {str(e)}")
+            await asyncio.sleep(5)
+                                    
 def is_device_address_in_cell_info(device_address, cell_info):
     """
     Checks if `device_address' exists in the nested values of `cell_info'.
