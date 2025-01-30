@@ -19,6 +19,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
+from fastapi import Body
 
 from python.colors import *
 import python.db as db
@@ -173,10 +174,10 @@ async def get_device_info():
 class DeviceRequest(BaseModel):
     address: str
 @app.post("/api/disconnect-device")
-async def disconnect_device(request: DeviceRequest, token: str = Depends(verify_token)):
+async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depends(verify_token)):
     ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
     try:
-        device_address = request.address.strip().lower()
+        device_address = body.address.strip().lower()
         if not device_address:
             raise HTTPException(status_code=400, detail="Device address is required.")
 
@@ -203,10 +204,10 @@ async def disconnect_device(request: DeviceRequest, token: str = Depends(verify_
         raise HTTPException(status_code=500, detail=f"Error disconnecting device: {str(e)}")
 
 @app.post("/api/reconnect-device")
-async def reconnect_device(request: DeviceRequest, token: str = Depends(verify_token)):
+async def reconnect_device(body: DeviceRequest = Body(...), token: str = Depends(verify_token)):
     ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
     try:
-        device_address = request.address.strip().lower()
+        device_address = body.address.strip().lower()
         if not device_address:
             raise HTTPException(status_code=400, detail="Device address is required.")
 
