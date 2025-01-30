@@ -178,45 +178,50 @@ class DeviceRequest(BaseModel):
 @app.post("/api/disconnect-device")
 async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depends(verify_token)):
     ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
-    try:
-        device_address = body.address.strip().lower()
-        if not device_address:
-            raise HTTPException(status_code=400, detail="Device address is required.")
+    device_address = body.address.strip().lower()
 
+    if not device_address:
+        raise HTTPException(status_code=400, detail="Device address is required.")
+
+    try:
+        allowed_devices = set()
         if os.path.exists(ALLOWED_DEVICES_FILE):
             with open(ALLOWED_DEVICES_FILE, "r", encoding="utf-8") as file:
                 allowed_devices = {line.strip().lower() for line in file if line.strip()}
 
-            if device_address not in allowed_devices:
-                raise HTTPException(status_code=404, detail="Device not found in allowed list.")
+        if device_address not in allowed_devices:
+            raise HTTPException(status_code=404, detail="Device not found in allowed list.")
 
-        try:
+        if device_address not in device_locks:
+            device_locks[device_address] = asyncio.Lock()
+
+        async with device_locks[device_address]:  # Уникаємо одночасного доступу
             async with BleakClient(device_address) as client:
                 if client.is_connected:
                     await client.disconnect()
-                else:
-                    log(device_address, "Device is already disconnected.", force=True)
-
-                    device_info = await data_store.get_device_info(device_address)
-                    if device_info:
-                        device_info["connected"] = False
-                        await data_store.update_device_info(device_address, device_info)
-
-                    allowed_devices.remove(device_address)
-                    with open(ALLOWED_DEVICES_FILE, "w", encoding="utf-8") as file:
-                        for addr in allowed_devices:
-                            file.write(f"{addr}\n")
                     log(device_address, "Successfully disconnected from BLE device.", force=True)
-        except Exception as e:
-            log(device_address, f"BLE disconnect failed: {e}", force=True)
+
             device_info = await data_store.get_device_info(device_address)
             if device_info:
                 device_info["connected"] = False
                 await data_store.update_device_info(device_address, device_info)
 
+            allowed_devices.remove(device_address)
+            with open(ALLOWED_DEVICES_FILE, "w", encoding="utf-8") as file:
+                for addr in allowed_devices:
+                    file.write(f"{addr}\n")
+
         return {"message": f"Successfully disconnected from {device_address} and removed from allowed list."}
 
     except Exception as e:
+        log(device_address, f"BLE disconnect failed: {e}", force=True)
+
+        # Якщо сталася помилка, все одно змінюємо статус на `connected = False`
+        device_info = await data_store.get_device_info(device_address)
+        if device_info:
+            device_info["connected"] = False
+            await data_store.update_device_info(device_address, device_info)
+
         raise HTTPException(status_code=500, detail=f"Error disconnecting device: {str(e)}")
 
 @app.post("/api/reconnect-device")
@@ -259,7 +264,6 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         if not device_address:
             raise HTTPException(status_code=400, detail="Device address is required.")
 
-        # Перевіряємо, чи пристрій вже підключений
         existing_device_info = await data_store.get_device_info(device_address)
         if existing_device_info and existing_device_info.get("connected", False):
             return JSONResponse(content={"message": f"Device {device_address} is already connected."}, status_code=200)
@@ -267,16 +271,12 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         async with ble_scan_lock:
             log(device_address, "Starting connection process...", force=True)
 
-        # Додаємо пристрій до списку дозволених, якщо його там ще немає
         allowed_devices = load_allowed_devices()
         if device_address not in allowed_devices:
             with open(ALLOWED_DEVICES_FILE, "a", encoding="utf-8") as file:
                 file.write(f"{device_address}\n")
 
-        # Створюємо Bleak пристрій для передачі в connect_and_run
         device = type("Device", (object,), {"address": device_address, "name": device_name})()
-
-        # Запускаємо підключення в асинхронному режимі
         asyncio.create_task(connect_and_run(device))
 
         return {"message": f"Connection initiated for {device_address}. Check logs for updates."}
