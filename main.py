@@ -621,6 +621,7 @@ async def ble_main():
             log("ble_main", "Start scanning...", force=True)
             try:
                 allowed_devices = load_allowed_devices()
+                print(f"allowed_devices: {allowed_devices}")
                 devices = await BleakScanner.discover()
                 if not devices:
                     print("No BLE devices found.")
