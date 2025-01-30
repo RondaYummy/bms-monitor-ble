@@ -630,6 +630,7 @@ async def ble_main():
                 tasks = []
                 for device in devices:
                     device_address = device.address.lower()
+                    print(f"device_address: {device_address}")
 
                     if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
                         continue  # Skip devices that are not JK-BMS
@@ -643,7 +644,6 @@ async def ble_main():
                         log(device.name, f"Connecting to allowed device: {device.address}", force=True)
                         tasks.append(asyncio.create_task(connect_and_run(device)))
                         await asyncio.sleep(5)
-                # Чекаємо завершення всіх задач (теоретично вони працюватимуть нескінченно)
                 if tasks:
                     asyncio.create_task(asyncio.gather(*tasks))
             except Exception as e:
