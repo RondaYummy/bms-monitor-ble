@@ -21,6 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from fastapi import Body
+from async_timeout import timeout
 
 from python.colors import *
 import python.db as db
@@ -175,6 +176,7 @@ async def get_device_info():
 class DeviceRequest(BaseModel):
     address: str
     name: Optional[str] = None
+import asyncio
 @app.post("/api/disconnect-device")
 async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depends(verify_token)):
     ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
@@ -195,11 +197,14 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
         if device_address not in device_locks:
             device_locks[device_address] = asyncio.Lock()
 
-        async with device_locks[device_address]:  # Уникаємо одночасного доступу
+        async with device_locks[device_address]:
             async with BleakClient(device_address) as client:
-                if client.is_connected:
-                    await client.disconnect()
-                    log(device_address, "Successfully disconnected from BLE device.", force=True)
+                try:
+                    async with timeout(5):
+                        await client.disconnect()
+                        log(device_address, "Successfully disconnected from BLE device.", force=True)
+                except asyncio.TimeoutError:
+                    log(device_address, "BLE disconnect timeout. Skipping.", force=True)
 
             device_info = await data_store.get_device_info(device_address)
             if device_info:
@@ -216,7 +221,6 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
     except Exception as e:
         log(device_address, f"BLE disconnect failed: {e}", force=True)
 
-        # Якщо сталася помилка, все одно змінюємо статус на `connected = False`
         device_info = await data_store.get_device_info(device_address)
         if device_info:
             device_info["connected"] = False
