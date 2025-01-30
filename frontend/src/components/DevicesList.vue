@@ -27,10 +27,16 @@
       </div>
 
       <div v-if="disconnectBtn"
-           class="row justify-around">
+           class="row justify-around q-pa-sm">
         <q-btn color="black"
+               :disable="!props.token"
+               dense
+               @click="disconnectDevice(device.address)"
                label="Disconnect" />
         <q-btn color="black"
+               dense
+               @click="reconnectDevice(device.address)"
+               :disable="!props.token"
                label="Reconnect" />
       </div>
       <q-separator color="orange"
@@ -44,7 +50,7 @@ import { formatDuration } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
 
 const devicesList = ref();
-defineProps(['disconnectBtn']);
+const props = defineProps(['disconnectBtn', 'token']);
 
 async function fetchDeviceInfo() {
   try {
@@ -57,6 +63,48 @@ async function fetchDeviceInfo() {
     devicesList.value = data;
   } catch (error) {
     console.error('Error fetching device info:', error);
+  }
+}
+
+async function disconnectDevice(address: string) {
+  try {
+    const response = await fetch('/api/disconnect-device', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${props.token}`
+      },
+      body: JSON.stringify({ address }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to disconnect device info');
+    }
+    const data = await response.json();
+    console.log('Device Info:', data);
+    devicesList.value = data;
+  } catch (error) {
+    console.error('Error disconnect device info:', error);
+  }
+}
+
+async function reconnectDevice(address: string) {
+  try {
+    const response = await fetch('/api/reconnect-device', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${props.token}`
+      },
+      body: JSON.stringify({ address }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to reconnect device info');
+    }
+    const data = await response.json();
+    console.log('Device Info:', data);
+    devicesList.value = data;
+  } catch (error) {
+    console.error('Error reconnect device info:', error);
   }
 }
 
