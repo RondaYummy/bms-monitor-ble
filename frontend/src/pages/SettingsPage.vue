@@ -2,6 +2,9 @@
   <div class="q-pa-md">
     <div class='row justify-center q-gutter-sm q-mb-md'
          v-if='!token'>
+      <p>
+        Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
+      </p>
       <q-input filled
                v-model="password"
                dense />
@@ -37,7 +40,8 @@
 
             <div class='column items-center justify-center'>
               <p>
-                Тут відображаються всі важливі сповіщення про роботу системи
+                Тут ви можете переглянути всі важливі сповіщення про роботу
+                системи.
               </p>
 
               <div class='row justify-center'>
@@ -122,7 +126,10 @@
 
               </q-banner>
 
-              <p v-if="!alerts?.length">Не знайдено жодних повідомлень.</p>
+              <p v-if="!alerts?.length"
+                 class="level">
+                Жодних "{{ alerts[0]?.level }}" повідомлень не знайдено.
+              </p>
             </div>
           </q-tab-panel>
 
@@ -311,5 +318,10 @@ fetchErrorAlerts();
 <style scoped lang='scss'>
 .alerts-box {
   gap: 10px;
+}
+
+.level {
+  text-transform: capitalize;
+  font-weight: 600;
 }
 </style>

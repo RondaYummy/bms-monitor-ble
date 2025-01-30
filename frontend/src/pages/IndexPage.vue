@@ -155,7 +155,8 @@
 
     <q-btn v-if="!isInstalled()"
            @click="installApp"
-           label="Install App" />
+           color="black"
+           label="Встановити як додаток" />
 
     <BMSChart :tab="tab" />
 
