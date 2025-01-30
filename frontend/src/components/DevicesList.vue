@@ -53,12 +53,20 @@ const token = useSessionStorage("access_token");
 const devicesList = ref();
 defineProps(['disconnectBtn']);
 
+function checkResponse(response: Response) {
+  if (!response.ok) {
+    throw new Error('Failed to error alerts');
+  }
+  if (response.status === 301) {
+    sessionStorage.removeItem('access_token');
+    throw new Error('Have no access');
+  }
+}
+
 async function fetchDeviceInfo() {
   try {
     const response = await fetch('/api/device-info');
-    if (!response.ok) {
-      throw new Error('Failed to fetch device info');
-    }
+    checkResponse(response);
     const data = await response.json();
     console.log('Device Info:', data);
     devicesList.value = data;
@@ -77,9 +85,7 @@ async function disconnectDevice(address: string) {
       },
       body: JSON.stringify({ address }),
     });
-    if (!response.ok) {
-      throw new Error('Failed to disconnect device info');
-    }
+    checkResponse(response);
     const data = await response.json();
     console.log('Device Info:', data);
     devicesList.value = data;
@@ -98,9 +104,7 @@ async function reconnectDevice(address: string) {
       },
       body: JSON.stringify({ address }),
     });
-    if (!response.ok) {
-      throw new Error('Failed to reconnect device info');
-    }
+    checkResponse(response);
     const data = await response.json();
     console.log('Device Info:', data);
     devicesList.value = data;
