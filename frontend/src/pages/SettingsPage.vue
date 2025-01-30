@@ -177,7 +177,8 @@
               </q-list>
             </template>
 
-            <q-separator color="white" />
+            <q-separator class="q-mt-md"
+                         color="white" />
 
             <div>
               <div class="text-h6 q-mt-md">Ваші підключені пристрої:</div>
