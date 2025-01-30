@@ -327,7 +327,10 @@ async function connectToDevice(address: string, name: string) {
     body: JSON.stringify({ address, name }),
   });
   checkResponse(response);
-  await fetchDevices();
+
+  setTimeout(async () => {
+    await fetchDevices();
+  }, 3000);
 }
 
 fetchErrorAlerts();
