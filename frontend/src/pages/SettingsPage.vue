@@ -246,7 +246,7 @@ function checkResponse(response: Response) {
   if (!response.ok) {
     throw new Error('Failed to error alerts');
   }
-  if (response.status === 301) {
+  if (response.status === 401) {
     sessionStorage.removeItem('access_token');
     throw new Error('Have no access');
   }
