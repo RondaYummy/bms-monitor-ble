@@ -1,6 +1,6 @@
 <template>
   <div class="q-pa-md">
-    <div class='row justify-center q-gutter-sm'
+    <div class='row justify-center q-gutter-sm q-mb-md'
          v-if='!token'>
       <q-input filled
                v-model="password"
