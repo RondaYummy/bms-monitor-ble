@@ -592,6 +592,8 @@ async def ble_main():
             tasks = []
             for device in devices:
                 device_address = device.address.lower()
+                log("ble_main", "Check devices...", force=True)
+                allowed_devices = load_allowed_devices()
 
                 if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
                     continue  # Skip devices that are not JK-BMS
