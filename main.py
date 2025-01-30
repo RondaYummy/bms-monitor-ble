@@ -590,7 +590,7 @@ async def ble_main():
         tasks = []
         for device in devices:
             device_address = device.address.lower()
-            print(f"{device_address} and: {oui}")
+            print(f"{device_address} and: {JK_BMS_OUI}")
 
             if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
                 continue  # Skip devices that are not JK-BMS
