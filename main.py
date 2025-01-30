@@ -254,8 +254,6 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
 
         async with ble_scan_lock:
             async with BleakClient(device_address) as client:
-                if client.is_connected:
-                    await client.disconnect()
                 await client.connect()
                 
                 if not client.is_connected:
