@@ -252,19 +252,14 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         if not device_address:
             raise HTTPException(status_code=400, detail="Device address is required.")
 
-        async with BleakClient(device_address) as client:
-            if not client.is_connected:
-                raise HTTPException(status_code=500, detail=f"Failed to connect to device {device_address}")
-
-        if os.path.exists(ALLOWED_DEVICES_FILE):
-            with open(ALLOWED_DEVICES_FILE, "r", encoding="utf-8") as file:
-                allowed_devices = {line.strip().lower() for line in file if line.strip()}
-
-            if device_address in allowed_devices:
-                return JSONResponse(
-                    content={"message": "Device is already in the allowed list."},
-                    status_code=200,
-                )
+        async with ble_scan_lock:
+            async with BleakClient(device_address) as client:
+                if client.is_connected:
+                    await client.disconnect()
+                await client.connect()
+                
+                if not client.is_connected:
+                    raise HTTPException(status_code=500, detail=f"Failed to connect to device {device_address}")
 
         with open(ALLOWED_DEVICES_FILE, "a", encoding="utf-8") as file:
             file.write(f"{device_address}\n")
@@ -273,6 +268,7 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error connecting to device: {str(e)}")
+
     
 @app.get("/api/devices")
 async def discover_devices():
