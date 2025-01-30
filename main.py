@@ -37,7 +37,7 @@ CMD_HEADER = bytes([0xAA, 0x55, 0x90, 0xEB])
 CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Device Info Frame
 CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
-JK_BMS_OUI = {"C8:47:80"} # Через кому можна додати усі початки дял девайсів від JK-BMS
+JK_BMS_OUI = {"c8:47:80"} # Через кому можна додати усі початки дял девайсів від JK-BMS
 
 PASSWORD = "123456"
 TOKEN_LIFETIME_SECONDS = 3600
@@ -590,7 +590,6 @@ async def ble_main():
         tasks = []
         for device in devices:
             device_address = device.address.lower()
-            print(f"{device_address} and: {JK_BMS_OUI}")
 
             if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
                 continue  # Skip devices that are not JK-BMS
