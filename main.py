@@ -37,6 +37,7 @@ CMD_HEADER = bytes([0xAA, 0x55, 0x90, 0xEB])
 CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Device Info Frame
 CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
+JK_BMS_OUI = {"C8:47:80"} # Через кому можна додати усі початки дял девайсів від JK-BMS
 
 PASSWORD = "123456"
 TOKEN_LIFETIME_SECONDS = 3600
@@ -266,12 +267,13 @@ async def discover_devices():
     try:
         devices = await BleakScanner.discover()
         device_list = [
-            {"name": device.name, "address": device.address}
-            for device in devices if device.name  # Filter only devices with name
+            {"name": device.name, "address": device.address.lower()}
+            for device in devices
+            if device.name and device.address.lower().startswith(tuple(JK_BMS_OUI))
         ]
         
         if not device_list:
-            return JSONResponse(content={"message": "No device with name found."}, status_code=404)
+            return JSONResponse(content={"message": "No JK-BMS devices found."}, status_code=404)
 
         return {"devices": device_list}
     except Exception as e:
@@ -587,6 +589,11 @@ async def ble_main():
 
         tasks = []
         for device in devices:
+            device_address = device.address.lower()
+
+            if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
+                continue  # Skip devices that are not JK-BMS
+
             if device.address.lower() in allowed_devices: # Check if the device is allowed
                 device_info = await data_store.get_device_info(device.name) # Check if the device is already connected
                 if device_info and device_info.get("connected", False):
