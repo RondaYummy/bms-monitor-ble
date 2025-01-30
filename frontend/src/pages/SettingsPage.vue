@@ -1,19 +1,20 @@
 <template>
   <div class="q-pa-md">
-    <div class='row justify-center q-gutter-sm q-mb-md'
+    <p class='text-center full-width'
+       v-if='!token'>
+      Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
+    </p>
+
+    <div class='row justify-center no-wrap q-gutter-sm q-mb-md'
          v-if='!token'>
-      <p class='text-center full-width'>
-        Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
-      </p>
-      <q-input filled
-               v-model="password"
+      <q-input v-model="password"
                outlined
                label="Введіть пароль"
                label-color="white"
                dense />
       <q-btn @click="login(password)"
              color="black"
-             label="Авторизуватись" />
+             label="Підтвердити" />
     </div>
 
     <div>
