@@ -136,7 +136,8 @@
             <p>Тут ви можете керувати вашими пристроями...</p>
 
             <q-btn :loading="loadingDevices"
-                   @click="fetchDevices"
+                   @click="token && fetchDevices"
+                   :disable="!token"
                    color="black"
                    label="Пошук пристроїв" />
 
