@@ -128,7 +128,8 @@
 
               <p v-if="!alerts?.length"
                  class="level">
-                Жодних "{{ alerts[0]?.level }}" повідомлень не знайдено.
+                Жодних {{ selectedLevel ? `"${selectedLevel}"` : '' }}
+                повідомлень не знайдено.
               </p>
             </div>
           </q-tab-panel>
@@ -181,6 +182,7 @@ const tab = ref('Alerts');
 const password = ref('');
 const loadingDevices = ref(false);
 const devices = ref<Device[]>([]);
+const selectedLevel = ref();
 const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
 const holdAlert = ref<Alert>();
@@ -192,6 +194,7 @@ function filterAlertsByLevel(level?: string): void {
     alerts.value = alertsMain.value;
     return;
   }
+  selectedLevel.value = level;
   alerts.value = alertsMain.value?.filter((a) => a.level === level);
 }
 
