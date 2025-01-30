@@ -5,6 +5,7 @@ from copy import deepcopy
 import os
 import yaml
 from uuid import uuid4
+from typing import Optional
 
 import uvicorn
 from bleak import BleakClient, BleakScanner
@@ -173,6 +174,7 @@ async def get_device_info():
 
 class DeviceRequest(BaseModel):
     address: str
+    name: Optional[str] = None
 @app.post("/api/disconnect-device")
 async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depends(verify_token)):
     ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
@@ -252,6 +254,8 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
     ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
     try:
         device_address = request.address.strip().lower()
+        device_name = request.device_name.strip()
+
         if not device_address:
             raise HTTPException(status_code=400, detail="Device address is required.")
 
@@ -261,7 +265,6 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
             return JSONResponse(content={"message": f"Device {device_address} is already connected."}, status_code=200)
 
         async with ble_scan_lock:
-            # Переконуємося, що інші процеси сканування не конфліктують
             log(device_address, "Starting connection process...", force=True)
 
         # Додаємо пристрій до списку дозволених, якщо його там ще немає
@@ -271,7 +274,7 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
                 file.write(f"{device_address}\n")
 
         # Створюємо Bleak пристрій для передачі в connect_and_run
-        device = type("Device", (object,), {"address": device_address, "name": f"JK-BMS-{device_address}"})()
+        device = type("Device", (object,), {"address": device_address, "name": device_name})()
 
         # Запускаємо підключення в асинхронному режимі
         asyncio.create_task(connect_and_run(device))

@@ -168,7 +168,7 @@
                 <q-item v-for="device of devices"
                         :key="device.address"
                         clickable
-                        @click="token && connectToDevice(device.address)"
+                        @click="token && connectToDevice(device.address, device.name)"
                         v-ripple>
                   <q-item-section>{{ device?.name }}</q-item-section>
                 </q-item>
@@ -317,14 +317,14 @@ async function fetchDevices() {
   }
 }
 
-async function connectToDevice(address: string) {
+async function connectToDevice(address: string, name: string) {
   const response = await fetch('/api/connect-device', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token.value}`
     },
-    body: JSON.stringify({ address }),
+    body: JSON.stringify({ address, name }),
   });
   checkResponse(response);
   await fetchDevices();
