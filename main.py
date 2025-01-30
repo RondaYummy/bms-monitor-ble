@@ -254,7 +254,7 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
     ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
     try:
         device_address = request.address.strip().lower()
-        device_name = request.device_name.strip()
+        device_name = request.name.strip()
 
         if not device_address:
             raise HTTPException(status_code=400, detail="Device address is required.")
