@@ -2,7 +2,7 @@
   <div class="q-pa-md">
     <div class='row justify-center q-gutter-sm q-mb-md'
          v-if='!token'>
-      <p>
+      <p class='text-center'>
         Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
       </p>
       <q-input filled
@@ -127,7 +127,7 @@
               </q-banner>
 
               <p v-if="!alerts?.length"
-                 class="level">
+                 class="level q-mt-md">
                 Жодних {{ selectedLevel ? `"${selectedLevel}"` : '' }}
                 повідомлень не знайдено.
               </p>
