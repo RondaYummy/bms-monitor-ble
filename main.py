@@ -581,6 +581,7 @@ async def connect_and_run(device):
 
 async def ble_main():
     while True:
+        log("ble_main", "Start scanning...")
         try:
             allowed_devices = load_allowed_devices()
             devices = await BleakScanner.discover()
@@ -594,7 +595,6 @@ async def ble_main():
                 device_address = device.address.lower()
 
                 if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
-                    print(f"SKIPPING: {device_address}")
                     continue  # Skip devices that are not JK-BMS
 
                 if device_address in allowed_devices: # Check if the device is allowed
