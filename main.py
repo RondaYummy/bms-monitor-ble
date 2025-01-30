@@ -526,92 +526,101 @@ async def notification_handler(device, data, device_name, device_address):
             log(device_name, f"Unknown frame type {frame_type}: {buffer}", force=True)
             await data_store.clear_buffer(device_name)
 
+device_locks = {}
 async def connect_and_run(device):
-    while True:  # Cycle to reconnect
-        try:
-            device_info_data = await data_store.get_device_info(device.name)
-            if not device_info_data:
-                device_info_data = {
-                    "device_name": device.name,
-                    "device_address": device.address,
-                    "connected": False
-                }
-            await data_store.update_device_info(device.name, device_info_data)
+    device_address = device.address.lower()
+    
+    if device_address not in device_locks:
+        device_locks[device_address] = asyncio.Lock()
 
-            async with BleakClient(device.address) as client:
-                device_info_data["connected"] = True
+    async with device_locks[device_address]:
+        while True:  # Cycle to reconnect
+            try:
+                device_info_data = await data_store.get_device_info(device.name)
+                if not device_info_data:
+                    device_info_data = {
+                        "device_name": device.name,
+                        "device_address": device.address,
+                        "connected": False
+                    }
                 await data_store.update_device_info(device.name, device_info_data)
-                log(device.name, f"Connected and notification started", force=True)
 
-                def handle_notification(sender, data):
-                    asyncio.create_task(notification_handler(device, data, device.name, device.address))
+                async with BleakClient(device.address) as client:
+                    device_info_data["connected"] = True
+                    await data_store.update_device_info(device.name, device_info_data)
+                    log(device.name, f"Connected and notification started", force=True)
 
-                await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
+                    def handle_notification(sender, data):
+                        asyncio.create_task(notification_handler(device, data, device.name, device.address))
 
-                while True:  # Постійне опитування
-                # Перевіряємо, чи пристрій ще підключений
-                    device_info_data = await data_store.get_device_info(device.name)
-                    if not device_info_data.get("connected", False):
-                        log(device.name, "Device has been disconnected. Stopping polling.", force=True)
-                        break
+                    await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
 
-                    device_info_data = await data_store.get_device_info(device.name)
-                    if not device_info_data or "frame_type" not in device_info_data:
-                        # Якщо інформація про пристрій ще не збережена, надсилаємо команду
-                        device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
-                        await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
-                        log(device.name, f"Device Info command sent: {device_info_command.hex()}")
-                        await asyncio.sleep(1)
+                    while True:  # Постійне опитування
+                    # Перевіряємо, чи пристрій ще підключений
+                        device_info_data = await data_store.get_device_info(device.name)
+                        if not device_info_data.get("connected", False):
+                            log(device.name, "Device has been disconnected. Stopping polling.", force=True)
+                            break
 
-                    # Перевіряємо, чи потрібно надсилати cell_info_command
-                    last_update = await data_store.get_last_cell_info_update(device.name)
-                    if not last_update or (datetime.now() - last_update).total_seconds() > 30:
-                        cell_info_command = create_command(CMD_TYPE_CELL_INFO)
-                        await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
-                        log(device.name, f"Cell Info command sent: {cell_info_command.hex()}")
+                        device_info_data = await data_store.get_device_info(device.name)
+                        if not device_info_data or "frame_type" not in device_info_data:
+                            # Якщо інформація про пристрій ще не збережена, надсилаємо команду
+                            device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
+                            await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
+                            log(device.name, f"Device Info command sent: {device_info_command.hex()}")
+                            await asyncio.sleep(1)
 
-                    await asyncio.sleep(5)
-        except Exception as e:
-            log(device.name, f"Error: {str(e)}", force=True)
-        finally:
-            device_info_data["connected"] = False
-            await data_store.update_device_info(device.name, device_info_data)
-            log(device.name, "Disconnected, retrying in 5 seconds...", force=True)
-            await asyncio.sleep(5)
+                        # Перевіряємо, чи потрібно надсилати cell_info_command
+                        last_update = await data_store.get_last_cell_info_update(device.name)
+                        if not last_update or (datetime.now() - last_update).total_seconds() > 30:
+                            cell_info_command = create_command(CMD_TYPE_CELL_INFO)
+                            await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
+                            log(device.name, f"Cell Info command sent: {cell_info_command.hex()}")
 
+                        await asyncio.sleep(5)
+            except Exception as e:
+                log(device.name, f"Error: {str(e)}", force=True)
+            finally:
+                device_info_data["connected"] = False
+                await data_store.update_device_info(device.name, device_info_data)
+                log(device.name, "Disconnected, retrying in 5 seconds...", force=True)
+                await asyncio.sleep(5)
+
+ble_scan_lock = asyncio.Lock()
 async def ble_main():
     while True:
-        log("ble_main", "Start scanning...")
-        try:
-            allowed_devices = load_allowed_devices()
-            devices = await BleakScanner.discover()
-            if not devices:
-                print("No BLE devices found.")
-                await asyncio.sleep(5)
-                continue
-
-            tasks = []
-            for device in devices:
-                device_address = device.address.lower()
-
-                if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
-                    continue  # Skip devices that are not JK-BMS
-
-                if device_address in allowed_devices: # Check if the device is allowed
-                    device_info = await data_store.get_device_info(device.name) # Check if the device is already connected
-                    if device_info and device_info.get("connected", False):
-                        log(device.name, f"Device {device.name} is already connected, skipping.")
-                        continue  # Skip if the device is already connected
-
-                    log(device.name, f"Connecting to allowed device: {device.address}", force=True)
-                    tasks.append(asyncio.create_task(connect_and_run(device)))
+        async with ble_scan_lock:
+            log("ble_main", "Start scanning...", force=True)
+            try:
+                allowed_devices = load_allowed_devices()
+                devices = await BleakScanner.discover()
+                if not devices:
+                    print("No BLE devices found.")
                     await asyncio.sleep(5)
-            # Чекаємо завершення всіх задач (теоретично вони працюватимуть нескінченно)
-            if tasks:
-                await asyncio.gather(*tasks)
-        except Exception as e:
-            print(f"BLE scan error: {str(e)}")
-            await asyncio.sleep(5)
+                    continue
+
+                tasks = []
+                for device in devices:
+                    device_address = device.address.lower()
+
+                    if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
+                        continue  # Skip devices that are not JK-BMS
+
+                    if device_address in allowed_devices: # Check if the device is allowed
+                        device_info = await data_store.get_device_info(device.name) # Check if the device is already connected
+                        if device_info and device_info.get("connected", False):
+                            log(device.name, f"Device {device.name} is already connected, skipping.")
+                            continue  # Skip if the device is already connected
+
+                        log(device.name, f"Connecting to allowed device: {device.address}", force=True)
+                        tasks.append(asyncio.create_task(connect_and_run(device)))
+                        await asyncio.sleep(5)
+                # Чекаємо завершення всіх задач (теоретично вони працюватимуть нескінченно)
+                if tasks:
+                    asyncio.create_task(asyncio.gather(*tasks))
+            except Exception as e:
+                print(f"BLE scan error: {str(e)}")
+                await asyncio.sleep(5)
                                     
 def is_device_address_in_cell_info(device_address, cell_info):
     """
