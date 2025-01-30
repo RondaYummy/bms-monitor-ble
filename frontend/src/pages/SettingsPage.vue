@@ -1,5 +1,5 @@
 <template>
-  <q-page class="column items-center justify-evenly q-pa-lg">
+  <q-page class="column items-center q-pa-lg">
     <p class='text-center full-width'
        v-if='!token'>
       Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
