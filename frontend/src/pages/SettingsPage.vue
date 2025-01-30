@@ -4,6 +4,10 @@
        v-if='!token'>
       Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
     </p>
+    <p class='text-center full-width'
+       v-if='!token'>
+      Ви успішно авторизовані та можете змінювати налаштування.
+    </p>
 
     <div class='row justify-center no-wrap q-gutter-sm q-mb-md'
          v-if='!token'>
