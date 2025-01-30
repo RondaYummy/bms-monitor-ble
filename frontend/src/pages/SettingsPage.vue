@@ -172,7 +172,7 @@
             </template>
 
             <div>
-              <div class="text-h6">Ваші підключені пристрої:</div>
+              <div class="text-h6 q-mt-md">Ваші підключені пристрої:</div>
 
               <DevicesList :disconnect-btn="true" />
             </div>

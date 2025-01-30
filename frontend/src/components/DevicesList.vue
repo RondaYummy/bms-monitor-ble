@@ -29,14 +29,14 @@
       <div v-if="disconnectBtn"
            class="row justify-around q-pa-sm">
         <q-btn color="black"
-               :disable="!props.token"
+               :disable="!token"
                dense
                @click="disconnectDevice(device.address)"
                label="Disconnect" />
         <q-btn color="black"
                dense
                @click="reconnectDevice(device.address)"
-               :disable="!props.token"
+               :disable="!token"
                label="Reconnect" />
       </div>
       <q-separator color="orange"
@@ -46,11 +46,12 @@
 </template>
 
 <script setup lang='ts'>
-import { formatDuration } from '../helpers/utils';
+import { formatDuration, useSessionStorage } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
 
+const token = useSessionStorage("access_token");
 const devicesList = ref();
-const props = defineProps(['disconnectBtn', 'token']);
+defineProps(['disconnectBtn']);
 
 async function fetchDeviceInfo() {
   try {
@@ -72,7 +73,7 @@ async function disconnectDevice(address: string) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${props.token}`
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify({ address }),
     });
@@ -93,7 +94,7 @@ async function reconnectDevice(address: string) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${props.token}`
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify({ address }),
     });
