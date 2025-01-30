@@ -34,7 +34,7 @@ export function formatDuration(seconds: number) {
     { label: 'd', seconds: 86400 }, // 24 години
     { label: 'h', seconds: 3600 }, // 60 хвилин
     { label: 'm', seconds: 60 }, // 60 секунд
-    { label: 's', seconds: 1 },
+    // { label: 's', seconds: 1 },
   ];
 
   const result = [];
