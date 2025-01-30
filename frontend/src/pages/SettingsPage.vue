@@ -168,6 +168,8 @@
                 <q-item v-for="device of devices"
                         :key="device.address"
                         clickable
+                        :disable="attemptToConnectDevice === device.address"
+                        :active="attemptToConnectDevice === device.address"
                         @click="token && connectToDevice(device.address, device.name)"
                         v-ripple>
                   <q-item-section>{{ device?.name }}</q-item-section>
@@ -175,9 +177,10 @@
               </q-list>
             </template>
 
+            <q-separator color="white" />
+
             <div>
               <div class="text-h6 q-mt-md">Ваші підключені пристрої:</div>
-
               <DevicesList :disconnect-btn="true" />
             </div>
           </q-tab-panel>
@@ -197,6 +200,8 @@ const tab = ref('Alerts');
 const password = ref('');
 const loadingDevices = ref(false);
 const devices = ref<Device[]>([]);
+const attemptToConnectDevice = ref();
+
 const selectedLevel = ref();
 const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
@@ -318,6 +323,7 @@ async function fetchDevices() {
 }
 
 async function connectToDevice(address: string, name: string) {
+  attemptToConnectDevice.value = address;
   const response = await fetch('/api/connect-device', {
     method: "POST",
     headers: {
@@ -327,6 +333,8 @@ async function connectToDevice(address: string, name: string) {
     body: JSON.stringify({ address, name }),
   });
   checkResponse(response);
+  devices.value = devices.value?.filter((d) => d.address !== address);
+  attemptToConnectDevice.value = '';
 
   setTimeout(async () => {
     await fetchDevices();
