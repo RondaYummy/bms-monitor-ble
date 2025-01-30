@@ -192,6 +192,8 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
             async with BleakClient(device_address) as client:
                 if client.is_connected:
                     await client.disconnect()
+                else:
+                    log(device_address, "Device is already disconnected.", force=True)
 
                     device_info = await data_store.get_device_info(device_address)
                     if device_info:
