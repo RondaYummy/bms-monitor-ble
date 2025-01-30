@@ -3,3 +3,4 @@ fastapi
 uvicorn[standard]
 PyYAML==6.0
 pydantic
+async_timeout
