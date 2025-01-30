@@ -194,14 +194,13 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
                     file.write(f"{addr}\n")
 
         device_info = await data_store.get_device_info(device_address)
-        if device_info and device_info.get("connected", False):
-            async with BleakClient(device_address) as client:
-                if client.is_connected:
-                    await client.disconnect()
-                    log(device_address, "Successfully disconnected from BLE device.", force=True)
+        async with BleakClient(device_address) as client:
+            if client.is_connected:
+                await client.disconnect()
+                log(device_address, "Successfully disconnected from BLE device.", force=True)
 
-            device_info["connected"] = False
-            await data_store.update_device_info(device_address, device_info)
+        device_info["connected"] = False
+        await data_store.update_device_info(device_address, device_info)
 
         return {"message": f"Successfully disconnected from {device_address} and removed from allowed list."}
 
@@ -326,11 +325,6 @@ def log(device_name, message, force=False):
     if ENABLE_LOGS or force:
         current_time = datetime.now().strftime("%d.%m.%y %H:%M")
         print(f"{BLUE}[{device_name}] {MAGENTA}[{current_time}]{RESET} {message}")
-
-# TODO приклад захищеного маршруту
-@app.get("/api/protected-data", dependencies=[Depends(verify_token)]) 
-async def protected_data():
-    return {"message": "You have access to protected data."}
 
 async def parse_device_info(data, device_name, device_address):
     """Parsing Device Info Frame (0x03)."""
