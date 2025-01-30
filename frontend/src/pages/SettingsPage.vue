@@ -171,11 +171,11 @@
               </q-list>
             </template>
 
-            <template>
+            <div>
               <div class="text-h6">Ваші підключені пристрої:</div>
 
               <DevicesList :disconnect-btn="true" />
-            </template>
+            </div>
           </q-tab-panel>
         </q-tab-panels>
       </div>
