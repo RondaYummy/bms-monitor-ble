@@ -29,12 +29,12 @@ export const useSessionStorage = (key: string) => {
 
 export function formatDuration(seconds: number) {
   const units = [
-    { label: 'year', seconds: 31536000 }, // 365 днів
-    { label: 'month', seconds: 2592000 }, // 30 днів
-    { label: 'day', seconds: 86400 }, // 24 години
-    { label: 'hour', seconds: 3600 }, // 60 хвилин
-    { label: 'minute', seconds: 60 }, // 60 секунд
-    { label: 'second', seconds: 1 },
+    { label: 'y', seconds: 31536000 }, // 365 днів
+    { label: 'm', seconds: 2592000 }, // 30 днів
+    { label: 'd', seconds: 86400 }, // 24 години
+    { label: 'h', seconds: 3600 }, // 60 хвилин
+    { label: 'm', seconds: 60 }, // 60 секунд
+    { label: 's', seconds: 1 },
   ];
 
   const result = [];
@@ -43,7 +43,7 @@ export function formatDuration(seconds: number) {
     const value = Math.floor(seconds / unit.seconds);
     if (value > 0) {
       result.push(`${value} ${unit.label}${value > 1 ? 's' : ''}`);
-      seconds %= unit.seconds; // Залишок секунд
+      seconds %= unit.seconds;
     }
   }
 
@@ -52,11 +52,9 @@ export function formatDuration(seconds: number) {
 
 export function calculateAveragePerIndex(arrays: Array<any>) {
   if (!arrays.length || !arrays[0]?.length) return [];
-  // Кількість чисел у кожному масиві
   const length = arrays[0].length;
   // Ініціалізація масиву для збереження середніх значень
   const averages = Array(length).fill(0);
-  // Обчислення суми для кожного індексу
   for (let i = 0; i < length; i++) {
     let sum = 0;
     for (const array of arrays) {
@@ -71,7 +69,7 @@ export function calculateAveragePerIndex(arrays: Array<any>) {
 }
 
 export function calculateAverage(array: any[], field: string) {
-  if (array.length === 0) return 0; // Перевірка на випадок порожнього масиву
+  if (array.length === 0) return 0;
 
   const total = array.reduce((sum, item) => sum + item[field], 0);
   return total / array.length;
@@ -87,7 +85,7 @@ export function calculateAverage(array: any[], field: string) {
  */
 export function calculateAutonomyTime(remainingCapacity: number, charge_current: number, inverterEfficiency = 0.95) {
   if (charge_current >= 0) {
-    return '∞'; // Уникаємо ділення на нуль.
+    return '∞';
   }
 
   // Врахування ефективності інвертора

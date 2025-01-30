@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang='ts'>
-import { formatDuration } from 'src/helpers/utils';
+import { formatDuration } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
 
 const devicesList = ref();
