@@ -39,7 +39,7 @@
                color="black"
                dense
                @click="connectToDevice(device.device_address, device.device_name)"
-               :disable="!token"
+               :disable="!token || attemptToConnectDevice === device.device_address"
                label="Приєднатися" />
       </div>
       <q-separator color="orange"
