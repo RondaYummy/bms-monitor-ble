@@ -74,7 +74,7 @@ async function fetchDeviceInfo() {
     const data = await response.json();
     console.log('Device Info:', data);
     if (props.connected) {
-      devicesList.value = data.filter((d) => d.connected);
+      devicesList.value = data.filter((d: any) => d.connected);
     } else {
       devicesList.value = data;
     }
