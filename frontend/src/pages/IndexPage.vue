@@ -153,20 +153,19 @@
       </div>
     </template>
 
-    <template v-if="!isInstalled()">
-      <q-dialog position="bottom">
-        <q-card style="width: 350px">
-          <q-linear-progress :value="0.6"
-                             color="pink" />
+    <q-dialog v-model="installAppDialog"
+              position="bottom">
+      <q-card style="width: 350px">
+        <q-linear-progress :value="0.6"
+                           color="pink" />
 
-          <q-card-section class="row items-center no-wrap">
-            <q-btn @click="installApp"
-                   color="black"
-                   label="Встановити як додаток" />
-          </q-card-section>
-        </q-card>
-      </q-dialog>
-    </template>
+        <q-card-section class="row items-center no-wrap">
+          <q-btn @click="installApp"
+                 color="black"
+                 label="Встановити як додаток" />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
 
     <BMSChart :tab="tab" />
 
@@ -263,6 +262,7 @@ import { ref, watch, onBeforeUnmount } from 'vue';
 import type { CellInfo } from '../models';
 
 const devicesList = ref<Record<string, CellInfo>>({});
+const installAppDialog = ref(false);
 const calculatedList = ref<any>();
 const tab = ref('All');
 
@@ -365,6 +365,9 @@ async function fetchCellInfo() {
 }
 
 fetchCellInfo();
+if (!isInstalled()) {
+  installAppDialog.value = true;
+}
 const intervalId = setInterval(async () => {
   await fetchCellInfo();
 }, 3000);
