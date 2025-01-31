@@ -50,3 +50,23 @@ export interface Device {
   address: string;
   name: string;
 }
+
+export interface DeviceInfo {
+  frame_type: number;
+  frame_counter: number;
+  vendor_id: string;
+  hardware_version: string;
+  software_version: string;
+  device_uptime: number;
+  power_on_count: number;
+  device_name: string;
+  device_address: string;
+  manufacturing_date: string;
+  serial_number: string;
+  user_data: string;
+  connected: boolean;
+}
+
+export interface DeviceInfoMap {
+  [deviceName: string]: DeviceInfo;
+}

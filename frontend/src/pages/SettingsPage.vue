@@ -1,10 +1,10 @@
 <template>
   <q-page class="column items-center q-pa-lg">
-    <p class='text-center full-width'
+    <p class='unique text-center full-width'
        v-if='!token'>
       Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
     </p>
-    <p class='text-center full-width'
+    <p class='charge text-center full-width'
        v-if='token'>
       Ви успішно авторизовані та можете змінювати налаштування.
     </p>
@@ -178,8 +178,14 @@
                 </q-item>
               </q-list>
             </template>
+            <template v-if="notFoundDevices">
+              <h6 class="q-mt-md">
+                Нових пристроїв JK-BMS не знайдено.
+              </h6>
+            </template>
 
-            <q-separator class="q-mt-md"
+            <q-separator inset="item"
+                         class="q-mt-md"
                          color="white" />
 
             <div>
@@ -204,6 +210,7 @@ const password = ref('');
 const loadingDevices = ref(false);
 const devices = ref<Device[]>([]);
 const attemptToConnectDevice = ref();
+const notFoundDevices = ref(false);
 
 const selectedLevel = ref();
 const alerts = ref<Alert[]>();
@@ -313,9 +320,13 @@ const login = async (password: string) => {
 async function fetchDevices() {
   try {
     loadingDevices.value = true;
+    notFoundDevices.value = false;
     const response = await fetch('/api/devices');
     checkResponse(response);
     const data = await response.json();
+    if (!data?.devices?.length) {
+      notFoundDevices.value = true;
+    }
     devices.value = data?.devices;
     console.log('Discovered devices: ', data);
   } catch (error) {

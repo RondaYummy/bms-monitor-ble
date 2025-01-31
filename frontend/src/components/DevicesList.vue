@@ -22,7 +22,11 @@
           </div>
         </div>
         <span class="text-center coral">
-          Uptime: {{ formatDuration(device.device_uptime) }}.
+          Дата виробництва:
+          {{ parseManufacturingDate(device.manufacturing_date) }}.
+        </span>
+        <span class="text-center coral">
+          Час роботи: {{ formatDuration(device.device_uptime) }}.
         </span>
       </div>
 
@@ -49,8 +53,9 @@
 </template>
 
 <script setup lang='ts'>
-import { formatDuration, useSessionStorage } from '../helpers/utils';
+import { formatDuration, parseManufacturingDate, useSessionStorage } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
+import type { DeviceInfoMap } from '../models';
 
 const token = useSessionStorage("access_token");
 const devicesList = ref();
@@ -71,10 +76,10 @@ async function fetchDeviceInfo() {
   try {
     const response = await fetch('/api/device-info');
     checkResponse(response);
-    const data = await response.json();
+    const data: DeviceInfoMap = await response.json();
     console.log('Device Info:', data);
-    if (props.connected) {
-      devicesList.value = data.filter((d: any) => d.connected);
+    if (props.connected && data) {
+      devicesList.value = Object.values(data).filter((d: any) => d.connected);
     } else {
       devicesList.value = data;
     }

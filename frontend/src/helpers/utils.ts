@@ -93,3 +93,10 @@ export function calculateAutonomyTime(remainingCapacity: number, charge_current:
   const autonomyTime = remainingCapacity / effectiveCurrent;
   return `${autonomyTime.toFixed(2)} hrs`;
 }
+
+export function parseManufacturingDate(dateStr: string): string {
+  const year = `20${dateStr.slice(0, 2)}`; // Add 20 to the year
+  const month = dateStr.slice(2, 4);
+  const day = dateStr.slice(4, 6);
+  return `${day}-${month}-${year}`;
+}
