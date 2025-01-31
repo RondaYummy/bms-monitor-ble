@@ -77,6 +77,7 @@ async function fetchDeviceInfo() {
     const response = await fetch('/api/device-info');
     checkResponse(response);
     const data: DeviceInfoMap = await response.json();
+    console.log('Device response: ', response);
     console.log('Device Info:', data);
     if (props.connected && data) {
       devicesList.value = Object.values(data).filter((d: any) => d.connected);

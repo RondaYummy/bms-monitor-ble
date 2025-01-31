@@ -7,8 +7,10 @@ export const useSessionStorage = (key: string) => {
   watch(value, (newValue) => {
     if (newValue === null || newValue === undefined) {
       sessionStorage.removeItem(key);
+      sessionStorage.removeItem(`${key}_timestamp`);
     } else {
       sessionStorage.setItem(key, newValue);
+      sessionStorage.setItem(`${key}_timestamp`, new Date().getTime().toString());
     }
   });
 
