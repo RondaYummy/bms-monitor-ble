@@ -321,6 +321,7 @@ async function fetchDevices() {
   try {
     loadingDevices.value = true;
     const response = await fetch('/api/devices');
+    console.log(response, 'response');
     checkResponse(response);
     const data = await response.json();
     console.log(data, 'data');
