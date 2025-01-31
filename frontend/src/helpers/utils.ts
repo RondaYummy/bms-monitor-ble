@@ -42,7 +42,7 @@ export function formatDuration(seconds: number) {
   for (const unit of units) {
     const value = Math.floor(seconds / unit.seconds);
     if (value > 0) {
-      result.push(`${value} ${unit.label}`);
+      result.push(`${value}${unit.label}`);
       seconds %= unit.seconds;
     }
   }
