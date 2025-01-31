@@ -645,7 +645,14 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
 
     return True
 
+def ensure_allowed_devices_file(filename="configs/allowed_devices.txt"):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    if not os.path.exists(filename):
+        with open(filename, 'w', encoding='utf-8') as file:
+            file.write("")
+
 def start_services():
+    ensure_allowed_devices_file()
     db.create_table()
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
