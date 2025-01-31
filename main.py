@@ -194,11 +194,11 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
         if device_address not in allowed_devices:
             raise HTTPException(status_code=404, detail="Device not found in allowed list.")
 
-        device_info = await data_store.get_device_info(device_address)
+        device_info = await data_store.get_device_info(device_name)
         print(f"DEV INFO: {device_info}")
         if device_info:
             device_info["connected"] = False
-            await data_store.update_device_info(device_address, device_info)
+            await data_store.update_device_info(device_name, device_info)
 
         allowed_devices.remove(device_address)
         with open(ALLOWED_DEVICES_FILE, "w", encoding="utf-8") as file:
@@ -208,7 +208,7 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
         return {"message": f"Successfully disconnected from {device_address} and removed from allowed list."}
 
     except Exception as e:
-        log(device_address, f"BLE disconnect failed: {e}", force=True)
+        log(device_name, f"BLE disconnect failed: {e}", force=True)
 
         device_info = await data_store.get_device_info(device_name)
         if device_info:
@@ -611,7 +611,6 @@ async def ble_main():
             try:
                 allowed_devices = load_allowed_devices()
                 devices = await BleakScanner.discover()
-                print(f"DEVICES: {devices}")
 
                 if not devices:
                     print("No BLE devices found.")
@@ -621,7 +620,6 @@ async def ble_main():
                 tasks = []
                 for device in devices:
                     device_address = device.address.lower()
-                    print(f"ADDRESS: {device_address}")
 
                     if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
                         continue  # Skip devices that are not JK-BMS
