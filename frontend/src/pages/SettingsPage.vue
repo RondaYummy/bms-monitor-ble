@@ -180,7 +180,7 @@
             </template>
             <template v-if="notFoundDevices">
               <h6 class="q-mt-md">
-                {{ notFoundDevices }}
+                Нових пристроїв JK-BMS не знайдено.
               </h6>
             </template>
 
@@ -320,14 +320,13 @@ const login = async (password: string) => {
 async function fetchDevices() {
   try {
     loadingDevices.value = true;
+    notFoundDevices.value = false;
     const response = await fetch('/api/devices');
-    console.log(response, 'response');
+    if (!response?.ok) {
+      notFoundDevices.value = true;
+    }
     checkResponse(response);
     const data = await response.json();
-    console.log(data, 'data');
-    if (data?.message) {
-      notFoundDevices.value = data?.message;
-    }
     devices.value = data?.devices;
     console.log('Discovered devices: ', data);
   } catch (error) {
