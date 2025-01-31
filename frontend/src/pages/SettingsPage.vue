@@ -155,14 +155,16 @@
                    @click="fetchDevices"
                    :disable="!token"
                    color="black"
-                   label="Пошук пристроїв" />
+                   label="Пошук нових пристроїв" />
 
 
             <template v-if='devices.length'>
               <h6 class="q-mt-md">Знайдені пристрої:</h6>
-              <p>Щоб приєднатись до девайсу, просто нажміть на нього. Доданий
+              <p>
+                Щоб приєднатись до девайсу, просто нажміть на нього. Доданий
                 вами девайс, буде підключений приблизно за 10 секунд і ви
-                зможете побачити його на головному екрані.</p>
+                зможете побачити його на головному екрані.
+              </p>
               <q-list bordered
                       separator>
                 <q-item v-for="device of devices"
@@ -181,7 +183,7 @@
                          color="white" />
 
             <div>
-              <div class="text-h6 q-mt-md">Ваші підключені пристрої:</div>
+              <div class="text-h6 q-mt-md">Ваші пристрої:</div>
               <DevicesList :disconnect-btn="true" />
             </div>
           </q-tab-panel>
