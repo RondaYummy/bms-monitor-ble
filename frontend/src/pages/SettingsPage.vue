@@ -1,5 +1,26 @@
 <template>
-  <div class="q-pa-md">
+  <q-page class="column items-center q-pa-lg">
+    <p class='text-center full-width'
+       v-if='!token'>
+      Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
+    </p>
+    <p class='text-center full-width'
+       v-if='token'>
+      Ви успішно авторизовані та можете змінювати налаштування.
+    </p>
+
+    <div class='row justify-center no-wrap q-gutter-sm q-mb-md'
+         v-if='!token'>
+      <q-input v-model="password"
+               outlined
+               label="Введіть пароль"
+               label-color="white"
+               dense />
+      <q-btn @click="login(password)"
+             color="black"
+             label="Підтвердити" />
+    </div>
+
     <div>
       <q-tabs v-model="tab"
               align="justify"
@@ -11,6 +32,9 @@
         <q-tab class="text-orange"
                name="Settings"
                label="Settings" />
+        <q-tab class="text-blue"
+               name="Devices"
+               label="Devices" />
       </q-tabs>
 
       <div class="q-gutter-y-sm">
@@ -24,31 +48,43 @@
 
             <div class='column items-center justify-center'>
               <p>
-                Тут відображаються всі важливі сповіщення про роботу системи
+                Тут ви можете переглянути всі важливі сповіщення про роботу
+                системи.
               </p>
 
               <div class='row justify-center'>
-                <q-chip outline
+                <q-chip @click="filterAlertsByLevel()"
+                        outline
+                        clickable
+                        color="white"
+                        icon="apps">
+                  All
+                </q-chip>
+                <q-chip @click="filterAlertsByLevel('info')"
+                        outline
+                        clickable
                         color="primary"
-                        text-color="white"
                         icon="priority_high">
                   Info
                 </q-chip>
-                <q-chip outline
+                <q-chip @click="filterAlertsByLevel('warning')"
+                        outline
+                        clickable
                         color="orange"
-                        text-color="white"
                         icon="warning">
                   Warning
                 </q-chip>
-                <q-chip outline
+                <q-chip @click="filterAlertsByLevel('error')"
+                        outline
+                        clickable
                         color="deep-orange"
-                        text-color="white"
                         icon="error">
                   Error
                 </q-chip>
-                <q-chip outline
+                <q-chip @click="filterAlertsByLevel('critical')"
+                        outline
+                        clickable
                         color="red"
-                        text-color="white"
                         icon="flash_on">
                   Critical
                 </q-chip>
@@ -58,7 +94,7 @@
             <div class='column alerts-box'>
               <q-banner v-for="alert of alerts"
                         :key="alert?.id"
-                        v-touch-hold.mouse="() => handleHold(alert)"
+                        v-touch-hold.mouse="() => token && handleHold(alert)"
                         inline-actions
                         :class="{
                           'bg-negative': alert?.level === 'critical',
@@ -66,7 +102,7 @@
                           'bg-orange': alert?.level === 'warning',
                           'bg-bg-primary': alert?.level === 'info',
                         }"
-                        class="text-white q-mt-sm q-mb-sm">
+                        class="text-white q-mt-sm q-mb-sm cursor-pointer">
                 <div class="column">
                   <div class='row justify-between'>
                     <q-chip outline
@@ -90,12 +126,19 @@
                   <p v-if="alert?.id !== holdAlert?.id"
                      class='q-mt-md text-left'>{{ alert?.message }}</p>
                   <div v-else>
-                    <q-btn color="black"
+                    <q-btn @click="deleteErrorAlert"
+                           color="black"
                            label="Видалити сповіщення" />
                   </div>
                 </div>
 
               </q-banner>
+
+              <p v-if="!alerts?.length"
+                 class="level q-mt-md">
+                {{ selectedLevel ? `"${selectedLevel}" ` : '' }}повідомлення не
+                знайдено.
+              </p>
             </div>
           </q-tab-panel>
 
@@ -103,29 +146,80 @@
             <div class="text-h6">Settings</div>
             Тут будуть ваші налаштування...
           </q-tab-panel>
+
+          <q-tab-panel name="Devices">
+            <div class="text-h6">Devices</div>
+            <p>Тут ви можете керувати своїми пристроями.</p>
+
+            <q-btn :loading="loadingDevices"
+                   @click="fetchDevices"
+                   :disable="!token"
+                   color="black"
+                   label="Пошук нових пристроїв" />
+
+
+            <template v-if='devices.length'>
+              <h6 class="q-mt-md">Знайдені пристрої:</h6>
+              <p>
+                Щоб приєднатися до пристрою, просто натисніть на нього. Доданий
+                вами девайс, буде підключений приблизно за 10 секунд і ви
+                зможете побачити його на головному екрані.
+              </p>
+              <q-list bordered
+                      separator>
+                <q-item v-for="device of devices"
+                        :key="device.address"
+                        clickable
+                        :disable="attemptToConnectDevice === device.address"
+                        :active="attemptToConnectDevice === device.address"
+                        @click="token && connectToDevice(device.address, device.name)"
+                        v-ripple>
+                  <q-item-section>{{ device?.name }}</q-item-section>
+                </q-item>
+              </q-list>
+            </template>
+
+            <q-separator class="q-mt-md"
+                         color="white" />
+
+            <div>
+              <div class="text-h6 q-mt-md">Ваші пристрої:</div>
+              <DevicesList :disconnect-btn="true" />
+            </div>
+          </q-tab-panel>
         </q-tab-panels>
       </div>
     </div>
-  </div>
+  </q-page>
 </template>
 
 <script setup lang='ts'>
 import { ref } from 'vue';
-
-interface Alert {
-  id: number;
-  device_address: string;
-  device_name: string;
-  error_code: string;
-  level: 'info' | 'warning' | 'error' | 'critical';
-  message: string;
-  timestamp: string;
-}
-
+import { useSessionStorage } from '../helpers/utils';
+import type { Alert, Device } from '../models';
+import DevicesList from '../components/DevicesList.vue';
 
 const tab = ref('Alerts');
+const password = ref('');
+const loadingDevices = ref(false);
+const devices = ref<Device[]>([]);
+const attemptToConnectDevice = ref();
+
+const selectedLevel = ref();
 const alerts = ref<Alert[]>();
+const alertsMain = ref<Alert[]>();
 const holdAlert = ref<Alert>();
+const token = useSessionStorage("access_token");
+
+function filterAlertsByLevel(level?: string): void {
+  console.log('Selected level: ', level);
+  if (!level) {
+    alerts.value = alertsMain.value;
+    return;
+  }
+  selectedLevel.value = level;
+  alerts.value = alertsMain.value?.filter((a) => a.level === level);
+}
 
 function formatTimestamp(timestamp?: any): string {
   if (!timestamp) {
@@ -160,18 +254,94 @@ function handleHold(alert: Alert): void {
   holdAlert.value = alert;
 }
 
+function checkResponse(response: Response) {
+  if (!response.ok) {
+    throw new Error('Failed to error alerts');
+  }
+  if (response.status === 401) {
+    sessionStorage.removeItem('access_token');
+    throw new Error('Have no access');
+  }
+}
+
 async function fetchErrorAlerts() {
   try {
     const response = await fetch('/api/error-alerts');
-    if (!response.ok) {
-      throw new Error('Failed to error alerts');
-    }
+    checkResponse(response);
     const data = await response.json();
     console.log('Error alerts:', data);
     alerts.value = data;
+    alertsMain.value = data;
   } catch (error) {
     console.error('Error fetching error alerts:', error);
   }
+}
+
+async function deleteErrorAlert() {
+  try {
+    token.value = sessionStorage.getItem("access_token");
+    const response = await fetch('/api/error-alerts', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token.value}`
+      },
+      body: JSON.stringify({ id: holdAlert.value?.id }),
+    });
+    checkResponse(response);
+    fetchErrorAlerts();
+  } catch (error) {
+    console.error('Error remove error alerts:', error);
+  }
+}
+
+const login = async (password: string) => {
+  const response = await fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  checkResponse(response);
+
+  const data = await response.json();
+  sessionStorage.setItem("access_token", data.access_token);
+  token.value = data?.access_token;
+  console.log("Login successful");
+  return true;
+};
+
+async function fetchDevices() {
+  try {
+    loadingDevices.value = true;
+    const response = await fetch('/api/devices');
+    checkResponse(response);
+    const data = await response.json();
+    devices.value = data?.devices;
+    console.log('Discovered devices: ', data);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loadingDevices.value = false;
+  }
+}
+
+async function connectToDevice(address: string, name: string) {
+  attemptToConnectDevice.value = address;
+  const response = await fetch('/api/connect-device', {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token.value}`
+    },
+    body: JSON.stringify({ address, name }),
+  });
+  checkResponse(response);
+  devices.value = devices.value?.filter((d) => d.address !== address);
+  attemptToConnectDevice.value = '';
+
+  setTimeout(async () => {
+    await fetchDevices();
+  }, 3000);
 }
 
 fetchErrorAlerts();
@@ -180,5 +350,10 @@ fetchErrorAlerts();
 <style scoped lang='scss'>
 .alerts-box {
   gap: 10px;
+}
+
+.level {
+  text-transform: capitalize;
+  font-weight: 600;
 }
 </style>

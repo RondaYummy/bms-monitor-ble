@@ -71,6 +71,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+configs/allowed_devices.txt
 
 # PyBuilder
 .pybuilder/
@@ -172,3 +173,4 @@ cython_debug/
 .pypirc
 
 bms_data.db
+

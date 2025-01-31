@@ -8,8 +8,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
-import type { AxiosResponse } from 'axios';
-import axios from 'axios';
 
 const props = defineProps(['tab']);
 
@@ -138,11 +136,12 @@ const intervalId = ref();
 
 async function fetchAggregatedData(days: number = 1): Promise<any[]> {
   try {
-    const response: AxiosResponse<any[]> = await axios.get(`/api/aggregated-data?days=${days}`);
-    if (!response?.data) {
+    const response: any = await fetch(`/api/aggregated-data?days=${days}`);
+    if (!response.ok) {
       throw new Error('Failed to fetch aggregated data');
     }
-    return response.data;
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.error('Error fetching aggregated data:', error);
     return [];

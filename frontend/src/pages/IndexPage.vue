@@ -155,7 +155,8 @@
 
     <q-btn v-if="!isInstalled()"
            @click="installApp"
-           label="Install App" />
+           color="black"
+           label="Встановити як додаток" />
 
     <BMSChart :tab="tab" />
 
@@ -245,13 +246,13 @@
 </template>
 
 <script setup lang="ts">
-import LoaderComponent from 'src/components/LoaderComponent.vue';
-import BMSChart from 'src/components/BMSChart.vue';
-import { calculateAutonomyTime, calculateAverage, calculateAveragePerIndex } from 'src/helpers/utils';
-import type { Device } from 'src/interfaces';
+import LoaderComponent from '../components/LoaderComponent.vue';
+import BMSChart from '../components/BMSChart.vue';
+import { calculateAutonomyTime, calculateAverage, calculateAveragePerIndex } from '../helpers/utils';
 import { ref, watch, onBeforeUnmount } from 'vue';
+import type { CellInfo } from '../models';
 
-const devicesList = ref<Record<string, Device>>({});
+const devicesList = ref<Record<string, CellInfo>>({});
 const calculatedList = ref<any>();
 const tab = ref('All');
 
