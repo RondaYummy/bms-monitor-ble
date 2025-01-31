@@ -5,7 +5,7 @@
       <p>Here you can manage your devices.</p>
     </div>
 
-    <DevicesList />
+    <DevicesList :connected="true" />
   </q-page>
 </template>
 

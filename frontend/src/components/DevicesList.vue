@@ -55,7 +55,7 @@ import { ref, onBeforeUnmount } from 'vue';
 const token = useSessionStorage("access_token");
 const devicesList = ref();
 const attemptToConnectDevice = ref();
-defineProps(['disconnectBtn']);
+const props = defineProps(['disconnectBtn', 'connected']);
 
 function checkResponse(response: Response) {
   if (!response.ok) {
@@ -73,7 +73,11 @@ async function fetchDeviceInfo() {
     checkResponse(response);
     const data = await response.json();
     console.log('Device Info:', data);
-    devicesList.value = data;
+    if (props.connected) {
+      devicesList.value = data.filter((d) => d.connected);
+    } else {
+      devicesList.value = data;
+    }
   } catch (error) {
     console.error('Error fetching device info:', error);
   }
