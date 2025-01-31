@@ -622,7 +622,7 @@ async def ble_main():
             try:
                 allowed_devices = load_allowed_devices()
                 devices = await BleakScanner.discover()
-                print(f"allowed_devices: {allowed_devices}")
+                print(f"DEVICES: {devices}")
 
                 if not devices:
                     print("No BLE devices found.")
@@ -632,7 +632,7 @@ async def ble_main():
                 tasks = []
                 for device in devices:
                     device_address = device.address.lower()
-                    print(f"device_address: {device_address}")
+                    print(f"ADDRESS: {device_address}")
 
                     if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
                         continue  # Skip devices that are not JK-BMS
