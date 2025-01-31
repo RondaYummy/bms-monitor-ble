@@ -193,35 +193,15 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
         if device_address not in allowed_devices:
             raise HTTPException(status_code=404, detail="Device not found in allowed list.")
 
-        if device_address not in device_locks:
-            device_locks[device_address] = asyncio.Lock()
+        device_info = await data_store.get_device_info(device_address)
+        if device_info:
+            device_info["connected"] = False
+            await data_store.update_device_info(device_address, device_info)
 
-        async with device_locks[device_address]:
-            log(device_address, "Attempting to disconnect BLE device...", force=True)
-            
-            client = BleakClient(device_address)
-            try:
-                async with timeout(5):
-                    await client.connect()
-                    await client.disconnect()
-                    log(device_address, "Successfully disconnected from BLE device.", force=True)
-            except asyncio.TimeoutError:
-                log(device_address, "BLE disconnect timeout. Skipping.", force=True)
-            except Exception as e:
-                log(device_address, f"BLE disconnect failed: {e}", force=True)
-            finally:
-                await client.disconnect()
-                log(device_address, "Forced disconnect executed.", force=True)
-
-            device_info = await data_store.get_device_info(device_address)
-            if device_info:
-                device_info["connected"] = False
-                await data_store.update_device_info(device_address, device_info)
-
-            allowed_devices.remove(device_address)
-            with open(ALLOWED_DEVICES_FILE, "w", encoding="utf-8") as file:
-                for addr in allowed_devices:
-                    file.write(f"{addr}\n")
+        allowed_devices.remove(device_address)
+        with open(ALLOWED_DEVICES_FILE, "w", encoding="utf-8") as file:
+            for addr in allowed_devices:
+                file.write(f"{addr}\n")
 
         return {"message": f"Successfully disconnected from {device_address} and removed from allowed list."}
 
