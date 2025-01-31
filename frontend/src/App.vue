@@ -3,12 +3,11 @@
 </template>
 
 <script setup lang="ts">
-sessionStorage.removeItem('access_token');
 const tokenTimestamp = Number(sessionStorage.getItem(`access_token_timestamp`));
 const currentTime = new Date().getTime();
 const elapsedTime = (currentTime - tokenTimestamp) / 1000;
-console.log(currentTime, tokenTimestamp / 1000, elapsedTime, elapsedTime >= 3600);
 if (elapsedTime >= 3600) {
+  console.log('Time expired!');
   sessionStorage.removeItem(`access_token`);
   sessionStorage.removeItem(`access_token_timestamp`);
 }
