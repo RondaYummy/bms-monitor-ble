@@ -159,7 +159,7 @@
         <q-linear-progress :value="1"
                            color="pink" />
 
-        <q-card-section class="row items-center no-wrap">
+        <q-card-section class="column justify-center items-center no-wrap">
           <h6 class='text-center text-dark'>📱 Встановіть наш додаток на свій
             пристрій! 🚀
           </h6>
