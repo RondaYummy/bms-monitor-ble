@@ -324,7 +324,7 @@ async function fetchDevices() {
     const response = await fetch('/api/devices');
     checkResponse(response);
     const data = await response.json();
-    if (!data?.devices?.length) {
+    if (!data?.devices?.length || response.status === 404) {
       notFoundDevices.value = true;
     }
     devices.value = data?.devices;
