@@ -176,7 +176,6 @@ async def get_device_info():
 class DeviceRequest(BaseModel):
     address: str
     name: Optional[str] = None
-import asyncio
 @app.post("/api/disconnect-device")
 async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depends(verify_token)):
     ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
@@ -198,13 +197,21 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
             device_locks[device_address] = asyncio.Lock()
 
         async with device_locks[device_address]:
-            async with BleakClient(device_address) as client:
-                try:
-                    async with timeout(5):
-                        await client.disconnect()
-                        log(device_address, "Successfully disconnected from BLE device.", force=True)
-                except asyncio.TimeoutError:
-                    log(device_address, "BLE disconnect timeout. Skipping.", force=True)
+            log(device_address, "Attempting to disconnect BLE device...", force=True)
+            
+            client = BleakClient(device_address)
+            try:
+                async with timeout(5):
+                    await client.connect()
+                    await client.disconnect()
+                    log(device_address, "Successfully disconnected from BLE device.", force=True)
+            except asyncio.TimeoutError:
+                log(device_address, "BLE disconnect timeout. Skipping.", force=True)
+            except Exception as e:
+                log(device_address, f"BLE disconnect failed: {e}", force=True)
+            finally:
+                await client.disconnect()
+                log(device_address, "Forced disconnect executed.", force=True)
 
             device_info = await data_store.get_device_info(device_address)
             if device_info:
