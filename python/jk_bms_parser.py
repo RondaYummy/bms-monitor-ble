@@ -2,7 +2,7 @@ from python.data_store import data_store
 from python.colors import *
 import python.battery_alerts as alerts
 import python.db as db
-from ..main import are_all_allowed_devices_connected_and_have_data
+from main import are_all_allowed_devices_connected_and_have_data
 
 def calculate_crc(data):
     return sum(data) & 0xFF
