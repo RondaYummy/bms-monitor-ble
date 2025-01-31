@@ -153,10 +153,20 @@
       </div>
     </template>
 
-    <q-btn v-if="!isInstalled()"
-           @click="installApp"
-           color="black"
-           label="Встановити як додаток" />
+    <template v-if="!isInstalled()">
+      <q-dialog position="bottom">
+        <q-card style="width: 350px">
+          <q-linear-progress :value="0.6"
+                             color="pink" />
+
+          <q-card-section class="row items-center no-wrap">
+            <q-btn @click="installApp"
+                   color="black"
+                   label="Встановити як додаток" />
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+    </template>
 
     <BMSChart :tab="tab" />
 
