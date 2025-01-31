@@ -96,23 +96,23 @@ async function disconnectDevice(address: string) {
 }
 
 async function reconnectDevice(address: string) {
-  try {
-    console.log('address: ', address);
-    const response = await fetch('/api/reconnect-device', {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token.value}`
-      },
-      body: JSON.stringify({ address }),
-    });
-    checkResponse(response);
-    const data = await response.json();
-    console.log('Device Info:', data);
-    devicesList.value = data;
-  } catch (error) {
-    console.error('Error reconnect device info:', error);
-  }
+  // try {
+  //   console.log('address: ', address);
+  //   const response = await fetch('/api/reconnect-device', {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       "Authorization": `Bearer ${token.value}`
+  //     },
+  //     body: JSON.stringify({ address }),
+  //   });
+  //   checkResponse(response);
+  //   const data = await response.json();
+  //   console.log('Device Info:', data);
+  //   devicesList.value = data;
+  // } catch (error) {
+  //   console.error('Error reconnect device info:', error);
+  // }
 }
 
 fetchDeviceInfo();
