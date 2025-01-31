@@ -22,7 +22,7 @@ from fastapi import Body
 
 from python.colors import *
 import python.db as db
-from python.jk_bms_parser import parse_device_info, parse_setting_info
+from python.jk_bms_parser import parse_device_info, parse_setting_info, parse_cell_info
 from python.data_store import data_store
 
 with open('configs/error_codes.yaml', 'r') as file:
