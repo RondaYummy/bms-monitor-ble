@@ -180,6 +180,7 @@ class DeviceRequest(BaseModel):
 async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depends(verify_token)):
     ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
     device_address = body.address.strip().lower()
+    device_name = body.name.strip()
 
     if not device_address:
         raise HTTPException(status_code=400, detail="Device address is required.")
@@ -209,10 +210,10 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
     except Exception as e:
         log(device_address, f"BLE disconnect failed: {e}", force=True)
 
-        device_info = await data_store.get_device_info(device_address)
+        device_info = await data_store.get_device_info(device_name)
         if device_info:
             device_info["connected"] = False
-            await data_store.update_device_info(device_address, device_info)
+            await data_store.update_device_info(device_name, device_info)
 
         raise HTTPException(status_code=500, detail=f"Error disconnecting device: {str(e)}")
 

@@ -32,13 +32,13 @@
         <q-btn color="black"
                :disable="!token"
                dense
-               @click="disconnectDevice(device.device_address)"
+               @click="disconnectDevice(device.device_address, device.device_name)"
                label="Disconnect" />
-        <q-btn color="black"
+        <!-- <q-btn color="black"
                dense
                @click="reconnectDevice(device.device_address)"
                :disable="!token"
-               label="Reconnect" />
+               label="Reconnect" /> -->
       </div>
       <q-separator color="orange"
                    inset />
@@ -76,7 +76,7 @@ async function fetchDeviceInfo() {
   }
 }
 
-async function disconnectDevice(address: string) {
+async function disconnectDevice(address: string, name: string) {
   try {
     const response = await fetch('/api/disconnect-device', {
       method: "POST",
@@ -84,7 +84,7 @@ async function disconnectDevice(address: string) {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token.value}`
       },
-      body: JSON.stringify({ address }),
+      body: JSON.stringify({ address, name }),
     });
     checkResponse(response);
     const data = await response.json();
@@ -95,25 +95,25 @@ async function disconnectDevice(address: string) {
   }
 }
 
-async function reconnectDevice(address: string) {
-  // try {
-  //   console.log('address: ', address);
-  //   const response = await fetch('/api/reconnect-device', {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       "Authorization": `Bearer ${token.value}`
-  //     },
-  //     body: JSON.stringify({ address }),
-  //   });
-  //   checkResponse(response);
-  //   const data = await response.json();
-  //   console.log('Device Info:', data);
-  //   devicesList.value = data;
-  // } catch (error) {
-  //   console.error('Error reconnect device info:', error);
-  // }
-}
+// async function reconnectDevice() {
+// try {
+//   console.log('address: ', address);
+//   const response = await fetch('/api/reconnect-device', {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//       "Authorization": `Bearer ${token.value}`
+//     },
+//     body: JSON.stringify({ address }),
+//   });
+//   checkResponse(response);
+//   const data = await response.json();
+//   console.log('Device Info:', data);
+//   devicesList.value = data;
+// } catch (error) {
+//   console.error('Error reconnect device info:', error);
+// }
+// }
 
 fetchDeviceInfo();
 const intervalId = setInterval(async () => {
