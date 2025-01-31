@@ -156,10 +156,14 @@
     <q-dialog v-model="installAppDialog"
               position="bottom">
       <q-card style="width: 350px">
-        <q-linear-progress :value="0.6"
+        <q-linear-progress :value="1"
                            color="pink" />
 
         <q-card-section class="row items-center no-wrap">
+          <h6>📱 Встановіть наш додаток на свій пристрій! 🚀</h6>
+          Наш сайт підтримує <b>Progressive Web App (PWA)</b> – це означає, що
+          ви
+          можете встановити його як додаток на свій смартфон чи комп’ютер.
           <q-btn @click="installApp"
                  color="black"
                  label="Встановити як додаток" />
