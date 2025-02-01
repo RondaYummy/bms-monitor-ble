@@ -485,7 +485,7 @@ async def connect_and_run(device):
                             # Якщо інформація про пристрій ще не збережена, надсилаємо команду
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
-                            log(device.name, f"Device Info command sent: {device_info_command.hex()}")
+                            log(device.name, f"Device Info command sent: {device_info_command.hex()}", force=True)
                             await asyncio.sleep(1)
 
                         # Перевіряємо, чи потрібно надсилати cell_info_command
@@ -493,7 +493,7 @@ async def connect_and_run(device):
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
-                            log(device.name, f"Cell Info command sent: {cell_info_command.hex()}")
+                            log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
 
                         await asyncio.sleep(5)
             except Exception as e:
