@@ -122,11 +122,10 @@ async function disconnectDevice(address: string, name: string) {
 }
 
 watch(token, () => {
-  if (token.value) {
-    const arr = devicesList.value;
-    devicesList.value = [];
-    devicesList.value = arr;
-  }
+  console.log('ARRRRRRRRRRRRRR');
+  const arr = devicesList.value;
+  devicesList.value = [];
+  devicesList.value = arr;
 });
 
 fetchDeviceInfo();
