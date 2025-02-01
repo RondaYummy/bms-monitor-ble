@@ -189,7 +189,8 @@
 
             <div>
               <div class="text-h6 q-mt-md">Ваші пристрої:</div>
-              <DevicesList :disconnect-btn="true" />
+              <DevicesList :disconnect-btn="true"
+                           :token="token" />
             </div>
           </q-tab-panel>
         </q-tab-panels>

@@ -32,10 +32,9 @@
 
       <div v-if="disconnectBtn"
            class="row justify-around q-pa-sm">
-        {{ token }}
         <q-btn v-if="device.connected"
                color="black"
-               :disable="!token"
+               :disable="!props.token"
                dense
                @click="disconnectDevice(device.device_address, device.device_name)"
                label="Від’єднатися" />
@@ -43,7 +42,7 @@
                color="black"
                dense
                @click="connectToDevice(device.device_address, device.device_name)"
-               :disable="!token || attemptToConnectDevice === device.device_address"
+               :disable="!props.token || attemptToConnectDevice === device.device_address"
                label="Приєднатися" />
       </div>
       <q-separator color="orange"
@@ -53,15 +52,13 @@
 </template>
 
 <script setup lang='ts'>
-import { formatDuration, parseManufacturingDate, useSessionStorage } from '../helpers/utils';
+import { formatDuration, parseManufacturingDate } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
 import type { DeviceInfoMap } from '../models';
 
-const token = useSessionStorage("access_token");
-console.log('token', token.value);
 const devicesList = ref();
 const attemptToConnectDevice = ref();
-const props = defineProps(['disconnectBtn', 'connected']);
+const props = defineProps(['disconnectBtn', 'connected', 'token']);
 
 function checkResponse(response: Response) {
   if (!response.ok) {
@@ -95,7 +92,7 @@ async function connectToDevice(address: string, name: string) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token.value}`
+      "Authorization": `Bearer ${props.token}`
     },
     body: JSON.stringify({ address, name }),
   });
@@ -109,7 +106,7 @@ async function disconnectDevice(address: string, name: string) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token.value}`
+        "Authorization": `Bearer ${props.token}`
       },
       body: JSON.stringify({ address, name }),
     });
