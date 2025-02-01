@@ -1,7 +1,7 @@
 <template>
   <ul>
     <li v-for="device of devicesList"
-        :key="device?.serial_number">
+        :key="`${device?.serial_number}_${token}`">
       <div class="column">
         <div class="row justify-between q-mb-10">
           <div class="column">

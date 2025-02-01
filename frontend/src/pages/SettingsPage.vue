@@ -184,8 +184,7 @@
               </h6>
             </template>
 
-            <q-separator inset="item"
-                         class="q-mt-md"
+            <q-separator class="q-mt-md"
                          color="white" />
 
             <div>
