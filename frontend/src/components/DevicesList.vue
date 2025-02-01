@@ -32,7 +32,7 @@
 
       <div v-if="disconnectBtn"
            class="row justify-around q-pa-sm">
-
+        {{ token }}
         <q-btn v-if="device.connected"
                color="black"
                :disable="!token"
@@ -54,10 +54,11 @@
 
 <script setup lang='ts'>
 import { formatDuration, parseManufacturingDate, useSessionStorage } from '../helpers/utils';
-import { ref, onBeforeUnmount, watch } from 'vue';
+import { ref, onBeforeUnmount } from 'vue';
 import type { DeviceInfoMap } from '../models';
 
 const token = useSessionStorage("access_token");
+console.log('token', token.value);
 const devicesList = ref();
 const attemptToConnectDevice = ref();
 const props = defineProps(['disconnectBtn', 'connected']);
@@ -120,13 +121,6 @@ async function disconnectDevice(address: string, name: string) {
     console.error('Error disconnect device info:', error);
   }
 }
-
-watch(token, () => {
-  console.log('ARRRRRRRRRRRRRR');
-  const arr = devicesList.value;
-  devicesList.value = [];
-  devicesList.value = arr;
-});
 
 fetchDeviceInfo();
 const intervalId = setInterval(async () => {
