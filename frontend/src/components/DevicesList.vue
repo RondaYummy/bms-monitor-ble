@@ -41,8 +41,9 @@
         <q-btn v-if="!device.connected"
                color="black"
                dense
+               :loading="attemptToConnectDevice === device.device_address"
                @click="connectToDevice(device.device_address, device.device_name)"
-               :disable="!props.token || attemptToConnectDevice === device.device_address"
+               :disable="!props.token || !!attemptToConnectDevice"
                label="Приєднатися" />
       </div>
       <q-separator color="orange"
