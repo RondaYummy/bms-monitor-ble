@@ -35,7 +35,7 @@
 
         <q-btn v-if="device.connected"
                color="black"
-               :disable="isDisabled"
+               :disable="!token"
                dense
                @click="disconnectDevice(device.device_address, device.device_name)"
                label="Від’єднатися" />
@@ -43,7 +43,7 @@
                color="black"
                dense
                @click="connectToDevice(device.device_address, device.device_name)"
-               :disable="isDisabled || attemptToConnectDevice === device.device_address"
+               :disable="!token || attemptToConnectDevice === device.device_address"
                label="Приєднатися" />
       </div>
       <q-separator color="orange"
@@ -54,12 +54,10 @@
 
 <script setup lang='ts'>
 import { formatDuration, parseManufacturingDate, useSessionStorage } from '../helpers/utils';
-import { ref, onBeforeUnmount, computed } from 'vue';
+import { ref, onBeforeUnmount, watch } from 'vue';
 import type { DeviceInfoMap } from '../models';
 
 const token = useSessionStorage("access_token");
-const isDisabled = computed(() => !token.value);
-
 const devicesList = ref();
 const attemptToConnectDevice = ref();
 const props = defineProps(['disconnectBtn', 'connected']);
@@ -122,6 +120,14 @@ async function disconnectDevice(address: string, name: string) {
     console.error('Error disconnect device info:', error);
   }
 }
+
+watch(token, () => {
+  if (token.value) {
+    const arr = devicesList.value;
+    devicesList.value = [];
+    devicesList.value = arr;
+  }
+});
 
 fetchDeviceInfo();
 const intervalId = setInterval(async () => {
