@@ -5,7 +5,7 @@
       <div class="column">
         <div class="row justify-between q-mb-10">
           <div class="column">
-            <q-badge :class="{ 'connected-device': device?.connected }"
+            <q-badge :class="{ 'connected-device': device?.connected, 'disconnected-device': !device?.connected }"
                      class="q-mb-10 text-center"
                      color="cyan">
               {{ device.device_name }}
@@ -35,7 +35,7 @@
 
         <q-btn v-if="device.connected"
                color="black"
-               :disable="!isDisabled"
+               :disable="isDisabled"
                dense
                @click="disconnectDevice(device.device_address, device.device_name)"
                label="Від’єднатися" />
@@ -43,7 +43,7 @@
                color="black"
                dense
                @click="connectToDevice(device.device_address, device.device_name)"
-               :disable="!isDisabled || attemptToConnectDevice === device.device_address"
+               :disable="isDisabled || attemptToConnectDevice === device.device_address"
                label="Приєднатися" />
       </div>
       <q-separator color="orange"
@@ -142,7 +142,8 @@ ul {
   width: 100%;
 }
 
-.connected-device {
+.connected-device,
+.disconnected-device {
   position: relative;
 }
 
@@ -156,6 +157,19 @@ li .connected-device::before {
   top: -9px;
   left: -9px;
   box-shadow: 0 0 5px rgba(0, 128, 0, 0.5);
+  animation: pulse 1.5s infinite;
+}
+
+li .disconnected-device::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background-color: #ff0266;
+  border-radius: 50%;
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  box-shadow: 0 0 5px #ff026780;
   animation: pulse 1.5s infinite;
 }
 
