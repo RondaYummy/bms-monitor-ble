@@ -382,4 +382,8 @@ fetchErrorAlerts();
   text-transform: capitalize;
   font-weight: 600;
 }
+
+:deep(.q-field__native) {
+  color: white !important;
+}
 </style>
