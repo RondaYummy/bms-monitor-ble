@@ -59,6 +59,7 @@ self.addEventListener("push", (event: PushEvent) => {
     requireInteraction: true,
     silent: false,
     renotify: true,
+    timestamp: Date.now(),
     vibrate: [200, 100, 200],
   };
 
