@@ -30,8 +30,8 @@ export function usePush() {
       setTimeout(async () => {
         await fetch("/api/send-notification", {
           method: "POST",
-        }, 5000);
-      });
+        });
+      }, 5000);
 
     } catch (error) {
       console.error("Помилка підписки на push:", error);
