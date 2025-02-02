@@ -66,7 +66,7 @@ function checkResponse(response: Response) {
   if (response.status === 401) {
     sessionStorage.removeItem('access_token');
     sessionStorage.removeItem('access_token_timestamp');
-    accessToken.value = undefined;
+    accessToken.value = null;
     throw new Error('Unauthorized: Access token has been removed.');
   }
   if (!response.ok) {
