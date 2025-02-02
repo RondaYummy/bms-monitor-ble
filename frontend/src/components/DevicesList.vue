@@ -97,6 +97,7 @@ async function connectToDevice(address: string, name: string) {
     },
     body: JSON.stringify({ address, name }),
   });
+  console.log(response, 'response');
   checkResponse(response);
   attemptToConnectDevice.value = '';
 }
@@ -111,6 +112,7 @@ async function disconnectDevice(address: string, name: string) {
       },
       body: JSON.stringify({ address, name }),
     });
+    console.log(response, 'response');
     checkResponse(response);
     const data = await response.json();
     console.log('Device Info:', data);
