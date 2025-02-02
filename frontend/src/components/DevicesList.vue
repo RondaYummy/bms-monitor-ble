@@ -1,11 +1,11 @@
 <template>
   <ul>
     <li v-for="device of devicesList"
-        :key="device?.serial_number">
+        :key="`sr_${device?.serial_number}`">
       <div class="column">
         <div class="row justify-between q-mb-10">
           <div class="column">
-            <q-badge :class="{ 'connected-device': device?.connected }"
+            <q-badge :class="{ 'connected-device': device?.connected, 'disconnected-device': !device?.connected }"
                      class="q-mb-10 text-center"
                      color="cyan">
               {{ device.device_name }}
@@ -22,24 +22,28 @@
           </div>
         </div>
         <span class="text-center coral">
-          Uptime: {{ formatDuration(device.device_uptime) }}.
+          Дата виробництва:
+          {{ parseManufacturingDate(device.manufacturing_date) }}.
+        </span>
+        <span class="text-center coral">
+          Час роботи: {{ formatDuration(device.device_uptime) }}.
         </span>
       </div>
 
       <div v-if="disconnectBtn"
            class="row justify-around q-pa-sm">
-
         <q-btn v-if="device.connected"
                color="black"
-               :disable="!token"
+               :disable="!props.token"
                dense
                @click="disconnectDevice(device.device_address, device.device_name)"
                label="Від’єднатися" />
         <q-btn v-if="!device.connected"
                color="black"
                dense
+               :loading="attemptToConnectDevice === device.device_address"
                @click="connectToDevice(device.device_address, device.device_name)"
-               :disable="!token || attemptToConnectDevice === device.device_address"
+               :disable="!props.token || !!attemptToConnectDevice"
                label="Приєднатися" />
       </div>
       <q-separator color="orange"
@@ -49,21 +53,24 @@
 </template>
 
 <script setup lang='ts'>
-import { formatDuration, useSessionStorage } from '../helpers/utils';
+import { formatDuration, parseManufacturingDate } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
+import type { DeviceInfoMap } from '../models';
+import { eventBus } from "../eventBus";
 
-const token = useSessionStorage("access_token");
 const devicesList = ref();
 const attemptToConnectDevice = ref();
-const props = defineProps(['disconnectBtn', 'connected']);
+const props = defineProps(['disconnectBtn', 'connected', 'token']);
 
 function checkResponse(response: Response) {
-  if (!response.ok) {
-    throw new Error('Failed to error alerts');
-  }
   if (response.status === 401) {
     sessionStorage.removeItem('access_token');
-    throw new Error('Have no access');
+    sessionStorage.removeItem('access_token_timestamp');
+    eventBus.emit("session:remove", "access_token");
+    throw new Error('Unauthorized: Access token has been removed.');
+  }
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
   }
 }
 
@@ -71,10 +78,10 @@ async function fetchDeviceInfo() {
   try {
     const response = await fetch('/api/device-info');
     checkResponse(response);
-    const data = await response.json();
+    const data: DeviceInfoMap = await response.json();
     console.log('Device Info:', data);
-    if (props.connected) {
-      devicesList.value = data.filter((d: any) => d.connected);
+    if (props.connected && data) {
+      devicesList.value = Object.values(data).filter((d: any) => d.connected);
     } else {
       devicesList.value = data;
     }
@@ -89,7 +96,7 @@ async function connectToDevice(address: string, name: string) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token.value}`
+      "Authorization": `Bearer ${props.token}`
     },
     body: JSON.stringify({ address, name }),
   });
@@ -103,13 +110,13 @@ async function disconnectDevice(address: string, name: string) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token.value}`
+        "Authorization": `Bearer ${props.token}`
       },
       body: JSON.stringify({ address, name }),
     });
     checkResponse(response);
     const data = await response.json();
-    console.log('Device Info:', data);
+    console.log('Disconnect Device:', data);
     devicesList.value = data;
   } catch (error) {
     console.error('Error disconnect device info:', error);
@@ -135,7 +142,8 @@ ul {
   width: 100%;
 }
 
-.connected-device {
+.connected-device,
+.disconnected-device {
   position: relative;
 }
 
@@ -149,6 +157,19 @@ li .connected-device::before {
   top: -9px;
   left: -9px;
   box-shadow: 0 0 5px rgba(0, 128, 0, 0.5);
+  animation: pulse 1.5s infinite;
+}
+
+li .disconnected-device::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background-color: #ff0266;
+  border-radius: 50%;
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  box-shadow: 0 0 5px #ff026780;
   animation: pulse 1.5s infinite;
 }
 

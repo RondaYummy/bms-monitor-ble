@@ -1,5 +1,6 @@
 
 import { onBeforeUnmount, ref, watch } from "vue";
+import { eventBus } from "../eventBus";
 
 export const useSessionStorage = (key: string) => {
   const value = ref(sessionStorage.getItem(key));
@@ -7,8 +8,10 @@ export const useSessionStorage = (key: string) => {
   watch(value, (newValue) => {
     if (newValue === null || newValue === undefined) {
       sessionStorage.removeItem(key);
+      sessionStorage.removeItem(`${key}_timestamp`);
     } else {
       sessionStorage.setItem(key, newValue);
+      sessionStorage.setItem(`${key}_timestamp`, new Date().getTime().toString());
     }
   });
 
@@ -20,8 +23,16 @@ export const useSessionStorage = (key: string) => {
 
   window.addEventListener("storage", syncWithStorage);
 
+  eventBus.on("session:remove", (removedKey) => {
+    console.log(removedKey, 'removedKey');
+    if (removedKey === key) {
+      value.value = null;
+    }
+  });
+
   onBeforeUnmount(() => {
     window.removeEventListener("storage", syncWithStorage);
+    eventBus.off("session:remove");
   });
 
   return value;
@@ -92,4 +103,11 @@ export function calculateAutonomyTime(remainingCapacity: number, charge_current:
 
   const autonomyTime = remainingCapacity / effectiveCurrent;
   return `${autonomyTime.toFixed(2)} hrs`;
+}
+
+export function parseManufacturingDate(dateStr: string): string {
+  const year = `20${dateStr.slice(0, 2)}`; // Add 20 to the year
+  const month = dateStr.slice(2, 4);
+  const day = dateStr.slice(4, 6);
+  return `${day}-${month}-${year}`;
 }

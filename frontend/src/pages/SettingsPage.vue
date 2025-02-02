@@ -1,10 +1,10 @@
 <template>
   <q-page class="column items-center q-pa-lg">
-    <p class='text-center full-width'
+    <p class='unique text-center full-width'
        v-if='!token'>
       Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
     </p>
-    <p class='text-center full-width'
+    <p class='charge text-center full-width'
        v-if='token'>
       Ви успішно авторизовані та можете змінювати налаштування.
     </p>
@@ -12,10 +12,18 @@
     <div class='row justify-center no-wrap q-gutter-sm q-mb-md'
          v-if='!token'>
       <q-input v-model="password"
+               dense
                outlined
                label="Введіть пароль"
                label-color="white"
-               dense />
+               color="white"
+               :type="isPwd ? 'password' : 'text'">
+        <template v-slot:append>
+          <q-icon :name="isPwd ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer text-white"
+                  @click="isPwd = !isPwd" />
+        </template>
+      </q-input>
       <q-btn @click="login(password)"
              color="black"
              label="Підтвердити" />
@@ -124,7 +132,9 @@
                   </div>
 
                   <p v-if="alert?.id !== holdAlert?.id"
-                     class='q-mt-md text-left'>{{ alert?.message }}</p>
+                     class='q-mt-md text-left'>
+                    {{ alert?.message }}
+                  </p>
                   <div v-else>
                     <q-btn @click="deleteErrorAlert"
                            color="black"
@@ -178,13 +188,19 @@
                 </q-item>
               </q-list>
             </template>
+            <template v-if="notFoundDevices">
+              <h6 class="q-mt-md">
+                Нових пристроїв JK-BMS не знайдено.
+              </h6>
+            </template>
 
             <q-separator class="q-mt-md"
                          color="white" />
 
             <div>
               <div class="text-h6 q-mt-md">Ваші пристрої:</div>
-              <DevicesList :disconnect-btn="true" />
+              <DevicesList :disconnect-btn="true"
+                           :token="token" />
             </div>
           </q-tab-panel>
         </q-tab-panels>
@@ -198,12 +214,15 @@ import { ref } from 'vue';
 import { useSessionStorage } from '../helpers/utils';
 import type { Alert, Device } from '../models';
 import DevicesList from '../components/DevicesList.vue';
+import { eventBus } from "../eventBus";
 
 const tab = ref('Alerts');
 const password = ref('');
+const isPwd = ref(true);
 const loadingDevices = ref(false);
 const devices = ref<Device[]>([]);
 const attemptToConnectDevice = ref();
+const notFoundDevices = ref(false);
 
 const selectedLevel = ref();
 const alerts = ref<Alert[]>();
@@ -255,12 +274,14 @@ function handleHold(alert: Alert): void {
 }
 
 function checkResponse(response: Response) {
-  if (!response.ok) {
-    throw new Error('Failed to error alerts');
-  }
   if (response.status === 401) {
     sessionStorage.removeItem('access_token');
-    throw new Error('Have no access');
+    sessionStorage.removeItem('access_token_timestamp');
+    eventBus.emit("session:remove", "access_token");
+    throw new Error('Unauthorized: Access token has been removed.');
+  }
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
   }
 }
 
@@ -295,11 +316,11 @@ async function deleteErrorAlert() {
   }
 }
 
-const login = async (password: string) => {
+const login = async (pwd: string) => {
   const response = await fetch("/api/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
+    body: JSON.stringify({ password: pwd }),
   });
   checkResponse(response);
 
@@ -307,13 +328,18 @@ const login = async (password: string) => {
   sessionStorage.setItem("access_token", data.access_token);
   token.value = data?.access_token;
   console.log("Login successful");
+  password.value = '';
   return true;
 };
 
 async function fetchDevices() {
   try {
     loadingDevices.value = true;
+    notFoundDevices.value = false;
     const response = await fetch('/api/devices');
+    if (!response?.ok) {
+      notFoundDevices.value = true;
+    }
     checkResponse(response);
     const data = await response.json();
     devices.value = data?.devices;
@@ -355,5 +381,9 @@ fetchErrorAlerts();
 .level {
   text-transform: capitalize;
   font-weight: 600;
+}
+
+:deep(.q-field__native) {
+  color: white !important;
 }
 </style>

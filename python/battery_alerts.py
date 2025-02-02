@@ -1,13 +1,24 @@
+import json
+from fastapi import APIRouter, HTTPException
+from pywebpush import webpush, WebPushException
 from typing import TypedDict, List
 import python.db as db
 from datetime import datetime
 import yaml
+
+router = APIRouter()
 
 with open('configs/config.yaml', 'r') as file:
     config = yaml.safe_load(file)
 
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
+
+VAPID_PUBLIC_KEY = "BHhfESlC5Ns8P5wdIBQrh6X7GkzTShXlTl_OqPiijUG0F_XgbfH3aA0lFJ28dPTRY_NiMiHBx6V8KoW7pFRPyx0" # TODO need update
+VAPID_PRIVATE_KEY = "x_49rz8G8NTtCrwMZ3tMZGvBR3-2T2QyxHJYxc2OMqw" # TODO need update
+VAPID_CLAIMS = {
+    "sub": "mailto:halevych.dev@gmail.com"
+}
 
 class CellInfo(TypedDict):
     device_address: str
@@ -36,8 +47,8 @@ class CellInfo(TypedDict):
     emergency_time_countdown: int
 
 def add_alert(alerts, code):
-    alert = error_codes[code]
-    alert["id"] = code
+    alert = error_codes[int(code)]
+    alert["id"] = int(code)
     alerts.append(alert)
 
 async def evaluate_alerts(device_address: str, device_name: str, cell_info: CellInfo):
@@ -111,8 +122,44 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
             add_alert(alerts, "1025")
 
         for alert in alerts:
+            alert_id = int(alert['id'])
             db.insert_alert_data(device_address, device_name, alert['id'], datetime.now(), config['alerts']['n_hours'])
+            await send_push_notifications(device_name, {"id": alert_id, "message": error_codes[alert_id]["message"]})
 
         return alerts
     except Exception as e:
-        pass  
+        pass
+
+async def send_push_notifications(device_name: str, alert):
+    message = f"🚨 {device_name}: {alert['message']} (код: {alert['id']})"
+    payload = json.dumps({"title": "🔋 Увага!", "body": message})
+
+    subscriptions = db.get_all_subscriptions()
+    for sub in subscriptions:
+        try:
+            webpush(
+                subscription_info=sub,
+                data=payload,
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims=VAPID_CLAIMS
+            )
+        except WebPushException as e:
+            if "410 Gone" in str(e):
+                db.remove_old_subscription(sub["endpoint"])
+            else:
+                print(f"Push Notification Error: {str(e)}")
+
+@router.post("/save-subscription")
+def save_subscription(subscription: dict):
+    print("🔍 Incoming subscription:", subscription)
+    if "endpoint" not in subscription or "keys" not in subscription:
+        raise HTTPException(status_code=400, detail="Invalid subscription format")
+
+    existing_subscription = db.get_subscription_by_endpoint(subscription["endpoint"])
+    if existing_subscription:
+        # print("⚠️ Subscription already exists.")
+        return {"message": "Subscription already exists"}
+
+    db.add_subscription(subscription)
+    # print("✅ Subscription saved successfully.")
+    return {"message": "Subscription saved"}

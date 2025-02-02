@@ -153,10 +153,28 @@
       </div>
     </template>
 
-    <q-btn v-if="!isInstalled()"
-           @click="installApp"
-           color="black"
-           label="Встановити як додаток" />
+    <q-dialog v-model="installAppDialog"
+              position="bottom">
+      <q-card style="width: 350px">
+        <q-linear-progress :value="1"
+                           color="pink" />
+
+        <q-card-section class="column justify-center items-center no-wrap">
+          <h6 class='text-center text-dark'>📱 Встановіть наш додаток на свій
+            пристрій! 🚀
+          </h6>
+          <p class='text-center q-mt-sm text-dark'>
+            Наш сайт підтримує <b>Progressive Web App (PWA)</b> – це означає, що
+            ви
+            можете встановити його як додаток на свій смартфон чи комп’ютер.
+          </p>
+          <q-btn class="q-mt-sm"
+                 @click="installApp"
+                 color="black"
+                 label="Встановити як додаток" />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
 
     <BMSChart :tab="tab" />
 
@@ -253,6 +271,7 @@ import { ref, watch, onBeforeUnmount } from 'vue';
 import type { CellInfo } from '../models';
 
 const devicesList = ref<Record<string, CellInfo>>({});
+const installAppDialog = ref(false);
 const calculatedList = ref<any>();
 const tab = ref('All');
 
@@ -354,7 +373,9 @@ async function fetchCellInfo() {
   }
 }
 
-fetchCellInfo();
+if (!isInstalled()) {
+  installAppDialog.value = true;
+}
 const intervalId = setInterval(async () => {
   await fetchCellInfo();
 }, 3000);
@@ -362,6 +383,8 @@ const intervalId = setInterval(async () => {
 onBeforeUnmount(() => {
   clearInterval(intervalId);
 });
+
+fetchCellInfo();
 </script>
 
 <style scoped lang='scss'>

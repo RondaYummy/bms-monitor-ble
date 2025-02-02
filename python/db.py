@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from collections import defaultdict
 import asyncio
 
@@ -137,6 +137,14 @@ def create_table():
                 occurred_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             ''')
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                endpoint TEXT UNIQUE NOT NULL,
+                p256dh TEXT NOT NULL,
+                auth TEXT NOT NULL
+            )
+            ''')
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
@@ -186,8 +194,7 @@ def insert_alert_data(device_address, device_name, error_code, occurred_at, n_ho
 
             existing = cursor.fetchone()
             if existing:
-                print(f"Notification already exists for {device_address} and {error_code} within {n_hours} hours.")
-                return
+                raise ValueError(f"❌ Помилка: Сповіщення для {device_address} з кодом {error_code} вже існує упродовж {n_hours} годин.")
 
             cursor.execute('''
             INSERT INTO error_notifications (device_address, error_code, occurred_at, device_name)
@@ -254,3 +261,71 @@ def fetch_all_notifications():
     except sqlite3.Error as e:
         print(f"Error fetching notifications: {e}")
         raise
+
+def get_subscription_by_endpoint(endpoint: str):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM subscriptions WHERE endpoint = ?", (endpoint,))
+        return cursor.fetchone()
+    
+def add_subscription(subscription: dict):
+    with sqlite3.connect(DB_NAME) as conn:
+        cursor = conn.cursor()
+
+        endpoint = subscription["endpoint"]
+        p256dh = subscription["keys"]["p256dh"]
+        auth = subscription["keys"]["auth"]
+
+        # Check if this subscription exists with the same `p256dh` (same user)
+        cursor.execute("SELECT id, endpoint FROM subscriptions WHERE p256dh = ?", (p256dh,))
+        existing = cursor.fetchone()
+
+        if existing:
+            old_id, old_endpoint = existing
+
+            if old_endpoint != endpoint:
+                print(f"🔄 Старий endpoint {old_endpoint} змінено на {endpoint}, видаляємо старий...")
+                cursor.execute("DELETE FROM subscriptions WHERE id = ?", (old_id,))
+
+        # Add a new subscription (or update an existing one)
+        cursor.execute('''
+        INSERT INTO subscriptions (endpoint, p256dh, auth) 
+        VALUES (?, ?, ?)
+        ON CONFLICT(endpoint) DO UPDATE SET p256dh = excluded.p256dh, auth = excluded.auth
+        ''', (endpoint, p256dh, auth))
+
+        conn.commit()
+
+def remove_old_subscription(endpoint: str):
+    try:
+        with sqlite3.connect(DB_NAME) as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM subscriptions WHERE endpoint = ?", (endpoint,))
+            conn.commit()
+
+            print(f"🗑️ Видалено підписку: {endpoint}")
+
+    except sqlite3.Error as e:
+        print(f"❌ Помилка при видаленні підписки: {e}")
+
+def get_all_subscriptions():
+    try:
+        with sqlite3.connect(DB_NAME) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT endpoint, p256dh, auth FROM subscriptions")
+            rows = cursor.fetchall()
+
+            subscriptions = [
+                {
+                    "endpoint": row[0],
+                    "keys": {
+                        "p256dh": row[1],
+                        "auth": row[2]
+                    }
+                }
+                for row in rows
+            ]
+            return subscriptions
+    except sqlite3.Error as e:
+        print(f"❌ Помилка отримання підписок: {e}")
+        return []

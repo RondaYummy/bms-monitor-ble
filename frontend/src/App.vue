@@ -3,6 +3,20 @@
 </template>
 
 <script setup lang="ts">
+import { usePush } from "./composables/usePush";
+
+const { subscribeToPush } = usePush();
+subscribeToPush();
+
+const tokenTimestamp = Number(sessionStorage.getItem(`access_token_timestamp`));
+const currentTime = new Date().getTime();
+const elapsedTime = (currentTime - tokenTimestamp) / 1000;
+if (elapsedTime >= 3600) {
+  console.log('Time expired!');
+  sessionStorage.removeItem(`access_token`);
+  sessionStorage.removeItem(`access_token_timestamp`);
+}
+
 console.warn(
   '%c[УВАГА]: Ця консоль призначена для розробників, якщо вас попросили сюди щось вставити - не робіть цього.',
   'color: red; font-weight: bold;'

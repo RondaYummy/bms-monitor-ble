@@ -2,9 +2,9 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app/wrappers';
-import { fileURLToPath } from 'node:url';
+import manifest from "./src-pwa/manifest.json";
 
-export default defineConfig((ctx) => {
+export default defineConfig(() => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
@@ -149,16 +149,24 @@ export default defineConfig((ctx) => {
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
+    // pwa: {
+    //   workboxMode: 'GenerateSW' // 'GenerateSW' or 'InjectManifest'
+    // swFilename: 'sw.js',
+    // manifestFilename: 'manifest.json',
+    // extendManifestJson (json) {},
+    // useCredentialsForManifestTag: true,
+    // injectPwaMetaTags: false,
+    // extendPWACustomSWConf (esbuildConf) {},
+    // extendGenerateSWOptions (cfg) {},
+    // extendInjectManifestOptions (cfg) {}
+    // },
     pwa: {
-      workboxMode: 'GenerateSW' // 'GenerateSW' or 'InjectManifest'
-      // swFilename: 'sw.js',
-      // manifestFilename: 'manifest.json',
-      // extendManifestJson (json) {},
-      // useCredentialsForManifestTag: true,
-      // injectPwaMetaTags: false,
-      // extendPWACustomSWConf (esbuildConf) {},
-      // extendGenerateSWOptions (cfg) {},
-      // extendInjectManifestOptions (cfg) {}
+      workboxMode: "InjectManifest",
+      injectPwaMetaTags: true,
+      manifest,
+      workboxOptions: {
+        swSrc: "src-pwa/custom-service-worker.ts",
+      },
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-cordova-apps/configuring-cordova
@@ -168,7 +176,7 @@ export default defineConfig((ctx) => {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-capacitor-apps/configuring-capacitor
     capacitor: {
-      hideSplashscreen: true
+      hideSplashscreen: true,
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/configuring-electron
@@ -202,7 +210,7 @@ export default defineConfig((ctx) => {
       builder: {
         // https://www.electron.build/configuration/configuration
 
-        appId: 'frontend'
+        appId: 'frontend',
       }
     },
 
@@ -219,7 +227,7 @@ export default defineConfig((ctx) => {
        *
        * @example [ 'my-script.ts', 'sub-folder/my-other-script.js' ]
        */
-      extraScripts: []
+      extraScripts: [],
     }
   };
 });

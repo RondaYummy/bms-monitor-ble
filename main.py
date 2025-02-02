@@ -1,11 +1,10 @@
 import asyncio
-from asyncio import Lock
 from datetime import datetime
-from copy import deepcopy
 import os
 import yaml
 from uuid import uuid4
 from typing import Optional
+from python.battery_alerts import router as alerts_router
 
 import uvicorn
 from bleak import BleakClient, BleakScanner
@@ -21,11 +20,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from fastapi import Body
-from async_timeout import timeout
 
 from python.colors import *
 import python.db as db
 import python.battery_alerts as alerts
+from python.data_store import data_store
 
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
@@ -42,77 +41,11 @@ CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
 JK_BMS_OUI = {"c8:47:80"} # Через кому можна додати усі початки дял девайсів від JK-BMS
 
-PASSWORD = "123456"
+PASSWORD = "123456" # TODO need update
 TOKEN_LIFETIME_SECONDS = 3600
 
-# Data store class
-class DataStore:
-    def __init__(self):
-        self.device_info = {}
-        self.cell_info = {}
-        self.last_cell_info_update = {}
-        self.response_buffers = {}
-        self.active_tokens = {}
-        self.lock = Lock()
-
-    async def add_token(self, token: str, device_name: str):
-        async with self.lock:
-            self.active_tokens[token] = {"device_name": device_name}
-
-    async def remove_token(self, token: str):
-        async with self.lock:
-            if token in self.active_tokens:
-                del self.active_tokens[token]
-
-    async def is_token_valid(self, token: str) -> bool:
-        async with self.lock:
-            return token in self.active_tokens
-
-    async def update_last_cell_info_update(self, device_name):
-        async with self.lock:
-            self.last_cell_info_update[device_name] = datetime.now()
-
-    async def get_last_cell_info_update(self, device_name):
-        async with self.lock:
-            return self.last_cell_info_update.get(device_name, None)
-        
-    async def append_to_buffer(self, device_name, data):
-        async with self.lock:
-            if device_name not in self.response_buffers:
-                self.response_buffers[device_name] = bytearray()
-            self.response_buffers[device_name].extend(data)
-
-    async def get_buffer(self, device_name):
-        async with self.lock:
-            return self.response_buffers.get(device_name, bytearray())
-
-    async def clear_buffer(self, device_name):
-        async with self.lock:
-            if device_name in self.response_buffers:
-                self.response_buffers[device_name].clear()
-
-    async def update_device_info(self, device_name, info):
-        async with self.lock:
-            self.device_info[device_name] = info
-
-    async def get_device_info(self, device_name=None):
-        async with self.lock:
-            if device_name:
-                return deepcopy(self.device_info.get(device_name))
-            return deepcopy(self.device_info)
-
-    async def update_cell_info(self, device_name, info):
-        async with self.lock:
-            self.cell_info[device_name] = info
-
-    async def get_cell_info(self):
-        async with self.lock:
-            return deepcopy(self.cell_info)
-
-# Initialize data store
-data_store = DataStore()
-
 app = FastAPI()
+app.include_router(alerts_router, prefix="/api")
 auth_scheme = HTTPBearer()
 app.add_middleware(
     CORSMiddleware,
@@ -195,7 +128,6 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
             raise HTTPException(status_code=404, detail="Device not found in allowed list.")
 
         device_info = await data_store.get_device_info(device_name)
-        print(f"DEV INFO: {device_info}")
         if device_info:
             device_info["connected"] = False
             await data_store.update_device_info(device_name, device_info)
@@ -542,8 +474,8 @@ async def connect_and_run(device):
 
                     await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
 
-                    while True:  # Постійне опитування
-                    # Перевіряємо, чи пристрій ще підключений
+                    while True:
+                        # Check if the device is still connected
                         device_info_data = await data_store.get_device_info(device.name)
                         if not device_info_data.get("connected", False):
                             log(device.name, "Device has been disconnected. Stopping polling.", force=True)
@@ -551,18 +483,19 @@ async def connect_and_run(device):
 
                         device_info_data = await data_store.get_device_info(device.name)
                         if not device_info_data or "frame_type" not in device_info_data:
-                            # Якщо інформація про пристрій ще не збережена, надсилаємо команду
+                            # If the device information is not yet saved, send the command
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
-                            log(device.name, f"Device Info command sent: {device_info_command.hex()}")
+                            log(device.name, f"Device Info command sent: {device_info_command.hex()}", force=True)
                             await asyncio.sleep(1)
 
-                        # Перевіряємо, чи потрібно надсилати cell_info_command
+                        # Checking whether to send cell_info_command
                         last_update = await data_store.get_last_cell_info_update(device.name)
+                        log(device.name, f"last_update: {last_update}. Now: {datetime.now()}")
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
-                            log(device.name, f"Cell Info command sent: {cell_info_command.hex()}")
+                            log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
 
                         await asyncio.sleep(5)
             except Exception as e:
@@ -645,7 +578,14 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
 
     return True
 
+def ensure_allowed_devices_file(filename="configs/allowed_devices.txt"):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    if not os.path.exists(filename):
+        with open(filename, 'w', encoding='utf-8') as file:
+            file.write("")
+
 def start_services():
+    ensure_allowed_devices_file()
     db.create_table()
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
