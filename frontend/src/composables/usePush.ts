@@ -22,7 +22,7 @@ export function usePush() {
       console.log("Push Subscription отримано:", subscription);
 
       // Відправити підписку на сервер
-      await fetch("/save-subscription", {
+      await fetch("/api/save-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(subscription),
