@@ -2,6 +2,7 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app/wrappers';
+import manifest from "./src-pwa/manifest.json";
 
 export default defineConfig(() => {
   return {
@@ -162,7 +163,7 @@ export default defineConfig(() => {
     pwa: {
       workboxMode: "InjectManifest",
       injectPwaMetaTags: true,
-      manifest: require('./src-pwa/manifest.json'),
+      manifest,
       workboxOptions: {
         swSrc: "src-pwa/custom-service-worker.ts",
       },
@@ -209,7 +210,7 @@ export default defineConfig(() => {
       builder: {
         // https://www.electron.build/configuration/configuration
 
-        appId: 'frontend';
+        appId: 'frontend',
       }
     },
 
@@ -226,7 +227,7 @@ export default defineConfig(() => {
        *
        * @example [ 'my-script.ts', 'sub-folder/my-other-script.js' ]
        */
-      extraScripts: [];
+      extraScripts: [],
     }
   };
 });
