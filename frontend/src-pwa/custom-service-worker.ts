@@ -48,6 +48,7 @@ self.addEventListener("push", (event: PushEvent) => {
   if (!event.data) return;
 
   const data = event.data.json();
+  console.log(new URL("/icons/android-chrome-192x192.png", window.location.href).href);
 
   const options: NotificationOptions = {
     body: data.body,
