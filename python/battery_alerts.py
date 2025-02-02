@@ -54,6 +54,7 @@ def add_alert(alerts, code):
     alerts.append(alert)
 
 async def evaluate_alerts(device_address: str, device_name: str, cell_info: CellInfo):
+    print(f"🔍 error_codes містить: {error_codes.keys()}")
     try:
         alerts = []
 
