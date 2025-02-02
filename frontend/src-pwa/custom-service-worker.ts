@@ -53,6 +53,7 @@ self.addEventListener("push", (event: PushEvent) => {
   const options: NotificationOptions = {
     body: data.body,
     icon: "/icons/android-chrome-192x192.png",
+    requireInteraction: true,
   };
 
   console.log("Attempting to show notification...");
