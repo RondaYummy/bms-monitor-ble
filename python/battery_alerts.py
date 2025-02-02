@@ -147,7 +147,10 @@ async def send_push_notifications(device_name: str, alert):
                 vapid_claims=VAPID_CLAIMS
             )
         except WebPushException as e:
-            print(f"Push Notification Error: {str(e)}")
+            if "410 Gone" in str(e):
+                db.remove_old_subscription(sub["endpoint"])
+            else:
+                print(f"Push Notification Error: {str(e)}")
 
 @router.post("/save-subscription")
 def save_subscription(subscription: dict):
