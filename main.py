@@ -126,7 +126,6 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
             raise HTTPException(status_code=404, detail="Device not found in allowed list.")
 
         device_info = await data_store.get_device_info(device_name)
-        print(f"DEV INFO: {device_info}")
         if device_info:
             device_info["connected"] = False
             await data_store.update_device_info(device_name, device_info)
@@ -474,7 +473,7 @@ async def connect_and_run(device):
                     await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
 
                     while True:
-                    # Перевіряємо, чи пристрій ще підключений
+                        # Check if the device is still connected
                         device_info_data = await data_store.get_device_info(device.name)
                         if not device_info_data.get("connected", False):
                             log(device.name, "Device has been disconnected. Stopping polling.", force=True)
@@ -482,14 +481,15 @@ async def connect_and_run(device):
 
                         device_info_data = await data_store.get_device_info(device.name)
                         if not device_info_data or "frame_type" not in device_info_data:
-                            # Якщо інформація про пристрій ще не збережена, надсилаємо команду
+                            # If the device information is not yet saved, send the command
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
                             log(device.name, f"Device Info command sent: {device_info_command.hex()}", force=True)
                             await asyncio.sleep(1)
 
-                        # Перевіряємо, чи потрібно надсилати cell_info_command
+                        # Checking whether to send cell_info_command
                         last_update = await data_store.get_last_cell_info_update(device.name)
+                        log(device.name, f"last_update: {last_update}. Now: {datetime.now()}")
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
