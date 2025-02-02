@@ -151,7 +151,8 @@ async def send_push_notifications(device_name: str, alert):
 
 @router.post("/save-subscription")
 def save_subscription(subscription: dict):
-    if not subscription.get("endpoint") or "keys" not in subscription:
+    print("🔍 Incoming subscription:", subscription)
+    if "endpoint" not in subscription or "keys" not in subscription:
         raise HTTPException(status_code=400, detail="Invalid subscription format")
 
     existing_subscription = db.get_subscription_by_endpoint(subscription["endpoint"])
