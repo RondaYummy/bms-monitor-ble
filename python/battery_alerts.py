@@ -20,8 +20,6 @@ VAPID_CLAIMS = {
     "sub": "mailto:halevych.dev@gmail.com"
 }
 
-subscriptions = []
-
 class CellInfo(TypedDict):
     device_address: str
     charging_status: int
@@ -138,8 +136,9 @@ async def send_push_notifications(device_name: str, alert):
 
     payload = json.dumps({"title": "🔋 Увага!", "body": message})
 
+    subscriptions = db.get_all_subscriptions()
     for sub in subscriptions:
-        print(f"sub: {sub}")
+        print(f"🔔 Відправка push до: {sub['endpoint']}")
         try:
             webpush(
                 subscription_info=sub,

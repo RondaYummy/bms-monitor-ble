@@ -308,3 +308,25 @@ def remove_old_subscription(endpoint: str):
 
     except sqlite3.Error as e:
         print(f"❌ Помилка при видаленні підписки: {e}")
+
+def get_all_subscriptions():
+    try:
+        with sqlite3.connect(DB_NAME) as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT endpoint, p256dh, auth FROM subscriptions")
+            rows = cursor.fetchall()
+
+            subscriptions = [
+                {
+                    "endpoint": row[0],
+                    "keys": {
+                        "p256dh": row[1],
+                        "auth": row[2]
+                    }
+                }
+                for row in rows
+            ]
+            return subscriptions
+    except sqlite3.Error as e:
+        print(f"❌ Помилка отримання підписок: {e}")
+        return []
