@@ -45,6 +45,7 @@ self.addEventListener('activate', function (event: any) {
 });
 
 self.addEventListener("push", (event: PushEvent) => {
+  console.log('PUSH message received.');
   if (!event.data) return;
 
   const data = event.data.json();
