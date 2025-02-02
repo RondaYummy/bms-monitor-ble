@@ -65,6 +65,7 @@ function checkResponse(response: Response) {
   if (!response.ok) {
     throw new Error('Failed to error alerts');
   }
+  console.log(response.status, response.status === 401);
   if (response.status === 401) {
     sessionStorage.removeItem('access_token');
     throw new Error('Have no access');
@@ -97,7 +98,6 @@ async function connectToDevice(address: string, name: string) {
     },
     body: JSON.stringify({ address, name }),
   });
-  console.log(response, 'response');
   checkResponse(response);
   attemptToConnectDevice.value = '';
 }
@@ -112,7 +112,6 @@ async function disconnectDevice(address: string, name: string) {
       },
       body: JSON.stringify({ address, name }),
     });
-    console.log(response, 'response');
     checkResponse(response);
     const data = await response.json();
     console.log('Device Info:', data);
