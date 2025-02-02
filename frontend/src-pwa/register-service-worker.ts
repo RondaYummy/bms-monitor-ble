@@ -21,6 +21,7 @@ register(process.env.SERVICE_WORKER_FILE, {
     console.log("Service worker is active.", registration.active);
 
     if (registration.active?.state === 'activated') {
+      console.log('PUSH message activated.');
       registration.active.addEventListener("push", (event: any) => {
         console.log("Push message received.");
         if (!event.data) {
