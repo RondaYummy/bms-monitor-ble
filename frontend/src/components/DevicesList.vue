@@ -53,17 +53,20 @@
 </template>
 
 <script setup lang='ts'>
-import { formatDuration, parseManufacturingDate } from '../helpers/utils';
+import { formatDuration, parseManufacturingDate, useSessionStorage } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
 import type { DeviceInfoMap } from '../models';
 
 const devicesList = ref();
 const attemptToConnectDevice = ref();
+const accessToken = useSessionStorage("access_token");
 const props = defineProps(['disconnectBtn', 'connected', 'token']);
 
 function checkResponse(response: Response) {
   if (response.status === 401) {
     sessionStorage.removeItem('access_token');
+    sessionStorage.removeItem('access_token_timestamp');
+    accessToken.value = undefined;
     throw new Error('Unauthorized: Access token has been removed.');
   }
   if (!response.ok) {
