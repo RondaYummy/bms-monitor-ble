@@ -264,13 +264,13 @@ def fetch_all_notifications():
         raise
 
 def get_subscription_by_endpoint(endpoint: str):
-    with sqlite3.connect("database.db") as conn:
+    with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM subscriptions WHERE endpoint = ?", (endpoint,))
         return cursor.fetchone()
     
 def add_subscription(subscription: dict):
-    with sqlite3.connect("database.db") as conn:
+    with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute('''
         INSERT INTO subscriptions (endpoint, p256dh, auth) 
