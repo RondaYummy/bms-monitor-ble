@@ -27,6 +27,10 @@ export function usePush() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(subscription),
       });
+      await fetch("/api/send-notification", {
+        method: "POST",
+      });
+
     } catch (error) {
       console.error("Помилка підписки на push:", error);
     }
