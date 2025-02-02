@@ -1,10 +1,10 @@
+import json
 from fastapi import APIRouter, Request
 from pywebpush import webpush, WebPushException
 from typing import TypedDict, List
 import python.db as db
 from datetime import datetime
 import yaml
-import json
 
 router = APIRouter()
 
