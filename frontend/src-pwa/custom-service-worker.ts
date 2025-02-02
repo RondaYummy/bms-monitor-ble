@@ -43,21 +43,20 @@ self.addEventListener("activate", (event) => {
 
 // Обробка push-повідомлень
 self.addEventListener("push", (event: PushEvent) => {
-  console.log("PUSH message received.");
-
   if (!event.data) {
     console.error("No data in push event.");
     return;
   }
 
-  const data = event.data?.json() || event.data;
+  const data = event.data.json();
   console.log("Push data:", data);
 
   const options: NotificationOptions = {
     body: data.body,
     icon: "https://solar.levych.com:8443/icons/android-chrome-192x192.png",
-    tag: "bms-alert",
+    tag: `bms-alert-${Date.now()}`,
     requireInteraction: true,
+    silent: false,
   };
 
   event.waitUntil(
