@@ -194,8 +194,7 @@ def insert_alert_data(device_address, device_name, error_code, occurred_at, n_ho
 
             existing = cursor.fetchone()
             if existing:
-                print(f"Notification already exists for {device_address} and {error_code} within {n_hours} hours.")
-                return
+                raise ValueError(f"❌ Помилка: Сповіщення для {device_address} з кодом {error_code} вже існує упродовж {n_hours} годин.")
 
             cursor.execute('''
             INSERT INTO error_notifications (device_address, error_code, occurred_at, device_name)
