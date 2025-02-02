@@ -16,10 +16,11 @@
                outlined
                label="Введіть пароль"
                label-color="white"
+               color="white"
                :type="isPwd ? 'password' : 'text'">
         <template v-slot:append>
           <q-icon :name="isPwd ? 'visibility_off' : 'visibility'"
-                  class="cursor-pointer"
+                  class="cursor-pointer text-white"
                   @click="isPwd = !isPwd" />
         </template>
       </q-input>
