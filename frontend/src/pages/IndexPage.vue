@@ -269,9 +269,6 @@ import BMSChart from '../components/BMSChart.vue';
 import { calculateAutonomyTime, calculateAverage, calculateAveragePerIndex } from '../helpers/utils';
 import { ref, watch, onBeforeUnmount } from 'vue';
 import type { CellInfo } from '../models';
-import { usePush } from "../composables/usePush";
-
-const { subscribeToPush } = usePush();
 
 const devicesList = ref<Record<string, CellInfo>>({});
 const installAppDialog = ref(false);
@@ -388,7 +385,6 @@ onBeforeUnmount(() => {
 });
 
 fetchCellInfo();
-subscribeToPush();
 </script>
 
 <style scoped lang='scss'>

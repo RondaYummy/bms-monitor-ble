@@ -5,21 +5,52 @@ const publicVapidKey = "BHhfESlC5Ns8P5wdIBQrh6X7GkzTShXlTl_OqPiijUG0F_XgbfH3aA0l
 export function usePush() {
   const pushSubscription = ref<PushSubscription | null>(null);
 
+  async function requestPermission() {
+    console.log("🔔 Запит дозволу на сповіщення...");
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      console.warn("❌ Користувач відхилив дозвіл на сповіщення.");
+      return false;
+    }
+
+    console.log("✅ Дозвіл на сповіщення надано.");
+    return true;
+  }
+
   async function subscribeToPush() {
     if (!("serviceWorker" in navigator)) {
-      console.error("Service Worker не підтримується.");
+      console.error("❌ Service Worker не підтримується.");
+      return;
+    }
+
+    if (!("PushManager" in window)) {
+      console.error("❌ Push API не підтримується.");
+      return;
+    }
+
+    if (!await requestPermission()) {
       return;
     }
 
     try {
       const registration = await navigator.serviceWorker.ready;
+
+      const existingSubscription = await registration.pushManager.getSubscription();
+      if (existingSubscription) {
+        console.log("🔄 Підписка вже існує:", existingSubscription);
+        pushSubscription.value = existingSubscription;
+        return;
+      }
+
+      console.log("📝 Реєстрація нової підписки...");
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
       });
 
       pushSubscription.value = subscription;
-      console.log("Push Subscription отримано:", subscription);
+      console.log("✅ Нова Push Subscription отримана:", subscription);
 
       await fetch("/api/save-subscription", {
         method: "POST",
@@ -27,21 +58,14 @@ export function usePush() {
         body: JSON.stringify(subscription),
       });
 
-      setTimeout(async () => {
-        await fetch("/api/send-notification", {
-          method: "POST",
-        });
-      }, 5000);
-
     } catch (error) {
-      console.error("Помилка підписки на push:", error);
+      console.error("❌ Помилка підписки на push:", error);
     }
   }
 
   return { pushSubscription, subscribeToPush };
 }
 
-// Функція перетворення ключа VAPID у Uint8Array
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");

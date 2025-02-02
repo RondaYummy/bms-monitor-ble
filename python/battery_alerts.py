@@ -1,5 +1,5 @@
 import json
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from pywebpush import webpush, WebPushException
 from typing import TypedDict, List
 import python.db as db
