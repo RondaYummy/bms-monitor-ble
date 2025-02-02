@@ -11,6 +11,7 @@ if (elapsedTime >= 3600) {
   sessionStorage.removeItem(`access_token`);
   sessionStorage.removeItem(`access_token_timestamp`);
 }
+console.log(new URL("/icons/android-chrome-192x192.png", window.location.href).href);
 
 console.warn(
   '%c[УВАГА]: Ця консоль призначена для розробників, якщо вас попросили сюди щось вставити - не робіть цього.',
