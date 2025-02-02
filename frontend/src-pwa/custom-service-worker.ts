@@ -1,65 +1,78 @@
-/*
- * This file (which will be your service worker)
- * is picked up by the build system ONLY if
- * quasar.config file > pwa > workboxMode is set to "InjectManifest"
- */
 /// <reference lib="webworker" />
 
-declare const self: ServiceWorkerGlobalScope &
-  typeof globalThis & { skipWaiting: () => void; };
+declare const self: ServiceWorkerGlobalScope & typeof globalThis & {
+  skipWaiting: () => void;
+};
 
-import { clientsClaim } from 'workbox-core';
+import { clientsClaim } from "workbox-core";
 import {
   precacheAndRoute,
   cleanupOutdatedCaches,
   createHandlerBoundToURL,
-} from 'workbox-precaching';
-import { registerRoute, NavigationRoute } from 'workbox-routing';
-import { NetworkFirst } from 'workbox-strategies';
+} from "workbox-precaching";
+import { registerRoute, NavigationRoute } from "workbox-routing";
+import { NetworkFirst } from "workbox-strategies";
 
+// Примусово активуємо Service Worker одразу після установки
 self.skipWaiting();
 clientsClaim();
 
-// Use with precache injection
+// Використання Workbox для попереднього кешування
 precacheAndRoute(self.__WB_MANIFEST);
 
+// Очищення застарілих кешів
 cleanupOutdatedCaches();
 
-// Non-SSR fallbacks to index.html
-// Production SSR fallbacks to offline.html (except for dev)
-if (process.env.MODE !== 'ssr' || process.env.PROD) {
-  registerRoute(
-    new NavigationRoute(
-      createHandlerBoundToURL(process.env.PWA_FALLBACK_HTML),
-      { denylist: [new RegExp(process.env.PWA_SERVICE_WORKER_REGEX), /workbox-(.)*\.js$/] }
-    )
-  );
-}
+// Обробка запитів на навігацію
+registerRoute(
+  new NavigationRoute(
+    createHandlerBoundToURL(process.env.PWA_FALLBACK_HTML),
+    { denylist: [new RegExp(process.env.PWA_SERVICE_WORKER_REGEX), /workbox-(.)*\.js$/] }
+  )
+);
 
-self.skipWaiting();
-registerRoute(({ url }) => url.pathname.startsWith('/'), new NetworkFirst(), 'GET');
-registerRoute(({ url }) => /^http/.test(url.pathname), new NetworkFirst(), 'GET');
-self.addEventListener('activate', function (event: any) {
-  console.log('customSw -> @activate :: ', event);
-  event.waitUntil((self as unknown as any).clients.claim());
+// Обробка запитів GET
+registerRoute(({ url }) => url.pathname.startsWith("/"), new NetworkFirst(), "GET");
+registerRoute(({ url }) => /^http/.test(url.pathname), new NetworkFirst(), "GET");
+
+// Логування активації
+self.addEventListener("activate", (event) => {
+  console.log("customSw -> @activate :: ", event);
+  event.waitUntil(self.clients.claim());
 });
 
+// Обробка push-повідомлень
 self.addEventListener("push", (event: PushEvent) => {
-  console.log('PUSH message received.');
-  if (!event.data) return;
+  console.log("PUSH message received.");
+
+  if (!event.data) {
+    console.error("No data in push event.");
+    return;
+  }
 
   const data = event.data.json();
+  console.log("Push data:", data);
 
   const options: NotificationOptions = {
     body: data.body,
-    icon: "/icons/android-chrome-192x192.png",
-    requireInteraction: true,
+    icon: "/icons/android-chrome-192x192.png", // Іконки з вашого manifest.json
+    tag: "bms-alert",
   };
 
-  console.log("Attempting to show notification...");
   event.waitUntil(
-    self.registration.showNotification(data.title, options)
+    self.registration
+      .showNotification(data.title, options)
       .then(() => console.log("Notification displayed successfully."))
       .catch((err) => console.error("Error displaying notification:", err))
   );
 });
+
+// Обробка кліків на сповіщення
+// self.addEventListener("notificationclick", (event) => {
+//   console.log("Notification clicked:", event.notification);
+
+//   event.notification.close();
+//   event.waitUntil(
+//     clients.openWindow("/") // Замініть на правильний шлях до вашого додатка
+//   );
+// });

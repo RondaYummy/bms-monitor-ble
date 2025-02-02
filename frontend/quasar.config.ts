@@ -148,16 +148,24 @@ export default defineConfig(() => {
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/developing-pwa/configuring-pwa
+    // pwa: {
+    //   workboxMode: 'GenerateSW' // 'GenerateSW' or 'InjectManifest'
+    // swFilename: 'sw.js',
+    // manifestFilename: 'manifest.json',
+    // extendManifestJson (json) {},
+    // useCredentialsForManifestTag: true,
+    // injectPwaMetaTags: false,
+    // extendPWACustomSWConf (esbuildConf) {},
+    // extendGenerateSWOptions (cfg) {},
+    // extendInjectManifestOptions (cfg) {}
+    // },
     pwa: {
-      workboxMode: 'GenerateSW' // 'GenerateSW' or 'InjectManifest'
-      // swFilename: 'sw.js',
-      // manifestFilename: 'manifest.json',
-      // extendManifestJson (json) {},
-      // useCredentialsForManifestTag: true,
-      // injectPwaMetaTags: false,
-      // extendPWACustomSWConf (esbuildConf) {},
-      // extendGenerateSWOptions (cfg) {},
-      // extendInjectManifestOptions (cfg) {}
+      workboxMode: "InjectManifest",
+      injectPwaMetaTags: true,
+      manifest: require('./src-pwa/manifest.json'),
+      workboxOptions: {
+        swSrc: "src-pwa/custom-service-worker.ts",
+      },
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-cordova-apps/configuring-cordova
@@ -167,7 +175,7 @@ export default defineConfig(() => {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-capacitor-apps/configuring-capacitor
     capacitor: {
-      hideSplashscreen: true
+      hideSplashscreen: true;
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-electron-apps/configuring-electron
@@ -201,7 +209,7 @@ export default defineConfig(() => {
       builder: {
         // https://www.electron.build/configuration/configuration
 
-        appId: 'frontend'
+        appId: 'frontend';
       }
     },
 
@@ -218,7 +226,7 @@ export default defineConfig(() => {
        *
        * @example [ 'my-script.ts', 'sub-folder/my-other-script.js' ]
        */
-      extraScripts: []
+      extraScripts: [];
     }
   };
 });
