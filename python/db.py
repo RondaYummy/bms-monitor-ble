@@ -270,10 +270,30 @@ def get_subscription_by_endpoint(endpoint: str):
         return cursor.fetchone()
     
 def add_subscription(subscription: dict):
-    with get_connection() as conn:
+    with sqlite3.connect(DB_NAME) as conn:
         cursor = conn.cursor()
+
+        endpoint = subscription["endpoint"]
+        p256dh = subscription["keys"]["p256dh"]
+        auth = subscription["keys"]["auth"]
+
+        # Check if this subscription exists with the same `p256dh` (same user)
+        cursor.execute("SELECT id, endpoint FROM subscriptions WHERE p256dh = ?", (p256dh,))
+        existing = cursor.fetchone()
+
+        if existing:
+            old_id, old_endpoint = existing
+
+            if old_endpoint != endpoint:
+                print(f"🔄 Старий endpoint {old_endpoint} змінено на {endpoint}, видаляємо старий...")
+                cursor.execute("DELETE FROM subscriptions WHERE id = ?", (old_id,))
+
+        # Add a new subscription (or update an existing one)
         cursor.execute('''
         INSERT INTO subscriptions (endpoint, p256dh, auth) 
         VALUES (?, ?, ?)
-        ''', (subscription["endpoint"], subscription["keys"]["p256dh"], subscription["keys"]["auth"]))
+        ON CONFLICT(endpoint) DO UPDATE SET p256dh = excluded.p256dh, auth = excluded.auth
+        ''', (endpoint, p256dh, auth))
+
         conn.commit()
+
