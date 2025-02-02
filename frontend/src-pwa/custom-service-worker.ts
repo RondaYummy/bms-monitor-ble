@@ -49,7 +49,6 @@ self.addEventListener("push", (event: PushEvent) => {
   }
 
   const data = event.data.json();
-  console.log("Push data:", data);
 
   // const options: NotificationOptions = {
   const options: any = {
@@ -63,20 +62,27 @@ self.addEventListener("push", (event: PushEvent) => {
     vibrate: [200, 100, 200],
   };
 
-  event.waitUntil(
-    self.registration
-      .showNotification(data.title, options)
-      .then(() => console.log("Notification displayed successfully."))
-      .catch((err) => console.error("Error displaying notification:", err))
-  );
+  event.waitUntil(self.registration
+    .showNotification(data.title, options));
 });
 
-// Обробка кліків на сповіщення
-// self.addEventListener("notificationclick", (event) => {
-//   console.log("Notification clicked:", event.notification);
+self.addEventListener("notificationclick", async (event) => {
+  console.log("Notification clicked:", event.notification);
 
-//   event.notification.close();
-//   event.waitUntil(
-//     clients.openWindow("/") // Замініть на правильний шлях до вашого додатка
-//   );
-// });
+  event.notification.close();
+
+  event.waitUntil(
+    (async () => {
+      const allClients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+
+      // Перевіряємо, чи вкладка вже є у відкритих вікнах
+      for (const client of allClients) {
+        if (client.url.includes("/settings") && "focus" in client) {
+          return client.focus(); // Якщо є — просто фокусуємо її
+        }
+      }
+
+      return self.clients.openWindow("/settings"); // Якщо вкладки немає — відкриваємо нову
+    })()
+  );
+});
