@@ -128,8 +128,7 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
 
         return alerts
     except Exception as e:
-        print(f"❌ Виникла помилка: {e}")
-        # pass  
+        pass
 
 async def send_push_notifications(device_name: str, alert):
     message = f"🚨 {device_name}: {alert['message']} (код: {alert['id']})"
