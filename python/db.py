@@ -298,12 +298,9 @@ def add_subscription(subscription: dict):
         conn.commit()
 
 def remove_old_subscription(endpoint: str):
-    """Видаляє стару підписку за її `endpoint`"""
     try:
         with sqlite3.connect(DB_NAME) as conn:
             cursor = conn.cursor()
-
-            # Видаляємо підписку
             cursor.execute("DELETE FROM subscriptions WHERE endpoint = ?", (endpoint,))
             conn.commit()
 
