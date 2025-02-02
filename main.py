@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from fastapi import Body
+import subprocess
 
 from python.colors import *
 import python.db as db
@@ -504,6 +505,14 @@ async def connect_and_run(device):
                 log(device.name, "Disconnected, retrying in 5 seconds...", force=True)
                 await asyncio.sleep(5)
 
+def start_bluetooth_service():
+    try:
+        subprocess.run(["sudo", "systemctl", "start", "bluetooth"], check=True)
+        subprocess.run(["sudo", "systemctl", "enable", "bluetooth"], check=True)
+        print("Bluetooth service started successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to start Bluetooth service: {e}")
+
 ble_scan_lock = asyncio.Lock()
 async def ble_main():
     while True:
@@ -583,6 +592,7 @@ def ensure_allowed_devices_file(filename="configs/allowed_devices.txt"):
             file.write("")
 
 def start_services():
+    start_bluetooth_service()
     ensure_allowed_devices_file()
     db.create_table()
     uvicorn.run(app, host="0.0.0.0", port=8000)
