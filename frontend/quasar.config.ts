@@ -3,7 +3,7 @@
 
 import { defineConfig } from '#q-app/wrappers';
 
-export default defineConfig((ctx) => {
+export default defineConfig(() => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
