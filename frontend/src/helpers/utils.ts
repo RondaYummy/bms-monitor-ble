@@ -1,5 +1,6 @@
 
 import { onBeforeUnmount, ref, watch } from "vue";
+import { eventBus } from "../eventBus";
 
 export const useSessionStorage = (key: string) => {
   const value = ref(sessionStorage.getItem(key));
@@ -22,8 +23,15 @@ export const useSessionStorage = (key: string) => {
 
   window.addEventListener("storage", syncWithStorage);
 
+  eventBus.on("session:remove", (removedKey) => {
+    if (removedKey === key) {
+      value.value = null;
+    }
+  });
+
   onBeforeUnmount(() => {
     window.removeEventListener("storage", syncWithStorage);
+    eventBus.off("session:remove");
   });
 
   return value;

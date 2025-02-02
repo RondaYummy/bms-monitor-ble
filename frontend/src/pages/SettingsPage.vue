@@ -204,6 +204,7 @@ import { ref } from 'vue';
 import { useSessionStorage } from '../helpers/utils';
 import type { Alert, Device } from '../models';
 import DevicesList from '../components/DevicesList.vue';
+import { eventBus } from "../eventBus";
 
 const tab = ref('Alerts');
 const password = ref('');
@@ -265,6 +266,7 @@ function checkResponse(response: Response) {
   if (response.status === 401) {
     sessionStorage.removeItem('access_token');
     sessionStorage.removeItem('access_token_timestamp');
+    eventBus.emit("session:remove", "access_token");
     throw new Error('Unauthorized: Access token has been removed.');
   }
   if (!response.ok) {
