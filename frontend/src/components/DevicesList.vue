@@ -62,13 +62,12 @@ const attemptToConnectDevice = ref();
 const props = defineProps(['disconnectBtn', 'connected', 'token']);
 
 function checkResponse(response: Response) {
-  if (!response.ok) {
-    throw new Error('Failed to error alerts');
-  }
-  console.log(response.status, response.status === 401);
   if (response.status === 401) {
     sessionStorage.removeItem('access_token');
-    throw new Error('Have no access');
+    throw new Error('Unauthorized: Access token has been removed.');
+  }
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
   }
 }
 
