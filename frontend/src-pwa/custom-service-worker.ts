@@ -51,12 +51,15 @@ self.addEventListener("push", (event: PushEvent) => {
   const data = event.data.json();
   console.log("Push data:", data);
 
-  const options: NotificationOptions = {
+  // const options: NotificationOptions = {
+  const options: any = {
     body: data.body,
     icon: "https://solar.levych.com:8443/icons/android-chrome-192x192.png",
     tag: `bms-alert-${Date.now()}`,
     requireInteraction: true,
     silent: false,
+    renotify: true,
+    vibrate: [200, 100, 200],
   };
 
   event.waitUntil(
