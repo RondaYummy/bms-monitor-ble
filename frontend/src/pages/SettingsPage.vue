@@ -322,6 +322,7 @@ async function fetchDevices() {
     loadingDevices.value = true;
     notFoundDevices.value = false;
     const response = await fetch('/api/devices');
+    console.log(response, 'response');
     if (!response?.ok) {
       notFoundDevices.value = true;
     }

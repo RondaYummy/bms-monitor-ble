@@ -473,7 +473,7 @@ async def connect_and_run(device):
 
                     await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
 
-                    while True:  # Постійне опитування
+                    while True:
                     # Перевіряємо, чи пристрій ще підключений
                         device_info_data = await data_store.get_device_info(device.name)
                         if not device_info_data.get("connected", False):
