@@ -109,7 +109,7 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
         elif max(cell_info["cell_resistances"]) > 0.3:
             add_alert(alerts, "1019")
 
-        if cell_info["battery_voltage"] > 60:
+        if cell_info["battery_voltage"] > 0: # TODO rewrite to 60
             add_alert(alerts, "1020")
         elif cell_info["battery_voltage"] > 58:
             add_alert(alerts, "1021")
@@ -125,21 +125,20 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
 
         for alert in alerts:
             db.insert_alert_data(device_address, device_name, alert['id'], datetime.now(), config['alerts']['n_hours'])
+            await send_push_notifications(device_name, {"id": alert['id'], "message": error_codes[alert['id']]["message"]})
 
         return alerts
     except Exception as e:
         pass  
 
-async def send_push_notifications(device_name: str, alerts):
+async def send_push_notifications(device_name: str, alert):
     """ Відправляє Web Push повідомлення підписаним клієнтам """
-    message = f"🚨 {device_name}: {alerts[0]['message']} (код: {alerts[0]['id']})"
+    message = f"🚨 {device_name}: {alert['message']} (код: {alert['id']})"
 
-    payload = json.dumps({"title": "Увага! Помилка BMS", "body": message})
+    payload = json.dumps({"title": "🔋 Увага!", "body": message})
 
     for sub in subscriptions:
         try:
-            print(f"Sending to subscription: {sub}")
-            print(f"Payload: {payload}")
             webpush(
                 subscription_info=sub,
                 data=payload,
@@ -157,9 +156,3 @@ def save_subscription(subscription):
         return
     db.add_subscription(subscription)
     print("Subscription saved successfully.")
-
-@router.post("/send-notification")
-async def send_notification():
-    """ Надсилає тестове push-сповіщення """
-    await send_push_notifications("Тестовий пристрій", [{"id": "9999", "message": "Це тестове повідомлення"}])
-    return {"message": "Push notification sent"}
