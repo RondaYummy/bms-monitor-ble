@@ -12,10 +12,17 @@
     <div class='row justify-center no-wrap q-gutter-sm q-mb-md'
          v-if='!token'>
       <q-input v-model="password"
+               dense
                outlined
                label="Введіть пароль"
                label-color="white"
-               dense />
+               :type="isPwd ? 'password' : 'text'">
+        <template v-slot:append>
+          <q-icon :name="isPwd ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="isPwd = !isPwd" />
+        </template>
+      </q-input>
       <q-btn @click="login(password)"
              color="black"
              label="Підтвердити" />
@@ -124,7 +131,9 @@
                   </div>
 
                   <p v-if="alert?.id !== holdAlert?.id"
-                     class='q-mt-md text-left'>{{ alert?.message }}</p>
+                     class='q-mt-md text-left'>
+                    {{ alert?.message }}
+                  </p>
                   <div v-else>
                     <q-btn @click="deleteErrorAlert"
                            color="black"
@@ -208,6 +217,7 @@ import { eventBus } from "../eventBus";
 
 const tab = ref('Alerts');
 const password = ref('');
+const isPwd = ref(true);
 const loadingDevices = ref(false);
 const devices = ref<Device[]>([]);
 const attemptToConnectDevice = ref();
@@ -305,11 +315,11 @@ async function deleteErrorAlert() {
   }
 }
 
-const login = async (password: string) => {
+const login = async (pwd: string) => {
   const response = await fetch("/api/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
+    body: JSON.stringify({ password: pwd }),
   });
   checkResponse(response);
 
@@ -317,6 +327,7 @@ const login = async (password: string) => {
   sessionStorage.setItem("access_token", data.access_token);
   token.value = data?.access_token;
   console.log("Login successful");
+  password.value = '';
   return true;
 };
 
