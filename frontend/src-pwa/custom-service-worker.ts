@@ -50,7 +50,7 @@ self.addEventListener("push", (event: PushEvent) => {
     return;
   }
 
-  const data = event.data.json();
+  const data = event.data.json() || event.data;
   console.log("Push data:", data);
 
   const options: NotificationOptions = {
