@@ -4,6 +4,7 @@ import os
 import yaml
 from uuid import uuid4
 from typing import Optional
+from python.battery_alerts import router as alerts_router
 
 import uvicorn
 from bleak import BleakClient, BleakScanner
@@ -40,10 +41,11 @@ CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
 JK_BMS_OUI = {"c8:47:80"} # Через кому можна додати усі початки дял девайсів від JK-BMS
 
-PASSWORD = "123456"
+PASSWORD = "123456" # TODO need update
 TOKEN_LIFETIME_SECONDS = 3600
 
 app = FastAPI()
+app.include_router(alerts_router, prefix="/api")
 auth_scheme = HTTPBearer()
 app.add_middleware(
     CORSMiddleware,

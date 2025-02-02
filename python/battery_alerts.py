@@ -1,13 +1,25 @@
+from fastapi import APIRouter, Request
+from pywebpush import webpush, WebPushException
 from typing import TypedDict, List
 import python.db as db
 from datetime import datetime
 import yaml
+
+router = APIRouter()
 
 with open('configs/config.yaml', 'r') as file:
     config = yaml.safe_load(file)
 
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
+
+VAPID_PUBLIC_KEY = "BHhfESlC5Ns8P5wdIBQrh6X7GkzTShXlTl_OqPiijUG0F_XgbfH3aA0lFJ28dPTRY_NiMiHBx6V8KoW7pFRPyx0" # TODO need update
+VAPID_PRIVATE_KEY = "x_49rz8G8NTtCrwMZ3tMZGvBR3-2T2QyxHJYxc2OMqw" # TODO need update
+VAPID_CLAIMS = {
+    "sub": "mailto:halevych.dev@gmail.com"
+}
+
+subscriptions = []
 
 class CellInfo(TypedDict):
     device_address: str
@@ -116,3 +128,33 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
         return alerts
     except Exception as e:
         pass  
+
+async def send_push_notifications(device_name: str, alerts):
+    """ Відправляє Web Push повідомлення підписаним клієнтам """
+    message = f"🚨 {device_name}: {alerts[0]['message']} (код: {alerts[0]['id']})"
+
+    payload = json.dumps({"title": "Увага! Помилка BMS", "body": message})
+
+    for sub in subscriptions:
+        try:
+            webpush(
+                subscription_info=sub,
+                data=payload,
+                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_claims=VAPID_CLAIMS
+            )
+        except WebPushException as e:
+            print(f"Push Notification Error: {str(e)}")
+
+@router.post("/save-subscription")
+async def save_subscription(request: Request):
+    """ Зберігає Web Push підписку """
+    subscription = await request.json()
+    subscriptions.append(subscription)
+    return {"message": "Subscription saved"}
+
+@router.post("/send-notification")
+async def send_notification():
+    """ Надсилає тестове push-сповіщення """
+    await send_push_notifications("Тестовий пристрій", [{"id": "9999", "message": "Це тестове повідомлення"}])
+    return {"message": "Push notification sent"}

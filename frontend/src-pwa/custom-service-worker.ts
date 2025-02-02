@@ -3,6 +3,7 @@
  * is picked up by the build system ONLY if
  * quasar.config file > pwa > workboxMode is set to "InjectManifest"
  */
+/// <reference lib="webworker" />
 
 declare const self: ServiceWorkerGlobalScope &
   typeof globalThis & { skipWaiting: () => void; };
@@ -41,4 +42,19 @@ registerRoute(({ url }) => /^http/.test(url.pathname), new NetworkFirst(), 'GET'
 self.addEventListener('activate', function (event: any) {
   console.log('customSw -> @activate :: ', event);
   event.waitUntil((self as unknown as any).clients.claim());
+});
+
+self.addEventListener("push", (event: PushEvent) => {
+  if (!event.data) return;
+
+  const data = event.data.json();
+
+  const options: NotificationOptions = {
+    body: data.body,
+    icon: "/icons/android-chrome-192x192.png",
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
 });
