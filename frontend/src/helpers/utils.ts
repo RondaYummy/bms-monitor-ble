@@ -24,6 +24,7 @@ export const useSessionStorage = (key: string) => {
   window.addEventListener("storage", syncWithStorage);
 
   watchEffect(() => {
+    console.log(sessionStorage.getItem(key), 'sessionStorage.getItem(key)');
     value.value = sessionStorage.getItem(key);
   });
 
