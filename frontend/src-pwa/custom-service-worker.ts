@@ -55,8 +55,9 @@ self.addEventListener("push", (event: PushEvent) => {
 
   const options: NotificationOptions = {
     body: data.body,
-    icon: "/icons/android-chrome-192x192.png", // Іконки з вашого manifest.json
+    icon: "https://solar.levych.com:8443/icons/android-chrome-192x192.png",
     tag: "bms-alert",
+    requireInteraction: true,
   };
 
   event.waitUntil(
