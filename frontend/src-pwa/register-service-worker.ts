@@ -18,7 +18,7 @@ register(process.env.SERVICE_WORKER_FILE, {
   // registrationOptions: { scope: './' },
 
   ready(registration) {
-    console.log("Service worker is active.");
+    console.log("Service worker is active.", registration.active);
 
     if (registration.active) {
       registration.active.addEventListener("push", (event: any) => {
