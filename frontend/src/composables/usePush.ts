@@ -27,8 +27,10 @@ export function usePush() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(subscription),
       });
-      await fetch("/api/send-notification", {
-        method: "POST",
+      setTimeout(async () => {
+        await fetch("/api/send-notification", {
+          method: "POST",
+        }, 5000);
       });
 
     } catch (error) {
