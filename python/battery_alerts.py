@@ -109,7 +109,7 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
 
         if cell_info["battery_voltage"] > 60:
             add_alert(alerts, "1020")
-        elif cell_info["battery_voltage"] > 22:# TODO rewrite to 58
+        elif cell_info["battery_voltage"] > 58:
             add_alert(alerts, "1021")
         elif cell_info["battery_voltage"] < 40:
             add_alert(alerts, "1022")
@@ -132,12 +132,10 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
 
 async def send_push_notifications(device_name: str, alert):
     message = f"🚨 {device_name}: {alert['message']} (код: {alert['id']})"
-
     payload = json.dumps({"title": "🔋 Увага!", "body": message})
 
     subscriptions = db.get_all_subscriptions()
     for sub in subscriptions:
-        print(f"🔔 Відправка push до: {sub['endpoint']}")
         try:
             webpush(
                 subscription_info=sub,
@@ -159,9 +157,9 @@ def save_subscription(subscription: dict):
 
     existing_subscription = db.get_subscription_by_endpoint(subscription["endpoint"])
     if existing_subscription:
-        print("⚠️ Subscription already exists.")
+        # print("⚠️ Subscription already exists.")
         return {"message": "Subscription already exists"}
 
     db.add_subscription(subscription)
-    print("✅ Subscription saved successfully.")
+    # print("✅ Subscription saved successfully.")
     return {"message": "Subscription saved"}
