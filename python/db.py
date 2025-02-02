@@ -137,6 +137,14 @@ def create_table():
                 occurred_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             ''')
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                endpoint TEXT UNIQUE NOT NULL,
+                p256dh TEXT NOT NULL,
+                auth TEXT NOT NULL
+            )
+            ''')
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
@@ -254,3 +262,18 @@ def fetch_all_notifications():
     except sqlite3.Error as e:
         print(f"Error fetching notifications: {e}")
         raise
+
+def get_subscription_by_endpoint(endpoint: str):
+    with sqlite3.connect("database.db") as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM subscriptions WHERE endpoint = ?", (endpoint,))
+        return cursor.fetchone()
+    
+def add_subscription(subscription: dict):
+    with sqlite3.connect("database.db") as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+        INSERT INTO subscriptions (endpoint, p256dh, auth) 
+        VALUES (?, ?, ?)
+        ''', (subscription["endpoint"], subscription["keys"]["p256dh"], subscription["keys"]["auth"]))
+        conn.commit()

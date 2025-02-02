@@ -56,6 +56,15 @@ export function usePush() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(subscription),
+      }).catch(async () => {
+        const registration = await navigator.serviceWorker.ready;
+        const existingSubscription = await registration.pushManager.getSubscription();
+        if (existingSubscription) {
+          console.log("🗑 Видаляємо невдалу підписку...");
+          await existingSubscription.unsubscribe();
+          pushSubscription.value = null;
+          console.log("✅ Підписка успішно видалена.");
+        }
       });
 
     } catch (error) {

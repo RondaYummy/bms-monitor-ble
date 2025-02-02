@@ -1,5 +1,5 @@
 import json
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pywebpush import webpush, WebPushException
 from typing import TypedDict, List
 import python.db as db
@@ -150,10 +150,15 @@ async def send_push_notifications(device_name: str, alert):
             print(f"Push Notification Error: {str(e)}")
 
 @router.post("/save-subscription")
-def save_subscription(subscription):
+def save_subscription(subscription: dict):
+    if not subscription.get("endpoint") or "keys" not in subscription:
+        raise HTTPException(status_code=400, detail="Invalid subscription format")
+
     existing_subscription = db.get_subscription_by_endpoint(subscription["endpoint"])
     if existing_subscription:
-        print("Subscription already exists.")
-        return
+        print("⚠️ Subscription already exists.")
+        return {"message": "Subscription already exists"}
+
     db.add_subscription(subscription)
-    print("Subscription saved successfully.")
+    print("✅ Subscription saved successfully.")
+    return {"message": "Subscription saved"}
