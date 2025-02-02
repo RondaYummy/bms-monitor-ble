@@ -138,6 +138,8 @@ async def send_push_notifications(device_name: str, alerts):
 
     for sub in subscriptions:
         try:
+            print(f"Sending to subscription: {sub}")
+            print(f"Payload: {payload}")
             webpush(
                 subscription_info=sub,
                 data=payload,
@@ -148,11 +150,13 @@ async def send_push_notifications(device_name: str, alerts):
             print(f"Push Notification Error: {str(e)}")
 
 @router.post("/save-subscription")
-async def save_subscription(request: Request):
-    """ Зберігає Web Push підписку """
-    subscription = await request.json()
-    subscriptions.append(subscription)
-    return {"message": "Subscription saved"}
+def save_subscription(subscription):
+    existing_subscription = db.get_subscription_by_endpoint(subscription["endpoint"])
+    if existing_subscription:
+        print("Subscription already exists.")
+        return
+    db.add_subscription(subscription)
+    print("Subscription saved successfully.")
 
 @router.post("/send-notification")
 async def send_notification():

@@ -17,8 +17,33 @@ register(process.env.SERVICE_WORKER_FILE, {
 
   // registrationOptions: { scope: './' },
 
-  ready(/* registration */) {
-    // console.log('Service worker is active.')
+  ready(registration) {
+    console.log("Service worker is active.");
+
+    if (registration.active) {
+      registration.active.addEventListener("push", (event: any) => {
+        console.log("Push message received.");
+        if (!event.data) {
+          console.error("No data in push event.");
+          return;
+        }
+
+        const data = event.data.json();
+        console.log("Push data:", data);
+
+        const options = {
+          body: data.body,
+          icon: "/icons/android-chrome-192x192.png",
+          tag: "bms-alert",
+        };
+
+        event.waitUntil(
+          registration.showNotification(data.title, options).catch((err) => {
+            console.error("Error displaying notification:", err);
+          })
+        );
+      });
+    }
   },
 
   registered(/* registration */) {

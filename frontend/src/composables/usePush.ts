@@ -21,7 +21,6 @@ export function usePush() {
       pushSubscription.value = subscription;
       console.log("Push Subscription отримано:", subscription);
 
-      // Відправити підписку на сервер
       await fetch("/api/save-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
