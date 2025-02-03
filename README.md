@@ -2,9 +2,9 @@
 ## Battery Management System JK-BMS control via Bluetooth low energy
 
 <p align="center">
-  <img src="devices.png" width="30%">
-  <img src="summary.png" width="30%">
-  <img src="settings.png" width="30%">
+  <img src="devices.png" style="height: 250px; object-fit: contain;">
+  <img src="summary.png" style="height: 250px; object-fit: contain;">
+  <img src="settings.png" style="height: 250px; object-fit: contain;">
 </p>
 
 ## Supported devices
