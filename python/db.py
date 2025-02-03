@@ -378,7 +378,7 @@ def get_config():
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours FROM configs LIMIT 1")
-            config = db.get_config()
+            config = cursor.fetchone()
             if config:
                 return {
                     "password": config[0],
