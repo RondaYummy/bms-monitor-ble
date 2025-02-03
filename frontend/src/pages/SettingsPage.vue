@@ -24,9 +24,6 @@
                   @click="isPwd = !isPwd" />
         </template>
       </q-input>
-      <q-btn @click="login(password)"
-             color="black"
-             label="Підтвердити" />
     </div>
 
     <div>
@@ -155,6 +152,11 @@
           <q-tab-panel name="Settings">
             <div class="text-h6">Settings</div>
             Тут будуть ваші налаштування...
+
+            <q-btn @click="updateConfigs"
+                   color="black"
+                   :disable="!token"
+                   label="Зберегти налаштування" />
           </q-tab-panel>
 
           <q-tab-panel name="Devices">
