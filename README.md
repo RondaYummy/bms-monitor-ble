@@ -57,11 +57,6 @@ exit
 docker compose restart
 ```
 
-### Remove indexing file:
-```bash
-git update-index --assume-unchanged configs/allowed_devices.txt
-```
-
 Спершу ми підключаємось до усіх пристроїв добавлених в configs/allowed_devices.txt, як тільки ми доєднались до усіх пристроїв та отримали з них усіх Cell info, ми починаємо зберігати дані в базу даних ( для графіків ). При кожному отриманні Cell info ми викликаємо функцію evaluate_alerts(), яка перевіряє чи значення в межах норми для кожної з BMS і якщо є якісь відхилення надсилає сповіщення з configs/error_codes.yml. Одне і те саме сповіщення не може бути збережено та надіслано швидше чим N_HOURS ( Стандартно 12 годин ).
 
 ## Motivation
