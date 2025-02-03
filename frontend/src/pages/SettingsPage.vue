@@ -156,7 +156,7 @@
             <div class="text-h6">Settings</div>
             Тут будуть ваші налаштування...
 
-            <div class="column q-mt-md"
+            <div class="column q-mt-md q-mb-md"
                  v-if="config">
               <div class="column">
                 <h6>
@@ -173,6 +173,9 @@
                          type="number"
                          filled />
               </div>
+
+              <q-separator color="orange"
+                           inset />
             </div>
 
 
