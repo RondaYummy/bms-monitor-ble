@@ -36,6 +36,12 @@ export interface CellInfo {
   total_cycle_capacity: number;
 }
 
+export interface Config {
+  password: string;
+  vapid_public: string;
+  n_hours: number;
+}
+
 export interface Alert {
   id: number;
   device_address: string;
