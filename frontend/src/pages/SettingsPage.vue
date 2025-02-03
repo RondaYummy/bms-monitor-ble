@@ -24,6 +24,9 @@
                   @click="isPwd = !isPwd" />
         </template>
       </q-input>
+      <q-btn @click="login(password)"
+             color="black"
+             label="Підтвердити" />
     </div>
 
     <div>
