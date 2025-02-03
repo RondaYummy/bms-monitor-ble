@@ -1,7 +1,6 @@
 import sqlite3
 from datetime import datetime, timedelta
 from collections import defaultdict
-from py_vapid import Vapid
 import asyncio
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
@@ -113,7 +112,6 @@ def get_connection():
         raise
 
 def generate_vapid_keys():
-    """Генерує VAPID ключі та повертає їх у форматі Base64."""
     private_key = ec.generate_private_key(ec.SECP256R1())
     public_key = private_key.public_key()
 

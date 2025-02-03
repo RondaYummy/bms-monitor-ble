@@ -79,7 +79,6 @@ async function fetchDeviceInfo() {
     const response = await fetch('/api/device-info');
     checkResponse(response);
     const data: DeviceInfoMap = await response.json();
-    console.log('Device Info:', data);
     if (props.connected && data) {
       devicesList.value = Object.values(data).filter((d: any) => d.connected);
     } else {
@@ -91,17 +90,21 @@ async function fetchDeviceInfo() {
 }
 
 async function connectToDevice(address: string, name: string) {
-  attemptToConnectDevice.value = address;
-  const response = await fetch('/api/connect-device', {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${props.token}`
-    },
-    body: JSON.stringify({ address, name }),
-  });
-  checkResponse(response);
-  attemptToConnectDevice.value = '';
+  try {
+    attemptToConnectDevice.value = address;
+    const response = await fetch('/api/connect-device', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${props.token}`
+      },
+      body: JSON.stringify({ address, name }),
+    });
+    checkResponse(response);
+    attemptToConnectDevice.value = '';
+  } catch (error) {
+    console.error('Error connecting to device:', error);
+  }
 }
 
 async function disconnectDevice(address: string, name: string) {

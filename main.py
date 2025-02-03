@@ -578,10 +578,6 @@ def is_device_address_in_cell_info(device_address, cell_info):
     return False
 
 async def are_all_allowed_devices_connected_and_have_data() -> bool:
-    """
-    Checks if all devices from the allowed_devices list are connected
-    and whether there is data for each in cell_info.
-    """
     allowed_devices = {addr.lower() for addr in load_allowed_devices()}
     connected_devices = await data_store.get_device_info()
     connected_addresses = {
@@ -589,8 +585,6 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
         for device_info in connected_devices.values()
         if device_info.get("connected", False)
     }
-    log("ALLOWED DEVICES", f"[{allowed_devices}]")
-    log("CONNECTED DEVICES", f"[{connected_addresses}]")
 
     if not allowed_devices.issubset(connected_addresses):
         log("CHECK DEVICES", "All allowed devices are not connected", force=True)

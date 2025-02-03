@@ -175,7 +175,8 @@
                          filled />
               </div>
 
-              <q-separator color="orange"
+              <q-separator class="q-mt-md"
+                           color="orange"
                            inset />
             </div>
 
@@ -320,7 +321,6 @@ async function fetchErrorAlerts() {
     const response = await fetch('/api/error-alerts');
     checkResponse(response);
     const data = await response.json();
-    console.log('Error alerts:', data);
     alerts.value = data;
     alertsMain.value = data;
   } catch (error) {
@@ -334,7 +334,6 @@ async function fetchConfigs() {
     checkResponse(response);
     const data = await response.json();
     config.value = data;
-    console.log('Config:', data);
   } catch (error) {
     console.error('Error fetching configs:', error);
   }

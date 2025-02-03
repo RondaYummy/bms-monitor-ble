@@ -32,12 +32,10 @@ export function usePush() {
       console.error("❌ Service Worker не підтримується.");
       return;
     }
-
     if (!("PushManager" in window)) {
       console.error("❌ Push API не підтримується.");
       return;
     }
-
     if (!await requestPermission()) {
       return;
     }
@@ -52,7 +50,6 @@ export function usePush() {
         return;
       }
 
-      console.log("📝 Реєстрація нової підписки...");
       const config = await fetchConfigs();
       if (!config) throw new Error("Config not found");
       const subscription = await registration.pushManager.subscribe({
@@ -71,7 +68,6 @@ export function usePush() {
         const registration = await navigator.serviceWorker.ready;
         const existingSubscription = await registration.pushManager.getSubscription();
         if (existingSubscription) {
-          console.log("🗑 Видаляємо невдалу підписку...");
           await existingSubscription.unsubscribe();
           pushSubscription.value = null;
           console.log("✅ Підписка успішно видалена.");
