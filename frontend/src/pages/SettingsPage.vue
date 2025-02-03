@@ -159,7 +159,7 @@
             <div class="column q-mt-md q-mb-md"
                  v-if="config">
               <div class="column">
-                <h6>
+                <p>
                   Періодичність отримання сповіщеннь ( Alerts ):
 
                   <q-tooltip>
@@ -168,7 +168,7 @@
                     батареї частіше ніж раз на 12 годин. Це зроблено, щоб
                     уникнути надмірної кількості повідомлень у вашій скриньці.
                   </q-tooltip>
-                </h6>
+                </p>
                 <q-input v-model.number="config.n_hours"
                          type="number"
                          filled />
