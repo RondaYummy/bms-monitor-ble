@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime, timedelta
 from collections import defaultdict
+from py_vapid import Vapid
 import asyncio
 
 data_aggregator = defaultdict(lambda: {
@@ -108,6 +109,11 @@ def get_connection():
         print(f"Error connecting to database: {e}")
         raise
 
+def generate_vapid_keys():
+    vapid = Vapid()
+    vapid.generate_keys()
+    return vapid.public_key, vapid.private_key
+
 def create_table():
     """Creates a table if it does not exist."""
     try:
@@ -157,10 +163,11 @@ def create_table():
             ''')
             cursor.execute("SELECT COUNT(*) FROM configs")
             if cursor.fetchone()[0] == 0:
+                vapid_public, vapid_private = generate_vapid_keys()
                 cursor.execute('''
                 INSERT INTO configs (password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours)
                 VALUES (?, ?, ?, ?)
-                ''', ('123456', '', '', 12))
+                ''', ('123456', vapid_public, vapid_private, 12))
 
             conn.commit()
     except sqlite3.Error as e:
@@ -352,7 +359,7 @@ def get_config():
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours FROM configs LIMIT 1")
-            config = cursor.fetchone()
+            config = db.get_config()
             if config:
                 return {
                     "password": config[0],

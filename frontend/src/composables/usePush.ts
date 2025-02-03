@@ -1,6 +1,15 @@
+import type { Config } from 'src/models';
 import { ref } from "vue";
 
-const publicVapidKey = "BHhfESlC5Ns8P5wdIBQrh6X7GkzTShXlTl_OqPiijUG0F_XgbfH3aA0lFJ28dPTRY_NiMiHBx6V8KoW7pFRPyx0";
+async function fetchConfigs(): Promise<Config | undefined> {
+  try {
+    const response = await fetch('/api/configs');
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching configs:', error);
+  }
+}
 
 export function usePush() {
   const pushSubscription = ref<PushSubscription | null>(null);
@@ -44,9 +53,11 @@ export function usePush() {
       }
 
       console.log("📝 Реєстрація нової підписки...");
+      const config = await fetchConfigs();
+      if (!config) throw new Error("Config not found");
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
+        applicationServerKey: urlBase64ToUint8Array(config?.VAPID_PUBLIC_KEY),
       });
 
       pushSubscription.value = subscription;

@@ -75,7 +75,7 @@ class ConfigUpdateRequest(BaseModel):
     password: Optional[str] = None
     VAPID_PUBLIC_KEY: Optional[str] = None
     n_hours: Optional[int] = None
-@app.get("/api/configs", dependencies=[Depends(verify_token)])
+@app.get("/api/configs")
 async def get_configs():
     config = db.get_config()
     if not config:

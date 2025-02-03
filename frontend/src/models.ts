@@ -76,3 +76,9 @@ export interface DeviceInfo {
 export interface DeviceInfoMap {
   [deviceName: string]: DeviceInfo;
 }
+
+export interface Config {
+  password: string;
+  VAPID_PUBLIC_KEY: string;
+  n_hours: number;
+}
