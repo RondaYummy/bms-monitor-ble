@@ -146,8 +146,8 @@
 
               <p v-if="!alerts?.length"
                  class="level q-mt-md">
-                {{ selectedLevel ? `"${selectedLevel}" ` : '' }}повідомлення не
-                знайдено.
+                {{ selectedLevel ? `"${selectedLevel}" повідомлення не
+                знайдено.` : `Повідомлень не знайдено.` }}
               </p>
             </div>
           </q-tab-panel>
@@ -155,6 +155,26 @@
           <q-tab-panel name="Settings">
             <div class="text-h6">Settings</div>
             Тут будуть ваші налаштування...
+
+            <div class="column q-mt-md"
+                 v-if="config">
+              <div class="column">
+                <h6>
+                  Періодичність отримання сповіщеннь ( Alerts ):
+
+                  <q-tooltip>
+                    Це значення задається в цілих годинах. Якщо встановлено 12
+                    годин, то ви не отримуватимете важливих сповіщень про стан
+                    батареї частіше ніж раз на 12 годин. Це зроблено, щоб
+                    уникнути надмірної кількості повідомлень у вашій скриньці.
+                  </q-tooltip>
+                </h6>
+                <q-input v-model.number="config.n_hours"
+                         type="number"
+                         filled />
+              </div>
+            </div>
+
 
             <q-btn @click="updateConfigs"
                    color="black"
