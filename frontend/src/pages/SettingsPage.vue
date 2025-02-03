@@ -212,7 +212,7 @@
 <script setup lang='ts'>
 import { ref } from 'vue';
 import { useSessionStorage } from '../helpers/utils';
-import type { Alert, Device } from '../models';
+import type { Alert, Device, Config } from '../models';
 import DevicesList from '../components/DevicesList.vue';
 import { eventBus } from "../eventBus";
 
@@ -229,6 +229,7 @@ const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
 const holdAlert = ref<Alert>();
 const token = useSessionStorage("access_token");
+const config = ref<Config>();
 
 function filterAlertsByLevel(level?: string): void {
   console.log('Selected level: ', level);
@@ -295,6 +296,37 @@ async function fetchErrorAlerts() {
     alertsMain.value = data;
   } catch (error) {
     console.error('Error fetching error alerts:', error);
+  }
+}
+
+async function fetchConfigs() {
+  try {
+    const response = await fetch('/api/configs');
+    checkResponse(response);
+    const data = await response.json();
+    config.value = data;
+    console.log('Config:', data);
+  } catch (error) {
+    console.error('Error fetching configs:', error);
+  }
+}
+
+async function updateConfigs() {
+  try {
+    const response = await fetch('/api/configs', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token.value}`
+      },
+      body: JSON.stringify({ ...config.value }),
+    });
+    checkResponse(response);
+    const data = await response.json();
+    config.value = data;
+    console.log('Config updated:', data);
+  } catch (error) {
+    console.error('Error updating configs:', error);
   }
 }
 
@@ -371,6 +403,7 @@ async function connectToDevice(address: string, name: string) {
 }
 
 fetchErrorAlerts();
+fetchConfigs();
 </script>
 
 <style scoped lang='scss'>

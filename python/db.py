@@ -145,6 +145,23 @@ def create_table():
                 auth TEXT NOT NULL
             )
             ''')
+
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS configs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                password TEXT DEFAULT '123456',
+                VAPID_PUBLIC_KEY TEXT DEFAULT '',
+                VAPID_PRIVATE_KEY TEXT DEFAULT '',
+                n_hours INTEGER DEFAULT 12
+            )
+            ''')
+            cursor.execute("SELECT COUNT(*) FROM configs")
+            if cursor.fetchone()[0] == 0:
+                cursor.execute('''
+                INSERT INTO configs (password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours)
+                VALUES (?, ?, ?, ?)
+                ''', ('123456', '', '', 12))
+
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
@@ -329,3 +346,50 @@ def get_all_subscriptions():
     except sqlite3.Error as e:
         print(f"❌ Помилка отримання підписок: {e}")
         return []
+
+def get_config():
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours FROM configs LIMIT 1")
+            config = cursor.fetchone()
+            if config:
+                return {
+                    "password": config[0],
+                    "VAPID_PUBLIC_KEY": config[1],
+                    "VAPID_PRIVATE_KEY": config[2],
+                    "n_hours": config[3],
+                }
+            else:
+                return None
+    except sqlite3.Error as e:
+        print(f"Error fetching config: {e}")
+        return None
+
+def update_config(password=None, vapid_public=None, vapid_private=None, n_hours=None):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours FROM configs LIMIT 1")
+            existing_config = cursor.fetchone()
+            if not existing_config:
+                raise ValueError("Config record not found!")
+
+            updated_config = {
+                "password": password if password is not None else existing_config[0],
+                "VAPID_PUBLIC_KEY": vapid_public if vapid_public is not None else existing_config[1],
+                "VAPID_PRIVATE_KEY": vapid_private if vapid_private is not None else existing_config[2],
+                "n_hours": n_hours if n_hours is not None else existing_config[3],
+            }
+
+            cursor.execute("""
+                UPDATE configs
+                SET password = ?, VAPID_PUBLIC_KEY = ?, VAPID_PRIVATE_KEY = ?, n_hours = ?
+            """, (updated_config["password"], updated_config["VAPID_PUBLIC_KEY"], updated_config["VAPID_PRIVATE_KEY"], updated_config["n_hours"]))
+
+            conn.commit()
+            return updated_config
+    except sqlite3.Error as e:
+        print(f"Error updating config: {e}")
+        return None

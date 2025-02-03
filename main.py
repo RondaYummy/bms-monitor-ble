@@ -39,7 +39,7 @@ CMD_HEADER = bytes([0xAA, 0x55, 0x90, 0xEB])
 CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Device Info Frame
 CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
-JK_BMS_OUI = {"c8:47:80"} # Через кому можна додати усі початки дял девайсів від JK-BMS
+JK_BMS_OUI = {"c8:47:80"} # Separated by a comma, you can add all the beginnings of the JK-BMS devices
 
 PASSWORD = "123456" # TODO need update
 TOKEN_LIFETIME_SECONDS = 3600
@@ -70,6 +70,29 @@ async def login(request: Request):
     await data_store.add_token(token, "admin")
 
     return {"access_token": token}
+
+class ConfigUpdateRequest(BaseModel):
+    password: Optional[str] = None
+    VAPID_PUBLIC_KEY: Optional[str] = None
+    n_hours: Optional[int] = None
+@app.get("/api/configs", dependencies=[Depends(verify_token)])
+async def get_configs():
+    config = db.get_config()
+    if not config:
+        raise HTTPException(status_code=404, detail="Config not found.")
+    return config
+
+@app.post("/api/configs", dependencies=[Depends(verify_token)])
+async def update_configs(request: ConfigUpdateRequest):
+    updated_config = db.update_config(
+        password=request.password,
+        vapid_public=request.VAPID_PUBLIC_KEY,
+        vapid_private=None,
+        n_hours=request.n_hours
+    )
+    if not updated_config:
+        raise HTTPException(status_code=500, detail="Error updating config.")
+    return {"message": "Configuration updated successfully", "config": updated_config}
 
 class DeleteAlertRequest(BaseModel):
     id: int
