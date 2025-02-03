@@ -8,7 +8,7 @@
 </p>
 
 ## Supported devices
-### All JK-BMS models with software version >=6.0 are using the implemented protocol and should be supported.
+#### All JK-BMS models with software version >=6.0 are using the implemented protocol and should be supported.
 * JK_BD6A20S6P, hw 17U, sw 17.02
 * JK_BD6A17S6P, hw 11.XA, sw 11.48
 
