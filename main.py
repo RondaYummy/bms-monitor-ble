@@ -80,6 +80,7 @@ async def get_configs():
     config = db.get_config()
     if not config:
         raise HTTPException(status_code=404, detail="Config not found.")
+    config.pop("VAPID_PRIVATE_KEY", None)
     return config
 
 @app.post("/api/configs", dependencies=[Depends(verify_token)])
