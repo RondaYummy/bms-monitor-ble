@@ -23,28 +23,28 @@ git clone https://github.com/RondaYummy/bms-monitor-ble.git
 4. Setup Nginx and SSL ( https://github.com/RondaYummy/bms-monitor-ble/blob/main/docs/nginx.md )
 5. To access from outside the local network, you need to get a static IP address.
 
-## Make sure that the systemctl service is running:
+### Make sure that the systemctl service is running:
 ```bash
 sudo systemctl start bluetooth
 sudo systemctl enable bluetooth
 ```
 
-## Build Docker:
+### Build Docker:
 ```bash
 yarn build
 ```
 
-## To copy static resources after a manual build:
+### To copy static resources after a manual build:
 ```bash
 yarn static
 ```
 
-## [PROD]
+### [PROD]
 ```bash
 yarn prod
 ```
 
-## [DEV] 
+### [DEV] 
 ```bash
 yarn dev
 ```
