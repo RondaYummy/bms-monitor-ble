@@ -169,7 +169,8 @@
                     уникнути надмірної кількості повідомлень у вашій скриньці.
                   </q-tooltip>
                 </p>
-                <q-input v-model.number="config.n_hours"
+                <q-input :disable="!token"
+                         v-model.number="config.n_hours"
                          type="number"
                          filled />
               </div>
