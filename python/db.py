@@ -3,6 +3,9 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from py_vapid import Vapid
 import asyncio
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import serialization
+import base64
 
 data_aggregator = defaultdict(lambda: {
     "device_name": None,
@@ -110,9 +113,25 @@ def get_connection():
         raise
 
 def generate_vapid_keys():
-    vapid = Vapid()
-    vapid.generate_keys()
-    return vapid.public_key, vapid.private_key
+    """Генерує VAPID ключі та повертає їх у форматі Base64."""
+    private_key = ec.generate_private_key(ec.SECP256R1())
+    public_key = private_key.public_key()
+
+    # Конвертація приватного ключа в PEM
+    private_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption()
+    ).decode("utf-8")
+
+    # Конвертація публічного ключа в Base64
+    public_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.X962,
+        format=serialization.PublicFormat.UncompressedPoint
+    )
+    public_base64 = base64.urlsafe_b64encode(public_pem).decode("utf-8").rstrip("=")  # Без '=' в кінці
+
+    return private_pem, public_base64
 
 def create_table():
     """Creates a table if it does not exist."""
