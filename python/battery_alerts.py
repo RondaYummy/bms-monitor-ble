@@ -69,9 +69,9 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
             add_alert(alerts, "1006")
         elif cell_info["average_voltage"] < 3.2:
             add_alert(alerts, "1007")
-        elif cell_info["average_voltage"] > 4.2:
+        elif cell_info["average_voltage"] > 4.3:
             add_alert(alerts, "1008")
-        elif cell_info["average_voltage"] > 4.1:
+        elif cell_info["average_voltage"] > 4.2:
             add_alert(alerts, "1009")
 
         max_temp = max(
