@@ -41,7 +41,6 @@ CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
 JK_BMS_OUI = {"c8:47:80"} # Separated by a comma, you can add all the beginnings of the JK-BMS devices
 
-PASSWORD = "123456" # TODO need update
 TOKEN_LIFETIME_SECONDS = 3600
 
 app = FastAPI()
@@ -63,7 +62,8 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(auth_
 async def login(request: Request):
     body = await request.json()
     password = body.get("password", "")
-    if password != PASSWORD:
+    config = db.get_config()
+    if password != config.get("password"):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     token = str(uuid4())
@@ -575,7 +575,7 @@ async def connect_and_run(device):
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                             log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
-                            log(device.name, f"last_update: {last_update}. Now: {datetime.now()}", force=True)
+                            log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
 
                         await asyncio.sleep(5)
             except Exception as e:
@@ -590,7 +590,6 @@ ble_scan_lock = asyncio.Lock()
 async def ble_main():
     while True:
         async with ble_scan_lock:
-            log("ble_main", "Start scanning...", force=True)
             try:
                 allowed_devices = load_allowed_devices()
                 connected_devices = await data_store.get_device_info()
@@ -604,6 +603,7 @@ async def ble_main():
                     await asyncio.sleep(60)
                     continue
 
+                log("ble_main", "Start scanning...", force=True)
                 devices = await BleakScanner.discover()
 
                 if not devices:
