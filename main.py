@@ -571,11 +571,11 @@ async def connect_and_run(device):
 
                         # Checking whether to send cell_info_command
                         last_update = await data_store.get_last_cell_info_update(device.name)
-                        log(device.name, f"last_update: {last_update}. Now: {datetime.now()}")
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                             log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
+                            log(device.name, f"last_update: {last_update}. Now: {datetime.now()}", force=True)
 
                         await asyncio.sleep(5)
             except Exception as e:
