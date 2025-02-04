@@ -587,6 +587,8 @@ async def connect_and_run(device):
                 await asyncio.sleep(5)
 
 ble_scan_lock = asyncio.Lock()
+active_connections = {}
+
 async def ble_main():
     while True:
         async with ble_scan_lock:
@@ -598,16 +600,18 @@ async def ble_main():
                     for device_info in connected_devices.values()
                     if device_info.get("connected", False)
                 }
+
+                # Пропускаємо сканування, якщо всі дозволені пристрої вже підключені
                 if allowed_devices.issubset(connected_addresses):
                     log("ble_main", "✅ All allowed devices are already connected. Skipping scan.", force=True)
                     await asyncio.sleep(60)
                     continue
 
-                log("ble_main", "Start scanning...", force=True)
+                log("ble_main", "🔍 Start scanning for devices...", force=True)
                 devices = await BleakScanner.discover()
 
                 if not devices:
-                    print("No BLE devices found.")
+                    log("ble_main", "⚠️ No BLE devices found.", force=True)
                     await asyncio.sleep(5)
                     continue
 
@@ -616,21 +620,36 @@ async def ble_main():
                     device_address = device.address.lower()
 
                     if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
-                        continue  # Skip devices that are not JK-BMS
+                        continue  # Пропускаємо пристрої, які не є JK-BMS
 
-                    if device_address in allowed_devices: # Check if the device is allowed
-                        device_info = await data_store.get_device_info(device.name) # Check if the device is already connected
-                        if device_info and device_info.get("connected", False):
-                            log(device.name, f"Device {device.name} is already connected, skipping.")
-                            continue  # Skip if the device is already connected
+                    # Якщо пристрій вже підключений або йде підключення — пропускаємо
+                    if device_address in active_connections or device_address in connected_addresses:
+                        log(device.name, f"⚠️ Device {device.name} is already connected or connecting, skipping.")
+                        continue
 
-                        log(device.name, f"Connecting to allowed device: {device.address}", force=True)
-                        tasks.append(asyncio.create_task(connect_and_run(device)))
-                        await asyncio.sleep(5)
+                    # Якщо пристрій не у списку дозволених — пропускаємо
+                    if device_address not in allowed_devices:
+                        continue
+
+                    log(device.name, f"🔌 Connecting to allowed device: {device.address}", force=True)
+
+                    # Створюємо задачу підключення
+                    task = asyncio.create_task(connect_and_run(device))
+                    active_connections[device_address] = task  # Додаємо в активні
+                    tasks.append(task)
+
+                    await asyncio.sleep(5)  # Затримка між підключеннями
+
                 if tasks:
-                    asyncio.create_task(asyncio.gather(*tasks))
+                    await asyncio.gather(*tasks)  # Очікуємо виконання всіх підключень
+
+                # Видаляємо завершені задачі зі списку активних підключень
+                for device_address in list(active_connections.keys()):
+                    if active_connections[device_address].done():
+                        del active_connections[device_address]
+
             except Exception as e:
-                print(f"BLE scan error: {str(e)}")
+                log("ble_main", f"❌ BLE scan error: {str(e)}", force=True)
                 await asyncio.sleep(5)
                                     
 def is_device_address_in_cell_info(device_address, cell_info):
