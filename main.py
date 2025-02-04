@@ -391,7 +391,7 @@ async def parse_setting_info(data, device_name, device_address):
 
 async def parse_cell_info(data, device_name, device_address):
     """Parsing Cell Info Frame (0x02)."""
-    log(device_name, "Parsing Cell Info Frame...", force=True)
+    log(device_name, "Parsing Cell Info Frame...")
 
     try:
         # Checking the header
