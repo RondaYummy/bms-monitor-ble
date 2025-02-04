@@ -39,9 +39,8 @@ CMD_HEADER = bytes([0xAA, 0x55, 0x90, 0xEB])
 CMD_TYPE_DEVICE_INFO = 0x97 # 0x03: Device Info Frame
 CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
-JK_BMS_OUI = {"c8:47:80"} # Через кому можна додати усі початки дял девайсів від JK-BMS
+JK_BMS_OUI = {"c8:47:80"} # Separated by a comma, you can add all the beginnings of the JK-BMS devices
 
-PASSWORD = "123456" # TODO need update
 TOKEN_LIFETIME_SECONDS = 3600
 
 app = FastAPI()
@@ -63,13 +62,40 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(auth_
 async def login(request: Request):
     body = await request.json()
     password = body.get("password", "")
-    if password != PASSWORD:
+    config = db.get_config()
+    if not config or password != config.get("password"):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     token = str(uuid4())
     await data_store.add_token(token, "admin")
 
     return {"access_token": token}
+
+class ConfigUpdateRequest(BaseModel):
+    password: Optional[str] = None
+    VAPID_PUBLIC_KEY: Optional[str] = None
+    n_hours: Optional[int] = None
+@app.get("/api/configs")
+async def get_configs():
+    config = db.get_config()
+    if not config:
+        raise HTTPException(status_code=404, detail="Config not found.")
+    
+    for key in ["VAPID_PRIVATE_KEY", "password"]:
+        config.pop(key, None)
+    return config
+
+@app.post("/api/configs", dependencies=[Depends(verify_token)])
+async def update_configs(request: ConfigUpdateRequest):
+    updated_config = db.update_config(
+        password=request.password,
+        vapid_public=request.VAPID_PUBLIC_KEY,
+        vapid_private=None,
+        n_hours=request.n_hours
+    )
+    if not updated_config:
+        raise HTTPException(status_code=500, detail="Error updating config.")
+    return {"message": "Configuration updated successfully", "config": updated_config}
 
 class DeleteAlertRequest(BaseModel):
     id: int
@@ -299,14 +325,68 @@ async def parse_device_info(data, device_name, device_address):
         return None
     
 async def parse_setting_info(data, device_name, device_address):
-    """Parsing Cell Info Frame (0x01)."""
-    log(device_name, "Parsing Setting Info Frame...")  
-
+    log(device_name, "🔍 Парсимо Setting Info Frame...")
     try:
-        log(device_name, f"Setting Header: {data[:5].hex()}", force=True)
+        if data[:4] != b'\x55\xAA\xEB\x90':
+            log(device_name, f"❌ Неправильний заголовок кадру: {data[:4].hex()}", force=True)
+            return None
+
+        setting_info = {
+            "frame_type": data[4],
+            "frame_counter": data[5],
+            "smart_sleep_voltage": int.from_bytes(data[6:10], "little") * 0.001,
+            "cell_uvp": int.from_bytes(data[10:14], "little") * 0.001,
+            "cell_uvpr": int.from_bytes(data[14:18], "little") * 0.001,
+            "cell_ovp": int.from_bytes(data[18:22], "little") * 0.001,
+            "cell_ovpr": int.from_bytes(data[22:26], "little") * 0.001,
+            "balance_trigger_voltage": int.from_bytes(data[26:30], "little") * 0.001,
+            "soc_100_voltage": int.from_bytes(data[30:34], "little") * 0.001,
+            "soc_0_voltage": int.from_bytes(data[34:38], "little") * 0.001,
+            "cell_request_charge_voltage": int.from_bytes(data[38:42], "little") * 0.001,
+            "cell_request_float_voltage": int.from_bytes(data[42:46], "little") * 0.001,
+            "power_off_voltage": int.from_bytes(data[46:50], "little") * 0.001,
+            "max_charge_current": int.from_bytes(data[50:54], "little") * 0.001,
+            "charge_ocp_delay": int.from_bytes(data[54:58], "little"),
+            "charge_ocp_recovery": int.from_bytes(data[58:62], "little"),
+            "max_discharge_current": int.from_bytes(data[62:66], "little") * 0.001,
+            "discharge_ocp_delay": int.from_bytes(data[66:70], "little"),
+            "discharge_ocp_recovery": int.from_bytes(data[70:74], "little"),
+            "short_circuit_protection_recovery": int.from_bytes(data[74:78], "little"),
+            "max_balance_current": int.from_bytes(data[78:82], "little") * 0.001,
+            "charge_otp": int.from_bytes(data[82:86], "little") * 0.1,
+            "charge_otp_recovery": int.from_bytes(data[86:90], "little") * 0.1,
+            "discharge_otp": int.from_bytes(data[90:94], "little") * 0.1,
+            "discharge_otp_recovery": int.from_bytes(data[94:98], "little") * 0.1,
+            "charge_utp": int.from_bytes(data[98:102], "little", signed=True) * 0.1,
+            "charge_utp_recovery": int.from_bytes(data[102:106], "little", signed=True) * 0.1,
+            "mos_otp": int.from_bytes(data[106:110], "little", signed=True) * 0.1,
+            "mos_otp_recovery": int.from_bytes(data[110:114], "little", signed=True) * 0.1,
+            "cell_count": data[114],
+            "charge_switch": bool(data[118]),
+            "discharge_switch": bool(data[122]),
+            "balancer_switch": bool(data[126]),
+            "nominal_battery_capacity": int.from_bytes(data[130:134], "little") * 0.001,
+            "short_circuit_protection_delay": int.from_bytes(data[134:138], "little"),
+            "start_balance_voltage": int.from_bytes(data[138:142], "little") * 0.001,
+            "connection_wire_resistances": [
+                int.from_bytes(data[i:i+4], "little") * 0.001 for i in range(142, 270, 4)
+            ],
+            "device_address": data[270],
+            "precharge_time": data[274],
+            "controls_bitmask": int.from_bytes(data[282:284], "little"),
+            "smart_sleep": data[286],
+            "data_field_enable_control": data[287],
+            "crc": data[299]
+        }
+
+        log(device_name, "✅ Успішно розпарсено Setting Info Frame:")
+        for key, value in setting_info.items():
+            log(device_name, f"{key}: {value}")
+
+        return setting_info
 
     except Exception as e:
-        log(device_name, f"Error parsing Setting Info Frame: {e}", force=True)
+        log(device_name, f"❌ Помилка парсингу Setting Info Frame: {e}", force=True)
         return None
 
 async def parse_cell_info(data, device_name, device_address):
@@ -491,11 +571,11 @@ async def connect_and_run(device):
 
                         # Checking whether to send cell_info_command
                         last_update = await data_store.get_last_cell_info_update(device.name)
-                        log(device.name, f"last_update: {last_update}. Now: {datetime.now()}")
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                             log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
+                            log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
 
                         await asyncio.sleep(5)
             except Exception as e:
@@ -507,16 +587,31 @@ async def connect_and_run(device):
                 await asyncio.sleep(5)
 
 ble_scan_lock = asyncio.Lock()
+active_connections = {}
+
 async def ble_main():
     while True:
         async with ble_scan_lock:
-            log("ble_main", "Start scanning...", force=True)
             try:
                 allowed_devices = load_allowed_devices()
+                connected_devices = await data_store.get_device_info()
+                connected_addresses = {
+                    device_info.get("device_address", "").lower()
+                    for device_info in connected_devices.values()
+                    if device_info.get("connected", False)
+                }
+
+                # Skip scanning if all allowed devices are already connected
+                if allowed_devices.issubset(connected_addresses):
+                    log("ble_main", "✅ All allowed devices are already connected. Skipping scan.", force=True)
+                    await asyncio.sleep(60)
+                    continue
+
+                log("ble_main", "🔍 Start scanning for devices...", force=True)
                 devices = await BleakScanner.discover()
 
                 if not devices:
-                    print("No BLE devices found.")
+                    log("ble_main", "⚠️ No BLE devices found.", force=True)
                     await asyncio.sleep(5)
                     continue
 
@@ -527,35 +622,43 @@ async def ble_main():
                     if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
                         continue  # Skip devices that are not JK-BMS
 
-                    if device_address in allowed_devices: # Check if the device is allowed
-                        device_info = await data_store.get_device_info(device.name) # Check if the device is already connected
-                        if device_info and device_info.get("connected", False):
-                            log(device.name, f"Device {device.name} is already connected, skipping.")
-                            continue  # Skip if the device is already connected
+                    # If the device is already connected or in the process of connection - skip
+                    if device_address in active_connections or device_address in connected_addresses:
+                        log(device.name, f"⚠️ Device {device.name} is already connected or connecting, skipping.")
+                        continue
 
-                        log(device.name, f"Connecting to allowed device: {device.address}", force=True)
-                        tasks.append(asyncio.create_task(connect_and_run(device)))
-                        await asyncio.sleep(5)
+                    # If the device is not in the list of allowed devices, skip it
+                    if device_address not in allowed_devices:
+                        continue
+
+                    log(device.name, f"🔌 Connecting to allowed device: {device.address}", force=True)
+
+                    # Create a connection task
+                    task = asyncio.create_task(connect_and_run(device))
+                    active_connections[device_address] = task  # Add to active
+                    tasks.append(task)
+
+                    await asyncio.sleep(5)  # Delay between connections
+
                 if tasks:
-                    asyncio.create_task(asyncio.gather(*tasks))
+                    await asyncio.gather(*tasks)  # We are waiting for all connections to be made
+
+                # Remove completed tasks from the list of active connections
+                for device_address in list(active_connections.keys()):
+                    if active_connections[device_address].done():
+                        del active_connections[device_address]
+
             except Exception as e:
-                print(f"BLE scan error: {str(e)}")
+                log("ble_main", f"❌ BLE scan error: {str(e)}", force=True)
                 await asyncio.sleep(5)
                                     
 def is_device_address_in_cell_info(device_address, cell_info):
-    """
-    Checks if `device_address' exists in the nested values of `cell_info'.
-    """
     for device_data in cell_info.values():
         if device_data.get("device_address") == device_address:
             return True
     return False
 
 async def are_all_allowed_devices_connected_and_have_data() -> bool:
-    """
-    Checks if all devices from the allowed_devices list are connected
-    and whether there is data for each in cell_info.
-    """
     allowed_devices = {addr.lower() for addr in load_allowed_devices()}
     connected_devices = await data_store.get_device_info()
     connected_addresses = {
@@ -563,8 +666,6 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
         for device_info in connected_devices.values()
         if device_info.get("connected", False)
     }
-    log("ALLOWED DEVICES", f"[{allowed_devices}]")
-    log("CONNECTED DEVICES", f"[{connected_addresses}]")
 
     if not allowed_devices.issubset(connected_addresses):
         log("CHECK DEVICES", "All allowed devices are not connected", force=True)

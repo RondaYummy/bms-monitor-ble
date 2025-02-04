@@ -2,6 +2,9 @@ import sqlite3
 from datetime import datetime, timedelta
 from collections import defaultdict
 import asyncio
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import serialization
+import base64
 
 data_aggregator = defaultdict(lambda: {
     "device_name": None,
@@ -108,6 +111,26 @@ def get_connection():
         print(f"Error connecting to database: {e}")
         raise
 
+def generate_vapid_keys():
+    private_key = ec.generate_private_key(ec.SECP256R1())
+    public_key = private_key.public_key()
+
+    # Конвертація приватного ключа в PEM
+    private_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption()
+    ).decode("utf-8")
+
+    # Конвертація публічного ключа в Base64
+    public_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.X962,
+        format=serialization.PublicFormat.UncompressedPoint
+    )
+    public_base64 = base64.urlsafe_b64encode(public_pem).decode("utf-8").rstrip("=")  # Без '=' в кінці
+
+    return private_pem, public_base64
+
 def create_table():
     """Creates a table if it does not exist."""
     try:
@@ -145,6 +168,24 @@ def create_table():
                 auth TEXT NOT NULL
             )
             ''')
+
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS configs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                password TEXT DEFAULT '123456',
+                VAPID_PUBLIC_KEY TEXT DEFAULT '',
+                VAPID_PRIVATE_KEY TEXT DEFAULT '',
+                n_hours INTEGER DEFAULT 12
+            )
+            ''')
+            cursor.execute("SELECT COUNT(*) FROM configs")
+            if cursor.fetchone()[0] == 0:
+                vapid_public, vapid_private = generate_vapid_keys()
+                cursor.execute('''
+                INSERT INTO configs (password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours)
+                VALUES (?, ?, ?, ?)
+                ''', ('123456', vapid_public, vapid_private, 12))
+
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
@@ -329,3 +370,50 @@ def get_all_subscriptions():
     except sqlite3.Error as e:
         print(f"❌ Помилка отримання підписок: {e}")
         return []
+
+def get_config():
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours FROM configs LIMIT 1")
+            config = cursor.fetchone()
+            if config:
+                return {
+                    "password": config[0],
+                    "VAPID_PUBLIC_KEY": config[1],
+                    "VAPID_PRIVATE_KEY": config[2],
+                    "n_hours": config[3],
+                }
+            else:
+                return None
+    except sqlite3.Error as e:
+        print(f"Error fetching config: {e}")
+        return None
+
+def update_config(password=None, vapid_public=None, vapid_private=None, n_hours=None):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours FROM configs LIMIT 1")
+            existing_config = cursor.fetchone()
+            if not existing_config:
+                raise ValueError("Config record not found!")
+
+            updated_config = {
+                "password": password if password is not None else existing_config[0],
+                "VAPID_PUBLIC_KEY": vapid_public if vapid_public is not None else existing_config[1],
+                "VAPID_PRIVATE_KEY": vapid_private if vapid_private is not None else existing_config[2],
+                "n_hours": n_hours if n_hours is not None else existing_config[3],
+            }
+
+            cursor.execute("""
+                UPDATE configs
+                SET password = ?, VAPID_PUBLIC_KEY = ?, VAPID_PRIVATE_KEY = ?, n_hours = ?
+            """, (updated_config["password"], updated_config["VAPID_PUBLIC_KEY"], updated_config["VAPID_PRIVATE_KEY"], updated_config["n_hours"]))
+
+            conn.commit()
+            return updated_config
+    except sqlite3.Error as e:
+        print(f"Error updating config: {e}")
+        return None

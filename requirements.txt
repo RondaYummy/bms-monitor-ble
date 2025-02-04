@@ -5,3 +5,4 @@ PyYAML==6.0
 pydantic
 async_timeout
 pywebpush
+

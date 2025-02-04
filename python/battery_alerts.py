@@ -14,8 +14,6 @@ with open('configs/config.yaml', 'r') as file:
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
 
-VAPID_PUBLIC_KEY = "BHhfESlC5Ns8P5wdIBQrh6X7GkzTShXlTl_OqPiijUG0F_XgbfH3aA0lFJ28dPTRY_NiMiHBx6V8KoW7pFRPyx0" # TODO need update
-VAPID_PRIVATE_KEY = "x_49rz8G8NTtCrwMZ3tMZGvBR3-2T2QyxHJYxc2OMqw" # TODO need update
 VAPID_CLAIMS = {
     "sub": "mailto:halevych.dev@gmail.com"
 }
@@ -71,9 +69,9 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
             add_alert(alerts, "1006")
         elif cell_info["average_voltage"] < 3.2:
             add_alert(alerts, "1007")
-        elif cell_info["average_voltage"] > 4.2:
+        elif cell_info["average_voltage"] > 4.3:
             add_alert(alerts, "1008")
-        elif cell_info["average_voltage"] > 4.1:
+        elif cell_info["average_voltage"] > 4.2:
             add_alert(alerts, "1009")
 
         max_temp = max(
@@ -133,6 +131,8 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
 async def send_push_notifications(device_name: str, alert):
     message = f"🚨 {device_name}: {alert['message']} (код: {alert['id']})"
     payload = json.dumps({"title": "🔋 Увага!", "body": message})
+    configs = db.get_config()
+    vapid_private_key = config["VAPID_PRIVATE_KEY"]
 
     subscriptions = db.get_all_subscriptions()
     for sub in subscriptions:
@@ -140,7 +140,7 @@ async def send_push_notifications(device_name: str, alert):
             webpush(
                 subscription_info=sub,
                 data=payload,
-                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_private_key=vapid_private_key,
                 vapid_claims=VAPID_CLAIMS
             )
         except WebPushException as e:

@@ -146,8 +146,8 @@
 
               <p v-if="!alerts?.length"
                  class="level q-mt-md">
-                {{ selectedLevel ? `"${selectedLevel}" ` : '' }}повідомлення не
-                знайдено.
+                {{ selectedLevel ? `"${selectedLevel}" повідомлення не
+                знайдено.` : `Повідомлень не знайдено.` }}
               </p>
             </div>
           </q-tab-panel>
@@ -155,6 +155,36 @@
           <q-tab-panel name="Settings">
             <div class="text-h6">Settings</div>
             Тут будуть ваші налаштування...
+
+            <div class="column q-mt-md q-mb-md"
+                 v-if="config">
+              <div class="column">
+                <p>
+                  Періодичність отримання сповіщеннь ( Alerts ):
+
+                  <q-tooltip>
+                    Це значення задається в цілих годинах. Якщо встановлено 12
+                    годин, то ви не отримуватимете важливих сповіщень про стан
+                    батареї частіше ніж раз на 12 годин. Це зроблено, щоб
+                    уникнути надмірної кількості повідомлень у вашій скриньці.
+                  </q-tooltip>
+                </p>
+                <q-input :disable="!token"
+                         v-model.number="config.n_hours"
+                         type="number"
+                         filled />
+              </div>
+
+              <q-separator class="q-mt-md"
+                           color="orange"
+                           inset />
+            </div>
+
+
+            <q-btn @click="updateConfigs"
+                   color="black"
+                   :disable="!token"
+                   label="Зберегти налаштування" />
           </q-tab-panel>
 
           <q-tab-panel name="Devices">
@@ -212,7 +242,7 @@
 <script setup lang='ts'>
 import { ref } from 'vue';
 import { useSessionStorage } from '../helpers/utils';
-import type { Alert, Device } from '../models';
+import type { Alert, Device, Config } from '../models';
 import DevicesList from '../components/DevicesList.vue';
 import { eventBus } from "../eventBus";
 
@@ -229,6 +259,7 @@ const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
 const holdAlert = ref<Alert>();
 const token = useSessionStorage("access_token");
+const config = ref<Config>();
 
 function filterAlertsByLevel(level?: string): void {
   console.log('Selected level: ', level);
@@ -290,11 +321,40 @@ async function fetchErrorAlerts() {
     const response = await fetch('/api/error-alerts');
     checkResponse(response);
     const data = await response.json();
-    console.log('Error alerts:', data);
     alerts.value = data;
     alertsMain.value = data;
   } catch (error) {
     console.error('Error fetching error alerts:', error);
+  }
+}
+
+async function fetchConfigs() {
+  try {
+    const response = await fetch('/api/configs');
+    checkResponse(response);
+    const data = await response.json();
+    config.value = data;
+  } catch (error) {
+    console.error('Error fetching configs:', error);
+  }
+}
+
+async function updateConfigs() {
+  try {
+    const response = await fetch('/api/configs', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token.value}`
+      },
+      body: JSON.stringify({ ...config.value }),
+    });
+    checkResponse(response);
+    const data = await response.json();
+    config.value = data;
+    console.log('Config updated:', data);
+  } catch (error) {
+    console.error('Error updating configs:', error);
   }
 }
 
@@ -371,6 +431,7 @@ async function connectToDevice(address: string, name: string) {
 }
 
 fetchErrorAlerts();
+fetchConfigs();
 </script>
 
 <style scoped lang='scss'>
