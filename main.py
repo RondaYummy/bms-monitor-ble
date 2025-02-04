@@ -325,14 +325,68 @@ async def parse_device_info(data, device_name, device_address):
         return None
     
 async def parse_setting_info(data, device_name, device_address):
-    """Parsing Cell Info Frame (0x01)."""
-    log(device_name, "Parsing Setting Info Frame...")  
-
+    log(device_name, "🔍 Парсимо Setting Info Frame...")
     try:
-        log(device_name, f"Setting Header: {data[:5].hex()}", force=True)
+        if data[:4] != b'\x55\xAA\xEB\x90':
+            log(device_name, f"❌ Неправильний заголовок кадру: {data[:4].hex()}", force=True)
+            return None
+
+        setting_info = {
+            "frame_type": data[4],
+            "frame_counter": data[5],
+            "smart_sleep_voltage": int.from_bytes(data[6:10], "little") * 0.001,
+            "cell_uvp": int.from_bytes(data[10:14], "little") * 0.001,
+            "cell_uvpr": int.from_bytes(data[14:18], "little") * 0.001,
+            "cell_ovp": int.from_bytes(data[18:22], "little") * 0.001,
+            "cell_ovpr": int.from_bytes(data[22:26], "little") * 0.001,
+            "balance_trigger_voltage": int.from_bytes(data[26:30], "little") * 0.001,
+            "soc_100_voltage": int.from_bytes(data[30:34], "little") * 0.001,
+            "soc_0_voltage": int.from_bytes(data[34:38], "little") * 0.001,
+            "cell_request_charge_voltage": int.from_bytes(data[38:42], "little") * 0.001,
+            "cell_request_float_voltage": int.from_bytes(data[42:46], "little") * 0.001,
+            "power_off_voltage": int.from_bytes(data[46:50], "little") * 0.001,
+            "max_charge_current": int.from_bytes(data[50:54], "little") * 0.001,
+            "charge_ocp_delay": int.from_bytes(data[54:58], "little"),
+            "charge_ocp_recovery": int.from_bytes(data[58:62], "little"),
+            "max_discharge_current": int.from_bytes(data[62:66], "little") * 0.001,
+            "discharge_ocp_delay": int.from_bytes(data[66:70], "little"),
+            "discharge_ocp_recovery": int.from_bytes(data[70:74], "little"),
+            "short_circuit_protection_recovery": int.from_bytes(data[74:78], "little"),
+            "max_balance_current": int.from_bytes(data[78:82], "little") * 0.001,
+            "charge_otp": int.from_bytes(data[82:86], "little") * 0.1,
+            "charge_otp_recovery": int.from_bytes(data[86:90], "little") * 0.1,
+            "discharge_otp": int.from_bytes(data[90:94], "little") * 0.1,
+            "discharge_otp_recovery": int.from_bytes(data[94:98], "little") * 0.1,
+            "charge_utp": int.from_bytes(data[98:102], "little", signed=True) * 0.1,
+            "charge_utp_recovery": int.from_bytes(data[102:106], "little", signed=True) * 0.1,
+            "mos_otp": int.from_bytes(data[106:110], "little", signed=True) * 0.1,
+            "mos_otp_recovery": int.from_bytes(data[110:114], "little", signed=True) * 0.1,
+            "cell_count": data[114],
+            "charge_switch": bool(data[118]),
+            "discharge_switch": bool(data[122]),
+            "balancer_switch": bool(data[126]),
+            "nominal_battery_capacity": int.from_bytes(data[130:134], "little") * 0.001,
+            "short_circuit_protection_delay": int.from_bytes(data[134:138], "little"),
+            "start_balance_voltage": int.from_bytes(data[138:142], "little") * 0.001,
+            "connection_wire_resistances": [
+                int.from_bytes(data[i:i+4], "little") * 0.001 for i in range(142, 270, 4)
+            ],
+            "device_address": data[270],
+            "precharge_time": data[274],
+            "controls_bitmask": int.from_bytes(data[282:284], "little"),
+            "smart_sleep": data[286],
+            "data_field_enable_control": data[287],
+            "crc": data[299]
+        }
+
+        log(device_name, "✅ Успішно розпарсено Setting Info Frame:")
+        for key, value in setting_info.items():
+            log(device_name, f"{key}: {value}")
+
+        return setting_info
 
     except Exception as e:
-        log(device_name, f"Error parsing Setting Info Frame: {e}", force=True)
+        log(device_name, f"❌ Помилка парсингу Setting Info Frame: {e}", force=True)
         return None
 
 async def parse_cell_info(data, device_name, device_address):
