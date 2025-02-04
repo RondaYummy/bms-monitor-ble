@@ -391,7 +391,7 @@ async def parse_setting_info(data, device_name, device_address):
 
 async def parse_cell_info(data, device_name, device_address):
     """Parsing Cell Info Frame (0x02)."""
-    log(device_name, "Parsing Cell Info Frame...")
+    log(device_name, "Parsing Cell Info Frame...", force=True)
 
     try:
         # Checking the header
@@ -601,7 +601,7 @@ async def ble_main():
                     if device_info.get("connected", False)
                 }
 
-                # Пропускаємо сканування, якщо всі дозволені пристрої вже підключені
+                # Skip scanning if all allowed devices are already connected
                 if allowed_devices.issubset(connected_addresses):
                     log("ble_main", "✅ All allowed devices are already connected. Skipping scan.", force=True)
                     await asyncio.sleep(60)
@@ -620,30 +620,30 @@ async def ble_main():
                     device_address = device.address.lower()
 
                     if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
-                        continue  # Пропускаємо пристрої, які не є JK-BMS
+                        continue  # Skip devices that are not JK-BMS
 
-                    # Якщо пристрій вже підключений або йде підключення — пропускаємо
+                    # If the device is already connected or in the process of connection - skip
                     if device_address in active_connections or device_address in connected_addresses:
                         log(device.name, f"⚠️ Device {device.name} is already connected or connecting, skipping.")
                         continue
 
-                    # Якщо пристрій не у списку дозволених — пропускаємо
+                    # If the device is not in the list of allowed devices, skip it
                     if device_address not in allowed_devices:
                         continue
 
                     log(device.name, f"🔌 Connecting to allowed device: {device.address}", force=True)
 
-                    # Створюємо задачу підключення
+                    # Create a connection task
                     task = asyncio.create_task(connect_and_run(device))
-                    active_connections[device_address] = task  # Додаємо в активні
+                    active_connections[device_address] = task  # Add to active
                     tasks.append(task)
 
-                    await asyncio.sleep(5)  # Затримка між підключеннями
+                    await asyncio.sleep(5)  # Delay between connections
 
                 if tasks:
-                    await asyncio.gather(*tasks)  # Очікуємо виконання всіх підключень
+                    await asyncio.gather(*tasks)  # We are waiting for all connections to be made
 
-                # Видаляємо завершені задачі зі списку активних підключень
+                # Remove completed tasks from the list of active connections
                 for device_address in list(active_connections.keys()):
                     if active_connections[device_address].done():
                         del active_connections[device_address]
