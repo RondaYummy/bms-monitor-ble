@@ -593,6 +593,17 @@ async def ble_main():
             log("ble_main", "Start scanning...", force=True)
             try:
                 allowed_devices = load_allowed_devices()
+                connected_devices = await data_store.get_device_info()
+                connected_addresses = {
+                    device_info.get("device_address", "").lower()
+                    for device_info in connected_devices.values()
+                    if device_info.get("connected", False)
+                }
+                if allowed_devices.issubset(connected_addresses):
+                    log("ble_main", "✅ All allowed devices are already connected. Skipping scan.", force=True)
+                    await asyncio.sleep(60)
+                    continue
+
                 devices = await BleakScanner.discover()
 
                 if not devices:
@@ -623,9 +634,6 @@ async def ble_main():
                 await asyncio.sleep(5)
                                     
 def is_device_address_in_cell_info(device_address, cell_info):
-    """
-    Checks if `device_address' exists in the nested values of `cell_info'.
-    """
     for device_data in cell_info.values():
         if device_data.get("device_address") == device_address:
             return True
