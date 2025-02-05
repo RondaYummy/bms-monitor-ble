@@ -330,52 +330,104 @@ async def parse_setting_info(data, device_name, device_address):
             return None
 
         setting_info = {
-            "frame_type": data[4],
-            "frame_counter": data[5],
-            "smart_sleep_voltage": int.from_bytes(data[6:10], "little") * 0.001,
-            "cell_uvp": int.from_bytes(data[10:14], "little") * 0.001,
-            "cell_uvpr": int.from_bytes(data[14:18], "little") * 0.001,
-            "cell_ovp": int.from_bytes(data[18:22], "little") * 0.001,
-            "cell_ovpr": int.from_bytes(data[22:26], "little") * 0.001,
-            "balance_trigger_voltage": int.from_bytes(data[26:30], "little") * 0.001,
-            "soc_100_voltage": int.from_bytes(data[30:34], "little") * 0.001,
-            "soc_0_voltage": int.from_bytes(data[34:38], "little") * 0.001,
-            "cell_request_charge_voltage": int.from_bytes(data[38:42], "little") * 0.001,
-            "cell_request_float_voltage": int.from_bytes(data[42:46], "little") * 0.001,
-            "power_off_voltage": int.from_bytes(data[46:50], "little") * 0.001,
-            "max_charge_current": int.from_bytes(data[50:54], "little") * 0.001,
-            "charge_ocp_delay": int.from_bytes(data[54:58], "little"),
-            "charge_ocp_recovery": int.from_bytes(data[58:62], "little"),
-            "max_discharge_current": int.from_bytes(data[62:66], "little") * 0.001,
-            "discharge_ocp_delay": int.from_bytes(data[66:70], "little"),
-            "discharge_ocp_recovery": int.from_bytes(data[70:74], "little"),
-            "short_circuit_protection_recovery": int.from_bytes(data[74:78], "little"),
-            "max_balance_current": int.from_bytes(data[78:82], "little") * 0.001,
-            "charge_otp": int.from_bytes(data[82:86], "little") * 0.1,
-            "charge_otp_recovery": int.from_bytes(data[86:90], "little") * 0.1,
-            "discharge_otp": int.from_bytes(data[90:94], "little") * 0.1,
-            "discharge_otp_recovery": int.from_bytes(data[94:98], "little") * 0.1,
-            "charge_utp": int.from_bytes(data[98:102], "little", signed=True) * 0.1,
-            "charge_utp_recovery": int.from_bytes(data[102:106], "little", signed=True) * 0.1,
-            "mos_otp": int.from_bytes(data[106:110], "little", signed=True) * 0.1,
-            "mos_otp_recovery": int.from_bytes(data[110:114], "little", signed=True) * 0.1,
-            "cell_count": data[114],
-            "charge_switch": bool(data[118]),
-            "discharge_switch": bool(data[122]),
-            "balancer_switch": bool(data[126]),
-            "nominal_battery_capacity": int.from_bytes(data[130:134], "little") * 0.001,
-            "short_circuit_protection_delay": int.from_bytes(data[134:138], "little"),
-            "start_balance_voltage": int.from_bytes(data[138:142], "little") * 0.001,
-            "connection_wire_resistances": [
-                int.from_bytes(data[i:i+4], "little") * 0.001 for i in range(142, 270, 4)
-            ],
-            "device_address": data[270],
+            # [MAIN] Base Settings
+            "cell_count": data[114], # Cell Count
+            "nominal_battery_capacity": int.from_bytes(data[130:134], "little") * 0.001, # Battery Capacity (Ah)
+            "balance_trigger_voltage": int.from_bytes(data[26:30], "little") * 0.001, # Balance Trig. Volt.(V)
+            # Calibrating Volt.(V)
+            # Calibrating Curr.(A)
+
+            
+            # [MAIN] Advance Settings
+            "start_balance_voltage": int.from_bytes(data[138:142], "little") * 0.001, # Start Balance Volt.(V)
+            "max_balance_current": int.from_bytes(data[78:82], "little") * 0.001, # Max Balance Cur.(A)
+            "cell_ovp": int.from_bytes(data[18:22], "little") * 0.001, # Cell OVP(V)
+            "cell_request_charge_voltage": int.from_bytes(data[38:42], "little") * 0.001, # Vol. Cell RCV(V)
+            "soc_100_voltage": int.from_bytes(data[30:34], "little") * 0.001, # SOC-100% Volt.(V)
+            "cell_ovpr": int.from_bytes(data[22:26], "little") * 0.001, # Cell  OVPR(V)
+            "cell_uvpr": int.from_bytes(data[14:18], "little") * 0.001, # Cell UCPR(V)
+            "soc_0_voltage": int.from_bytes(data[34:38], "little") * 0.001, # SOC-0% Volt.(V)
+            "cell_uvp": int.from_bytes(data[10:14], "little") * 0.001, # Cell UVP(V)
+            "power_off_voltage": int.from_bytes(data[46:50], "little") * 0.001, # Power Off Vol.(V)
+            "cell_request_float_voltage": int.from_bytes(data[42:46], "little") * 0.001, # Vol. Cell RFV(V)
+            "smart_sleep_voltage": int.from_bytes(data[6:10], "little") * 0.001, # Vol. Smart Sleep(V)
+            "smart_sleep": data[286], # Time Smart Sleep(h)
+            "max_charge_current": int.from_bytes(data[50:54], "little") * 0.001, # Continued Charge Curr.(A)
+            "charge_ocp_delay": int.from_bytes(data[54:58], "little"), # Charge OCP Delay(s)
+            "charge_ocp_recovery": int.from_bytes(data[58:62], "little"), # Charge OCPR Time(s)
+            "max_discharge_current": int.from_bytes(data[62:66], "little") * 0.001, # Continued Discharge Curr.(A)
+            "discharge_ocp_delay": int.from_bytes(data[66:70], "little"), # Discharge OCP Delay(s)
+            "discharge_ocp_recovery": int.from_bytes(data[70:74], "little"), # Discharge OCPR Time(s)
+            "charge_otp": int.from_bytes(data[82:86], "little") * 0.1, # Charge OTP(°c)
+            "charge_otp_recovery": int.from_bytes(data[86:90], "little") * 0.1, # Charge OTPR(°c)
+            "discharge_otp": int.from_bytes(data[90:94], "little") * 0.1, # Discharge OTP(°c)
+            "discharge_otp_recovery": int.from_bytes(data[94:98], "little") * 0.1, # Discharge OTPR(°c)
+            "charge_utp_recovery": int.from_bytes(data[102:106], "little", signed=True) * 0.1, # Charge UTPR(°c)
+            "charge_utp": int.from_bytes(data[98:102], "little", signed=True) * 0.1, # Charge UTP(°c)
+            "mos_otp": int.from_bytes(data[106:110], "little", signed=True) * 0.1, # MOS OTP(°c)
+            "mos_otp_recovery": int.from_bytes(data[110:114], "little", signed=True) * 0.1, # MOS OTPR(°c)
+            "short_circuit_protection_delay": int.from_bytes(data[134:138], "little"), # SCP Delay(???)
+            "short_circuit_protection_recovery": int.from_bytes(data[74:78], "little"), # SCPR Time(s)
+            "device_address": data[270], # Device Addr.
+            # Data Stored Period(S)
+            # RCV Time(H)
+            # RFV Time(H)
+            # Emerg. Time(Min)
+            # User Private Data
+            # User Data 2
+            # UART1 Protocol No.
+            # UART2 Protocol No.
+            # CAN Protocol No.
+            # LCD Buzzer Trigger
+            # LCD Buzzer Trigger Val
+            # LCD Buzzer Release Val
+            # DRY 1 Trigger
+            # DRY 1 Release Val
+
+
+            # [MAIN] Con. Wire Res. Settings
+            "connection_wire_resistances": [int.from_bytes(data[i:i+4], "little") * 0.001 for i in range(142, 270, 4)], # Con, Wire Res.01-12 (???)
+
+            # [MAIN] Control Settings
+            "charge_switch": bool(data[118]), # Charge
+            "discharge_switch": bool(data[122]), # Discharge
+            "balancer_switch": bool(data[126]), # Balance
+            # Emergency
+            "heating_enabled": None, # Heating
+            "disable_temperature_sensors": None, # Disable Temp. Sensor
+            "display_always_on": None, # Display Always On
+            "special_charger": None, # Special Charger On
+            "smart_sleep": None, # Smart Sleep On
+            "timed_stored_data": None, # Timed Stored Data
+            "charging_float_mode": None, # Charging Float Mode
+            # DRY ARM Intermittent
+            # Discharge OCP 2
+            # Discharge OCP 3
+            # Time....
+
+            # [MAIN] Unknown
+            "gps_heartbeat": None,
+            "disable_pcl_module": None,
+            "port_switch": None,
             "precharge_time": data[274],
-            "controls_bitmask": int.from_bytes(data[282:284], "little"),
-            "smart_sleep": data[286],
             "data_field_enable_control": data[287],
-            "crc": data[299]
+            # "controls_bitmask": int.from_bytes(data[282:284], "little"),
+            # "frame_type": data[4],
+            # "frame_counter": data[5],
+            # "crc": data[299]
         }
+
+        bitmask = int.from_bytes(data[282:284], "little")
+        setting_info["heating_enabled"] = bool(bitmask & 0b0000000000000001)  # bit0
+        setting_info["disable_temperature_sensors"] = bool(bitmask & 0b0000000000000010)  # bit1
+        setting_info["gps_heartbeat"] = bool(bitmask & 0b0000000000000100)  # bit2
+        setting_info["port_switch"] = "RS485" if bitmask & 0b0000000000001000 else "CAN"  # bit3
+        setting_info["display_always_on"] = bool(bitmask & 0b0000000000010000)  # bit4
+        setting_info["special_charger"] = bool(bitmask & 0b0000000000100000)  # bit5
+        setting_info["smart_sleep"] = bool(bitmask & 0b0000000001000000)  # bit6
+        setting_info["disable_pcl_module"] = bool(bitmask & 0b0000000010000000)  # bit7
+        setting_info["timed_stored_data"] = bool(bitmask & 0b0000000100000000)  # bit8
+        setting_info["charging_float_mode"] = bool(bitmask & 0b0000001000000000)  # bit9
 
         log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=True)
         for key, value in setting_info.items():
