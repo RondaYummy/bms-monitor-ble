@@ -570,12 +570,40 @@ async def connect_and_run(device):
                             await asyncio.sleep(1)
 
                         # Checking whether to send cell_info_command
+                        MAX_RETRIES = 2  # Максимальна кількість спроб перед перепідключенням
+                        COMMAND_LOCK = asyncio.Lock()  # Блокування для унеможливлення паралельних команд
+
                         last_update = await data_store.get_last_cell_info_update(device.name)
+
+                        # Виконуємо перевірку лише якщо дані не оновлювалися понад 30 секунд
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
-                            cell_info_command = create_command(CMD_TYPE_CELL_INFO)
-                            await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
-                            log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
-                            log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
+                            async with COMMAND_LOCK:  # Блокування, щоб уникнути паралельних команд
+                                retry_count = 0
+                                while retry_count <= MAX_RETRIES:
+                                    cell_info_command = create_command(CMD_TYPE_CELL_INFO)
+                                    await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
+                                    log(device.name, f"📡 Cell Info command sent: {cell_info_command.hex()}", force=True)
+                                    log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
+
+                                    # Чекаємо відповідь (напр. 5 секунд)
+                                    await asyncio.sleep(5)
+
+                                    # Перевіряємо, чи оновилися дані після запиту
+                                    new_update = await data_store.get_last_cell_info_update(device.name)
+                                    if new_update and new_update != last_update:
+                                        log(device.name, "✅ Cell Info successfully updated!", force=True)
+                                        break  # Виходимо з циклу, якщо оновлення є
+
+                                    retry_count += 1
+                                    log(device.name, f"⚠️ No response, retrying ({retry_count}/{MAX_RETRIES})...", force=True)
+
+                                # Якщо після всіх спроб немає оновлення → перепідключаємось
+                                if retry_count > MAX_RETRIES:
+                                    log(device.name, "❌ No response after multiple attempts. Reconnecting...", force=True)
+                                    await client.disconnect()  # Закриваємо підключення
+                                    await asyncio.sleep(2)  # Додаємо невелику паузу
+                                    asyncio.create_task(connect_and_run(device))  # Запускаємо повторне підключення
+                                    return  # Виходимо з функції, щоб уникнути подальших запитів
 
                         await asyncio.sleep(5)
             except Exception as e:
@@ -691,13 +719,13 @@ def start_services():
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 def load_allowed_devices(filename="configs/allowed_devices.txt"):
-    try:
-        with open(filename, 'r') as file:
-            allowed_devices = {line.strip().lower() for line in file if line.strip()}
-        return allowed_devices
-    except FileNotFoundError:
-        print(f"Warning: {filename} not found. All devices will be blocked.")
-        return set()
+    if not os.path.exists(filename):
+        print(f"⚠️ {filename} not found. Creating an empty allowed devices file.")
+        ensure_allowed_devices_file(filename)
+
+    with open(filename, 'r') as file:
+        allowed_devices = {line.strip().lower() for line in file if line.strip()}
+    return allowed_devices
 
 if __name__ == "__main__":
     start_services()
