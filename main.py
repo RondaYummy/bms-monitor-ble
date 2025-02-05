@@ -388,6 +388,7 @@ async def parse_setting_info(data, device_name, device_address):
             # [MAIN] Con. Wire Res. Settings
             "connection_wire_resistances": [int.from_bytes(data[i:i+4], "little") * 0.001 for i in range(142, 270, 4)], # Con, Wire Res.01-12 (???)
 
+
             # [MAIN] Control Settings
             "charge_switch": bool(data[118]), # Charge
             "discharge_switch": bool(data[122]), # Discharge
@@ -405,18 +406,17 @@ async def parse_setting_info(data, device_name, device_address):
             # Discharge OCP 3
             # Time....
 
+
             # [MAIN] Unknown
             "gps_heartbeat": None,
             "disable_pcl_module": None,
             "port_switch": None,
             "precharge_time": data[274],
             "data_field_enable_control": data[287],
-            # "controls_bitmask": int.from_bytes(data[282:284], "little"),
-            # "frame_type": data[4],
-            # "frame_counter": data[5],
-            # "crc": data[299]
+            "controls_bitmask": int.from_bytes(data[282:284], "little"),
         }
 
+        # Parse data from bitmask
         bitmask = int.from_bytes(data[282:284], "little")
         setting_info["heating_enabled"] = bool(bitmask & 0b0000000000000001)  # bit0
         setting_info["disable_temperature_sensors"] = bool(bitmask & 0b0000000000000010)  # bit1
