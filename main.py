@@ -267,7 +267,6 @@ def create_command(command_type):
     return frame
     
 def log(device_name, message, force=False):
-    global ENABLE_LOGS
     if ENABLE_LOGS or force:
         current_time = datetime.now().strftime("%d.%m.%y %H:%M")
         print(f"{BLUE}[{device_name}] {MAGENTA}[{current_time}]{RESET} {message}")
@@ -281,9 +280,8 @@ async def parse_device_info(data, device_name, device_address):
         
         # Checking the header
         if data[:4] != b'\x55\xAA\xEB\x90':
-            raise ValueError("Invalid frame header")
+            raise ValueError("❌ Invalid frame (0x03) header.")
 
-        # Extract fields from the frame
         device_info = {
             # "setup_passcode": data[118:134].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
             # "passcode": data[97:102].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
@@ -307,7 +305,7 @@ async def parse_device_info(data, device_name, device_address):
         crc_calculated = calculate_crc(data[:-1])
         crc_received = data[-1]
         if crc_calculated != crc_received:
-            log(device_name, f"Invalid CRC: {crc_calculated} != {crc_received}")
+            log(device_name, f"❌ Invalid CRC: {crc_calculated} != {crc_received}")
             return None
         
         # Save device-specific info
@@ -321,14 +319,15 @@ async def parse_device_info(data, device_name, device_address):
         return device_info
 
     except Exception as e:
-        log(device_name, f"Error parsing Device Info Frame: {e}", force=True)
+        log(device_name, f"❌ Error parsing Device Info Frame: {e}", force=True)
         return None
     
 async def parse_setting_info(data, device_name, device_address):
-    log(device_name, "🔍 Парсимо Setting Info Frame...")
+    """Parsing Cell Info Frame (0x01)."""
+    log(device_name, "🔍 Parsing Setting Info Frame...")
     try:
         if data[:4] != b'\x55\xAA\xEB\x90':
-            log(device_name, f"❌ Неправильний заголовок кадру: {data[:4].hex()}", force=True)
+            log(device_name, f"❌ Incorrect frame header: {data[:4].hex()}", force=True)
             return None
 
         setting_info = {
@@ -379,14 +378,14 @@ async def parse_setting_info(data, device_name, device_address):
             "crc": data[299]
         }
 
-        log(device_name, "✅ Успішно розпарсено Setting Info Frame:")
+        log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=True)
         for key, value in setting_info.items():
-            log(device_name, f"{key}: {value}")
+            log(device_name, f"{key}: {value}", force=True)
 
         return setting_info
 
     except Exception as e:
-        log(device_name, f"❌ Помилка парсингу Setting Info Frame: {e}", force=True)
+        log(device_name, f"❌ Parsing error Setting Info Frame: {e}", force=True)
         return None
 
 async def parse_cell_info(data, device_name, device_address):
@@ -396,9 +395,9 @@ async def parse_cell_info(data, device_name, device_address):
     try:
         # Checking the header
         if data[:4] != b'\x55\xAA\xEB\x90':
-            log(device_name, f"Unexpected Header: {data[:4].hex()}", force=True)
-            raise ValueError("Invalid frame header")
-        log(device_name, f"Data Length: {len(data)}")
+            log(device_name, f"❌ Unexpected Header: {data[:4].hex()}", force=True)
+            raise ValueError("❌ Invalid frame (0x02) header.")
+        log(device_name, f"Cell Info Frame: Data Length: {len(data)}")
 
         # Extract cell data
         cell_voltages = []
@@ -480,7 +479,7 @@ async def parse_cell_info(data, device_name, device_address):
         crc_calculated = calculate_crc(data[:-1])
         crc_received = data[-1]
         if crc_calculated != crc_received:
-            log(device_name, f"Invalid CRC: {crc_calculated} != {crc_received}")
+            log(device_name, f"❌ Invalid Cell info CRC: {crc_calculated} != {crc_received}")
             return None
         
         await data_store.update_cell_info(device_name, cell_info)
@@ -493,7 +492,7 @@ async def parse_cell_info(data, device_name, device_address):
         return cell_info
 
     except Exception as e:
-        log(device_name, f"Error parsing Cell Info Frame: {e}", force=True)
+        log(device_name, f"❌ Error parsing Cell Info Frame: {e}", force=True)
         return None
 
 async def notification_handler(device, data, device_name, device_address):
@@ -509,7 +508,7 @@ async def notification_handler(device, data, device_name, device_address):
         calculated_crc = calculate_crc(buffer[:-1])
         received_crc = buffer[-1]
         if calculated_crc != received_crc:
-            log(device_name, f"Invalid CRC: {calculated_crc} != {received_crc}")
+            log(device_name, f"❌ Invalid CRC: {calculated_crc} != {received_crc}")
             return
 
         # Determining the frame type
@@ -522,7 +521,7 @@ async def notification_handler(device, data, device_name, device_address):
         elif frame_type == 0x01:
             await parse_setting_info(buffer, device_name, device_address)
         else:
-            log(device_name, f"Unknown frame type {frame_type}: {buffer}", force=True)
+            log(device_name, f"❌ Unknown frame type {frame_type}: {buffer}", force=True)
             await data_store.clear_buffer(device_name)
 
 device_locks = {}
@@ -566,44 +565,43 @@ async def connect_and_run(device):
                             # If the device information is not yet saved, send the command
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
-                            log(device.name, f"Device Info command sent: {device_info_command.hex()}", force=True)
+                            log(device.name, f"📡 Device Info command sent: {device_info_command.hex()}", force=True)
                             await asyncio.sleep(1)
 
                         # Checking whether to send cell_info_command
-                        MAX_RETRIES = 2  # Максимальна кількість спроб перед перепідключенням
-                        COMMAND_LOCK = asyncio.Lock()  # Блокування для унеможливлення паралельних команд
+                        MAX_RETRIES = 2
+                        COMMAND_LOCK = asyncio.Lock()
 
                         last_update = await data_store.get_last_cell_info_update(device.name)
 
-                        # Виконуємо перевірку лише якщо дані не оновлювалися понад 30 секунд
+                        # We perform the check only if the data has not been updated for more than 30 seconds
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
-                            async with COMMAND_LOCK:  # Блокування, щоб уникнути паралельних команд
+                            async with COMMAND_LOCK:  # Blocking to avoid parallel commands
                                 retry_count = 0
                                 while retry_count <= MAX_RETRIES:
                                     cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                                     await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                                     log(device.name, f"📡 Cell Info command sent: {cell_info_command.hex()}", force=True)
-                                    log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
+                                    log(device.name, f"⏳ Last update: {last_update}. Now: {datetime.now()}", force=True)
 
-                                    # Чекаємо відповідь (напр. 5 секунд)
                                     await asyncio.sleep(5)
 
-                                    # Перевіряємо, чи оновилися дані після запиту
+                                    # Check if the data has been updated after the request
                                     new_update = await data_store.get_last_cell_info_update(device.name)
                                     if new_update and new_update != last_update:
                                         log(device.name, "✅ Cell Info successfully updated!", force=True)
-                                        break  # Виходимо з циклу, якщо оновлення є
+                                        break  # Exit the loop if there is an update
 
                                     retry_count += 1
                                     log(device.name, f"⚠️ No response, retrying ({retry_count}/{MAX_RETRIES})...", force=True)
 
-                                # Якщо після всіх спроб немає оновлення → перепідключаємось
+                                # If there is no update after all attempts → reconnec
                                 if retry_count > MAX_RETRIES:
                                     log(device.name, "❌ No response after multiple attempts. Reconnecting...", force=True)
-                                    await client.disconnect()  # Закриваємо підключення
-                                    await asyncio.sleep(2)  # Додаємо невелику паузу
-                                    asyncio.create_task(connect_and_run(device))  # Запускаємо повторне підключення
-                                    return  # Виходимо з функції, щоб уникнути подальших запитів
+                                    await client.disconnect()
+                                    await asyncio.sleep(2)
+                                    asyncio.create_task(connect_and_run(device))
+                                    return
 
                         await asyncio.sleep(5)
             except Exception as e:
