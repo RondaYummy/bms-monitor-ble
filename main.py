@@ -189,8 +189,8 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         if existing_device_info and existing_device_info.get("connected", False):
             return JSONResponse(content={"message": f"Device {device_address} is already connected."}, status_code=200)
 
-        async with ble_scan_lock:
-            log(device_address, "Starting connection process...", force=True)
+        # async with ble_scan_lock:
+        log(device_address, "Starting connection process...", force=True)
 
         allowed_devices = load_allowed_devices()
         if device_address not in allowed_devices:
