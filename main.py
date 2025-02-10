@@ -661,8 +661,8 @@ async def connect_and_run(device):
                     log(device.name, f"❌ Device removed from active_connections.", force=True)
 
             finally:
-                log(device.name, "🔄 Retrying connection in 5 seconds...", force=True)
-                await asyncio.sleep(5)
+                log(device.name, "🔄 Retrying connection in 10 seconds...", force=True)
+                await asyncio.sleep(10)
 
 async def filter_devices(devices):
     allowed_devices = db.get_all_devices()
