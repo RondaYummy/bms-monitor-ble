@@ -574,13 +574,12 @@ async def notification_handler(device, data):
 
         # Determining the frame type
         frame_type = buffer[4]
-        log("notification_handler", f'NOTIFY FRAME TYPE: {frame_type}', force=True)
         if frame_type == 0x03:
             await parse_device_info(buffer, device_name, device_address)
-        elif frame_type == 0x01:
+        elif frame_type == 0x02:
             await data_store.update_last_cell_info_update(device_name)
             await parse_cell_info(buffer, device_name, device_address)
-        elif frame_type == 0x02:
+        elif frame_type == 0x01:
             await parse_setting_info(buffer, device_name, device_address)
         else:
             log(device_name, f"❌ Unknown frame type {frame_type}: {buffer}", force=True)
@@ -643,7 +642,7 @@ async def connect_and_run(device):
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
-                            log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
+                            log(device.name, f"Cell Info command sent: {cell_info_command}", force=True)
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
 
                         await asyncio.sleep(5)
