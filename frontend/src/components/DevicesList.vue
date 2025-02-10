@@ -14,19 +14,19 @@
           </div>
           <div class="column">
             <div class="q-mb-10">Hardware v.
-              <span class="unique">{{ device.hardware_version }}</span>
+              <span class="unique">{{ device?.hardware_version }}</span>
             </div>
             <div>Software v.
-              <span class="unique">{{ device.software_version }}</span>
+              <span class="unique">{{ device?.software_version }}</span>
             </div>
           </div>
         </div>
         <span class="text-center coral">
           Дата виробництва:
-          {{ parseManufacturingDate(device.manufacturing_date) }}.
+          {{ parseManufacturingDate(device?.manufacturing_date) }}.
         </span>
         <span class="text-center coral">
-          Час роботи: {{ formatDuration(device.device_uptime) }}.
+          Час роботи: {{ formatDuration(device?.device_uptime) }}.
         </span>
       </div>
 

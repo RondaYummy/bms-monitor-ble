@@ -4,7 +4,6 @@ from copy import deepcopy
 
 class DataStore:
     def __init__(self):
-        self.device_info = {}
         self.cell_info = {}
         self.last_cell_info_update = {}
         self.response_buffers = {}
@@ -46,16 +45,6 @@ class DataStore:
         async with self.lock:
             if device_name in self.response_buffers:
                 self.response_buffers[device_name].clear()
-
-    async def update_device_info(self, device_name, info):
-        async with self.lock:
-            self.device_info[device_name] = info
-
-    async def get_device_info(self, device_name=None):
-        async with self.lock:
-            if device_name:
-                return deepcopy(self.device_info.get(device_name))
-            return deepcopy(self.device_info)
 
     async def update_cell_info(self, device_name, info):
         async with self.lock:

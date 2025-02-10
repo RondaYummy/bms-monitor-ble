@@ -186,6 +186,26 @@ def create_table():
                 VALUES (?, ?, ?, ?)
                 ''', ('123456', vapid_public, vapid_private, 12))
 
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS devices (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                address TEXT NOT NULL UNIQUE,
+                name TEXT,
+                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                connected BOOLEAN DEFAULT FALSE,
+                enabled BOOLEAN DEFAULT TRUE,
+                frame_type INTEGER,
+                frame_counter INTEGER,
+                vendor_id TEXT,
+                hardware_version TEXT,
+                software_version TEXT,
+                device_uptime INTEGER,
+                power_on_count INTEGER,
+                manufacturing_date TEXT,
+                serial_number TEXT,
+                user_data TEXT
+            )
+            ''')
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
@@ -218,6 +238,118 @@ def delete_alert_by_id(alert_id):
         print(f"Error deleting alert data: {e}")
         raise
 
+def get_all_devices():
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, address, name, added_at FROM devices")
+            devices = cursor.fetchall()
+
+            result = [
+                {"id": row[0], "address": row[1], "name": row[2], "added_at": row[3], "connected": bool(row[4]), "enabled": bool(row[5])}
+                for row in devices
+            ]
+
+            return result
+    
+    except sqlite3.Error as e:
+        print(f"❌ Error receiving the device list: {e}")
+        raise
+
+def get_device_by_address(address):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+            SELECT id, address, name, added_at, connected, enabled, frame_type, frame_counter, 
+                   vendor_id, hardware_version, software_version, device_uptime, power_on_count, 
+                   manufacturing_date, serial_number, user_data 
+            FROM devices WHERE address = ?
+            ''', (address,))
+            device = cursor.fetchone()
+
+            if not device:
+                return None
+
+            return {
+                "id": device[0], "address": device[1], "name": device[2], "added_at": device[3],
+                "connected": bool(device[4]), "enabled": bool(device[5]), "frame_type": device[6],
+                "frame_counter": device[7], "vendor_id": device[8], "hardware_version": device[9],
+                "software_version": device[10], "device_uptime": device[11], "power_on_count": device[12],
+                "manufacturing_date": device[13], "serial_number": device[14], "user_data": device[15]
+            }
+    
+    except sqlite3.Error as e:
+        print(f"❌ Помилка при отриманні пристрою: {e}")
+        raise
+
+def update_device(address: str, **kwargs):
+    if not kwargs:
+        return
+
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            fields = ", ".join(f"{key} = ?" for key in kwargs.keys())
+            values = list(kwargs.values()) + [address]
+
+            query = f"UPDATE devices SET {fields} WHERE address = ?"
+
+            cursor.execute(query, values)
+            conn.commit()
+    except sqlite3.Error as e:
+        print(f"❌ Помилка при оновленні пристрою: {e}")
+        raise
+
+def update_device_status(address, connected: bool, enabled: bool):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+            UPDATE devices
+            SET connected = ?, enabled = ?
+            WHERE address = ?
+            ''', (connected, enabled, address))
+            conn.commit()
+    except sqlite3.Error as e:
+        raise
+
+def insert_device(
+    address, name=None, frame_type=None, frame_counter=None, vendor_id=None,
+    hardware_version=None, software_version=None, device_uptime=None, power_on_count=None,
+    manufacturing_date=None, serial_number=None, user_data=None, connected=False, enabled=True
+):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT id FROM devices WHERE address = ?", (address,))
+            existing = cursor.fetchone()
+            if existing:
+                return get_device_by_address(address)
+
+            cursor.execute('''
+            INSERT INTO devices (
+                address, name, added_at, connected, enabled, frame_type, frame_counter, vendor_id,
+                hardware_version, software_version, device_uptime, power_on_count,
+                manufacturing_date, serial_number, user_data
+            ) VALUES (?, ?, CURRENT_TIMESTAMP, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                address, name, connected, enabled, frame_type, frame_counter, vendor_id,
+                hardware_version, software_version, device_uptime, power_on_count,
+                manufacturing_date, serial_number, user_data
+            ))
+
+            conn.commit()
+
+            return get_device_by_address(address)
+    
+    except sqlite3.Error as e:
+        print(f"❌ Помилка при вставці пристрою: {e}")
+        raise
+
+
 def insert_alert_data(device_address, device_name, error_code, occurred_at, n_hours=1):
     """Adds a new record to the table."""
     try:
@@ -247,7 +379,6 @@ def insert_alert_data(device_address, device_name, error_code, occurred_at, n_ho
         raise
 
 def insert_data(timestamp, current, power, device_address, device_name):
-    """Adds a new record to the table."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()

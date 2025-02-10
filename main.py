@@ -137,47 +137,31 @@ class DeviceRequest(BaseModel):
     name: Optional[str] = None
 @app.post("/api/disconnect-device")
 async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depends(verify_token)):
-    ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
     device_address = body.address.strip().lower()
     device_name = body.name.strip()
 
     if not device_address:
         raise HTTPException(status_code=400, detail="Device address is required.")
-
     try:
-        allowed_devices = set()
-        if os.path.exists(ALLOWED_DEVICES_FILE):
-            with open(ALLOWED_DEVICES_FILE, "r", encoding="utf-8") as file:
-                allowed_devices = {line.strip().lower() for line in file if line.strip()}
+        existing_device = db.get_device_by_address(device_address)
 
-        if device_address not in allowed_devices:
-            raise HTTPException(status_code=404, detail="Device not found in allowed list.")
+        if not existing_device:
+            raise HTTPException(status_code=404, detail="🚫 Device not found in the database.")
 
-        device_info = await data_store.get_device_info(device_name)
-        if device_info:
-            device_info["connected"] = False
-            await data_store.update_device_info(device_name, device_info)
+        if not existing_device["connected"]:
+            return JSONResponse(content={"message": f"✅ Device {device_address} is already disconnected."}, status_code=200)
 
-        allowed_devices.remove(device_address)
-        with open(ALLOWED_DEVICES_FILE, "w", encoding="utf-8") as file:
-            for addr in allowed_devices:
-                file.write(f"{addr}\n")
+        db.update_device_status(device_address, connected=False, enabled=False)
 
-        return {"message": f"Successfully disconnected from {device_address} and removed from allowed list."}
+        return {"message": f"✅ Successfully disconnected from {device_address} and disabled the device."}
 
     except Exception as e:
         log(device_name, f"BLE disconnect failed: {e}", force=True)
-
-        device_info = await data_store.get_device_info(device_name)
-        if device_info:
-            device_info["connected"] = False
-            await data_store.update_device_info(device_name, device_info)
-
+        db.update_device_status(device_address, connected=False, enabled=False)
         raise HTTPException(status_code=500, detail=f"Error disconnecting device: {str(e)}")
 
 @app.post("/api/connect-device")
 async def connect_device(request: DeviceRequest, token: str = Depends(verify_token)):
-    ALLOWED_DEVICES_FILE = "configs/allowed_devices.txt"
     try:
         device_address = request.address.strip().lower()
         device_name = request.name.strip()
@@ -185,42 +169,44 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         if not device_address:
             raise HTTPException(status_code=400, detail="Device address is required.")
 
-        existing_device_info = await data_store.get_device_info(device_address)
-        if existing_device_info and existing_device_info.get("connected", False):
-            return JSONResponse(content={"message": f"Device {device_address} is already connected."}, status_code=200)
+        existing_device = db.get_device_by_address(device_address)
+        if not existing_device:
+            existing_device = db.insert_device(address=device_address, name=device_name)
 
-        # async with ble_scan_lock:
-        log(device_address, "Starting connection process...", force=True)
-
-        allowed_devices = load_allowed_devices()
-        if device_address not in allowed_devices:
-            with open(ALLOWED_DEVICES_FILE, "a", encoding="utf-8") as file:
-                file.write(f"{device_address}\n")
+        if existing_device:
+            if existing_device["connected"]:
+                return JSONResponse(content={"message": f"✅ Device {device_address} is already connected."}, status_code=200)
+            
+            if not existing_device["enabled"]:
+                log(device_address, "🔄 Device was disabled. Enabling and reconnecting...", force=True)
+                db.update_device_status(device_address, connected=False, enabled=True)
 
         device = type("Device", (object,), {"address": device_address, "name": device_name})()
         asyncio.create_task(connect_and_run(device))
 
-        return {"message": f"Connection initiated for {device_address}. Check logs for updates."}
+        return {"message": f"🚀 Connection initiated for {device_address}. Check logs for updates."}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error connecting to device: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"❌ Error connecting to device: {str(e)}")
+
 
     
 @app.get("/api/devices")
 async def discover_devices():
     try:
-        # async with ble_scan_lock:
-        log("API", "Start scanning for devices...", force=True)
+        log("API", "Start scanning for devices...")
         devices = await BleakScanner.discover()
-        log("API", f"Found devices: {devices}", force=True)
         
-        allowed_devices = load_allowed_devices()
+        allowed_devices = db.get_all_devices()
+        disconnected_addresses = {
+            device["address"].lower() for device in allowed_devices if not device["connected"]
+        }
 
         device_list = [
             {"name": device.name, "address": device.address.lower()}
             for device in devices
             if device.name and device.address.lower().startswith(tuple(JK_BMS_OUI))
-            and device.address.lower() not in allowed_devices
+            and device.address.lower() not in disconnected_addresses
         ]
 
         if not device_list:
@@ -233,7 +219,7 @@ async def discover_devices():
 
 @app.get("/api/device-info")
 async def get_device_info():
-    data = await data_store.get_device_info()
+    data = db.get_all_devices()
     if not data:
         return JSONResponse(content={"message": "No device info available yet."}, status_code=404)
     return data
@@ -302,6 +288,7 @@ async def parse_device_info(data, device_name, device_address):
             "serial_number": data[86:97].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
             "user_data": data[102:118].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
             "connected": True,
+            "enabled": True
         }
 
         # CRC Validation
@@ -312,7 +299,22 @@ async def parse_device_info(data, device_name, device_address):
             return None
         
         # Save device-specific info
-        await data_store.update_device_info(device_name, device_info)
+        db.update_device(
+            device_address,
+            frame_type=device_info["frame_type"],
+            frame_counter=device_info["frame_counter"],
+            vendor_id=device_info["vendor_id"],
+            hardware_version=device_info["hardware_version"],
+            software_version=device_info["software_version"],
+            device_uptime=device_info["device_uptime"],
+            power_on_count=device_info["power_on_count"],
+            device_name=device_info["device_name"],
+            manufacturing_date=device_info["manufacturing_date"],
+            serial_number=device_info["serial_number"],
+            user_data=device_info["user_data"],
+            connected=device_info["connected"],
+            enabled=device_info["enabled"]
+        )
 
         # Logging of parsed information
         log(device_name, "Parsed Device Info:")
@@ -550,7 +552,9 @@ async def parse_cell_info(data, device_name, device_address):
         log(device_name, f"Error parsing Cell Info Frame: {e}", force=True)
         return None
 
-async def notification_handler(device, data, device_name, device_address):
+async def notification_handler(device, data):
+    device_name = device.name
+    device_address = device.address
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
         await data_store.clear_buffer(device_name)
     await data_store.append_to_buffer(device_name, data)
@@ -589,33 +593,42 @@ async def connect_and_run(device):
     async with device_locks[device_address]:
         while True:  # Cycle to reconnect
             try:
-                device_info_data = await data_store.get_device_info(device.name)
+                device_info_data = db.get_device_by_address(device_address)
+
                 if not device_info_data:
-                    device_info_data = {
-                        "device_name": device.name,
-                        "device_address": device.address,
-                        "connected": False
-                    }
-                await data_store.update_device_info(device.name, device_info_data)
+                    device_info_data = db.insert_device(
+                        address=device_address,
+                        name=device.name,
+                        frame_type=None,
+                        frame_counter=None,
+                        vendor_id=None,
+                        hardware_version=None,
+                        software_version=None,
+                        device_uptime=None,
+                        power_on_count=None,
+                        manufacturing_date=None,
+                        serial_number=None,
+                        user_data=None,
+                        connected=False,
+                        enabled=True
+                        )
 
                 async with BleakClient(device.address) as client:
-                    device_info_data["connected"] = True
-                    await data_store.update_device_info(device.name, device_info_data)
+                    db.update_device_status(device_address, connected=True, enabled=True)
                     log(device.name, f"Connected and notification started", force=True)
 
                     def handle_notification(sender, data):
-                        asyncio.create_task(notification_handler(device, data, device.name, device.address))
+                        asyncio.create_task(notification_handler(device, data))
 
                     await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
 
                     while True:
                         # Check if the device is still connected
-                        device_info_data = await data_store.get_device_info(device.name)
-                        if not device_info_data.get("connected", False):
+                        device_info_data = db.get_device_by_address(device.address)
+                        if not device_info_data or not device_info_data.get("connected", False):
                             log(device.name, "❌ Device has been disconnected. Stopping polling.", force=True)
                             break
 
-                        device_info_data = await data_store.get_device_info(device.name)
                         if not device_info_data or "frame_type" not in device_info_data:
                             # If the device information is not yet saved, send the command
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
@@ -634,28 +647,22 @@ async def connect_and_run(device):
                         await asyncio.sleep(5)
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
+                db.update_device_status(device_address, connected=False, enabled=True)
                 # 🔽 Remove the device from `active_connections` so that `ble_main()` can scan it again
                 if device_address in active_connections:
                     del active_connections[device_address]
                     log(device.name, f"❌ Device removed from active_connections.", force=True)
-
-                device_info_data["connected"] = False
-                await data_store.update_device_info(device.name, device_info_data)
 
             finally:
                 log(device.name, "🔄 Retrying connection in 5 seconds...", force=True)
                 await asyncio.sleep(5)
 
 async def filter_devices(devices):
-    allowed_devices = load_allowed_devices()
-    connected_devices = await data_store.get_device_info()
-    connected_addresses = {
-        device_info.get("device_address", "").lower()
-        for device_info in connected_devices.values()
-        if device_info.get("connected", False)
-    }
+    allowed_devices = db.get_all_devices()
+    allowed_addresses = {device["address"] for device in allowed_devices if device["enabled"]}
+    connected_addresses = {device["address"].lower() for device in allowed_devices if device["connected"]}
+
     filtered_devices = []
-    log("TEST", f"For filter devices: {devices}", force=True)
     for device in devices:
         device_address = device.address.lower()
         # Фільтруємо лише JK-BMS пристрої
@@ -666,7 +673,7 @@ async def filter_devices(devices):
             log(device.name, f"⚠️ Device {device.name} is already connected or connecting, skipping.")
             continue
         # Фільтруємо пристрої, яких немає в списку дозволених
-        if device_address not in allowed_devices:
+        if device_address not in allowed_addresses:
             continue
         filtered_devices.append(device)
     return filtered_devices
@@ -679,16 +686,14 @@ async def ble_main():
         log("ble_main", "Start ble_main...", force=True)
         try:
             while True:  # 🔥 Internal scanning and connection cycle
-                allowed_devices = load_allowed_devices()
-                connected_devices = await data_store.get_device_info()
+                allowed_devices = db.get_all_devices()
+                allowed_addresses = {device["address"] for device in allowed_devices}
                 connected_addresses = {
-                    device_info.get("device_address", "").lower()
-                    for device_info in connected_devices.values()
-                    if device_info.get("connected", False)
+                    device["address"].lower() for device in allowed_devices if device["connected"]
                 }
 
                 # Skip scanning if all allowed devices are already connected
-                if allowed_devices.issubset(connected_addresses):
+                if allowed_addresses.issubset(connected_addresses):
                     log("ble_main", "✅ All allowed devices are already connected. Skipping scan.", force=True)
                     await asyncio.sleep(60)
                     continue
@@ -741,45 +746,25 @@ def is_device_address_in_cell_info(device_address, cell_info):
     return False
 
 async def are_all_allowed_devices_connected_and_have_data() -> bool:
-    allowed_devices = {addr.lower() for addr in load_allowed_devices()}
-    connected_devices = await data_store.get_device_info()
-    connected_addresses = {
-        device_info.get("device_address", "").lower()
-        for device_info in connected_devices.values()
-        if device_info.get("connected", False)
-    }
+    allowed_devices = db.get_all_devices()
+    allowed_addresses = {device["address"].lower() for device in allowed_devices if device["enabled"]}
+    connected_addresses = {device["address"].lower() for device in allowed_devices if device["connected"]}
 
-    if not allowed_devices.issubset(connected_addresses):
-        log("CHECK DEVICES", "❌ All allowed devices are not connected", force=True)
+    if not allowed_addresses.issubset(connected_addresses):
+        log("CHECK DEVICES", "❌ Not all allowed devices are connected", force=True)
         return False
 
     cell_info = await data_store.get_cell_info()
-    for device_address in allowed_devices:
+    for device_address in allowed_addresses:
         if not is_device_address_in_cell_info(device_address, cell_info):
-            log("CHECK DEVICES", f"❌ Device [{device_address}] have no data.", force=True)
+            log("CHECK DEVICES", f"❌ Device [{device_address}] has no data.", force=True)
             return False
-
     return True
 
-def ensure_allowed_devices_file(filename="configs/allowed_devices.txt"):
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    if not os.path.exists(filename):
-        with open(filename, 'w', encoding='utf-8') as file:
-            file.write("")
 
 def start_services():
-    ensure_allowed_devices_file()
     db.create_table()
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-def load_allowed_devices(filename="configs/allowed_devices.txt"):
-    if not os.path.exists(filename):
-        print(f"⚠️ {filename} not found. Creating an empty allowed devices file.")
-        ensure_allowed_devices_file(filename)
-
-    with open(filename, 'r') as file:
-        allowed_devices = {line.strip().lower() for line in file if line.strip()}
-    return allowed_devices
 
 if __name__ == "__main__":
     start_services()
