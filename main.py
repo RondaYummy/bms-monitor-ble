@@ -617,6 +617,7 @@ async def connect_and_run(device):
 
                 async with BleakClient(device.address) as client:
                     def handle_notification(sender, data):
+                        log(device.name, f"🔔 Notification received: {data.hex()}", force=True)
                         asyncio.create_task(notification_handler(device, data))
 
                     await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
