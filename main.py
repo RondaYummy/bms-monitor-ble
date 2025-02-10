@@ -192,27 +192,25 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
 @app.get("/api/devices")
 async def discover_devices():
     try:
-        log("API", "Start scanning for devices...")
+        log("API", "🔍 Scanning for new devices...")
         devices = await BleakScanner.discover()
-        
-        allowed_devices = db.get_all_devices()
-        disconnected_addresses = {
-            device["address"].lower() for device in allowed_devices if not device["connected"]
-        }
 
-        device_list = [
+        allowed_devices = db.get_all_devices()
+        allowed_addresses = {device["address"].lower() for device in allowed_devices}
+
+        new_devices = [
             {"name": device.name, "address": device.address.lower()}
             for device in devices
             if device.name and device.address.lower().startswith(tuple(JK_BMS_OUI))
-            and device.address.lower() not in disconnected_addresses
+            and device.address.lower() not in allowed_addresses
         ]
-
-        if not device_list:
+        if not new_devices:
             return JSONResponse(content={"message": "No new JK-BMS devices found."}, status_code=404)
 
-        return {"devices": device_list}
+        return {"devices": new_devices}
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error searching for devices: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"❌ Error searching for devices: {str(e)}")
 
 
 @app.get("/api/device-info")
