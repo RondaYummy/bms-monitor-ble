@@ -1,6 +1,5 @@
 import asyncio
 from datetime import datetime
-import os
 import yaml
 from uuid import uuid4
 from typing import Optional
@@ -449,9 +448,9 @@ async def parse_setting_info(data, device_name, device_address):
         log(device_name, f"❌ Parsing error Setting Info Frame: {e}", force=True)
         return None
 
-async def parse_cell_info(data, device_name, device_address, force=True):
+async def parse_cell_info(data, device_name, device_address):
     """Parsing Cell Info Frame (0x02)."""
-    log(device_name, "Parsing Cell Info Frame...")
+    log(device_name, "Parsing Cell Info Frame...", force=True)
 
     try:
         # Checking the header
