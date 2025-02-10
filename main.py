@@ -654,6 +654,7 @@ async def filter_devices(devices):
         if device_info.get("connected", False)
     }
     filtered_devices = []
+    log("TEST", f"devices: {devices}")
     for device in devices:
         device_address = device.address.lower()
         # Фільтруємо лише JK-BMS пристрої
