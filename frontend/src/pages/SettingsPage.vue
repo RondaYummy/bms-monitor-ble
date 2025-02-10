@@ -210,7 +210,7 @@
                 <q-item v-for="device of devices"
                         :key="device.address"
                         clickable
-                        :disable="attemptToConnectDevice"
+                        :disable="!!attemptToConnectDevice"
                         :active="attemptToConnectDevice === device.address"
                         @click="token && connectToDevice(device.address, device.name)"
                         v-ripple>
