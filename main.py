@@ -231,6 +231,7 @@ async def get_device_info():
 @app.get("/api/cell-info")
 async def get_cell_info():
     cell_info_data = await data_store.get_cell_info()
+    print(f"CELL INFO: {cell_info_data}")
     if not cell_info_data:
         return JSONResponse(content={"message": "No cell info available yet."}, status_code=404)
     return cell_info_data
@@ -439,9 +440,9 @@ async def parse_setting_info(data, device_name, device_address):
         setting_info["timed_stored_data"] = bool(bitmask & 0b0000000100000000)  # bit8
         setting_info["charging_float_mode"] = bool(bitmask & 0b0000001000000000)  # bit9
 
-        log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=True)
+        log(device_name, "✅ Successfully disassembled Setting Info Frame:")
         for key, value in setting_info.items():
-            log(device_name, f"{key}: {value}", force=True)
+            log(device_name, f"{key}: {value}")
 
         return setting_info
 
@@ -627,7 +628,6 @@ async def connect_and_run(device):
                     while True:
                         # Check if the device is still connected
                         device_info_data = db.get_device_by_address(device.address)
-                        print(f"device_info_data: {device_info_data}")
                         if not device_info_data or not device_info_data.get("connected", False):
                             log(device.name, "❌ Device has been disconnected. Stopping polling.", force=True)
                             break
