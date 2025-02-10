@@ -120,7 +120,6 @@ async function disconnectDevice(address: string, name: string) {
     checkResponse(response);
     const data = await response.json();
     console.log('Disconnect Device:', data);
-    devicesList.value = data;
   } catch (error) {
     console.error('Error disconnect device info:', error);
   }
