@@ -138,10 +138,11 @@ class DeviceRequest(BaseModel):
 @app.post("/api/disconnect-device")
 async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depends(verify_token)):
     device_address = body.address.strip().lower()
-    device_name = body.name.strip()
+    device_name = body.name.strip() if body.name else device_address
 
     if not device_address:
         raise HTTPException(status_code=400, detail="Device address is required.")
+    
     try:
         existing_device = db.get_device_by_address(device_address)
 
@@ -151,14 +152,24 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
         if not existing_device["connected"]:
             return JSONResponse(content={"message": f"✅ Device {device_address} is already disconnected."}, status_code=200)
 
+        log(device_name, f"🔌 Disconnecting device {device_address}...")
+
+        if device_address in active_connections:
+            connection_task = active_connections.pop(device_address, None)
+            if connection_task:
+                connection_task.cancel()  # Скасовуємо асинхронне завдання
+                log(device_name, f"🔴 Connection task cancelled for {device_address}")
+
         db.update_device_status(device_address, connected=False, enabled=False)
 
+        log(device_name, f"✅ Successfully disconnected and disabled the device.")
         return {"message": f"✅ Successfully disconnected from {device_address} and disabled the device."}
 
     except Exception as e:
-        log(device_name, f"BLE disconnect failed: {e}", force=True)
-        db.update_device_status(device_address, connected=False, enabled=False)
-        raise HTTPException(status_code=500, detail=f"Error disconnecting device: {str(e)}")
+        log(device_name, f"❌ BLE disconnect failed: {e}", force=True)
+        db.update_device_status(device_address, connected=False, enabled=False)  # Гарантія оновлення статусу
+        raise HTTPException(status_code=500, detail=f"❌ Error disconnecting device: {str(e)}")
+
 
 @app.post("/api/connect-device")
 async def connect_device(request: DeviceRequest, token: str = Depends(verify_token)):
