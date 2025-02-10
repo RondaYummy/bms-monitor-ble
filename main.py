@@ -543,13 +543,12 @@ async def parse_cell_info(data, device_name, device_address):
             log(device_name, f"Invalid CRC: {crc_calculated} != {crc_received}")
             return None
         
+        log(device_name, f"CELL INFO: {cell_info}")
         await data_store.update_cell_info(device_name, cell_info)
         await alerts.evaluate_alerts(device_address=device_address, device_name=device_name, cell_info=cell_info)
 
         if await are_all_allowed_devices_connected_and_have_data():
             db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power)
-
-        log(device_name, "Parsed Cell Info.")
         return cell_info
 
     except Exception as e:
