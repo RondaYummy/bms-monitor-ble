@@ -574,6 +574,7 @@ async def notification_handler(device, data):
 
         # Determining the frame type
         frame_type = buffer[4]
+        log("notification_handler", f'NOTIFY FRAMETYPE: {frame_type}')
         if frame_type == 0x03:
             await parse_device_info(buffer, device_name, device_address)
         elif frame_type == 0x02:
@@ -617,7 +618,6 @@ async def connect_and_run(device):
 
                 async with BleakClient(device.address) as client:
                     def handle_notification(sender, data):
-                        log(device.name, f"🔔 Notification received: {data.hex()}", force=True)
                         asyncio.create_task(notification_handler(device, data))
 
                     await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
