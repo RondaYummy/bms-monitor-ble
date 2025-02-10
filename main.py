@@ -586,64 +586,64 @@ async def connect_and_run(device):
         device_locks[device_address] = asyncio.Lock()
 
     async with device_locks[device_address]:
-        while True:  # Cycle to reconnect
-            try:
-                device_info_data = await data_store.get_device_info(device.name)
-                if not device_info_data:
-                    device_info_data = {
-                        "device_name": device.name,
-                        "device_address": device.address,
-                        "connected": False
-                    }
+        # while True:  # Cycle to reconnect
+        try:
+            device_info_data = await data_store.get_device_info(device.name)
+            if not device_info_data:
+                device_info_data = {
+                    "device_name": device.name,
+                    "device_address": device.address,
+                    "connected": False
+                }
+            await data_store.update_device_info(device.name, device_info_data)
+
+            async with BleakClient(device.address) as client:
+                device_info_data["connected"] = True
                 await data_store.update_device_info(device.name, device_info_data)
+                log(device.name, f"Connected and notification started", force=True)
 
-                async with BleakClient(device.address) as client:
-                    device_info_data["connected"] = True
-                    await data_store.update_device_info(device.name, device_info_data)
-                    log(device.name, f"Connected and notification started", force=True)
+                def handle_notification(sender, data):
+                    asyncio.create_task(notification_handler(device, data, device.name, device.address))
 
-                    def handle_notification(sender, data):
-                        asyncio.create_task(notification_handler(device, data, device.name, device.address))
+                await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
 
-                    await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
+                while True:
+                    # Check if the device is still connected
+                    device_info_data = await data_store.get_device_info(device.name)
+                    if not device_info_data.get("connected", False):
+                        log(device.name, "❌ Device has been disconnected. Stopping polling.", force=True)
+                        break
 
-                    while True:
-                        # Check if the device is still connected
-                        device_info_data = await data_store.get_device_info(device.name)
-                        if not device_info_data.get("connected", False):
-                            log(device.name, "❌ Device has been disconnected. Stopping polling.", force=True)
-                            break
+                    device_info_data = await data_store.get_device_info(device.name)
+                    if not device_info_data or "frame_type" not in device_info_data:
+                        # If the device information is not yet saved, send the command
+                        device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
+                        await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
+                        log(device.name, f"Device Info command sent: {device_info_command.hex()}", force=True)
+                        await asyncio.sleep(1)
 
-                        device_info_data = await data_store.get_device_info(device.name)
-                        if not device_info_data or "frame_type" not in device_info_data:
-                            # If the device information is not yet saved, send the command
-                            device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
-                            await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
-                            log(device.name, f"Device Info command sent: {device_info_command.hex()}", force=True)
-                            await asyncio.sleep(1)
+                    # Checking whether to send cell_info_command
+                    last_update = await data_store.get_last_cell_info_update(device.name)
+                    if not last_update or (datetime.now() - last_update).total_seconds() > 30:
+                        cell_info_command = create_command(CMD_TYPE_CELL_INFO)
+                        await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
+                        log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
+                        log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
 
-                        # Checking whether to send cell_info_command
-                        last_update = await data_store.get_last_cell_info_update(device.name)
-                        if not last_update or (datetime.now() - last_update).total_seconds() > 30:
-                            cell_info_command = create_command(CMD_TYPE_CELL_INFO)
-                            await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
-                            log(device.name, f"Cell Info command sent: {cell_info_command.hex()}", force=True)
-                            log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
+                    await asyncio.sleep(5)
+        except Exception as e:
+            log(device.name, f"❌ Connection error: {str(e)}", force=True)
+            # 🔽 Remove the device from `active_connections` so that `ble_main()` can scan it again
+            if device_address in active_connections:
+                del active_connections[device_address]
+                log(device.name, f"❌ Device removed from active_connections.", force=True)
 
-                        await asyncio.sleep(5)
-            except Exception as e:
-                log(device.name, f"❌ Connection error: {str(e)}", force=True)
-                # 🔽 Remove the device from `active_connections` so that `ble_main()` can scan it again
-                if device_address in active_connections:
-                    del active_connections[device_address]
-                    log(device.name, f"❌ Device removed from active_connections.", force=True)
+            device_info_data["connected"] = False
+            await data_store.update_device_info(device.name, device_info_data)
 
-                device_info_data["connected"] = False
-                await data_store.update_device_info(device.name, device_info_data)
-
-            finally:
-                log(device.name, "🔄 Retrying connection in 5 seconds...", force=True)
-                await asyncio.sleep(5)
+            # finally:
+            #     log(device.name, "🔄 Retrying connection in 5 seconds...", force=True)
+            #     await asyncio.sleep(5)
 
 async def filter_devices(devices):
     allowed_devices = load_allowed_devices()
