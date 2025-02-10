@@ -243,14 +243,22 @@ def get_all_devices():
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                SELECT id, address, name, added_at, connected, enabled
+                SELECT id, address, name, added_at, connected, enabled, frame_type, frame_counter, 
+                   vendor_id, hardware_version, software_version, device_uptime, power_on_count, 
+                   manufacturing_date, serial_number, user_data 
                 FROM devices
             ''')
             devices = cursor.fetchall()
 
             result = [
-                {"id": row[0], "address": row[1], "name": row[2], "added_at": row[3], "connected": bool(row[4]), "enabled": bool(row[5])}
-                for row in devices
+                {
+                "id": device[0], "address": device[1], "name": device[2], "added_at": device[3],
+                "connected": bool(device[4]), "enabled": bool(device[5]), "frame_type": device[6],
+                "frame_counter": device[7], "vendor_id": device[8], "hardware_version": device[9],
+                "software_version": device[10], "device_uptime": device[11], "power_on_count": device[12],
+                "manufacturing_date": device[13], "serial_number": device[14], "user_data": device[15]
+            }
+                for device in devices
             ]
 
             return result

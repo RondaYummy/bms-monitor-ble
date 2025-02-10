@@ -8,7 +8,7 @@
             <q-badge :class="{ 'connected-device': device?.connected, 'disconnected-device': !device?.connected }"
                      class="q-mb-10 text-center"
                      color="cyan">
-              {{ device.device_name }}
+              {{ device.name }}
             </q-badge>
             <div>{{ device.vendor_id }}</div>
           </div>
@@ -36,13 +36,13 @@
                color="black"
                :disable="!props.token"
                dense
-               @click="disconnectDevice(device.device_address, device.device_name)"
+               @click="disconnectDevice(device.address, device.name)"
                label="Від’єднатися" />
         <q-btn v-if="!device.connected"
                color="black"
                dense
-               :loading="attemptToConnectDevice === device.device_address"
-               @click="connectToDevice(device.device_address, device.device_name)"
+               :loading="attemptToConnectDevice === device.address"
+               @click="connectToDevice(device.address, device.name)"
                :disable="!props.token || !!attemptToConnectDevice"
                label="Приєднатися" />
       </div>

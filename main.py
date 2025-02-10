@@ -308,7 +308,7 @@ async def parse_device_info(data, device_name, device_address):
             software_version=device_info["software_version"],
             device_uptime=device_info["device_uptime"],
             power_on_count=device_info["power_on_count"],
-            device_name=device_info["device_name"],
+            name=device_info["device_name"],
             manufacturing_date=device_info["manufacturing_date"],
             serial_number=device_info["serial_number"],
             user_data=device_info["user_data"],
