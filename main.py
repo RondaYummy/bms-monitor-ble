@@ -209,10 +209,10 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
 @app.get("/api/devices")
 async def discover_devices():
     try:
-        async with ble_scan_lock:
-            log("API", "Start scanning for devices...", force=True)
-            devices = await BleakScanner.discover()
-            log("API", f"Found devices: {devices}", force=True)
+        # async with ble_scan_lock:
+        log("API", "Start scanning for devices...", force=True)
+        devices = await BleakScanner.discover()
+        log("API", f"Found devices: {devices}", force=True)
         
         allowed_devices = load_allowed_devices()
 
