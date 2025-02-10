@@ -242,7 +242,10 @@ def get_all_devices():
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT id, address, name, added_at FROM devices")
+            cursor.execute('''
+                SELECT id, address, name, added_at, connected, enabled
+                FROM devices
+            ''')
             devices = cursor.fetchall()
 
             result = [
