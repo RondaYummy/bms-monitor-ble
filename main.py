@@ -212,7 +212,6 @@ async def discover_devices():
         async with ble_scan_lock:
             log("API", "Start scanning for devices...", force=True)
             devices = await BleakScanner.discover()
-            log("API DISCOVER", devices, force=True)
         
         allowed_devices = load_allowed_devices()
 
@@ -668,6 +667,7 @@ async def ble_main():
                     log("ble_main", "⚠️ No BLE devices found.", force=True)
                     await asyncio.sleep(5)
                     continue
+                log("ble_main", F"DEVICES: {devices}", force=True)
 
                 tasks = []
                 for device in devices:
