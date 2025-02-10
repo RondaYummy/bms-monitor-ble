@@ -212,6 +212,7 @@ async def discover_devices():
         async with ble_scan_lock:
             log("API", "Start scanning for devices...", force=True)
             devices = await BleakScanner.discover()
+            log("API", f"Found devices: {devices}", force=True)
         
         allowed_devices = load_allowed_devices()
 
@@ -654,7 +655,7 @@ async def filter_devices(devices):
         if device_info.get("connected", False)
     }
     filtered_devices = []
-    log("TEST", f"devices: {devices}")
+    log("TEST", f"For filter devices: {devices}", force=True)
     for device in devices:
         device_address = device.address.lower()
         # Фільтруємо лише JK-BMS пристрої
