@@ -247,7 +247,7 @@ async def startup_event():
     asyncio.create_task(db.process_devices())
 
 def calculate_crc(data):
-    return sum(data) & 0xFF
+    return sum(data) % 256
 
 def create_command(command_type):
     frame = bytearray(20)
@@ -643,6 +643,8 @@ async def connect_and_run(device):
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
+                            log(device.name, f"📢 Device Info command sent: {device_info_command.hex()}", force=True)
+                            await asyncio.sleep(1)  # Затримка перед 0x96
 
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
