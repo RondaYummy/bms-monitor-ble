@@ -343,6 +343,7 @@ def update_device_status(address, connected: bool, enabled: bool):
             ''', (connected, enabled, address))
             conn.commit()
     except sqlite3.Error as e:
+        print(f"❌ Помилка при оновленні статусу: {e}")
         raise
 
 def insert_device(
