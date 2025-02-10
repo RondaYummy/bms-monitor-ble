@@ -577,10 +577,10 @@ async def notification_handler(device, data):
         log("notification_handler", f'NOTIFY FRAME TYPE: {frame_type}', force=True)
         if frame_type == 0x03:
             await parse_device_info(buffer, device_name, device_address)
-        elif frame_type == 0x02:
+        elif frame_type == 0x01:
             await data_store.update_last_cell_info_update(device_name)
             await parse_cell_info(buffer, device_name, device_address)
-        elif frame_type == 0x01:
+        elif frame_type == 0x02:
             await parse_setting_info(buffer, device_name, device_address)
         else:
             log(device_name, f"❌ Unknown frame type {frame_type}: {buffer}", force=True)
