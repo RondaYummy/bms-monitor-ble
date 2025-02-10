@@ -632,11 +632,17 @@ async def connect_and_run(device):
 
                         await asyncio.sleep(5)
             except Exception as e:
-                log(device.name, f"Error: {str(e)}", force=True)
-            finally:
+                log(device.name, f"❌ Connection error: {str(e)}", force=True)
+                # 🔽 Remove the device from `active_connections` so that `ble_main()` can scan it again
+                if device_address in active_connections:
+                    del active_connections[device_address]
+                    log(device.name, f"❌ Device removed from active_connections.", force=True)
+
                 device_info_data["connected"] = False
                 await data_store.update_device_info(device.name, device_info_data)
-                log(device.name, "❌ Disconnected, retrying in 5 seconds...", force=True)
+
+            finally:
+                log(device.name, "🔄 Retrying connection in 5 seconds...", force=True)
                 await asyncio.sleep(5)
 
 async def filter_devices(devices):
@@ -667,10 +673,10 @@ ble_scan_lock = asyncio.Lock()
 active_connections = {}
 
 async def ble_main():
-    while True:
-        async with ble_scan_lock:
-            log("ble_main", "Start ble_main...", force=True)
-            try:
+    async with ble_scan_lock:
+        log("ble_main", "Start ble_main...", force=True)
+        try:
+            while True:  # 🔥 Internal scanning and connection cycle
                 allowed_devices = load_allowed_devices()
                 connected_devices = await data_store.get_device_info()
                 connected_addresses = {
@@ -691,7 +697,7 @@ async def ble_main():
 
                 if not filtered_devices:
                     log("ble_main", "⚠️ No new JK-BMS BLE devices found.", force=True)
-                    await asyncio.sleep(5)
+                    await asyncio.sleep(10)
                     continue
                 log("ble_main", F"DEVICES: {filtered_devices}", force=True)
 
@@ -712,12 +718,19 @@ async def ble_main():
 
                 # Remove completed tasks from the list of active connections
                 for device_address in list(active_connections.keys()):
-                    if active_connections[device_address].done():
+                    task = active_connections[device_address]
+                    if task.done() or task.cancelled():
                         del active_connections[device_address]
+                    elif task.exception():
+                        log(device_address, f"❌ Task failed with error: {task.exception()}", force=True)
+                        task.cancel()
+                        del active_connections[device_address]
+                
+                await asyncio.sleep(30) # Waiting before the next scan
 
-            except Exception as e:
-                log("ble_main", f"❌ BLE scan error: {str(e)}", force=True)
-                await asyncio.sleep(5)
+        except Exception as e:
+            log("ble_main", f"❌ BLE scan error: {str(e)}", force=True)
+            await asyncio.sleep(5)
                                     
 def is_device_address_in_cell_info(device_address, cell_info):
     for device_data in cell_info.values():
