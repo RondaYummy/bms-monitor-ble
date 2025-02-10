@@ -642,6 +642,8 @@ async def connect_and_run(device):
                         last_update = await data_store.get_last_cell_info_update(device.name)
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
+                            print(f"Generated command: {cell_info_command.hex()}")
+                            print(f"Calculated CRC: {calculate_crc(cell_info_command[:-1]):02X}")
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                             log(device.name, f"Cell Info command sent: {cell_info_command}", force=True)
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
