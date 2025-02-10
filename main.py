@@ -157,7 +157,7 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
         if device_address in active_connections:
             connection_task = active_connections.pop(device_address, None)
             if connection_task:
-                connection_task.cancel()  # Скасовуємо асинхронне завдання
+                connection_task.cancel()
                 log(device_name, f"🔴 Connection task cancelled for {device_address}")
 
         db.update_device_status(device_address, connected=False, enabled=False)
@@ -187,12 +187,9 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         if existing_device:
             if existing_device["connected"]:
                 return JSONResponse(content={"message": f"✅ Device {device_address} is already connected."}, status_code=200)
-            
-            if not existing_device["enabled"]:
-                log(device_address, "🔄 Device was disabled. Enabling and reconnecting...", force=True)
-                db.update_device_status(device_address, connected=False, enabled=True)
 
         device = type("Device", (object,), {"address": device_address, "name": device_name})()
+        db.update_device_status(device_address, connected=True, enabled=True)
         asyncio.create_task(connect_and_run(device))
 
         return {"message": f"🚀 Connection initiated for {device_address}. Check logs for updates."}
@@ -621,17 +618,17 @@ async def connect_and_run(device):
                         )
 
                 async with BleakClient(device.address) as client:
-                    db.update_device_status(device_address, connected=True, enabled=True)
-                    log(device.name, f"Connected and notification started", force=True)
-
                     def handle_notification(sender, data):
                         asyncio.create_task(notification_handler(device, data))
 
                     await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
+                    db.update_device_status(device_address, connected=True, enabled=True)
+                    log(device.name, f"Connected and notification started", force=True)
 
                     while True:
                         # Check if the device is still connected
                         device_info_data = db.get_device_by_address(device.address)
+                        print(f"device_info_data: {device_info_data}")
                         if not device_info_data or not device_info_data.get("connected", False):
                             log(device.name, "❌ Device has been disconnected. Stopping polling.", force=True)
                             break
@@ -672,14 +669,11 @@ async def filter_devices(devices):
     filtered_devices = []
     for device in devices:
         device_address = device.address.lower()
-        # Фільтруємо лише JK-BMS пристрої
         if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
             continue
-        # Фільтруємо вже підключені або активні пристрої
         if device_address in active_connections or device_address in connected_addresses:
             log(device.name, f"⚠️ Device {device.name} is already connected or connecting, skipping.")
             continue
-        # Фільтруємо пристрої, яких немає в списку дозволених
         if device_address not in allowed_addresses:
             continue
         filtered_devices.append(device)
