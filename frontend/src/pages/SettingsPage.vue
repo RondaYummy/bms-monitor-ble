@@ -424,10 +424,6 @@ async function connectToDevice(address: string, name: string) {
   checkResponse(response);
   devices.value = devices.value?.filter((d) => d.address !== address);
   attemptToConnectDevice.value = '';
-
-  setTimeout(async () => {
-    await fetchDevices();
-  }, 3000);
 }
 
 fetchErrorAlerts();
