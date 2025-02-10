@@ -250,11 +250,10 @@ def calculate_crc(data):
     return sum(data) & 0xFF
 
 def create_command(command_type):
-    frame = bytearray(19)
+    frame = bytearray(20)
     frame[:4] = CMD_HEADER
     frame[4] = command_type
-    crc = calculate_crc(frame)
-    frame.append(crc)
+    frame[19] = calculate_crc(frame[:19])
     return frame
     
 def log(device_name, message, force=False):
@@ -556,6 +555,7 @@ async def parse_cell_info(data, device_name, device_address):
         return None
 
 async def notification_handler(device, data):
+    log(device.name, f"🔄 Received notification: {data.hex()}", force=True)
     device_name = device.name
     device_address = device.address
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
