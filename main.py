@@ -641,14 +641,13 @@ async def connect_and_run(device):
                         # Checking whether to send cell_info_command
                         last_update = await data_store.get_last_cell_info_update(device.name)
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
+                            device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
+                            await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
+
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
-                            print(f"CMD_TYPE_CELL_INFO: {CMD_TYPE_CELL_INFO:#04x}")
-                            try:
-                                await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
-                                log(device.name, f"✅ Command successfully sent: {cell_info_command.hex()}", force=True)
-                            except Exception as e:
-                                log(device.name, f"❌ Error sending command: {str(e)}", force=True)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
+                            log(device.name, f"✅ Command successfully sent: {cell_info_command.hex()}", force=True)
+
                             log(device.name, f"Cell Info command sent: {cell_info_command}", force=True)
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
 
