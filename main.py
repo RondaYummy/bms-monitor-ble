@@ -693,7 +693,7 @@ async def ble_main():
         log("ble_main", "Start ble_main...", force=True)
         try:
             while True:  # 🔥 Internal scanning and connection cycle
-                allowed_devices = db.get_all_devices()
+                allowed_devices = db.get_all_devices(only_enabled=True)
                 allowed_addresses = {device["address"] for device in allowed_devices}
                 connected_addresses = {
                     device["address"].lower() for device in allowed_devices if device["connected"]

@@ -238,34 +238,39 @@ def delete_alert_by_id(alert_id):
         print(f"Error deleting alert data: {e}")
         raise
 
-def get_all_devices():
+def get_all_devices(only_enabled: bool = False):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute('''
+            query = '''
                 SELECT id, address, name, added_at, connected, enabled, frame_type, frame_counter, 
                    vendor_id, hardware_version, software_version, device_uptime, power_on_count, 
                    manufacturing_date, serial_number, user_data 
                 FROM devices
-            ''')
+            '''
+            params = ()
+            if only_enabled:
+                query += " WHERE enabled = ?"
+                params = (True,)
+
+            cursor.execute(query, params)
             devices = cursor.fetchall()
 
             result = [
                 {
-                "id": device[0], "address": device[1], "name": device[2], "added_at": device[3],
-                "connected": bool(device[4]), "enabled": bool(device[5]), "frame_type": device[6],
-                "frame_counter": device[7], "vendor_id": device[8], "hardware_version": device[9],
-                "software_version": device[10], "device_uptime": device[11], "power_on_count": device[12],
-                "manufacturing_date": device[13], "serial_number": device[14], "user_data": device[15]
-            }
+                    "id": device[0], "address": device[1], "name": device[2], "added_at": device[3],
+                    "connected": bool(device[4]), "enabled": bool(device[5]), "frame_type": device[6],
+                    "frame_counter": device[7], "vendor_id": device[8], "hardware_version": device[9],
+                    "software_version": device[10], "device_uptime": device[11], "power_on_count": device[12],
+                    "manufacturing_date": device[13], "serial_number": device[14], "user_data": device[15]
+                }
                 for device in devices
             ]
 
             return result
-    
     except sqlite3.Error as e:
-        print(f"❌ Error receiving the device list: {e}")
-        raise
+        print(f"❌ Error fetching devices: {e}")
+        return []
 
 def get_device_by_address(address):
     try:
