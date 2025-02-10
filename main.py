@@ -569,7 +569,7 @@ async def notification_handler(device, data):
         calculated_crc = calculate_crc(buffer[:-1])
         received_crc = buffer[-1]
         if calculated_crc != received_crc:
-            log(device_name, f"❌ Invalid CRC: {calculated_crc} != {received_crc}")
+            log(device_name, f"❌ Invalid CRC: {calculated_crc} != {received_crc}", force=True)
             return
 
         # Determining the frame type
