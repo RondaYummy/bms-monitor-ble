@@ -11,7 +11,8 @@
     "dev": "docker compose up",
     "prod": "docker compose -f docker-compose.yml up --build -d",
     "static": "docker cp $(docker ps -q -f name=bms-monitor-ble-frontend):/usr/share/nginx/html /usr/share/nginx/",
-    "deploy": "git pull && docker compose -f docker-compose.yml up --build -d && docker cp $(docker ps -q -f name=bms-monitor-ble-frontend):/usr/share/nginx/html /usr/share/nginx/"
+    "deploy": "git pull && docker compose -f docker-compose.yml up --build -d && docker cp $(docker ps -q -f name=bms-monitor-ble-frontend):/usr/share/nginx/html /usr/share/nginx/",
+    "clear": "docker system prune -a --volumes -f"
   },
   "repository": {
     "type": "git",

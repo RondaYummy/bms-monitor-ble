@@ -669,6 +669,7 @@ active_connections = {}
 async def ble_main():
     while True:
         async with ble_scan_lock:
+            log("ble_main", "Start ble_main...", force=True)
             try:
                 allowed_devices = load_allowed_devices()
                 connected_devices = await data_store.get_device_info()
