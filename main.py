@@ -646,6 +646,8 @@ async def connect_and_run(device):
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
 
                         await asyncio.sleep(10)
+                        return
+
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
                 db.update_device_status(device_address, connected=False, enabled=True)
