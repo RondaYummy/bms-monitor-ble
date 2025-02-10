@@ -563,7 +563,7 @@ async def notification_handler(device, data):
 
     buffer = await data_store.get_buffer(device_name)
     if MIN_FRAME_SIZE <= len(buffer) <= MAX_FRAME_SIZE:
-        log(device_name, f"Full frame received: {buffer.hex()}")
+        log(device_name, f"Full frame received: {buffer.hex()}", force=True)
 
         # Checking the CRC
         calculated_crc = calculate_crc(buffer[:-1])
@@ -574,7 +574,7 @@ async def notification_handler(device, data):
 
         # Determining the frame type
         frame_type = buffer[4]
-        log("notification_handler", f'NOTIFY FRAMETYPE: {frame_type}')
+        log("notification_handler", f'NOTIFY FRAME TYPE: {frame_type}')
         if frame_type == 0x03:
             await parse_device_info(buffer, device_name, device_address)
         elif frame_type == 0x02:
