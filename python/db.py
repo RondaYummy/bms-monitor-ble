@@ -295,7 +295,7 @@ def get_device_by_address(address):
                    vendor_id, hardware_version, software_version, device_uptime, power_on_count, 
                    manufacturing_date, serial_number, user_data 
             FROM devices WHERE address = ?
-            ''', (address,))
+            ''', (address.lower(),))
             device = cursor.fetchone()
 
             if not device:

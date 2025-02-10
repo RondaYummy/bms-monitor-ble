@@ -627,7 +627,7 @@ async def connect_and_run(device):
 
                     while True:
                         # Check if the device is still connected
-                        device_info_data = db.get_device_by_address(device.address.lower())
+                        device_info_data = db.get_device_by_address(device.address)
                         print(f"device_info_data: {device_info_data}")
                         if not device_info_data or not device_info_data.get("connected", False):
                             log(device.name, "❌ Device has been disconnected. Stopping polling.", force=True)
