@@ -212,6 +212,7 @@ async def discover_devices():
         async with ble_scan_lock:
             log("API", "Start scanning for devices...", force=True)
             devices = await BleakScanner.discover()
+            log("DISCOVER", devices)
         
         allowed_devices = load_allowed_devices()
 
