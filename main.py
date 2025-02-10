@@ -231,7 +231,6 @@ async def get_device_info():
 @app.get("/api/cell-info")
 async def get_cell_info():
     cell_info_data = await data_store.get_cell_info()
-    print(f"CELL INFO: {cell_info_data}")
     if not cell_info_data:
         return JSONResponse(content={"message": "No cell info available yet."}, status_code=404)
     return cell_info_data
@@ -450,7 +449,7 @@ async def parse_setting_info(data, device_name, device_address):
         log(device_name, f"❌ Parsing error Setting Info Frame: {e}", force=True)
         return None
 
-async def parse_cell_info(data, device_name, device_address):
+async def parse_cell_info(data, device_name, device_address, force=True):
     """Parsing Cell Info Frame (0x02)."""
     log(device_name, "Parsing Cell Info Frame...")
 
