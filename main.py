@@ -639,15 +639,37 @@ async def connect_and_run(device):
                 log(device.name, "❌ Disconnected, retrying in 5 seconds...", force=True)
                 await asyncio.sleep(5)
 
+async def filter_devices(devices):
+    allowed_devices = load_allowed_devices()
+    connected_devices = await data_store.get_device_info()
+    connected_addresses = {
+        device_info.get("device_address", "").lower()
+        for device_info in connected_devices.values()
+        if device_info.get("connected", False)
+    }
+    filtered_devices = []
+    for device in devices:
+        device_address = device.address.lower()
+        # Фільтруємо лише JK-BMS пристрої
+        if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
+            continue
+        # Фільтруємо вже підключені або активні пристрої
+        if device_address in active_connections or device_address in connected_addresses:
+            log(device.name, f"⚠️ Device {device.name} is already connected or connecting, skipping.")
+            continue
+        # Фільтруємо пристрої, яких немає в списку дозволених
+        if device_address not in allowed_devices:
+            continue
+        filtered_devices.append(device)
+    return filtered_devices
+
 ble_scan_lock = asyncio.Lock()
 active_connections = {}
 
 async def ble_main():
     while True:
-        log("ble_main", "111111111111111111111111111111111111111111", force=True)
         async with ble_scan_lock:
             try:
-                log("ble_main", "222222222222222222222222222222222222222222222222", force=True)
                 allowed_devices = load_allowed_devices()
                 connected_devices = await data_store.get_device_info()
                 connected_addresses = {
@@ -664,29 +686,17 @@ async def ble_main():
 
                 log("ble_main", "🔍 Start scanning for devices...", force=True)
                 devices = await BleakScanner.discover()
+                filtered_devices = await filter_devices(devices)
 
-                if not devices:
-                    log("ble_main", "⚠️ No BLE devices found.", force=True)
+                if not filtered_devices:
+                    log("ble_main", "⚠️ No new JK-BMS BLE devices found.", force=True)
                     await asyncio.sleep(5)
                     continue
-                log("ble_main", F"DEVICES: {devices}", force=True)
+                log("ble_main", F"DEVICES: {filtered_devices}", force=True)
 
                 tasks = []
-                for device in devices:
+                for device in filtered_devices:
                     device_address = device.address.lower()
-
-                    if not any(device_address.startswith(oui) for oui in JK_BMS_OUI):
-                        continue  # Skip devices that are not JK-BMS
-
-                    # If the device is already connected or in the process of connection - skip
-                    if device_address in active_connections or device_address in connected_addresses:
-                        log(device.name, f"⚠️ Device {device.name} is already connected or connecting, skipping.")
-                        continue
-
-                    # If the device is not in the list of allowed devices, skip it
-                    if device_address not in allowed_devices:
-                        continue
-
                     log(device.name, f"🔌 Connecting to allowed device: {device.address}", force=True)
 
                     # Create a connection task
