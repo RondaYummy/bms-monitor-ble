@@ -251,7 +251,6 @@ def set_all_devices_disconnected():
     except sqlite3.Error as e:
         print(f"❌ Error resetting device connection status: {e}")
 
-
 def get_all_devices(only_enabled: bool = False):
     try:
         with get_connection() as conn:

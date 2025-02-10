@@ -250,10 +250,11 @@ def calculate_crc(data):
     return sum(data) & 0xFF
 
 def create_command(command_type):
-    frame = bytearray(20)
+    frame = bytearray(19)
     frame[:4] = CMD_HEADER
     frame[4] = command_type
-    frame[19] = calculate_crc(frame[:19])
+    crc = calculate_crc(frame)
+    frame.append(crc)
     return frame
     
 def log(device_name, message, force=False):
