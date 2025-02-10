@@ -645,7 +645,7 @@ async def connect_and_run(device):
                             log(device.name, f"Cell Info command sent: {cell_info_command}", force=True)
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
 
-                        await asyncio.sleep(5)
+                        await asyncio.sleep(10)
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
                 db.update_device_status(device_address, connected=False, enabled=True)
@@ -656,7 +656,7 @@ async def connect_and_run(device):
 
             finally:
                 log(device.name, "🔄 Retrying connection in 10 seconds...", force=True)
-                await asyncio.sleep(10)
+                await asyncio.sleep(15)
 
 async def filter_devices(devices):
     allowed_devices = db.get_all_devices()
