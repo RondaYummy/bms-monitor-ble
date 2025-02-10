@@ -264,7 +264,7 @@ def log(device_name, message, force=False):
 
 async def parse_device_info(data, device_name, device_address):
     """Parsing Device Info Frame (0x03)."""
-    log(device_name, "Parsing Device Info Frame...", force=True)
+    log(device_name, "Parsing Device Info Frame...")
 
     try:
         log(device_name, f"Raw data: {data.hex()}")
@@ -450,7 +450,7 @@ async def parse_setting_info(data, device_name, device_address):
 
 async def parse_cell_info(data, device_name, device_address):
     """Parsing Cell Info Frame (0x02)."""
-    log(device_name, "Parsing Cell Info Frame...", force=True)
+    log(device_name, "Parsing Cell Info Frame...")
 
     try:
         # Checking the header
@@ -555,7 +555,7 @@ async def parse_cell_info(data, device_name, device_address):
         return None
 
 async def notification_handler(device, data):
-    log(device.name, f"🔄 Received notification: {data.hex()}", force=True)
+    log(device.name, f"🔄 Received notification: {data.hex()}")
     device_name = device.name
     device_address = device.address
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
