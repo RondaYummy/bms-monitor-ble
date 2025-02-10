@@ -265,7 +265,7 @@ def log(device_name, message, force=False):
 
 async def parse_device_info(data, device_name, device_address):
     """Parsing Device Info Frame (0x03)."""
-    log(device_name, "Parsing Device Info Frame...")
+    log(device_name, "Parsing Device Info Frame...", force=True)
 
     try:
         log(device_name, f"Raw data: {data.hex()}")
@@ -647,8 +647,6 @@ async def connect_and_run(device):
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                             log(device.name, f"✅ Command successfully sent: {cell_info_command.hex()}", force=True)
-
-                            log(device.name, f"Cell Info command sent: {cell_info_command}", force=True)
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
 
                         await asyncio.sleep(10)
