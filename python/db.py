@@ -238,6 +238,20 @@ def delete_alert_by_id(alert_id):
         print(f"Error deleting alert data: {e}")
         raise
 
+def set_all_devices_disconnected():
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE devices
+                SET connected = ?
+            ''', (False,))
+            conn.commit()
+            print("✅ All devices set to `connected = False` on startup.")
+    except sqlite3.Error as e:
+        print(f"❌ Error resetting device connection status: {e}")
+
+
 def get_all_devices(only_enabled: bool = False):
     try:
         with get_connection() as conn:
