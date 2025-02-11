@@ -572,7 +572,7 @@ async def notification_handler(device, data):
         if calculated_crc != received_crc:
             log(device_name, f"❌ Invalid CRC: {calculated_crc} != {received_crc}")
             return
-        log(device.name, f"🔄 Received notification {buffer[4]}: {data.hex()}", force=True)
+        log(device.name, f"🔄 Received notification {buffer[4]}: {buffer.hex()}", force=True)
 
         # Determining the frame type
         frame_type = buffer[4]
