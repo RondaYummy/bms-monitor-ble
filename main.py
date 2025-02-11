@@ -758,6 +758,8 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
     allowed_devices = db.get_all_devices()
     allowed_addresses = {device["address"].lower() for device in allowed_devices if device["enabled"]}
     connected_addresses = {device["address"].lower() for device in allowed_devices if device["connected"]}
+    print(f"ALLOWED: {allowed_addresses}")
+    print(f"CONECTED: {connected_addresses}")
 
     if not allowed_addresses.issubset(connected_addresses):
         log("CHECK DEVICES", "❌ Not all allowed devices are connected", force=True)
