@@ -160,6 +160,7 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
                 log(device_name, f"🔴 Connection task cancelled for {device_address}")
 
         db.update_device_status(device_address, connected=False, enabled=False)
+        await data_store.delete_device_data(device_name)
 
         log(device_name, f"✅ Successfully disconnected and disabled the device.")
         return {"message": f"✅ Successfully disconnected from {device_address} and disabled the device."}

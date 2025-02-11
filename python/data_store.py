@@ -22,6 +22,12 @@ class DataStore:
     async def is_token_valid(self, token: str) -> bool:
         async with self.lock:
             return token in self.active_tokens
+        
+    async def delete_device_data(self, device_name):
+        async with self.lock:
+            self.cell_info.pop(device_name, None)
+            self.last_cell_info_update.pop(device_name, None)
+            self.response_buffers.pop(device_name, None)
 
     async def update_last_cell_info_update(self, device_name):
         async with self.lock:
