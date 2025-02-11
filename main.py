@@ -556,7 +556,7 @@ async def parse_cell_info(data, device_name, device_address):
         return None
 
 async def notification_handler(device, data):
-    log(device.name, f"🔄 Received notification: {data.hex()}")
+    log(device.name, f"🔄 Received notification: {data.hex()}", force=True)
     device_name = device.name
     device_address = device.address
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame

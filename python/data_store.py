@@ -23,11 +23,14 @@ class DataStore:
         async with self.lock:
             return token in self.active_tokens
         
-    async def delete_device_data(self, device_name):
-        async with self.lock:
-            self.cell_info.pop(device_name, None)
-            self.last_cell_info_update.pop(device_name, None)
-            self.response_buffers.pop(device_name, None)
+async def delete_device_data(self, device_name):
+    async with self.lock:
+        if device_name in self.cell_info:
+            del self.cell_info[device_name]
+        if device_name in self.last_cell_info_update:
+            del self.last_cell_info_update[device_name]
+        if device_name in self.response_buffers:
+            del self.response_buffers[device_name]
 
     async def update_last_cell_info_update(self, device_name):
         async with self.lock:
