@@ -23,7 +23,7 @@ from fastapi import Body
 from python.colors import *
 import python.db as db
 import python.battery_alerts as alerts
-from python.data_store import data_store
+import python.data_store as data_store
 
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
