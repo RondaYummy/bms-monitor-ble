@@ -161,13 +161,16 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
 
         db.update_device_status(device_address, connected=False, enabled=False)
         await data_store.delete_device_data(device_name)
+        cell_info_data = await data_store.get_cell_info()
+        log(device_name, f"✅ Successfully disconnected and disabled the device.", force=True)
+        log(device_name, f"CELL: {cell_info_data}", force=True)
 
         log(device_name, f"✅ Successfully disconnected and disabled the device.")
         return {"message": f"✅ Successfully disconnected from {device_address} and disabled the device."}
 
     except Exception as e:
         log(device_name, f"❌ BLE disconnect failed: {e}", force=True)
-        db.update_device_status(device_address, connected=False, enabled=False)  # Гарантія оновлення статусу
+        db.update_device_status(device_address, connected=False, enabled=False)
         raise HTTPException(status_code=500, detail=f"❌ Error disconnecting device: {str(e)}")
 
 
