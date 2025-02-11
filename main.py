@@ -659,7 +659,7 @@ async def connect_and_run(device):
 
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
-                db.update_device_status(device_address, connected=False, enabled=True)
+                # db.update_device_status(device_address, connected=False, enabled=True)
                 # 🔽 Remove the device from `active_connections` so that `ble_main()` can scan it again
                 if device_address in active_connections:
                     del active_connections[device_address]
