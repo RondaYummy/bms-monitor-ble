@@ -572,7 +572,7 @@ async def notification_handler(device, data):
         if calculated_crc != received_crc:
             log(device_name, f"❌ Invalid CRC: {calculated_crc} != {received_crc}")
             return
-        log(device.name, f"🔄 Received notification {buffer[4]}: {buffer.hex()}", force=True)
+        log(device.name, f"🔄 Received notification {buffer[4]}: {buffer.hex()}")
 
         # Determining the frame type
         frame_type = buffer[4]
@@ -623,7 +623,7 @@ async def connect_and_run(device):
 
                     await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
                     db.update_device_status(device_address, connected=True, enabled=True)
-                    log(device.name, f"Connected and notification started", force=True)
+                    log(device.name, f"🟢 Connected and notification started", force=True)
 
                     while True:
                         # Check if the device is still connected
@@ -636,7 +636,7 @@ async def connect_and_run(device):
                             # If the device information is not yet saved, send the command
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
-                            log(device.name, f"Device Info command sent: {device_info_command.hex()}", force=True)
+                            log(device.name, f"📲 Device Info command sent: {device_info_command.hex()}", force=True)
                             await asyncio.sleep(1)
 
                         # Checking whether to send cell_info_command
@@ -766,7 +766,6 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
             log("CHECK DEVICES", f"❌ Device [{device_address}] has no data.", force=True)
             return False
     return True
-
 
 def start_services():
     db.create_table()
