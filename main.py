@@ -25,9 +25,6 @@ import python.db as db
 import python.battery_alerts as alerts
 from python.data_store import data_store
 
-print(data_store)
-print(dir(data_store))
-
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
 
@@ -559,7 +556,6 @@ async def parse_cell_info(data, device_name, device_address):
         return None
 
 async def notification_handler(device, data):
-    log(device.name, f"🔄 Received notification: {data.hex()}", force=True)
     device_name = device.name
     device_address = device.address
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
@@ -576,6 +572,7 @@ async def notification_handler(device, data):
         if calculated_crc != received_crc:
             log(device_name, f"❌ Invalid CRC: {calculated_crc} != {received_crc}")
             return
+        log(device.name, f"🔄 Received notification {buffer[4]}: {data.hex()}", force=True)
 
         # Determining the frame type
         frame_type = buffer[4]
