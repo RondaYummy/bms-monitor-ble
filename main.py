@@ -150,10 +150,9 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
             return JSONResponse(content={"message": f"✅ Device {device_address} is already disconnected."}, status_code=200)
 
         log(device_name, f"🔌 Disconnecting device {device_address}...")
-        connection_task = active_connections.pop(device_address, None)
-        if connection_task:
-            connection_task.cancel()
-            log(device_name, f"🔴 Connection task cancelled for {device_address}")
+        if device_address in active_connections:
+            del active_connections[device_address]
+            log(device_name, f"🔴 {device_address} видалено з active_connections")
 
         db.update_device_status(device_address, connected=False, enabled=False)
 
@@ -597,6 +596,8 @@ async def connect_and_run(device):
                 async with BleakClient(device.address) as client:
                     def handle_notification(sender, data):
                         asyncio.create_task(notification_handler(device, data))
+
+                    active_connections[device_address] = True
 
                     await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
                     db.update_device_status(device_address, connected=True, enabled=True)
