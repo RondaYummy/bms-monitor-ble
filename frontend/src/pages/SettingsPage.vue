@@ -210,11 +210,11 @@
                 <q-item v-for="device of devices"
                         :key="device.address"
                         clickable
-                        :disable="attemptToConnectDevice === device.address"
+                        :disable="!!attemptToConnectDevice"
                         :active="attemptToConnectDevice === device.address"
                         @click="token && connectToDevice(device.address, device.name)"
                         v-ripple>
-                  <q-item-section>{{ device?.name }}</q-item-section>
+                  <q-item-section>{{ attemptToConnectDevice === device.address ? `Підключення до ${device?.name}` : device?.name }}</q-item-section>
                 </q-item>
               </q-list>
             </template>
@@ -424,10 +424,6 @@ async function connectToDevice(address: string, name: string) {
   checkResponse(response);
   devices.value = devices.value?.filter((d) => d.address !== address);
   attemptToConnectDevice.value = '';
-
-  setTimeout(async () => {
-    await fetchDevices();
-  }, 3000);
 }
 
 fetchErrorAlerts();

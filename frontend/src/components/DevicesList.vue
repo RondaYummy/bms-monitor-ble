@@ -8,25 +8,25 @@
             <q-badge :class="{ 'connected-device': device?.connected, 'disconnected-device': !device?.connected }"
                      class="q-mb-10 text-center"
                      color="cyan">
-              {{ device.device_name }}
+              {{ device.name }}
             </q-badge>
             <div>{{ device.vendor_id }}</div>
           </div>
           <div class="column">
             <div class="q-mb-10">Hardware v.
-              <span class="unique">{{ device.hardware_version }}</span>
+              <span class="unique">{{ device?.hardware_version }}</span>
             </div>
             <div>Software v.
-              <span class="unique">{{ device.software_version }}</span>
+              <span class="unique">{{ device?.software_version }}</span>
             </div>
           </div>
         </div>
         <span class="text-center coral">
           Дата виробництва:
-          {{ parseManufacturingDate(device.manufacturing_date) }}.
+          {{ parseManufacturingDate(device?.manufacturing_date) }}.
         </span>
         <span class="text-center coral">
-          Час роботи: {{ formatDuration(device.device_uptime) }}.
+          Час роботи: {{ formatDuration(device?.device_uptime) }}.
         </span>
       </div>
 
@@ -36,13 +36,13 @@
                color="black"
                :disable="!props.token"
                dense
-               @click="disconnectDevice(device.device_address, device.device_name)"
+               @click="disconnectDevice(device.address, device.name)"
                label="Від’єднатися" />
         <q-btn v-if="!device.connected"
                color="black"
                dense
-               :loading="attemptToConnectDevice === device.device_address"
-               @click="connectToDevice(device.device_address, device.device_name)"
+               :loading="attemptToConnectDevice === device.address"
+               @click="connectToDevice(device.address, device.name)"
                :disable="!props.token || !!attemptToConnectDevice"
                label="Приєднатися" />
       </div>
@@ -101,9 +101,12 @@ async function connectToDevice(address: string, name: string) {
       body: JSON.stringify({ address, name }),
     });
     checkResponse(response);
-    attemptToConnectDevice.value = '';
   } catch (error) {
     console.error('Error connecting to device:', error);
+  } finally {
+    setTimeout(() => {
+      attemptToConnectDevice.value = '';
+    }, 5000);
   }
 }
 
@@ -120,7 +123,6 @@ async function disconnectDevice(address: string, name: string) {
     checkResponse(response);
     const data = await response.json();
     console.log('Disconnect Device:', data);
-    devicesList.value = data;
   } catch (error) {
     console.error('Error disconnect device info:', error);
   }
