@@ -637,9 +637,9 @@ async def connect_and_run(device):
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
                 # 🔽 Remove the device from `active_connections` so that `ble_main()` can scan it again
-                if device_address in active_connections:
-                    del active_connections[device_address]
-                    log(device.name, f"❌ Device removed from active_connections.", force=True)
+                # if device_address in active_connections:
+                #     del active_connections[device_address]
+                #     log(device.name, f"❌ Device removed from active_connections.", force=True)
 
             finally:
                 log(device.name, "🔄 Retrying connection in 10 seconds...", force=True)
