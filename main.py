@@ -570,6 +570,7 @@ async def connect_and_run(device):
 
     async with device_locks[device_address]:
         while True:  # Cycle to reconnect
+            print(f"active_connections: {active_connections}")
             try:
                 device_info_data = db.get_device_by_address(device_address)
 
@@ -702,7 +703,6 @@ async def ble_main():
                     task = asyncio.create_task(connect_and_run(device))
                     active_connections[device_address] = task  # Add to active
                     tasks.append(task)
-                    print(f"active_connections: {active_connections}")
 
                     await asyncio.sleep(5)  # Delay between connections
 
