@@ -61,6 +61,7 @@ class DataStore:
 
     async def get_cell_info(self):
         async with self.lock:
+            print(f"CELL INFO: {self.cell_info}")
             return deepcopy(self.cell_info)
 
 # Initialize the centralized data storage

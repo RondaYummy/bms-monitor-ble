@@ -138,13 +138,11 @@ class DeviceRequest(BaseModel):
 async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depends(verify_token)):
     device_address = body.address.strip().lower()
     device_name = body.name.strip() if body.name else device_address
-
     if not device_address:
         raise HTTPException(status_code=400, detail="Device address is required.")
     
     try:
         existing_device = db.get_device_by_address(device_address)
-
         if not existing_device:
             raise HTTPException(status_code=404, detail="🚫 Device not found in the database.")
 
@@ -152,7 +150,6 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
             return JSONResponse(content={"message": f"✅ Device {device_address} is already disconnected."}, status_code=200)
 
         log(device_name, f"🔌 Disconnecting device {device_address}...")
-
         if device_address in active_connections:
             connection_task = active_connections.pop(device_address, None)
             if connection_task:
@@ -161,9 +158,6 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
 
         db.update_device_status(device_address, connected=False, enabled=False)
         await data_store.delete_device_data(device_name)
-        cell_info_data = await data_store.get_cell_info()
-        log(device_name, f"✅ Successfully disconnected and disabled the device.", force=True)
-        log(device_name, f"CELL: {cell_info_data}", force=True)
 
         log(device_name, f"✅ Successfully disconnected and disabled the device.")
         return {"message": f"✅ Successfully disconnected from {device_address} and disabled the device."}
