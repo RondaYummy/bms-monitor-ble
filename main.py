@@ -88,7 +88,7 @@ async def get_configs():
 async def update_configs(request: ConfigUpdateRequest):
     updated_config = db.update_config(
         password=request.password,
-        vapid_public=request.VAPID_PUBLIC_KEY,
+        vapid_public=None,
         vapid_private=None,
         n_hours=request.n_hours
     )
@@ -269,14 +269,7 @@ def log(device_name, message, force=False):
 async def parse_device_info(data, device_name, device_address):
     """Parsing Device Info Frame (0x03)."""
     log(device_name, "Parsing Device Info Frame...")
-
     try:
-        log(device_name, f"Raw data: {data.hex()}")
-        
-        # Checking the header
-        if data[:4] != b'\x55\xAA\xEB\x90':
-            raise ValueError("Invalid frame header")
-
         # Extract fields from the frame
         device_info = {
             # "setup_passcode": data[118:134].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
@@ -297,13 +290,6 @@ async def parse_device_info(data, device_name, device_address):
             "connected": True,
             "enabled": True
         }
-
-        # CRC Validation
-        crc_calculated = calculate_crc(data[:-1])
-        crc_received = data[-1]
-        if crc_calculated != crc_received:
-            log(device_name, f"Invalid CRC: {crc_calculated} != {crc_received}")
-            return None
         
         # Save device-specific info
         db.update_device(
@@ -338,10 +324,6 @@ async def parse_setting_info(data, device_name, device_address):
     """Parsing Cell Info Frame (0x01)."""
     log(device_name, "🔍 Parsing Setting Info Frame...")
     try:
-        if data[:4] != b'\x55\xAA\xEB\x90':
-            log(device_name, f"❌ Incorrect frame header: {data[:4].hex()}", force=True)
-            return None
-
         setting_info = {
             # [MAIN] Base Settings
             "cell_count": data[114], # Cell Count
@@ -457,12 +439,6 @@ async def parse_cell_info(data, device_name, device_address):
     log(device_name, "Parsing Cell Info Frame...")
 
     try:
-        # Checking the header
-        if data[:4] != b'\x55\xAA\xEB\x90':
-            log(device_name, f"Unexpected Header: {data[:4].hex()}", force=True)
-            raise ValueError("Invalid frame header")
-        log(device_name, f"Data Length: {len(data)}")
-
         # Extract cell data
         cell_voltages = []
         start_index = 6  # Initial index for cell tension
@@ -538,13 +514,6 @@ async def parse_cell_info(data, device_name, device_address):
             "state_of_health": state_of_health,
             "emergency_time_countdown": emergency_time_countdown,
         }
-
-        # CRC Validation
-        crc_calculated = calculate_crc(data[:-1])
-        crc_received = data[-1]
-        if crc_calculated != crc_received:
-            log(device_name, f"Invalid CRC: {crc_calculated} != {crc_received}")
-            return None
         
         log(device_name, f"CELL INFO: {cell_info}")
         await data_store.update_cell_info(device_name, cell_info)
@@ -620,6 +589,12 @@ async def connect_and_run(device):
                         enabled=True
                         )
 
+                if not device_info_data.get("enabled", False):
+                    log(device.name, "❌ Device has been off. Stopping connecting...", force=True)
+                    active_connections.pop(device_address, None)
+                    device_locks.pop(device_address, None)
+                    break
+
                 async with BleakClient(device.address) as client:
                     def handle_notification(sender, data):
                         asyncio.create_task(notification_handler(device, data))
@@ -648,7 +623,7 @@ async def connect_and_run(device):
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
                             log(device.name, f"📢 Device Info command sent: {device_info_command.hex()}", force=True)
-                            await asyncio.sleep(1)  # Затримка перед 0x96
+                            await asyncio.sleep(1)  # Delay before 0x96
 
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
@@ -659,7 +634,6 @@ async def connect_and_run(device):
 
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
-                # db.update_device_status(device_address, connected=False, enabled=True)
                 # 🔽 Remove the device from `active_connections` so that `ble_main()` can scan it again
                 if device_address in active_connections:
                     del active_connections[device_address]
@@ -667,7 +641,7 @@ async def connect_and_run(device):
 
             finally:
                 log(device.name, "🔄 Retrying connection in 10 seconds...", force=True)
-                await asyncio.sleep(15)
+                await asyncio.sleep(10)
 
 async def filter_devices(devices):
     allowed_devices = db.get_all_devices()
@@ -692,9 +666,9 @@ active_connections = {}
 
 async def ble_main():
     async with ble_scan_lock:
-        log("ble_main", "Start ble_main...", force=True)
         try:
             while True:  # 🔥 Internal scanning and connection cycle
+                log("ble_main", "Start ble_main...", force=True)
                 allowed_devices = db.get_all_devices(only_enabled=True)
                 allowed_addresses = {device["address"] for device in allowed_devices}
                 connected_addresses = {
@@ -742,7 +716,7 @@ async def ble_main():
                         task.cancel()
                         del active_connections[device_address]
                 
-                await asyncio.sleep(30) # Waiting before the next scan
+                await asyncio.sleep(20) # Waiting before the next scan
 
         except Exception as e:
             log("ble_main", f"❌ BLE scan error: {str(e)}", force=True)
@@ -758,8 +732,6 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
     allowed_devices = db.get_all_devices()
     allowed_addresses = {device["address"].lower() for device in allowed_devices if device["enabled"]}
     connected_addresses = {device["address"].lower() for device in allowed_devices if device["connected"]}
-    print(f"ALLOWED: {allowed_addresses}")
-    print(f"CONECTED: {connected_addresses}")
 
     if not allowed_addresses.issubset(connected_addresses):
         log("CHECK DEVICES", "❌ Not all allowed devices are connected", force=True)

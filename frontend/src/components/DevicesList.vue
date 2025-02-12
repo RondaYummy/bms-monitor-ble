@@ -101,9 +101,10 @@ async function connectToDevice(address: string, name: string) {
       body: JSON.stringify({ address, name }),
     });
     checkResponse(response);
-    attemptToConnectDevice.value = '';
   } catch (error) {
     console.error('Error connecting to device:', error);
+  } finally {
+    attemptToConnectDevice.value = '';
   }
 }
 

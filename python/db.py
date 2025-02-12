@@ -65,7 +65,6 @@ def update_aggregated_data(device_name, device_address, current, power):
         device_data["last_insert_time"] = now
 
 def save_aggregated_data(device_name, device_address, device_data, interval=60):
-    """Saves the aggregated data to the database if the time interval has passed."""
     now = datetime.now()
     last_insert_time = device_data["last_insert_time"]
 
@@ -104,7 +103,6 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
     })
 
 def get_connection():
-    """Creates and returns a connection to the database."""
     try:
         return sqlite3.connect(DB_NAME)
     except sqlite3.Error as e:
@@ -115,24 +113,23 @@ def generate_vapid_keys():
     private_key = ec.generate_private_key(ec.SECP256R1())
     public_key = private_key.public_key()
 
-    # Конвертація приватного ключа в PEM
+    # Convert private key to PEM
     private_pem = private_key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
         encryption_algorithm=serialization.NoEncryption()
     ).decode("utf-8")
 
-    # Конвертація публічного ключа в Base64
+    # Convert public key to Base64
     public_pem = public_key.public_bytes(
         encoding=serialization.Encoding.X962,
         format=serialization.PublicFormat.UncompressedPoint
     )
-    public_base64 = base64.urlsafe_b64encode(public_pem).decode("utf-8").rstrip("=")  # Без '=' в кінці
+    public_base64 = base64.urlsafe_b64encode(public_pem).decode("utf-8").rstrip("=")  # Without '=' at the end
 
     return private_pem, public_base64
 
 def create_table():
-    """Creates a table if it does not exist."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -212,7 +209,6 @@ def create_table():
         raise
 
 def delete_alert_by_id(alert_id):
-    """Deletes a record from the table by its ID."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -309,7 +305,7 @@ def get_device_by_address(address):
             }
     
     except sqlite3.Error as e:
-        print(f"❌ Помилка при отриманні пристрою: {e}")
+        print(f"❌ Error when receiving the device:: {e}")
         raise
 
 def update_device(address: str, **kwargs):
@@ -328,7 +324,7 @@ def update_device(address: str, **kwargs):
             cursor.execute(query, values)
             conn.commit()
     except sqlite3.Error as e:
-        print(f"❌ Помилка при оновленні пристрою: {e}")
+        print(f"❌ Error updating the device: {e}")
         raise
 
 def update_device_status(address, connected: bool, enabled: bool):
@@ -342,7 +338,7 @@ def update_device_status(address, connected: bool, enabled: bool):
             ''', (connected, enabled, address))
             conn.commit()
     except sqlite3.Error as e:
-        print(f"❌ Помилка при оновленні статусу: {e}")
+        print(f"❌ Error updating status: {e}")
         raise
 
 def insert_device(
@@ -397,7 +393,7 @@ def insert_alert_data(device_address, device_name, error_code, occurred_at, n_ho
 
             existing = cursor.fetchone()
             if existing:
-                raise ValueError(f"❌ Помилка: Сповіщення для {device_address} з кодом {error_code} вже існує упродовж {n_hours} годин.")
+                raise ValueError(f"❌ Error: An alert for {device_address} with code {error_code} has already existed for {n_hours} hours.")
 
             cursor.execute('''
             INSERT INTO error_notifications (device_address, error_code, occurred_at, device_name)
@@ -450,11 +446,6 @@ def fetch_all_data(days=None):
         raise
 
 def fetch_all_notifications():
-    """
-    Fetches all records from the error_notifications table.
-    Returns:
-        List of tuples containing all rows from the table.
-    """
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -486,7 +477,7 @@ def add_subscription(subscription: dict):
             old_id, old_endpoint = existing
 
             if old_endpoint != endpoint:
-                print(f"🔄 Старий endpoint {old_endpoint} змінено на {endpoint}, видаляємо старий...")
+                print(f"🔄 The old endpoint {old_endpoint} is changed to {endpoint}, delete the old one...")
                 cursor.execute("DELETE FROM subscriptions WHERE id = ?", (old_id,))
 
         # Add a new subscription (or update an existing one)
@@ -505,10 +496,10 @@ def remove_old_subscription(endpoint: str):
             cursor.execute("DELETE FROM subscriptions WHERE endpoint = ?", (endpoint,))
             conn.commit()
 
-            print(f"🗑️ Видалено підписку: {endpoint}")
+            print(f"🗑️ Subscription deleted: {endpoint}")
 
     except sqlite3.Error as e:
-        print(f"❌ Помилка при видаленні підписки: {e}")
+        print(f"❌ Error when deleting a subscription: {e}")
 
 def get_all_subscriptions():
     try:
@@ -529,7 +520,7 @@ def get_all_subscriptions():
             ]
             return subscriptions
     except sqlite3.Error as e:
-        print(f"❌ Помилка отримання підписок: {e}")
+        print(f"❌ Error receiving subscriptions: {e}")
         return []
 
 def get_config():
