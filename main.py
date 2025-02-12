@@ -523,11 +523,6 @@ async def parse_cell_info(data, device_name, device_address):
 async def notification_handler(device, data):
     device_name = device.name
     device_address = device.address
-
-    if device_address not in active_connections:
-        log(device_name, f"⚠️ Пристрій {device_address} більше не активний, ігноруємо дані.", force=True)
-        return
-
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
         await data_store.clear_buffer(device_name)
     await data_store.append_to_buffer(device_name, data)
@@ -596,8 +591,6 @@ async def connect_and_run(device):
                 async with BleakClient(device.address) as client:
                     def handle_notification(sender, data):
                         asyncio.create_task(notification_handler(device, data))
-
-                    active_connections[device_address] = True
 
                     await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
                     db.update_device_status(device_address, connected=True, enabled=True)
@@ -700,6 +693,7 @@ async def ble_main():
                     task = asyncio.create_task(connect_and_run(device))
                     active_connections[device_address] = task  # Add to active
                     tasks.append(task)
+                    print(f"active_connections: {active_connections}")
 
                     await asyncio.sleep(5)  # Delay between connections
 
