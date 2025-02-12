@@ -263,7 +263,7 @@ def create_command(command_type):
 def log(device_name, message, force=False):
     global ENABLE_LOGS
     if ENABLE_LOGS or force:
-        current_time = datetime.now().strftime("%d.%m.%y %H:%M")
+        current_time = datetime.now().strftime("%d.%m.%y %H:%M:%S")
         print(f"{BLUE}[{device_name}] {MAGENTA}[{current_time}]{RESET} {message}")
 
 async def parse_device_info(data, device_name, device_address):

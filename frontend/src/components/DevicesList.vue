@@ -104,7 +104,9 @@ async function connectToDevice(address: string, name: string) {
   } catch (error) {
     console.error('Error connecting to device:', error);
   } finally {
-    attemptToConnectDevice.value = '';
+    setTimeout(() => {
+      attemptToConnectDevice.value = '';
+    }, 5000);
   }
 }
 
