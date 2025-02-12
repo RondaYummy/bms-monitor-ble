@@ -526,6 +526,7 @@ async def parse_cell_info(data, device_name, device_address):
 async def notification_handler(device, data):
     device_name = device.name
     device_address = device.address
+    print(f"active_connections: {active_connections}")
 
     task = active_connections.get(device_address)
     if not task:
@@ -570,7 +571,6 @@ async def connect_and_run(device):
 
     async with device_locks[device_address]:
         while True:  # Cycle to reconnect
-            print(f"active_connections: {active_connections}")
             try:
                 device_info_data = db.get_device_by_address(device_address)
 
