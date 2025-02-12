@@ -526,9 +526,9 @@ async def parse_cell_info(data, device_name, device_address):
 async def notification_handler(device, data):
     device_name = device.name
     device_address = device.address
-    # print(f"active_connections: {active_connections}")
 
-    # task = active_connections.get(device_address)
+    task = active_connections.get(device_address)
+    print(f"task: {task}")
     # if not task:
     #     log(device_name, f"⚠️ Пристрою {device_address} немає у active_connections, ігноруємо дані.")
     #     return
