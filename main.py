@@ -525,14 +525,14 @@ async def parse_cell_info(data, device_name, device_address):
 
 async def notification_handler(device, data):
     device_name = device.name
-    device_address = device.address
+    device_address = device.address.lower()
 
     task = active_connections.get(device_address)
     print(f"task: {task}, address: {device_address}")
     print(f"ALL CONNECTIONS: {active_connections}")
-    # if not task:
-    #     log(device_name, f"⚠️ Пристрою {device_address} немає у active_connections, ігноруємо дані.")
-    #     return
+    if not task:
+        log(device_name, f"⚠️ Пристрою {device_address} немає у active_connections, ігноруємо дані.")
+        return
 
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
         await data_store.clear_buffer(device_name)
