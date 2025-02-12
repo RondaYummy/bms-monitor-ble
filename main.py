@@ -150,7 +150,10 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
             return JSONResponse(content={"message": f"✅ Device {device_address} is already disconnected."}, status_code=200)
 
         log(device_name, f"🔌 Disconnecting device {device_address}...")
-        if device_address in active_connections:
+
+        task = active_connections.get(device_address)
+        if task:
+            task.cancel()
             del active_connections[device_address]
             log(device_name, f"🔴 {device_address} видалено з active_connections")
 
@@ -523,6 +526,12 @@ async def parse_cell_info(data, device_name, device_address):
 async def notification_handler(device, data):
     device_name = device.name
     device_address = device.address
+
+    task = active_connections.get(device_address)
+    if not task:
+        log(device_name, f"⚠️ Пристрою {device_address} немає у active_connections, ігноруємо дані.")
+        return
+
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
         await data_store.clear_buffer(device_name)
     await data_store.append_to_buffer(device_name, data)
