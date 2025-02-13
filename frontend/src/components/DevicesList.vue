@@ -104,7 +104,7 @@ async function connectToDevice(address: string, name: string) {
       body: JSON.stringify({ address, name }),
     });
     checkResponse(response);
-
+    console.log(response, 'response');
     const data = await response.json();
     console.log(data, 'data');
 
@@ -119,7 +119,6 @@ async function connectToDevice(address: string, name: string) {
     }
   } catch (error) {
     console.error('Error connecting to device:', error);
-    console.log(error, 'error');
   } finally {
     setTimeout(() => {
       attemptToConnectDevice.value = '';

@@ -201,7 +201,7 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
 
         asyncio.create_task(connect_and_run(found_device))
 
-        return {"message": f"🚀 Connection initiated for {device_address}. Check logs for updates."}
+        return JSONResponse(content={"message": f"🚀 Connection initiated for {device_address}. Check logs for updates."}, status_code=200)
 
     except Exception as e:
         return JSONResponse(content={"error": f"❌ Error connecting to device: {str(e)}"}, status_code=500)
