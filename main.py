@@ -540,7 +540,7 @@ async def notification_handler(device, data):
 
     task = active_connections.get(device_address)
     if not task:
-        log(device_name, f"⚠️ Пристрою {device_address} немає у active_connections, ігноруємо дані.")
+        log(device_name, f"⚠️ Пристрою {device_address} немає у active_connections, ігноруємо дані.", force=True)
         return
 
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
@@ -643,14 +643,14 @@ async def connect_and_run(device):
                             log(device.name, f"✅ Command successfully sent: {cell_info_command.hex()}", force=True)
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
 
-                        await asyncio.sleep(15)
+                        await asyncio.sleep(10)
 
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
 
             finally:
-                log(device.name, "🔄 Retrying connection in 15 seconds...", force=True)
-                await asyncio.sleep(15)
+                log(device.name, "🔄 Retrying connection in 10 seconds...", force=True)
+                await asyncio.sleep(10)
 
 async def filter_devices(devices):
     allowed_devices = db.get_all_devices()
