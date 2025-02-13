@@ -449,7 +449,9 @@ async def parse_setting_info(data, device_name, device_address):
         setting_info["timed_stored_data"] = bool(bitmask & 0b0000000100000000)  # bit8
         setting_info["charging_float_mode"] = bool(bitmask & 0b0000001000000000)  # bit9
 
-        await data_store.update_setting_info(device_name, setting_info)
+        await data_store.update_setting_info(device_address, setting_info)
+        setting_info = await data_store.get_setting_info()
+        print(f"SETTINGS: {setting_info}")
 
         log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=True)
         for key, value in setting_info.items():
@@ -463,9 +465,8 @@ async def parse_setting_info(data, device_name, device_address):
 
 async def parse_cell_info(data, device_name, device_address):
     """Parsing Cell Info Frame (0x02)."""
-    log(device_name, "Parsing Cell Info Frame...")
-
     try:
+        log(device_name, "Parsing Cell Info Frame...")
         # Extract cell data
         cell_voltages = []
         start_index = 6  # Initial index for cell tension
