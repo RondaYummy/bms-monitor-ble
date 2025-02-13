@@ -104,10 +104,10 @@ async function connectToDevice(address: string, name: string) {
       body: JSON.stringify({ address, name }),
     });
 
-    const data = await response.json();
-    console.log(data, 'data');
     checkResponse(response);
-
+    const data = await response.json();
+    console.error(data, 'data');
+    
     if (data?.error) {
       $q.notify({
           message: data?.error,

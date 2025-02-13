@@ -185,10 +185,10 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         found_device = next((device for device in devices if device.address.lower() == device_address), None)
 
         if not found_device:
-            log("/api/connect-device", f"✅ Device {device_address} not found...", force=True)
+            log("/api/connect-device", f"Device {device_address} not found...", force=True)
             return JSONResponse(content={"error": f"Device {device_address} not found."}, status_code=200)
 
-        log("/api/connect-device", f"Device {device_address} found, attempting connection...", force=True)
+        log("/api/connect-device", f"✅ Device {device_address} found, attempting connection...", force=True)
 
         existing_device = db.get_device_by_address(device_address)
         if not existing_device:
