@@ -5,6 +5,7 @@ import asyncio
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 import base64
+import time
 
 data_aggregator = defaultdict(lambda: {
     "device_name": None,
@@ -18,6 +19,16 @@ data_aggregator = defaultdict(lambda: {
 })
 
 DB_NAME = '/app/data/bms_data.db'
+
+CONFIG_CACHE = None
+CONFIG_CACHE_TIMESTAMP = 0
+CONFIG_CACHE_EXPIRY = 60
+
+DEVICE_CACHE = {}  # {address: {"data": device_data, "timestamp": last_update}}
+DEVICE_CACHE_EXPIRY = 60
+
+ALERT_CACHE = {}  # {device_address: {error_code: {"timestamp": occurred_at, "id": alert_id}}}
+ALERT_CACHE_EXPIRY = 60
 
 async def process_devices():
     """Cyclically calls update_aggregated_data and saves the aggregated data."""
@@ -78,7 +89,6 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
     else:
         return  # No data to save
 
-    # Generate timestamp
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
     
     try:
@@ -104,7 +114,9 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
 
 def get_connection():
     try:
-        return sqlite3.connect(DB_NAME)
+        conn = sqlite3.connect(DB_NAME)
+        # conn.set_trace_callback(print)
+        return conn
     except sqlite3.Error as e:
         print(f"Error connecting to database: {e}")
         raise
@@ -248,6 +260,12 @@ def set_all_devices_disconnected():
         print(f"❌ Error resetting device connection status: {e}")
 
 def get_all_devices(only_enabled: bool = False):
+    global DEVICE_CACHE
+    now = time.time()
+
+    if DEVICE_CACHE and all((now - data["timestamp"]) < DEVICE_CACHE_EXPIRY for data in DEVICE_CACHE.values()):
+        return list({tuple(device["data"].items()): device["data"] for device in DEVICE_CACHE.values()}.values())
+
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -265,23 +283,33 @@ def get_all_devices(only_enabled: bool = False):
             cursor.execute(query, params)
             devices = cursor.fetchall()
 
-            result = [
-                {
+            now = time.time()
+            DEVICE_CACHE.clear()
+
+            for device in devices:
+                device_data = {
                     "id": device[0], "address": device[1], "name": device[2], "added_at": device[3],
                     "connected": bool(device[4]), "enabled": bool(device[5]), "frame_type": device[6],
                     "frame_counter": device[7], "vendor_id": device[8], "hardware_version": device[9],
                     "software_version": device[10], "device_uptime": device[11], "power_on_count": device[12],
                     "manufacturing_date": device[13], "serial_number": device[14], "user_data": device[15]
                 }
-                for device in devices
-            ]
 
-            return result
+                DEVICE_CACHE[device[1]] = {"data": device_data, "timestamp": now}
+
+            return list({tuple(device["data"].items()): device["data"] for device in DEVICE_CACHE.values()}.values())
+
     except sqlite3.Error as e:
         print(f"❌ Error fetching devices: {e}")
         return []
 
 def get_device_by_address(address):
+    global DEVICE_CACHE
+    now = time.time()
+
+    if address in DEVICE_CACHE and (now - DEVICE_CACHE[address]["timestamp"]) < DEVICE_CACHE_EXPIRY:
+        return DEVICE_CACHE[address]["data"]
+
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -296,16 +324,20 @@ def get_device_by_address(address):
             if not device:
                 return None
 
-            return {
+            device_data = {
                 "id": device[0], "address": device[1], "name": device[2], "added_at": device[3],
                 "connected": bool(device[4]), "enabled": bool(device[5]), "frame_type": device[6],
                 "frame_counter": device[7], "vendor_id": device[8], "hardware_version": device[9],
                 "software_version": device[10], "device_uptime": device[11], "power_on_count": device[12],
                 "manufacturing_date": device[13], "serial_number": device[14], "user_data": device[15]
             }
-    
+
+            DEVICE_CACHE[address] = {"data": device_data, "timestamp": now}
+
+            return device_data
+
     except sqlite3.Error as e:
-        print(f"❌ Error when receiving the device:: {e}")
+        print(f"❌ Error when receiving the device: {e}")
         raise
 
 def update_device(address: str, **kwargs):
@@ -372,27 +404,38 @@ def insert_device(
             return get_device_by_address(address)
     
     except sqlite3.Error as e:
-        print(f"❌ Помилка при вставці пристрою: {e}")
+        print(f"❌ Error inserting the device: {e}")
         raise
 
 
 def insert_alert_data(device_address, device_name, error_code, occurred_at, n_hours=1):
-    """Adds a new record to the table."""
+    global ALERT_CACHE
+
+    now = datetime.now()
+    time_limit = now - timedelta(hours=n_hours)
+    time_limit_str = time_limit.strftime('%Y-%m-%d %H:%M:%S')
+
+    if device_address in ALERT_CACHE and error_code in ALERT_CACHE[device_address]:
+        cached_alert = ALERT_CACHE[device_address][error_code]
+        
+        if cached_alert["timestamp"] > time_limit_str:
+            raise ValueError(f"❌ Error: An alert for {device_address} with code {error_code} has already existed for {n_hours} hours.")
+
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
 
-            now = datetime.now()
-            time_limit = now - timedelta(hours=n_hours)
-            time_limit_str = time_limit.strftime('%Y-%m-%d %H:%M:%S')
-
             cursor.execute('''
-            SELECT id FROM error_notifications
+            SELECT id, occurred_at FROM error_notifications
             WHERE device_address = ? AND error_code = ? AND occurred_at > ?
             ''', (device_address, error_code, time_limit_str))
 
             existing = cursor.fetchone()
             if existing:
+                if device_address not in ALERT_CACHE:
+                    ALERT_CACHE[device_address] = {}
+                
+                ALERT_CACHE[device_address][error_code] = {"timestamp": existing[1], "id": existing[0]}
                 raise ValueError(f"❌ Error: An alert for {device_address} with code {error_code} has already existed for {n_hours} hours.")
 
             cursor.execute('''
@@ -400,6 +443,13 @@ def insert_alert_data(device_address, device_name, error_code, occurred_at, n_ho
             VALUES (?, ?, ?, ?)
             ''', (device_address, error_code, occurred_at, device_name))
             conn.commit()
+
+            alert_id = cursor.lastrowid
+            if device_address not in ALERT_CACHE:
+                ALERT_CACHE[device_address] = {}
+
+            ALERT_CACHE[device_address][error_code] = {"timestamp": occurred_at, "id": alert_id}
+
     except sqlite3.Error as e:
         print(f"Error inserting alerts data: {e}")
         raise
@@ -524,18 +574,25 @@ def get_all_subscriptions():
         return []
 
 def get_config():
+    global CONFIG_CACHE, CONFIG_CACHE_TIMESTAMP
+
+    if CONFIG_CACHE and (time.time() - CONFIG_CACHE_TIMESTAMP) < CONFIG_CACHE_EXPIRY:
+        return CONFIG_CACHE
+
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours FROM configs LIMIT 1")
             config = cursor.fetchone()
             if config:
-                return {
+                CONFIG_CACHE = {
                     "password": config[0],
                     "VAPID_PUBLIC_KEY": config[1],
                     "VAPID_PRIVATE_KEY": config[2],
                     "n_hours": config[3],
                 }
+                CONFIG_CACHE_TIMESTAMP = time.time()
+                return CONFIG_CACHE
             else:
                 return None
     except sqlite3.Error as e:
@@ -551,6 +608,11 @@ def update_config(password=None, vapid_public=None, vapid_private=None, n_hours=
             existing_config = cursor.fetchone()
             if not existing_config:
                 raise ValueError("Config record not found!")
+            
+            if n_hours:
+                global CONFIG_CACHE, CONFIG_CACHE_TIMESTAMP
+                CONFIG_CACHE = None  # Clearing the cache after an update
+                CONFIG_CACHE_TIMESTAMP = 0
 
             updated_config = {
                 "password": password if password is not None else existing_config[0],

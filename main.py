@@ -131,6 +131,15 @@ async def get_device_info():
 
     return enriched_data
 
+async def disconnect_if_needed(device_address):
+    try:
+        client = BleakClient(device_address)
+        if client:
+            await client.disconnect()
+            log("BLE", f"🔴 Forcibly disabled {device_address}.", force=True)
+    except Exception as e:
+        log("BLE", f"⚠️ Unable to disable {device_address}: {e}", force=True)
+
 class DeviceRequest(BaseModel):
     address: str
     name: Optional[str] = None
@@ -155,7 +164,9 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
         if task:
             task.cancel()
             del active_connections[device_address]
-            log(device_name, f"🔴 {device_address} видалено з active_connections")
+            log(device_name, f"🔴 {device_address} removed from active_connections")
+        
+        await disconnect_if_needed(device_address)
 
         db.update_device_status(device_address, connected=False, enabled=False)
 
@@ -174,27 +185,42 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
 async def connect_device(request: DeviceRequest, token: str = Depends(verify_token)):
     try:
         device_address = request.address.strip().lower()
-        device_name = request.name.strip()
+        device_name = request.name.strip() if request.name else device_address
 
         if not device_address:
             raise HTTPException(status_code=400, detail="Device address is required.")
+
+        await disconnect_if_needed(device_address)
+        log("/api/connect-device", f"🔍 Scanning for device {device_address}...", force=True)
+
+        devices = await BleakScanner.discover()
+        log("/api/connect-device", f"FOUND DEVICES: {devices}", force=True)
+        found_device = next((device for device in devices if device.address.lower() == device_address), None)
+
+        if not found_device:
+            log("/api/connect-device", f"Device {device_address} not found...", force=True)
+            return JSONResponse(content={"error": f"Device {device_address} not found."}, status_code=200)
+
+        log("/api/connect-device", f"✅ Device {device_address} found, attempting connection...", force=True)
 
         existing_device = db.get_device_by_address(device_address)
         if not existing_device:
             existing_device = db.insert_device(address=device_address, name=device_name)
 
-        if existing_device:
-            if existing_device["connected"]:
-                return JSONResponse(content={"message": f"✅ Device {device_address} is already connected."}, status_code=200)
+        if existing_device and existing_device["connected"]:
+            return JSONResponse(content={"message": f"✅ Device {device_address} is already connected."}, status_code=200)
 
-        device = type("Device", (object,), {"address": device_address, "name": device_name})()
         db.update_device_status(device_address, connected=True, enabled=True)
-        asyncio.create_task(connect_and_run(device))
 
-        return {"message": f"🚀 Connection initiated for {device_address}. Check logs for updates."}
+        log("/api/connect-device", f"🚀 Connection initiated for {found_device}.", force=True)
+        task = asyncio.create_task(connect_and_run(found_device))
+        active_connections[device_address] = task
+
+        return JSONResponse(content={"message": f"🚀 Connection initiated for {device_address}. Check logs for updates."}, status_code=200)
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"❌ Error connecting to device: {str(e)}")
+        return JSONResponse(content={"error": f"❌ Error connecting to device: {str(e)}"}, status_code=500)
+
 
 @app.get("/api/devices")
 async def discover_devices():
@@ -529,7 +555,8 @@ async def notification_handler(device, data):
 
     task = active_connections.get(device_address)
     if not task:
-        log(device_name, f"⚠️ Пристрою {device_address} немає у active_connections, ігноруємо дані.")
+        await data_store.clear_buffer(device_name)
+        log(device_name, f"⚠️ Device {device_address} is not in active_connections, ignore the data.", force=True)
         return
 
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
@@ -595,6 +622,8 @@ async def connect_and_run(device):
                     log(device.name, "❌ Device has been off. Stopping connecting...", force=True)
                     active_connections.pop(device_address, None)
                     device_locks.pop(device_address, None)
+                    await disconnect_if_needed(device_address)
+                    db.update_device_status(device_address, connected=False, enabled=False)
                     break
 
                 async with BleakClient(device.address) as client:
@@ -636,10 +665,6 @@ async def connect_and_run(device):
 
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
-                # 🔽 Remove the device from `active_connections` so that `ble_main()` can scan it again
-                # if device_address in active_connections:
-                #     del active_connections[device_address]
-                #     log(device.name, f"❌ Device removed from active_connections.", force=True)
 
             finally:
                 log(device.name, "🔄 Retrying connection in 10 seconds...", force=True)
@@ -689,7 +714,7 @@ async def ble_main():
 
                 if not filtered_devices:
                     log("ble_main", "⚠️ No new JK-BMS BLE devices found.", force=True)
-                    await asyncio.sleep(10)
+                    await asyncio.sleep(15)
                     continue
                 log("ble_main", F"DEVICES: {filtered_devices}", force=True)
 
