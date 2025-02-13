@@ -194,6 +194,7 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         log("/api/connect-device", f"🔍 Scanning for device {device_address}...", force=True)
 
         devices = await BleakScanner.discover()
+        log("/api/connect-device", f"FOUND DEVICES: {devices}", force=True)
         found_device = next((device for device in devices if device.address.lower() == device_address), None)
 
         if not found_device:
