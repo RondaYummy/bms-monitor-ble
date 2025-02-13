@@ -106,6 +106,8 @@ async function connectToDevice(address: string, name: string) {
     checkResponse(response);
 
     const data = await response.json();
+    console.log(data, 'data');
+
     if (data?.error) {
       $q.notify({
           message: data?.error,
@@ -117,6 +119,7 @@ async function connectToDevice(address: string, name: string) {
     }
   } catch (error) {
     console.error('Error connecting to device:', error);
+    console.log(error, 'error');
   } finally {
     setTimeout(() => {
       attemptToConnectDevice.value = '';
