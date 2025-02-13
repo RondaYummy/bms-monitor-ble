@@ -266,7 +266,7 @@ def get_all_devices(only_enabled: bool = False):
     if (now - DEVICE_CACHE_TIMESTAMP) < DEVICE_CACHE_EXPIRY and all(
         (now - data["timestamp"]) < DEVICE_CACHE_EXPIRY for data in DEVICE_CACHE.values()
     ):
-        return list(DEVICE_CACHE[address]["data"] for address in DEVICE_CACHE)
+        return list(DEVICE_CACHE[address]["data"] for address in DEVICE_CACHE.keys())
 
     print(f"FETCHING ALL DEVICES DATA...")
     try:
