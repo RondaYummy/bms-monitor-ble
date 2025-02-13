@@ -104,7 +104,9 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
 
 def get_connection():
     try:
-        return sqlite3.connect(DB_NAME)
+        conn = sqlite3.connect(DB_NAME)
+        # conn.set_trace_callback(print)
+        return conn
     except sqlite3.Error as e:
         print(f"Error connecting to database: {e}")
         raise

@@ -34,7 +34,8 @@
            class="row justify-around q-pa-sm">
         <q-btn v-if="device.connected"
                color="black"
-               :disable="!props.token"
+               :disable="!props.token || !!disconnectDeviceState"
+               :loading="disconnectDeviceState === device.address"
                dense
                @click="disconnectDevice(device.address, device.name)"
                label="Від’єднатися" />
@@ -63,6 +64,7 @@ const $q = useQuasar();
 
 const devicesList = ref();
 const attemptToConnectDevice = ref();
+const disconnectDeviceState = ref();
 const props = defineProps(['disconnectBtn', 'connected', 'token']);
 
 function checkResponse(response: Response) {
@@ -133,6 +135,7 @@ async function connectToDevice(address: string, name: string) {
 
 async function disconnectDevice(address: string, name: string) {
   try {
+    disconnectDeviceState.value = address;
     const response = await fetch('/api/disconnect-device', {
       method: "POST",
       headers: {
@@ -142,10 +145,10 @@ async function disconnectDevice(address: string, name: string) {
       body: JSON.stringify({ address, name }),
     });
     checkResponse(response);
-    const data = await response.json();
-    console.log('Disconnect Device:', data);
   } catch (error) {
     console.error('Error disconnect device info:', error);
+  } finally {
+    disconnectDeviceState.value = '';
   }
 }
 
