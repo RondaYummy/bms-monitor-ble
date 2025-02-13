@@ -106,7 +106,7 @@ async def get_device_settings(address: str = Query(..., description="Device MAC 
         if not setting_info:
             return JSONResponse(content={"message": "No settings available yet."}, status_code=404)
 
-        return setting_info
+        return list(setting_info.values())
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting alert: {str(e)}")
 
@@ -362,6 +362,9 @@ async def parse_setting_info(data, device_name, device_address):
     log(device_name, "🔍 Parsing Setting Info Frame...")
     try:
         setting_info = {
+            "name": device_name,
+            "address": device_address,
+
             # [MAIN] Base Settings
             "cell_count": data[114], # Cell Count
             "nominal_battery_capacity": int.from_bytes(data[130:134], "little") * 0.001, # Battery Capacity (Ah)
