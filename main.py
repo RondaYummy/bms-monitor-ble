@@ -601,6 +601,7 @@ async def connect_and_run(device):
         while True:  # Cycle to reconnect
             try:
                 device_info_data = db.get_device_by_address(device_address)
+                log("GGGG", f"device_info_data: {device_info_data}")
 
                 if not device_info_data:
                     device_info_data = db.insert_device(
