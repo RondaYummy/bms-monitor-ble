@@ -24,6 +24,10 @@ CONFIG_CACHE = None
 CONFIG_CACHE_TIMESTAMP = 0
 CONFIG_CACHE_EXPIRY = 60
 
+DEVICE_CACHE = {}  # {address: {"data": device_data, "timestamp": last_update}}
+DEVICE_CACHE_TIMESTAMP = 0
+DEVICE_CACHE_EXPIRY = 60
+
 async def process_devices():
     """Cyclically calls update_aggregated_data and saves the aggregated data."""
     global data_aggregator
@@ -255,6 +259,16 @@ def set_all_devices_disconnected():
         print(f"❌ Error resetting device connection status: {e}")
 
 def get_all_devices(only_enabled: bool = False):
+    global DEVICE_CACHE, DEVICE_CACHE_TIMESTAMP
+
+    now = time.time()
+
+    if (now - DEVICE_CACHE_TIMESTAMP) < DEVICE_CACHE_EXPIRY and all(
+        (now - data["timestamp"]) < DEVICE_CACHE_EXPIRY for data in DEVICE_CACHE.values()
+    ):
+        return list(DEVICE_CACHE[address]["data"] for address in DEVICE_CACHE)
+
+    print(f"FETCHING ALL DEVICES DATA...")
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -272,23 +286,37 @@ def get_all_devices(only_enabled: bool = False):
             cursor.execute(query, params)
             devices = cursor.fetchall()
 
-            result = [
-                {
+            DEVICE_CACHE.clear()
+
+            result = []
+            for device in devices:
+                device_data = {
                     "id": device[0], "address": device[1], "name": device[2], "added_at": device[3],
                     "connected": bool(device[4]), "enabled": bool(device[5]), "frame_type": device[6],
                     "frame_counter": device[7], "vendor_id": device[8], "hardware_version": device[9],
                     "software_version": device[10], "device_uptime": device[11], "power_on_count": device[12],
                     "manufacturing_date": device[13], "serial_number": device[14], "user_data": device[15]
                 }
-                for device in devices
-            ]
 
+                DEVICE_CACHE[device[1]] = {"data": device_data, "timestamp": now}
+                result.append(device_data)
+
+            DEVICE_CACHE_TIMESTAMP = now
             return result
+
     except sqlite3.Error as e:
         print(f"❌ Error fetching devices: {e}")
         return []
 
 def get_device_by_address(address):
+    global DEVICE_CACHE
+
+    now = time.time()
+
+    if address in DEVICE_CACHE and (now - DEVICE_CACHE[address]["timestamp"]) < DEVICE_CACHE_EXPIRY:
+        return DEVICE_CACHE[address]["data"]
+    print(f"{address}: FETCHING DEVICE BY ADDRESS...")
+
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -303,16 +331,20 @@ def get_device_by_address(address):
             if not device:
                 return None
 
-            return {
+            device_data = {
                 "id": device[0], "address": device[1], "name": device[2], "added_at": device[3],
                 "connected": bool(device[4]), "enabled": bool(device[5]), "frame_type": device[6],
                 "frame_counter": device[7], "vendor_id": device[8], "hardware_version": device[9],
                 "software_version": device[10], "device_uptime": device[11], "power_on_count": device[12],
                 "manufacturing_date": device[13], "serial_number": device[14], "user_data": device[15]
             }
-    
+
+            DEVICE_CACHE[address] = {"data": device_data, "timestamp": now}
+
+            return device_data
+
     except sqlite3.Error as e:
-        print(f"❌ Error when receiving the device:: {e}")
+        print(f"❌ Error when receiving the device: {e}")
         raise
 
 def update_device(address: str, **kwargs):
@@ -534,7 +566,6 @@ def get_config():
 
     if CONFIG_CACHE and (time.time() - CONFIG_CACHE_TIMESTAMP) < CONFIG_CACHE_EXPIRY:
         return CONFIG_CACHE
-    print(f"Fetch config data...")
 
     try:
         with get_connection() as conn:
