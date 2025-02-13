@@ -778,6 +778,7 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
 def start_services():
     db.create_table()
     db.set_all_devices_disconnected()
+    db.get_config()
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 if __name__ == "__main__":
