@@ -255,7 +255,6 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
     except Exception as e:
         return JSONResponse(content={"error": f"❌ Error connecting to device: {str(e)}"}, status_code=500)
 
-
 @app.get("/api/devices")
 async def discover_devices():
     try:

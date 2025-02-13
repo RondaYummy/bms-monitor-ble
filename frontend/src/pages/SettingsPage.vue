@@ -340,9 +340,9 @@ async function fetchConfigs() {
   }
 }
 
-async function fetchSettings() {
+async function fetchSettings(address: string) {
   try {
-    const response = await fetch('/api/device-settings');
+    const response = await fetch('/api/device-settings?address=' + address);
     checkResponse(response);
     const data = await response.json();
     settings.value = data;
@@ -441,7 +441,7 @@ async function connectToDevice(address: string, name: string) {
 
 fetchErrorAlerts();
 fetchConfigs();
-fetchSettings();
+fetchSettings('c8:47:80:12:41:99');
 </script>
 
 <style scoped lang='scss'>
