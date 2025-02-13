@@ -136,9 +136,9 @@ async def disconnect_if_needed(device_address):
         client = BleakClient(device_address)
         if client:
             await client.disconnect()
-            log("BLE", f"🔴 Примусово відключено {device_address}.", force=True)
+            log("BLE", f"🔴 Forcibly disabled {device_address}.", force=True)
     except Exception as e:
-        log("BLE", f"⚠️ Не вдалося відключити {device_address}: {e}", force=True)
+        log("BLE", f"⚠️ Unable to disable {device_address}: {e}", force=True)
 
 class DeviceRequest(BaseModel):
     address: str
@@ -164,7 +164,7 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
         if task:
             task.cancel()
             del active_connections[device_address]
-            log(device_name, f"🔴 {device_address} видалено з active_connections")
+            log(device_name, f"🔴 {device_address} removed from active_connections")
         
         await disconnect_if_needed(device_address)
 
@@ -212,6 +212,7 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
 
         db.update_device_status(device_address, connected=True, enabled=True)
 
+        log("/api/connect-device", f"🚀 Connection initiated for {found_device}.", force=True)
         asyncio.create_task(connect_and_run(found_device))
 
         return JSONResponse(content={"message": f"🚀 Connection initiated for {device_address}. Check logs for updates."}, status_code=200)
@@ -553,7 +554,8 @@ async def notification_handler(device, data):
 
     task = active_connections.get(device_address)
     if not task:
-        log(device_name, f"⚠️ Пристрою {device_address} немає у active_connections, ігноруємо дані.", force=True)
+        await data_store.clear_buffer(device_name)
+        log(device_name, f"⚠️ Device {device_address} is not in active_connections, ignore the data.", force=True)
         return
 
     if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
