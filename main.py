@@ -216,6 +216,7 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         log("/api/connect-device", f"🚀 Connection initiated for {found_device}.", force=True)
         task = asyncio.create_task(connect_and_run(found_device))
         active_connections[device_address] = task
+        db.update_device_status(device_address, connected=True, enabled=True)
 
         return JSONResponse(content={"message": f"🚀 Connection initiated for {device_address}. Check logs for updates."}, status_code=200)
 
