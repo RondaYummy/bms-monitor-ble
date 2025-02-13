@@ -106,11 +106,9 @@ async def get_device_settings(address: str = Query(..., description="Device MAC 
     #     raise HTTPException(status_code=500, detail="❌ Failed to send Setting Info command.")
 
     # Waiting for data to be updated in the database (maximum 20 seconds)
-    timeout = 20
+    timeout = 30
     start_time = time.time()
 
-    updated_settingss = await data_store.get_setting_info(device_address)
-    print(f"SETTINGS: {updated_settingss}")
     while time.time() - start_time < timeout:
         updated_settings = await data_store.get_setting_info(device_address)
         if updated_settings:

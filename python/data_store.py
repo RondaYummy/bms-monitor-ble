@@ -70,6 +70,8 @@ class DataStore:
 
     async def get_setting_info(self, device_address):
         async with self.lock:
+            print(f"REQUEST ADDRESS: {device_address}")
+            print(f"ALL DATA: {self.setting_info}")
             return deepcopy(self.setting_info.get(device_address, {}))
 
 # Initialize the centralized data storage
