@@ -127,7 +127,7 @@ async function connectToDevice(address: string, name: string) {
   } finally {
     setTimeout(() => {
       attemptToConnectDevice.value = '';
-    }, 5000);
+    }, 3000);
   }
 }
 

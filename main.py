@@ -131,6 +131,15 @@ async def get_device_info():
 
     return enriched_data
 
+async def disconnect_if_needed(device_address):
+    try:
+        client = BleakClient(device_address)
+        if await client.is_connected():
+            await client.disconnect()
+            log("BLE", f"🔴 Примусово відключено {device_address}.", force=True)
+    except Exception as e:
+        log("BLE", f"⚠️ Не вдалося відключити {device_address}: {e}", force=True)
+
 class DeviceRequest(BaseModel):
     address: str
     name: Optional[str] = None
@@ -156,6 +165,8 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
             task.cancel()
             del active_connections[device_address]
             log(device_name, f"🔴 {device_address} видалено з active_connections")
+        
+        await disconnect_if_needed(device_address)
 
         db.update_device_status(device_address, connected=False, enabled=False)
 
@@ -179,6 +190,7 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         if not device_address:
             raise HTTPException(status_code=400, detail="Device address is required.")
 
+        await disconnect_if_needed(device_address)
         log("/api/connect-device", f"🔍 Scanning for device {device_address}...", force=True)
 
         devices = await BleakScanner.discover()
