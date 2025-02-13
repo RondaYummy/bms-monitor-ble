@@ -25,7 +25,6 @@ CONFIG_CACHE_TIMESTAMP = 0
 CONFIG_CACHE_EXPIRY = 60
 
 DEVICE_CACHE = {}  # {address: {"data": device_data, "timestamp": last_update}}
-DEVICE_CACHE_TIMESTAMP = 0
 DEVICE_CACHE_EXPIRY = 60
 
 async def process_devices():
@@ -259,16 +258,15 @@ def set_all_devices_disconnected():
         print(f"❌ Error resetting device connection status: {e}")
 
 def get_all_devices(only_enabled: bool = False):
-    global DEVICE_CACHE, DEVICE_CACHE_TIMESTAMP
+    global DEVICE_CACHE
 
     now = time.time()
 
-    if (now - DEVICE_CACHE_TIMESTAMP) < DEVICE_CACHE_EXPIRY and all(
-        (now - data["timestamp"]) < DEVICE_CACHE_EXPIRY for data in DEVICE_CACHE.values()
-    ):
-        return list(DEVICE_CACHE[address]["data"] for address in DEVICE_CACHE.keys())
+    if DEVICE_CACHE and all((now - data["timestamp"]) < DEVICE_CACHE_EXPIRY for data in DEVICE_CACHE.values()):
+        return [device["data"] for device in DEVICE_CACHE.values()]
 
     print(f"FETCHING ALL DEVICES DATA...")
+
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -286,9 +284,9 @@ def get_all_devices(only_enabled: bool = False):
             cursor.execute(query, params)
             devices = cursor.fetchall()
 
+            now = time.time()
             DEVICE_CACHE.clear()
 
-            result = []
             for device in devices:
                 device_data = {
                     "id": device[0], "address": device[1], "name": device[2], "added_at": device[3],
@@ -299,10 +297,8 @@ def get_all_devices(only_enabled: bool = False):
                 }
 
                 DEVICE_CACHE[device[1]] = {"data": device_data, "timestamp": now}
-                result.append(device_data)
 
-            DEVICE_CACHE_TIMESTAMP = now
-            return result
+            return [device["data"] for device in DEVICE_CACHE.values()]
 
     except sqlite3.Error as e:
         print(f"❌ Error fetching devices: {e}")
@@ -315,6 +311,7 @@ def get_device_by_address(address):
 
     if address in DEVICE_CACHE and (now - DEVICE_CACHE[address]["timestamp"]) < DEVICE_CACHE_EXPIRY:
         return DEVICE_CACHE[address]["data"]
+
     print(f"{address}: FETCHING DEVICE BY ADDRESS...")
 
     try:
