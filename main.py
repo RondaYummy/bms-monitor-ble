@@ -174,27 +174,38 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
 async def connect_device(request: DeviceRequest, token: str = Depends(verify_token)):
     try:
         device_address = request.address.strip().lower()
-        device_name = request.name.strip()
+        device_name = request.name.strip() if request.name else device_address
 
         if not device_address:
             raise HTTPException(status_code=400, detail="Device address is required.")
+
+        log("/api/connect-device", f"🔍 Scanning for device {device_address}...", force=True)
+
+        devices = await BleakScanner.discover()
+        found_device = next((device for device in devices if device.address.lower() == device_address), None)
+
+        if not found_device:
+            log("/api/connect-device", f"✅ Device {device_address} not found...", force=True)
+            return JSONResponse(content={"error": f"Device {device_address} not found."}, status_code=404)
+
+        log("/api/connect-device", f"✅ Device {device_address} found, attempting connection...", force=True)
 
         existing_device = db.get_device_by_address(device_address)
         if not existing_device:
             existing_device = db.insert_device(address=device_address, name=device_name)
 
-        if existing_device:
-            if existing_device["connected"]:
-                return JSONResponse(content={"message": f"✅ Device {device_address} is already connected."}, status_code=200)
+        if existing_device and existing_device["connected"]:
+            return JSONResponse(content={"message": f"✅ Device {device_address} is already connected."}, status_code=200)
 
-        device = type("Device", (object,), {"address": device_address, "name": device_name})()
         db.update_device_status(device_address, connected=True, enabled=True)
-        asyncio.create_task(connect_and_run(device))
+
+        asyncio.create_task(connect_and_run(found_device))
 
         return {"message": f"🚀 Connection initiated for {device_address}. Check logs for updates."}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"❌ Error connecting to device: {str(e)}")
+        return JSONResponse(content={"error": f"❌ Error connecting to device: {str(e)}"}, status_code=500)
+
 
 @app.get("/api/devices")
 async def discover_devices():

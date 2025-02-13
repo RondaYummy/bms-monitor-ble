@@ -57,6 +57,9 @@ import { formatDuration, parseManufacturingDate } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
 import type { DeviceInfoMap } from '../models';
 import { eventBus } from "../eventBus";
+import { useQuasar } from 'quasar'
+
+const $q = useQuasar()
 
 const devicesList = ref();
 const attemptToConnectDevice = ref();
@@ -101,6 +104,17 @@ async function connectToDevice(address: string, name: string) {
       body: JSON.stringify({ address, name }),
     });
     checkResponse(response);
+
+    const data = await response.json();
+    if (data?.error) {
+      $q.notify({
+          message: data?.error,
+          color: 'red',
+          icon: 'warning',
+          position: 'top',
+          timeout: 2000,
+        });
+    }
   } catch (error) {
     console.error('Error connecting to device:', error);
   } finally {
