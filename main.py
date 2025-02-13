@@ -448,9 +448,9 @@ async def parse_setting_info(data, device_name, device_address):
         setting_info["timed_stored_data"] = bool(bitmask & 0b0000000100000000)  # bit8
         setting_info["charging_float_mode"] = bool(bitmask & 0b0000001000000000)  # bit9
 
-        log(device_name, "✅ Successfully disassembled Setting Info Frame:")
+        log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=True)
         for key, value in setting_info.items():
-            log(device_name, f"{key}: {value}")
+            log(device_name, f"{key}: {value}", force=True)
 
         return setting_info
 
@@ -601,7 +601,6 @@ async def connect_and_run(device):
         while True:  # Cycle to reconnect
             try:
                 device_info_data = db.get_device_by_address(device_address)
-                log("GGGG", f"device_info_data: {device_info_data}")
 
                 if not device_info_data:
                     device_info_data = db.insert_device(
