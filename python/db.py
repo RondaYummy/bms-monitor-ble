@@ -27,6 +27,9 @@ CONFIG_CACHE_EXPIRY = 60
 DEVICE_CACHE = {}  # {address: {"data": device_data, "timestamp": last_update}}
 DEVICE_CACHE_EXPIRY = 60
 
+ALERT_CACHE = {}  # {device_address: {error_code: {"timestamp": occurred_at, "id": alert_id}}}
+ALERT_CACHE_EXPIRY = 60
+
 async def process_devices():
     """Cyclically calls update_aggregated_data and saves the aggregated data."""
     global data_aggregator
@@ -406,21 +409,33 @@ def insert_device(
 
 
 def insert_alert_data(device_address, device_name, error_code, occurred_at, n_hours=1):
+    global ALERT_CACHE
+
+    now = datetime.now()
+    time_limit = now - timedelta(hours=n_hours)
+    time_limit_str = time_limit.strftime('%Y-%m-%d %H:%M:%S')
+
+    if device_address in ALERT_CACHE and error_code in ALERT_CACHE[device_address]:
+        cached_alert = ALERT_CACHE[device_address][error_code]
+        
+        if cached_alert["timestamp"] > time_limit_str:
+            raise ValueError(f"❌ Error: An alert for {device_address} with code {error_code} has already existed for {n_hours} hours.")
+
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
 
-            now = datetime.now()
-            time_limit = now - timedelta(hours=n_hours)
-            time_limit_str = time_limit.strftime('%Y-%m-%d %H:%M:%S')
-
             cursor.execute('''
-            SELECT id FROM error_notifications
+            SELECT id, occurred_at FROM error_notifications
             WHERE device_address = ? AND error_code = ? AND occurred_at > ?
             ''', (device_address, error_code, time_limit_str))
 
             existing = cursor.fetchone()
             if existing:
+                if device_address not in ALERT_CACHE:
+                    ALERT_CACHE[device_address] = {}
+                
+                ALERT_CACHE[device_address][error_code] = {"timestamp": existing[1], "id": existing[0]}
                 raise ValueError(f"❌ Error: An alert for {device_address} with code {error_code} has already existed for {n_hours} hours.")
 
             cursor.execute('''
@@ -428,6 +443,13 @@ def insert_alert_data(device_address, device_name, error_code, occurred_at, n_ho
             VALUES (?, ?, ?, ?)
             ''', (device_address, error_code, occurred_at, device_name))
             conn.commit()
+
+            alert_id = cursor.lastrowid
+            if device_address not in ALERT_CACHE:
+                ALERT_CACHE[device_address] = {}
+
+            ALERT_CACHE[device_address][error_code] = {"timestamp": occurred_at, "id": alert_id}
+
     except sqlite3.Error as e:
         print(f"Error inserting alerts data: {e}")
         raise
