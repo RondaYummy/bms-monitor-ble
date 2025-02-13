@@ -632,18 +632,14 @@ async def connect_and_run(device):
                             log(device.name, f"✅ Command successfully sent: {cell_info_command.hex()}", force=True)
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
 
-                        await asyncio.sleep(10)
+                        await asyncio.sleep(15)
 
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
-                # 🔽 Remove the device from `active_connections` so that `ble_main()` can scan it again
-                # if device_address in active_connections:
-                #     del active_connections[device_address]
-                #     log(device.name, f"❌ Device removed from active_connections.", force=True)
 
             finally:
-                log(device.name, "🔄 Retrying connection in 10 seconds...", force=True)
-                await asyncio.sleep(10)
+                log(device.name, "🔄 Retrying connection in 15 seconds...", force=True)
+                await asyncio.sleep(15)
 
 async def filter_devices(devices):
     allowed_devices = db.get_all_devices()
@@ -689,7 +685,7 @@ async def ble_main():
 
                 if not filtered_devices:
                     log("ble_main", "⚠️ No new JK-BMS BLE devices found.", force=True)
-                    await asyncio.sleep(10)
+                    await asyncio.sleep(15)
                     continue
                 log("ble_main", F"DEVICES: {filtered_devices}", force=True)
 
