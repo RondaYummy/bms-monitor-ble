@@ -360,7 +360,9 @@ def update_device(address: str, **kwargs):
         raise
 
 def update_device_status(address, connected: bool, enabled: bool):
+    global DEVICE_CACHE
     try:
+        now = time.time()
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
@@ -369,6 +371,9 @@ def update_device_status(address, connected: bool, enabled: bool):
             WHERE address = ?
             ''', (connected, enabled, address))
             conn.commit()
+
+            device_data = get_device_by_address(address, force_refresh=True)
+            DEVICE_CACHE[address] = {"data": device_data, "timestamp": now}
     except sqlite3.Error as e:
         print(f"❌ Error updating status: {e}")
         raise
