@@ -5,7 +5,10 @@
       <div class="column">
         <div class="row justify-between q-mb-10">
           <div class="column">
-            <q-badge :class="{ 'connected-device': device?.connected, 'disconnected-device': !device?.connected }"
+            <q-badge :class="{
+              'connected-device': device?.connected,
+              'disconnected-device': !device?.connected,
+            }"
                      class="q-mb-10 text-center"
                      color="cyan">
               {{ device.name }}
@@ -13,10 +16,12 @@
             <div>{{ device.vendor_id }}</div>
           </div>
           <div class="column">
-            <div class="q-mb-10">Hardware v.
+            <div class="q-mb-10">
+              Hardware v.
               <span class="unique">{{ device?.hardware_version }}</span>
             </div>
-            <div>Software v.
+            <div>
+              Software v.
               <span class="unique">{{ device?.software_version }}</span>
             </div>
           </div>
@@ -53,11 +58,11 @@
   </ul>
 </template>
 
-<script setup lang='ts'>
+<script setup lang="ts">
 import { formatDuration, parseManufacturingDate } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
 import type { DeviceInfoMap } from '../models';
-import { eventBus } from "../eventBus";
+import { eventBus } from '../eventBus';
 import { useQuasar } from 'quasar';
 
 const $q = useQuasar();
@@ -71,7 +76,7 @@ function checkResponse(response: Response) {
   if (response.status === 401) {
     sessionStorage.removeItem('access_token');
     sessionStorage.removeItem('access_token_timestamp');
-    eventBus.emit("session:remove", "access_token");
+    eventBus.emit('session:remove', 'access_token');
     throw new Error('Unauthorized: Access token has been removed.');
   }
   if (!response.ok) {
@@ -98,10 +103,10 @@ async function connectToDevice(address: string, name: string) {
   try {
     attemptToConnectDevice.value = address;
     const response = await fetch('/api/connect-device', {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${props.token}`
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${props.token}`,
       },
       body: JSON.stringify({ address, name }),
     });
@@ -137,10 +142,10 @@ async function disconnectDevice(address: string, name: string) {
   try {
     disconnectDeviceState.value = address;
     const response = await fetch('/api/disconnect-device', {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${props.token}`
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${props.token}`,
       },
       body: JSON.stringify({ address, name }),
     });
@@ -148,7 +153,9 @@ async function disconnectDevice(address: string, name: string) {
   } catch (error) {
     console.error('Error disconnect device info:', error);
   } finally {
-    disconnectDeviceState.value = '';
+    setTimeout(() => {
+      disconnectDeviceState.value = '';
+    }, 3000);
   }
 }
 
@@ -161,7 +168,7 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style scoped lang='scss'>
+<style scoped lang="scss">
 ul {
   list-style-type: none;
   gap: 15px;
@@ -177,7 +184,7 @@ ul {
 }
 
 li .connected-device::before {
-  content: "";
+  content: '';
   width: 8px;
   height: 8px;
   background-color: #0f0;
@@ -190,7 +197,7 @@ li .connected-device::before {
 }
 
 li .disconnected-device::before {
-  content: "";
+  content: '';
   width: 8px;
   height: 8px;
   background-color: #ff0266;

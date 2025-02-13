@@ -8,9 +8,6 @@ import yaml
 
 router = APIRouter()
 
-with open('configs/config.yaml', 'r') as file:
-    config = yaml.safe_load(file)
-
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
 
@@ -119,19 +116,19 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
         elif cell_info["emergency_time_countdown"] < 10:
             add_alert(alerts, "1025")
 
+        config = db.get_config()
         for alert in alerts:
             alert_id = int(alert['id'])
-            db.insert_alert_data(device_address, device_name, alert['id'], datetime.now(), config['alerts']['n_hours'])
-            await send_push_notifications(device_name, {"id": alert_id, "message": error_codes[alert_id]["message"]})
+            db.insert_alert_data(device_address, device_name, alert['id'], datetime.now(), config['n_hours'])
+            await send_push_notifications(device_name, {"id": alert_id, "message": error_codes[alert_id]["message"]}, config)
 
         return alerts
     except Exception as e:
         pass
 
-async def send_push_notifications(device_name: str, alert):
+async def send_push_notifications(device_name: str, alert, config):
     message = f"🚨 {device_name}: {alert['message']} (код: {alert['id']})"
     payload = json.dumps({"title": "🔋 Увага!", "body": message})
-    configs = db.get_config()
     vapid_private_key = config["VAPID_PRIVATE_KEY"]
 
     subscriptions = db.get_all_subscriptions()

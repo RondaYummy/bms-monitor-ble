@@ -5,6 +5,7 @@ import asyncio
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 import base64
+import time
 
 data_aggregator = defaultdict(lambda: {
     "device_name": None,
@@ -18,6 +19,10 @@ data_aggregator = defaultdict(lambda: {
 })
 
 DB_NAME = '/app/data/bms_data.db'
+
+CONFIG_CACHE = None
+CONFIG_CACHE_TIMESTAMP = 0
+CONFIG_CACHE_EXPIRY = 60
 
 async def process_devices():
     """Cyclically calls update_aggregated_data and saves the aggregated data."""
@@ -374,12 +379,11 @@ def insert_device(
             return get_device_by_address(address)
     
     except sqlite3.Error as e:
-        print(f"❌ Помилка при вставці пристрою: {e}")
+        print(f"❌ Error inserting the device: {e}")
         raise
 
 
 def insert_alert_data(device_address, device_name, error_code, occurred_at, n_hours=1):
-    """Adds a new record to the table."""
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -526,18 +530,26 @@ def get_all_subscriptions():
         return []
 
 def get_config():
+    global CONFIG_CACHE, CONFIG_CACHE_TIMESTAMP
+
+    if CONFIG_CACHE and (time.time() - CONFIG_CACHE_TIMESTAMP) < CONFIG_CACHE_EXPIRY:
+        return CONFIG_CACHE
+    print(f"Fetch config data...")
+
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours FROM configs LIMIT 1")
             config = cursor.fetchone()
             if config:
-                return {
+                CONFIG_CACHE = {
                     "password": config[0],
                     "VAPID_PUBLIC_KEY": config[1],
                     "VAPID_PRIVATE_KEY": config[2],
                     "n_hours": config[3],
                 }
+                CONFIG_CACHE_TIMESTAMP = time.time()
+                return CONFIG_CACHE
             else:
                 return None
     except sqlite3.Error as e:
@@ -553,6 +565,11 @@ def update_config(password=None, vapid_public=None, vapid_private=None, n_hours=
             existing_config = cursor.fetchone()
             if not existing_config:
                 raise ValueError("Config record not found!")
+            
+            if n_hours:
+                global CONFIG_CACHE, CONFIG_CACHE_TIMESTAMP
+                CONFIG_CACHE = None  # Clearing the cache after an update
+                CONFIG_CACHE_TIMESTAMP = 0
 
             updated_config = {
                 "password": password if password is not None else existing_config[0],
