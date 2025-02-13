@@ -62,6 +62,7 @@ async def login(request: Request):
     body = await request.json()
     password = body.get("password", "")
     config = db.get_config()
+    log("LOGIN", f"config: {config}")
     if not config or password != config.get("password"):
         raise HTTPException(status_code=401, detail="Invalid password")
 
