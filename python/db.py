@@ -263,7 +263,7 @@ def get_all_devices(only_enabled: bool = False):
     now = time.time()
 
     if DEVICE_CACHE and all((now - data["timestamp"]) < DEVICE_CACHE_EXPIRY for data in DEVICE_CACHE.values()):
-        return [device["data"] for device in DEVICE_CACHE.values()]
+        return list({tuple(device["data"].items()): device["data"] for device in DEVICE_CACHE.values()}.values())
 
     print(f"FETCHING ALL DEVICES DATA...")
 
@@ -298,7 +298,7 @@ def get_all_devices(only_enabled: bool = False):
 
                 DEVICE_CACHE[device[1]] = {"data": device_data, "timestamp": now}
 
-            return [device["data"] for device in DEVICE_CACHE.values()]
+            return list({tuple(device["data"].items()): device["data"] for device in DEVICE_CACHE.values()}.values())
 
     except sqlite3.Error as e:
         print(f"❌ Error fetching devices: {e}")
