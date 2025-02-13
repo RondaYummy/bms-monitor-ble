@@ -600,7 +600,7 @@ async def connect_and_run(device):
     async with device_locks[device_address]:
         while True:  # Cycle to reconnect
             try:
-                device_info_data = db.get_device_by_address(device_address)
+                device_info_data = db.get_device_by_address(device_address, force_refresh=True)
                 log("GGGG", f"device_info_data: {device_info_data}")
 
                 if not device_info_data:
@@ -623,10 +623,10 @@ async def connect_and_run(device):
 
                 if not device_info_data.get("enabled", False):
                     log(device.name, "❌ Device has been off. Stopping connecting...", force=True)
-                    # active_connections.pop(device_address, None)
-                    # device_locks.pop(device_address, None)
-                    # await disconnect_if_needed(device_address)
-                    # db.update_device_status(device_address, connected=False, enabled=False)
+                    active_connections.pop(device_address, None)
+                    device_locks.pop(device_address, None)
+                    await disconnect_if_needed(device_address)
+                    db.update_device_status(device_address, connected=False, enabled=False)
                     break
 
                 async with BleakClient(device.address) as client:
@@ -639,7 +639,7 @@ async def connect_and_run(device):
 
                     while True:
                         # Check if the device is still connected
-                        device_info_data = db.get_device_by_address(device.address)
+                        device_info_data = db.get_device_by_address(device.address, force_refresh=True)
                         if not device_info_data or not device_info_data.get("connected", False):
                             log(device.name, "❌ Device has been disconnected. Stopping polling.", force=True)
                             break

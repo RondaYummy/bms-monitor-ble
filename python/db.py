@@ -303,11 +303,11 @@ def get_all_devices(only_enabled: bool = False):
         print(f"❌ Error fetching devices: {e}")
         return []
 
-def get_device_by_address(address):
+def get_device_by_address(address, force_refresh: bool = False):
     global DEVICE_CACHE
     now = time.time()
 
-    if address in DEVICE_CACHE and (now - DEVICE_CACHE[address]["timestamp"]) < DEVICE_CACHE_EXPIRY:
+    if not force_refresh and address in DEVICE_CACHE and (now - DEVICE_CACHE[address]["timestamp"]) < DEVICE_CACHE_EXPIRY:
         return DEVICE_CACHE[address]["data"]
 
     try:
