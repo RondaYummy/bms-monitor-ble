@@ -5,6 +5,7 @@ from copy import deepcopy
 class DataStore:
     def __init__(self):
         self.cell_info = {}
+        self.setting_info = {}
         self.last_cell_info_update = {}
         self.response_buffers = {}
         self.active_tokens = {}
@@ -62,6 +63,14 @@ class DataStore:
     async def get_cell_info(self):
         async with self.lock:
             return deepcopy(self.cell_info)
+
+    async def update_setting_info(self, device_name, info):
+        async with self.lock:
+            self.setting_info[device_name] = info
+
+    async def get_setting_info(self, device_name):
+        async with self.lock:
+            return deepcopy(self.setting_info[device_name])
 
 # Initialize the centralized data storage
 data_store = DataStore()

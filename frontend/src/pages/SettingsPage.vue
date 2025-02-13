@@ -260,6 +260,7 @@ const alertsMain = ref<Alert[]>();
 const holdAlert = ref<Alert>();
 const token = useSessionStorage("access_token");
 const config = ref<Config>();
+const settings = ref();
 
 function filterAlertsByLevel(level?: string): void {
   console.log('Selected level: ', level);
@@ -284,8 +285,8 @@ function formatTimestamp(timestamp?: any): string {
   }
 
   const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Місяці від 0 до 11
-  const year = String(date.getFullYear()).slice(2); // Останні дві цифри року
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months from 0 to 11
+  const year = String(date.getFullYear()).slice(2); // Last two digits of the year
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
 
@@ -334,6 +335,18 @@ async function fetchConfigs() {
     checkResponse(response);
     const data = await response.json();
     config.value = data;
+  } catch (error) {
+    console.error('Error fetching configs:', error);
+  }
+}
+
+async function fetchSettings() {
+  try {
+    const response = await fetch('/api/device-settings');
+    checkResponse(response);
+    const data = await response.json();
+    settings.value = data;
+    console.log('Received settings: ' + settings.value);
   } catch (error) {
     console.error('Error fetching configs:', error);
   }
@@ -428,6 +441,7 @@ async function connectToDevice(address: string, name: string) {
 
 fetchErrorAlerts();
 fetchConfigs();
+fetchSettings();
 </script>
 
 <style scoped lang='scss'>
