@@ -109,6 +109,7 @@ async def get_device_settings(address: str = Query(..., description="Device MAC 
     timeout = 20
     start_time = time.time()
 
+    print(f"SETTINGS: {await data_store.get_setting_info(device_address)}")
     while time.time() - start_time < timeout:
         updated_settings = await data_store.get_setting_info(device_address)
         if updated_settings:
