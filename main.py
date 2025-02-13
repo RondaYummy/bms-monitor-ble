@@ -623,10 +623,10 @@ async def connect_and_run(device):
 
                 if not device_info_data.get("enabled", False):
                     log(device.name, "❌ Device has been off. Stopping connecting...", force=True)
-                    active_connections.pop(device_address, None)
-                    device_locks.pop(device_address, None)
-                    await disconnect_if_needed(device_address)
-                    db.update_device_status(device_address, connected=False, enabled=False)
+                    # active_connections.pop(device_address, None)
+                    # device_locks.pop(device_address, None)
+                    # await disconnect_if_needed(device_address)
+                    # db.update_device_status(device_address, connected=False, enabled=False)
                     break
 
                 async with BleakClient(device.address) as client:
