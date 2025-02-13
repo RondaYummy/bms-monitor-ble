@@ -134,7 +134,7 @@ async def get_device_info():
 async def disconnect_if_needed(device_address):
     try:
         client = BleakClient(device_address)
-        if await client.is_connected():
+        if await client.is_connected:
             await client.disconnect()
             log("BLE", f"🔴 Примусово відключено {device_address}.", force=True)
     except Exception as e:
