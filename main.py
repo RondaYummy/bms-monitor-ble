@@ -86,37 +86,6 @@ async def get_configs():
         config.pop(key, None)
     return config
 
-@app.get("/api/device-settings")
-async def get_device_settings(address: str = Query(..., description="Device MAC address")):
-    device_address = address.strip().lower()
-
-    existing_device = db.get_device_by_address(device_address)
-    if not existing_device:
-        raise HTTPException(status_code=404, detail="🚫 Device not found in the database.")
-
-    log(device_address, f"📢 Requesting device settings...", force=True)
-
-    # setting_command = create_command(CMD_TYPE_SETTINGS)
-    # try:
-    #     async with BleakClient(device_address) as client:
-    #         await client.write_gatt_char(CHARACTERISTIC_UUID, setting_command)
-    #         log(device_address, f"✅ Setting Info command sent: {setting_command.hex()}", force=True)
-    # except Exception as e:
-    #     log(device_address, f"❌ Failed to send Setting Info command: {e}", force=True)
-    #     raise HTTPException(status_code=500, detail="❌ Failed to send Setting Info command.")
-
-    # Waiting for data to be updated in the database (maximum 20 seconds)
-    timeout = 30
-    start_time = time.time()
-
-    while time.time() - start_time < timeout:
-        updated_settings = await data_store.get_setting_info(device_address)
-        if updated_settings:
-            return updated_settings
-        await asyncio.sleep(1)  # Wait 1 second before retesting
-
-    raise HTTPException(status_code=408, detail="⏳ Timeout: Device settings were not updated in time.")
-
 @app.post("/api/configs", dependencies=[Depends(verify_token)])
 async def update_configs(request: ConfigUpdateRequest):
     updated_config = db.update_config(
@@ -254,6 +223,7 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
 
     except Exception as e:
         return JSONResponse(content={"error": f"❌ Error connecting to device: {str(e)}"}, status_code=500)
+
 
 @app.get("/api/devices")
 async def discover_devices():
@@ -479,7 +449,7 @@ async def parse_setting_info(data, device_name, device_address):
         setting_info["timed_stored_data"] = bool(bitmask & 0b0000000100000000)  # bit8
         setting_info["charging_float_mode"] = bool(bitmask & 0b0000001000000000)  # bit9
 
-        await data_store.update_setting_info(device_address, setting_info)
+        await data_store.update_setting_info(device_name, setting_info)
 
         log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=True)
         for key, value in setting_info.items():
@@ -680,13 +650,6 @@ async def connect_and_run(device):
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
                             log(device.name, f"📲 Device Info command sent: {device_info_command.hex()}", force=True)
-                            await asyncio.sleep(1)
-                        
-                        settings_info = await data_store.get_setting_info(device_address)
-                        if not settings_info:
-                            setting_command = create_command(CMD_TYPE_SETTINGS)
-                            await client.write_gatt_char(CHARACTERISTIC_UUID, setting_command)
-                            log(device.name, f"⚙️ Setting Info command sent: {setting_command.hex()}", force=True)
                             await asyncio.sleep(1)
 
                         # Checking whether to send cell_info_command
