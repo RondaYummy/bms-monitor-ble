@@ -86,7 +86,6 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
     else:
         return  # No data to save
 
-    # Generate timestamp
     timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
     
     try:
@@ -113,7 +112,7 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
 def get_connection():
     try:
         conn = sqlite3.connect(DB_NAME)
-        # conn.set_trace_callback(print)
+        conn.set_trace_callback(print)
         return conn
     except sqlite3.Error as e:
         print(f"Error connecting to database: {e}")
@@ -259,13 +258,10 @@ def set_all_devices_disconnected():
 
 def get_all_devices(only_enabled: bool = False):
     global DEVICE_CACHE
-
     now = time.time()
 
     if DEVICE_CACHE and all((now - data["timestamp"]) < DEVICE_CACHE_EXPIRY for data in DEVICE_CACHE.values()):
         return list({tuple(device["data"].items()): device["data"] for device in DEVICE_CACHE.values()}.values())
-
-    print(f"FETCHING ALL DEVICES DATA...")
 
     try:
         with get_connection() as conn:
@@ -306,13 +302,10 @@ def get_all_devices(only_enabled: bool = False):
 
 def get_device_by_address(address):
     global DEVICE_CACHE
-
     now = time.time()
 
     if address in DEVICE_CACHE and (now - DEVICE_CACHE[address]["timestamp"]) < DEVICE_CACHE_EXPIRY:
         return DEVICE_CACHE[address]["data"]
-
-    print(f"{address}: FETCHING DEVICE BY ADDRESS...")
 
     try:
         with get_connection() as conn:
