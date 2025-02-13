@@ -441,7 +441,7 @@ async function connectToDevice(address: string, name: string) {
 
 fetchErrorAlerts();
 fetchConfigs();
-// fetchSettings('c8:47:80:12:41:99'); // TODO
+fetchSettings('c8:47:80:12:41:99');
 </script>
 
 <style scoped lang='scss'>

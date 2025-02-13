@@ -98,6 +98,18 @@ async def update_configs(request: ConfigUpdateRequest):
         raise HTTPException(status_code=500, detail="Error updating config.")
     return {"message": "Configuration updated successfully", "config": updated_config}
 
+@app.get("/api/device-settings")
+async def get_device_settings(address: str = Query(..., description="Device MAC address")):
+    try:
+        device_address = address.strip().lower()
+        setting_info = await data_store.get_setting_info()
+        if not setting_info:
+            return JSONResponse(content={"message": "No settings available yet."}, status_code=404)
+
+        return setting_info
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting alert: {str(e)}")
+
 class DeleteAlertRequest(BaseModel):
     id: int
 @app.post("/api/error-alerts")
@@ -450,8 +462,6 @@ async def parse_setting_info(data, device_name, device_address):
         setting_info["charging_float_mode"] = bool(bitmask & 0b0000001000000000)  # bit9
 
         await data_store.update_setting_info(device_address, setting_info)
-        setting_info = await data_store.get_setting_info()
-        print(f"SETTINGS: {setting_info}")
 
         log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=True)
         for key, value in setting_info.items():
