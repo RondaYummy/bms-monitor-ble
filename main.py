@@ -109,9 +109,9 @@ async def get_device_settings(address: str = Query(..., description="Device MAC 
     timeout = 20
     start_time = time.time()
 
-    print(f"SETTINGS: {await data_store.get_setting_info(device_address)}")
+    updated_settingss = await data_store.get_setting_info(device_address)
+    print(f"SETTINGS: {updated_settingss}")
     while time.time() - start_time < timeout:
-        updated_settings = await data_store.get_setting_info(device_address)
         if updated_settings:
             return updated_settings
         await asyncio.sleep(1)  # Wait 1 second before retesting
