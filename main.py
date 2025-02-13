@@ -96,14 +96,14 @@ async def get_device_settings(address: str = Query(..., description="Device MAC 
 
     log(device_address, f"📢 Requesting device settings...", force=True)
 
-    setting_command = create_command(CMD_TYPE_SETTINGS)
-    try:
-        async with BleakClient(device_address) as client:
-            await client.write_gatt_char(CHARACTERISTIC_UUID, setting_command)
-            log(device_address, f"✅ Setting Info command sent: {setting_command.hex()}", force=True)
-    except Exception as e:
-        log(device_address, f"❌ Failed to send Setting Info command: {e}", force=True)
-        raise HTTPException(status_code=500, detail="❌ Failed to send Setting Info command.")
+    # setting_command = create_command(CMD_TYPE_SETTINGS)
+    # try:
+    #     async with BleakClient(device_address) as client:
+    #         await client.write_gatt_char(CHARACTERISTIC_UUID, setting_command)
+    #         log(device_address, f"✅ Setting Info command sent: {setting_command.hex()}", force=True)
+    # except Exception as e:
+    #     log(device_address, f"❌ Failed to send Setting Info command: {e}", force=True)
+    #     raise HTTPException(status_code=500, detail="❌ Failed to send Setting Info command.")
 
     # Waiting for data to be updated in the database (maximum 20 seconds)
     timeout = 20
