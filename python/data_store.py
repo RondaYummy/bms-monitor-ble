@@ -64,14 +64,14 @@ class DataStore:
         async with self.lock:
             return deepcopy(self.cell_info)
 
-    async def update_setting_info(self, device_name, info):
+    async def update_setting_info(self, device_address, info):
         async with self.lock:
-            self.setting_info[device_name] = info
+            self.setting_info[device_address] = info
 
-    async def get_setting_info(self, device_name):
+    async def get_setting_info(self, device_address):
         async with self.lock:
             print(f"SETTINGS INFO: {self.setting_info}")
-            return deepcopy(self.setting_info.get(device_name, {}))
+            return deepcopy(self.setting_info.get(device_address, {}))
 
 # Initialize the centralized data storage
 data_store = DataStore()

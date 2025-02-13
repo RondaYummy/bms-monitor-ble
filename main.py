@@ -480,7 +480,7 @@ async def parse_setting_info(data, device_name, device_address):
         setting_info["timed_stored_data"] = bool(bitmask & 0b0000000100000000)  # bit8
         setting_info["charging_float_mode"] = bool(bitmask & 0b0000001000000000)  # bit9
 
-        await data_store.update_setting_info(device_name, setting_info)
+        await data_store.update_setting_info(device_address, setting_info)
 
         log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=True)
         for key, value in setting_info.items():
