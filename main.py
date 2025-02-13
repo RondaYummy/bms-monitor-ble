@@ -687,7 +687,7 @@ async def connect_and_run(device):
                         if not settings_info:
                             setting_command = create_command(CMD_TYPE_SETTINGS)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, setting_command)
-                            log(device.name, f"⚙️ Setting Info command sent: {device_info_command.hex()}", force=True)
+                            log(device.name, f"⚙️ Setting Info command sent: {setting_command.hex()}", force=True)
                             await asyncio.sleep(1)
 
                         # Checking whether to send cell_info_command
