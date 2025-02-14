@@ -12,7 +12,7 @@
   </div>
 </template>
 
-<script setup>
+<script lang="ts" setup>
 const props = defineProps({
   title: String,
   value: Boolean,
@@ -34,7 +34,7 @@ const props = defineProps({
 input {
   height: 40px;
   left: 0;
-  opacity: 0;
+  opacity: 0 !important;
   position: absolute;
   top: 0;
   width: 40px;
@@ -129,8 +129,8 @@ label.toggle-item {
       border: 3px solid #fff;
       width: 2em;
       height: 2em;
-      top: .3em;
-      left: .3em;
+      top: 0.45em;
+      left: 0em;
       background: #fff;
     }
   }
