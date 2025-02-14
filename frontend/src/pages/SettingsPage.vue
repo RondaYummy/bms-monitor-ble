@@ -182,7 +182,8 @@
                    :disable="!token"
                    label="Зберегти налаштування" />
 
-            <q-btn-dropdown auto-close
+            <q-btn-dropdown class="q-mt-md"
+                            auto-close
                             stretch
                             flat
                             style='flex: 1 1 50%;'
@@ -199,13 +200,13 @@
                   <q-item-section>{{ setting?.name }}</q-item-section>
                 </q-item>
               </q-list>
-
-              <template v-if="currentSetting">
-                <pre>
-                {{ currentSetting }}
-                </pre>
-              </template>
             </q-btn-dropdown>
+
+            <template v-if="currentSetting">
+              <pre>
+              {{ currentSetting }}
+              </pre>
+            </template>
           </q-tab-panel>
 
           <q-tab-panel name="Devices">
@@ -368,7 +369,6 @@ async function fetchSettings() {
     checkResponse(response);
     const data = await response.json();
     settings.value = data;
-    console.log('Received settings: ' + settings.value);
   } catch (error) {
     console.error('Error fetching configs:', error);
   }
