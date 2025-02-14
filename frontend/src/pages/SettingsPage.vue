@@ -153,42 +153,13 @@
           </q-tab-panel>
 
           <q-tab-panel name="Settings">
-            <div class="column q-mt-md q-mb-md"
-                 v-if="config">
-              <div class="column">
-                <p>
-                  Періодичність отримання сповіщеннь ( Alerts ):
-
-                  <q-tooltip>
-                    Це значення задається в цілих годинах. Якщо встановлено 12
-                    годин, то ви не отримуватимете важливих сповіщень про стан
-                    батареї частіше ніж раз на 12 годин. Це зроблено, щоб
-                    уникнути надмірної кількості повідомлень у вашій скриньці.
-                  </q-tooltip>
-                </p>
-                <q-input :disable="!token"
-                         v-model.number="config.n_hours"
-                         type="number"
-                         filled />
-              </div>
-
-              <q-separator class="q-mt-md"
-                           color="orange"
-                           inset />
-            </div>
-
-            <q-btn @click="updateConfigs"
-                   color="black"
-                   :disable="!token"
-                   label="Зберегти налаштування" />
-
             <q-btn-dropdown v-if="settings?.length"
                             class="q-mt-md"
                             auto-close
                             stretch
                             flat
                             style='flex: 1 1 50%;'
-                            label="Devices">
+                            label="Оберіть пристрій">
 
               <q-list v-if="settings?.length">
                 <q-item clickable
@@ -227,6 +198,39 @@
               <ToggleButton :value="currentSetting?.charging_float_mode"
                             title="Charging Float Mode" />
             </template>
+
+            <q-separator class="q-mt-md"
+                         color="orange"
+                         inset />
+
+            <div class="column q-mt-md q-mb-md"
+                 v-if="config">
+              <div class="column">
+                <p>
+                  Періодичність отримання сповіщеннь ( Alerts ):
+
+                  <q-tooltip>
+                    Це значення задається в цілих годинах. Якщо встановлено 12
+                    годин, то ви не отримуватимете важливих сповіщень про стан
+                    батареї частіше ніж раз на 12 годин. Це зроблено, щоб
+                    уникнути надмірної кількості повідомлень у вашій скриньці.
+                  </q-tooltip>
+                </p>
+                <q-input :disable="!token"
+                         v-model.number="config.n_hours"
+                         type="number"
+                         filled />
+              </div>
+
+              <q-separator class="q-mt-md"
+                           color="orange"
+                           inset />
+            </div>
+
+            <q-btn @click="updateConfigs"
+                   color="black"
+                   :disable="!token"
+                   label="Зберегти налаштування" />
           </q-tab-panel>
 
           <q-tab-panel name="Devices">
