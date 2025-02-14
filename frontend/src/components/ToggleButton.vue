@@ -1,9 +1,9 @@
 <template>
   <div class="toggle-wrapper">
-    <span class="name">{{ props?.title }}</span>
+    <span class="name">{{ title }}</span>
     <div class="toggle transparent">
       <input disabled
-             :checked="props?.value"
+             :checked="checked"
              id="transparent"
              type="checkbox" />
       <label class="toggle-item"
@@ -13,11 +13,16 @@
 </template>
 
 <script lang="ts" setup>
+import { ref, watch } from 'vue';
+
 const props = defineProps({
   title: String,
   value: Boolean,
 });
-
+const checked = ref(props.value);
+watch(() => props.value, (newValue) => {
+  checked.value = newValue;
+});
 </script>
 
 <style scoped lang="scss">
@@ -83,42 +88,6 @@ label.toggle-item {
   }
 }
 
-.normal {
-  label {
-    background: #af4c4c;
-    border: .5px solid rgba(117, 117, 117, 0.31);
-    box-shadow: inset 0px 0px 4px 0px rgba(0, 0, 0, 0.2), 0 -3px 4px rgba(0, 0, 0, 0.15);
-
-    &:before {
-      border: none;
-      width: 2.5em;
-      height: 2.5em;
-      box-shadow: inset 0.5px -1px 1px rgba(0, 0, 0, 0.35);
-      background: #fff;
-      transform: rotate(-25deg);
-    }
-
-    &:after {
-      background: transparent;
-      height: calc(100% + 8px);
-      border-radius: 30px;
-      top: -5px;
-      width: calc(100% + 8px);
-      left: -4px;
-      z-index: 0;
-      box-shadow: inset 0px 2px 4px -2px rgba(0, 0, 0, 0.2), 0px 1px 2px 0px rgba(151, 151, 151, 0.2);
-    }
-  }
-}
-
-#normal:checked+label {
-  background: #4caf50;
-
-  &:before {
-    left: 67px;
-  }
-}
-
 .transparent {
   label {
     background: transparent;
@@ -140,5 +109,19 @@ label.toggle-item {
   &:before {
     transform: translateX(59px);
   }
+}
+
+input[type="checkbox"]:not(:checked) {
+  border: 3px solid #808080;
+  color: #808080;
+}
+
+input:disabled+.toggle-item {
+  border: 3px solid #808080 !important;
+  color: #808080 !important;
+}
+
+input:disabled+.toggle-item::before {
+  background-color: #808080 !important;
 }
 </style>
