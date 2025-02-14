@@ -204,10 +204,6 @@
             </q-btn-dropdown>
 
             <template v-if="currentSetting">
-              <pre>
-              {{ currentSetting }}
-              </pre>
-
               <ToggleButton :value="currentSetting?.charge_switch"
                             title="Charge" />
               <ToggleButton :value="currentSetting?.discharge_switch"
