@@ -1,6 +1,5 @@
 import asyncio
 from datetime import datetime
-import time
 import yaml
 from uuid import uuid4
 from typing import Optional
@@ -24,6 +23,7 @@ from fastapi import Body
 from python.colors import *
 import python.db as db
 import python.battery_alerts as alerts
+from python.push_notifications import send_push_startup
 from python.data_store import data_store
 
 with open('configs/error_codes.yaml', 'r') as file:
@@ -52,6 +52,14 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(ble_main())
+    asyncio.create_task(db.process_devices())
+
+    config = db.get_config()
+    send_push_startup(config)
 
 async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(auth_scheme)):
     token = credentials.credentials
@@ -280,11 +288,6 @@ async def get_cell_info(days: int = Query(..., ge=1, description="Number of days
     if not aggregated_data:
         return JSONResponse(content={"message": "No aggregated data available yet."}, status_code=404)
     return aggregated_data
-
-@app.on_event("startup")
-async def startup_event():
-    asyncio.create_task(ble_main())
-    asyncio.create_task(db.process_devices())
 
 def calculate_crc(data):
     return sum(data) % 256
@@ -791,7 +794,6 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
 def start_services():
     db.create_table()
     db.set_all_devices_disconnected()
-    db.get_config()
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 if __name__ == "__main__":
