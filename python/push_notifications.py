@@ -51,15 +51,14 @@ async def send_push_alerts(device_name: str, alert, config):
     payload = json.dumps({"title": "🔋 Увага!", "body": message})
     subscriptions = db.get_all_subscriptions()
 
-    vapid_private_key_pem = config["VAPID_PRIVATE_KEY"]
-    private_key_pem = vapid_private_key_pem.replace("-----BEGIN PRIVATE KEY-----", "").replace("-----END PRIVATE KEY-----", "").strip()
-    private_key_bytes = base64.b64decode(private_key_pem)
+    VAPID_PRIVATE_KEY = config["VAPID_PRIVATE_KEY"]
+
     for sub in subscriptions:
         try:
             webpush(
                 subscription_info=sub,
                 data=payload,
-                vapid_private_key=private_key_bytes,
+                vapid_private_key=VAPID_PRIVATE_KEY,
                 vapid_claims=VAPID_CLAIMS
             )
         except WebPushException as e:
@@ -71,17 +70,15 @@ async def send_push_alerts(device_name: str, alert, config):
 async def send_push_startup(config):
     payload = json.dumps({"title": "📣 Reboot!", "body": "The server has been successfully launched and is starting to work..."})
     subscriptions = db.get_all_subscriptions()
-
-    vapid_private_key_pem = config["VAPID_PRIVATE_KEY"]
-    private_key_pem = vapid_private_key_pem.replace("-----BEGIN PRIVATE KEY-----", "").replace("-----END PRIVATE KEY-----", "").strip()
-    private_key_bytes = base64.b64decode(private_key_pem)
+    VAPID_PRIVATE_KEY = config["VAPID_PRIVATE_KEY"]
+    print(f"VAPID_PRIVATE_KEY: {VAPID_PRIVATE_KEY}")
 
     for sub in subscriptions:
         try:
             webpush(
                 subscription_info=sub,
                 data=payload,
-                vapid_private_key=private_key_bytes,
+                vapid_private_key=VAPID_PRIVATE_KEY,
                 vapid_claims=VAPID_CLAIMS
             )
         except WebPushException as e:
