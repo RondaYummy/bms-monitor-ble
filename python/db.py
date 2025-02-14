@@ -189,11 +189,11 @@ def create_table():
             ''')
             cursor.execute("SELECT COUNT(*) FROM configs")
             if cursor.fetchone()[0] == 0:
-                vapid_public, vapid_private = generate_vapid_keys()
+                private_pem, public_base64 = generate_vapid_keys()
                 cursor.execute('''
                 INSERT INTO configs (password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours)
                 VALUES (?, ?, ?, ?)
-                ''', ('123456', vapid_public, vapid_private, 12))
+                ''', ('123456', private_pem, public_base64, 12))
 
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS devices (
