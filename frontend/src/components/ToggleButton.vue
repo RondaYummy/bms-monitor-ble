@@ -123,5 +123,6 @@ input:disabled+.toggle-item {
 
 input:disabled+.toggle-item::before {
   background-color: #808080 !important;
+  border: 3px solid #808080 !important;
 }
 </style>
