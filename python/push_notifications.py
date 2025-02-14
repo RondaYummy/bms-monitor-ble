@@ -3,6 +3,7 @@ from pywebpush import webpush, WebPushException
 import python.db as db
 from fastapi import APIRouter, HTTPException
 from cryptography.hazmat.primitives import serialization
+import base64
 
 router = APIRouter()
 
@@ -49,13 +50,16 @@ async def send_push_alerts(device_name: str, alert, config):
     message = f"🚨 {device_name}: {alert['message']} (код: {alert['id']})"
     payload = json.dumps({"title": "🔋 Увага!", "body": message})
     subscriptions = db.get_all_subscriptions()
-    private_key_der = convert_pem_to_der(config["VAPID_PRIVATE_KEY"])
+
+    vapid_private_key_pem = config["VAPID_PRIVATE_KEY"]
+    private_key_pem = vapid_private_key_pem.replace("-----BEGIN PRIVATE KEY-----", "").replace("-----END PRIVATE KEY-----", "").strip()
+    private_key_bytes = base64.b64decode(private_key_pem)
     for sub in subscriptions:
         try:
             webpush(
                 subscription_info=sub,
                 data=payload,
-                vapid_private_key=private_key_der,
+                vapid_private_key=private_key_bytes,
                 vapid_claims=VAPID_CLAIMS
             )
         except WebPushException as e:
@@ -67,14 +71,17 @@ async def send_push_alerts(device_name: str, alert, config):
 async def send_push_startup(config):
     payload = json.dumps({"title": "📣 Reboot!", "body": "The server has been successfully launched and is starting to work..."})
     subscriptions = db.get_all_subscriptions()
-    private_key_der = convert_pem_to_der(config["VAPID_PRIVATE_KEY"])
+
+    vapid_private_key_pem = config["VAPID_PRIVATE_KEY"]
+    private_key_pem = vapid_private_key_pem.replace("-----BEGIN PRIVATE KEY-----", "").replace("-----END PRIVATE KEY-----", "").strip()
+    private_key_bytes = base64.b64decode(private_key_pem)
 
     for sub in subscriptions:
         try:
             webpush(
                 subscription_info=sub,
                 data=payload,
-                vapid_private_key=private_key_der,
+                vapid_private_key=private_key_bytes,
                 vapid_claims=VAPID_CLAIMS
             )
         except WebPushException as e:
