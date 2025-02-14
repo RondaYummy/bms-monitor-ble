@@ -32,7 +32,7 @@ const props = defineProps({
 }
 
 input {
-  height: 40px;
+  height: 15px;
   left: 0;
   opacity: 0 !important;
   position: absolute;
@@ -130,7 +130,7 @@ label.toggle-item {
       width: 2em;
       height: 2em;
       top: 0.45em;
-      left: 0em;
+      left: 0.21em;
       background: #fff;
     }
   }
