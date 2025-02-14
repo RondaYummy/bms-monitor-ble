@@ -13,8 +13,13 @@ VAPID_CLAIMS = {
 def convert_pem_to_der(private_pem: str) -> bytes:
     """Конвертує приватний ключ у форматі PEM у DER"""
     try:
+        if isinstance(private_pem, bytes):
+            pem_data = private_pem
+        else:
+            pem_data = private_pem.encode("utf-8")
+
         private_key = serialization.load_pem_private_key(
-            private_pem.encode("utf-8"),
+            pem_data,
             password=None
         )
         return private_key.private_bytes(
