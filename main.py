@@ -3,7 +3,6 @@ from datetime import datetime
 import yaml
 from uuid import uuid4
 from typing import Optional
-from python.battery_alerts import router as alerts_router
 
 import uvicorn
 from bleak import BleakClient, BleakScanner
@@ -24,6 +23,7 @@ from python.colors import *
 import python.db as db
 import python.battery_alerts as alerts
 from python.push_notifications import send_push_startup
+from python.push_notifications import router as alerts_router
 from python.data_store import data_store
 
 with open('configs/error_codes.yaml', 'r') as file:
