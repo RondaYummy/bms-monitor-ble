@@ -667,6 +667,13 @@ async def connect_and_run(device):
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
                             log(device.name, f"📲 Device Info command sent: {device_info_command.hex()}", force=True)
                             await asyncio.sleep(1)
+                        
+                        settings_info = await data_store.get_setting_info_by_address(device_address)
+                        if not settings_info:
+                            setting_info_command = create_command(CMD_TYPE_SETTINGS)
+                            await client.write_gatt_char(CHARACTERISTIC_UUID, setting_info_command)
+                            log(device.name, f"⚙️ Setting Info command sent: {setting_info_command.hex()}", force=True)
+                            await asyncio.sleep(1)  # Delay before 0x97
 
                         # Checking whether to send cell_info_command
                         last_update = await data_store.get_last_cell_info_update(device.name)
@@ -685,7 +692,6 @@ async def connect_and_run(device):
 
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
-
             finally:
                 log(device.name, "🔄 Retrying connection in 10 seconds...", force=True)
                 await asyncio.sleep(10)

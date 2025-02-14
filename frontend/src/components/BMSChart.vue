@@ -108,9 +108,9 @@ const chartOptions = ref({
     intersect: false,
     theme: 'dark',
     y: [{
-      formatter: (val: number) => `${val?.toFixed(2)} A`,
-    }, {
       formatter: (val: number) => `${val?.toFixed(2)} W`,
+    }, {
+      formatter: (val: number) => `${val?.toFixed(2)} A`,
     }],
     x: {
       formatter: (value: string) => {
@@ -216,14 +216,14 @@ async function fetchDataAndProcess(days: number = 1) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
     series.value = [
-      // {
-      //   name: 'Current',
-      //   data: currentSeries,
-      // },
       {
         name: 'Battery Power',
         data: powerSeries,
       },
+      // {
+      //   name: 'Current',
+      //   data: currentSeries,
+      // },
     ];
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -248,14 +248,14 @@ watch(() => props.tab, async (newTab) => {
     const { currentSeries, powerSeries } = processAggregatedData(data.value, newTab);
 
     series.value = [
-      // {
-      //   name: 'Current',
-      //   data: currentSeries,
-      // },
       {
         name: 'Battery Power',
         data: powerSeries,
       },
+      // {
+      //   name: 'Current',
+      //   data: currentSeries,
+      // },
     ];
   } catch (error) {
     console.error('Error processing data:', error);
