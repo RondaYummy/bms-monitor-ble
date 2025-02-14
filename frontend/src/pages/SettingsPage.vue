@@ -153,9 +153,6 @@
           </q-tab-panel>
 
           <q-tab-panel name="Settings">
-            <div class="text-h6">Settings</div>
-            Тут будуть ваші налаштування...
-
             <div class="column q-mt-md q-mb-md"
                  v-if="config">
               <div class="column">
@@ -180,11 +177,35 @@
                            inset />
             </div>
 
-
             <q-btn @click="updateConfigs"
                    color="black"
                    :disable="!token"
                    label="Зберегти налаштування" />
+
+            <q-btn-dropdown auto-close
+                            stretch
+                            flat
+                            style='flex: 1 1 50%;'
+                            label="Devices">
+
+              <q-list v-if="settings">
+                <q-item clickable
+                        v-for="setting of settings"
+                        class="text-black"
+                        :key="setting?.address"
+                        :name="setting?.name"
+                        :label="setting?.name"
+                        @click="currentSetting = setting">
+                  <q-item-section>{{ setting?.name }}</q-item-section>
+                </q-item>
+              </q-list>
+
+              <template v-if="currentSetting">
+                <pre>
+                {{ currentSetting }}
+                </pre>
+              </template>
+            </q-btn-dropdown>
           </q-tab-panel>
 
           <q-tab-panel name="Devices">
@@ -261,6 +282,7 @@ const holdAlert = ref<Alert>();
 const token = useSessionStorage("access_token");
 const config = ref<Config>();
 const settings = ref();
+const currentSetting = ref();
 
 function filterAlertsByLevel(level?: string): void {
   console.log('Selected level: ', level);
@@ -340,9 +362,9 @@ async function fetchConfigs() {
   }
 }
 
-async function fetchSettings(address: string) {
+async function fetchSettings() {
   try {
-    const response = await fetch('/api/device-settings?address=' + address);
+    const response = await fetch('/api/device-settings');
     checkResponse(response);
     const data = await response.json();
     settings.value = data;
@@ -365,7 +387,6 @@ async function updateConfigs() {
     checkResponse(response);
     const data = await response.json();
     config.value = data;
-    console.log('Config updated:', data);
   } catch (error) {
     console.error('Error updating configs:', error);
   }
@@ -400,8 +421,8 @@ const login = async (pwd: string) => {
   const data = await response.json();
   sessionStorage.setItem("access_token", data.access_token);
   token.value = data?.access_token;
-  console.log("Login successful");
   password.value = '';
+  console.log("Login successful");
   return true;
 };
 
@@ -441,7 +462,7 @@ async function connectToDevice(address: string, name: string) {
 
 fetchErrorAlerts();
 fetchConfigs();
-fetchSettings('c8:47:80:12:41:99');
+fetchSettings();
 </script>
 
 <style scoped lang='scss'>

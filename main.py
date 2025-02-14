@@ -99,9 +99,8 @@ async def update_configs(request: ConfigUpdateRequest):
     return {"message": "Configuration updated successfully", "config": updated_config}
 
 @app.get("/api/device-settings")
-async def get_device_settings(address: str = Query(..., description="Device MAC address")):
+async def get_device_settings():
     try:
-        device_address = address.strip().lower()
         setting_info = await data_store.get_setting_info()
         if not setting_info:
             return JSONResponse(content={"message": "No settings available yet."}, status_code=404)
