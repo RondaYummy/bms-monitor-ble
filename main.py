@@ -59,7 +59,6 @@ async def startup_event():
     asyncio.create_task(db.process_devices())
 
     config = db.get_config()
-    print(f"config: {config}")
     await send_push_startup(config)
 
 async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(auth_scheme)):

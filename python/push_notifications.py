@@ -46,14 +46,16 @@ async def send_push_alerts(device_name: str, alert, config):
     payload = json.dumps({"title": "🔋 Увага!", "body": message})
     subscriptions = db.get_all_subscriptions()
 
-    VAPID_PRIVATE_KEY = config["VAPID_PRIVATE_KEY"]
+    vapid_private_key_pem = config["VAPID_PRIVATE_KEY"]
+    private_key_der = convert_pem_to_der(vapid_private_key_pem)
+    private_key_base64 = convert_der_to_base64(private_key_der)
 
     for sub in subscriptions:
         try:
             webpush(
                 subscription_info=sub,
                 data=payload,
-                vapid_private_key=VAPID_PRIVATE_KEY,
+                vapid_private_key=private_key_base64,
                 vapid_claims=VAPID_CLAIMS
             )
         except WebPushException as e:
@@ -68,7 +70,6 @@ async def send_push_startup(config):
     vapid_private_key_pem = config["VAPID_PRIVATE_KEY"]
     private_key_der = convert_pem_to_der(vapid_private_key_pem)
     private_key_base64 = convert_der_to_base64(private_key_der)
-    print(f"VAPID_PRIVATE_KEY: {private_key_der}")
 
     for sub in subscriptions:
         try:
