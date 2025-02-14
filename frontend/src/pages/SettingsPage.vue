@@ -154,7 +154,7 @@
 
           <q-tab-panel name="Settings">
             <q-btn-dropdown v-if="settings?.length"
-                            class="q-mt-md"
+                            class="q-mb-md"
                             auto-close
                             stretch
                             flat
