@@ -3,12 +3,17 @@ from pywebpush import webpush, WebPushException
 import python.db as db
 from fastapi import APIRouter, HTTPException
 from cryptography.hazmat.primitives import serialization
+import base64
 
 router = APIRouter()
 
 VAPID_CLAIMS = {
     "sub": "mailto:halevych.dev@gmail.com"
 }
+
+
+def convert_der_to_base64(der_key: bytes) -> str:
+    return base64.urlsafe_b64encode(der_key).decode("utf-8").rstrip("=")
 
 def convert_pem_to_der(private_pem: str) -> bytes:
     private_key = serialization.load_pem_private_key(
@@ -62,6 +67,7 @@ async def send_push_startup(config):
     subscriptions = db.get_all_subscriptions()
     vapid_private_key_pem = config["VAPID_PRIVATE_KEY"]
     private_key_der = convert_pem_to_der(vapid_private_key_pem)
+    private_key_base64 = convert_der_to_base64(private_key_der)
     print(f"VAPID_PRIVATE_KEY: {private_key_der}")
 
     for sub in subscriptions:
@@ -69,7 +75,7 @@ async def send_push_startup(config):
             webpush(
                 subscription_info=sub,
                 data=payload,
-                vapid_private_key=private_key_der,
+                vapid_private_key=private_key_base64,
                 vapid_claims=VAPID_CLAIMS
             )
         except WebPushException as e:
