@@ -190,7 +190,7 @@
                             style='flex: 1 1 50%;'
                             label="Devices">
 
-              <q-list v-if="settings">
+              <q-list v-if="settings?.length">
                 <q-item clickable
                         v-for="setting of settings"
                         class="text-black"
