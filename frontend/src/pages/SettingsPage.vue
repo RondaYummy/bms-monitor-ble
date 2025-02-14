@@ -182,7 +182,8 @@
                    :disable="!token"
                    label="Зберегти налаштування" />
 
-            <q-btn-dropdown class="q-mt-md"
+            <q-btn-dropdown v-if="currentSetting"
+                            class="q-mt-md"
                             auto-close
                             stretch
                             flat
