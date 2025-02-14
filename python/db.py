@@ -193,7 +193,7 @@ def create_table():
                 cursor.execute('''
                 INSERT INTO configs (password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours)
                 VALUES (?, ?, ?, ?)
-                ''', ('123456', private_pem, public_base64, 12))
+                ''', ('123456', public_base64, private_pem, 12))
 
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS devices (
