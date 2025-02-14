@@ -1,9 +1,9 @@
 <template>
   <div class="toggle-wrapper">
-    <span :class="{ disabled: !checked }"
+    <span :class="{ disabled: disabled }"
           class="name">{{ title }}</span>
     <div class="toggle transparent">
-      <input disabled
+      <input :disabled="disabled"
              :checked="checked"
              id="transparent"
              type="checkbox" />
@@ -21,6 +21,7 @@ const props = defineProps({
   value: Boolean,
 });
 const checked = ref(props.value);
+const disabled = ref(true);
 watch(() => props.value, (newValue) => {
   checked.value = newValue;
 });
