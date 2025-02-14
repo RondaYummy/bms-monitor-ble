@@ -206,6 +206,29 @@
               <pre>
               {{ currentSetting }}
               </pre>
+
+              <ToggleButton :value="currentSetting?.charge_switch"
+                            title="Charge" />
+              <ToggleButton :value="currentSetting?.discharge_switch"
+                            title="Discharge" />
+              <ToggleButton :value="currentSetting?.balancer_switch"
+                            title="Balance" />
+              <!-- <ToggleButton :value="currentSetting?."
+                            title="Emergency" /> -->
+              <ToggleButton :value="currentSetting?.heating_enabled"
+                            title="Heating" />
+              <ToggleButton :value="currentSetting?.disable_temperature_sensors"
+                            title="Disable Temp. Sensor" />
+              <ToggleButton :value="currentSetting?.display_always_on"
+                            title="Display Always On" />
+              <ToggleButton :value="currentSetting?.special_charger"
+                            title="Special Charger On" />
+              <ToggleButton :value="currentSetting?.smart_sleep"
+                            title="Smart Sleep On" />
+              <ToggleButton :value="currentSetting?.timed_stored_data"
+                            title="Timed Stored Data" />
+              <ToggleButton :value="currentSetting?.charging_float_mode"
+                            title="Charging Float Mode" />
             </template>
           </q-tab-panel>
 
@@ -266,6 +289,7 @@ import { ref } from 'vue';
 import { useSessionStorage } from '../helpers/utils';
 import type { Alert, Device, Config } from '../models';
 import DevicesList from '../components/DevicesList.vue';
+import ToggleButton from '../components/ToggleButton.vue';
 import { eventBus } from "../eventBus";
 
 const tab = ref('Alerts');
