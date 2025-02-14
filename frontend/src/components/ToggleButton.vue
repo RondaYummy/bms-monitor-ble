@@ -69,7 +69,7 @@ label.toggle-item {
   height: 3em;
   display: inline-block;
   border-radius: 50px;
-  margin: 40px;
+  margin: 5px;
   position: relative;
   transition: all .3s ease;
   transform-origin: 20% center;
@@ -111,13 +111,12 @@ label.toggle-item {
   }
 }
 
-input[type="checkbox"]:not(:checked) {
-  border: 3px solid #808080;
-  color: #808080;
-}
-
 input:disabled+.toggle-item {
   border: 3px solid #808080 !important;
+  color: #808080 !important;
+}
+
+input:disabled+.name {
   color: #808080 !important;
 }
 
