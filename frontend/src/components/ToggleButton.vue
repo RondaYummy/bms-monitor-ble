@@ -1,6 +1,7 @@
 <template>
   <div class="toggle-wrapper">
-    <span class="name">{{ title }}</span>
+    <span :class="{ disabled: !checked }"
+          class="name">{{ title }}</span>
     <div class="toggle transparent">
       <input disabled
              :checked="checked"
@@ -116,7 +117,7 @@ input:disabled+.toggle-item {
   color: #808080 !important;
 }
 
-input:disabled+.name {
+.disabled {
   color: #808080 !important;
 }
 
