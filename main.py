@@ -682,11 +682,11 @@ async def connect_and_run(device):
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
                             await asyncio.sleep(2)
 
-                        settings_info = await data_store.get_setting_info_by_address(device_address)
-                        if not settings_info:
-                            setting_info_command = create_command(CMD_TYPE_SETTINGS)
-                            await client.write_gatt_char(CHARACTERISTIC_UUID, setting_info_command)
-                            log(device.name, f"⚙️ Setting Info command sent: {setting_info_command.hex()}", force=True)
+                            settings_info = await data_store.get_setting_info_by_address(device_address)
+                            if not settings_info:
+                                setting_info_command = create_command(CMD_TYPE_SETTINGS)
+                                await client.write_gatt_char(CHARACTERISTIC_UUID, setting_info_command)
+                                log(device.name, f"⚙️ Setting Info command sent: {setting_info_command.hex()}", force=True)
                             
                         await asyncio.sleep(10)
 
