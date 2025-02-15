@@ -666,27 +666,27 @@ async def connect_and_run(device):
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
                             log(device.name, f"📲 Device Info command sent: {device_info_command.hex()}", force=True)
-                            await asyncio.sleep(1)
+                            await asyncio.sleep(2)
 
                         # Checking whether to send cell_info_command
                         last_update = await data_store.get_last_cell_info_update(device.name)
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
-                            device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
-                            await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
-                            log(device.name, f"📢 Device Info command sent: {device_info_command.hex()}", force=True)
-                            await asyncio.sleep(1)  # Delay before 0x96
+                            # device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
+                            # await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
+                            # log(device.name, f"📢 Device Info command sent: {device_info_command.hex()}", force=True)
+                            # await asyncio.sleep(2)
 
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                             log(device.name, f"✅ Command successfully sent: {cell_info_command.hex()}", force=True)
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
+                            await asyncio.sleep(2)
 
                         settings_info = await data_store.get_setting_info_by_address(device_address)
                         if not settings_info:
                             setting_info_command = create_command(CMD_TYPE_SETTINGS)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, setting_info_command)
                             log(device.name, f"⚙️ Setting Info command sent: {setting_info_command.hex()}", force=True)
-                            await asyncio.sleep(1)  # Delay before 0x97
                             
                         await asyncio.sleep(10)
 
