@@ -1,23 +1,6 @@
 // app global css in SCSS form
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 
-/* Change autocomplete styles in WebKit */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-textarea:-webkit-autofill,
-textarea:-webkit-autofill:hover,
-textarea:-webkit-autofill:focus,
-select:-webkit-autofill,
-select:-webkit-autofill:hover,
-select:-webkit-autofill:focus {
-  background-color: #1e1f26 !important;
-  border: none;
-  -webkit-text-fill-color: white;
-  -webkit-box-shadow: 0 0 0px 1000px #1e1f26 inset;
-  transition: background-color 5000s ease-in-out 0s;
-}
-
 body {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   -webkit-font-smoothing: antialiased;
@@ -27,6 +10,22 @@ body {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: none;
   color: #faebd7;
+
+  /* Change autocomplete styles in WebKit */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill,
+  select:-webkit-autofill:hover,
+  select:-webkit-autofill:focus {
+    border: 3px solid #1e1f26;
+    -webkit-text-fill-color: white;
+    -webkit-box-shadow: 0 0 0px 1000px #1e1f26 inset;
+    transition: background-color 5000s ease-in-out 0s;
+  }
 }
 
 * {
