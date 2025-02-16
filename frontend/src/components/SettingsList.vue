@@ -8,10 +8,10 @@
                       icon="perm_identity"
                       label="Base Settings">
       <q-card>
-        <q-card-section>
+        <q-card-section style="background: transparent;">
           Base Settings
 
-          <div class="row justify-between">
+          <div class="row justify-between items-center">
             <span>Cell count:</span>
 
             <q-input outlined
@@ -28,7 +28,7 @@
                       icon="signal_wifi_off"
                       header-class="text-orange"
                       label="Advance Settings">
-      <q-card>
+      <q-card style="background: transparent;">
         <q-card-section>
           Advance Settings
         </q-card-section>
@@ -41,7 +41,7 @@
                       icon="drafts"
                       label="Con. Wire Res. Settings"
                       header-class="text-purple">
-      <q-card>
+      <q-card style="background: transparent;">
         <q-card-section>
           Con. Wire Res. Settings
         </q-card-section>
