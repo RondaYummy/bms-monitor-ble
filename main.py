@@ -659,6 +659,8 @@ async def connect_and_run(device):
                         device_info_data = db.get_device_by_address(device.address)
                         if not device_info_data or not device_info_data.get("connected", False):
                             log(device.name, "❌ Device has been disconnected. Stopping polling.", force=True)
+                            await data_store.clear_buffer(device.name)
+                            active_connections.pop(device_address, None)
                             break
 
                         if not device_info_data or "frame_type" not in device_info_data:
@@ -666,6 +668,13 @@ async def connect_and_run(device):
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
                             log(device.name, f"📲 Device Info command sent: {device_info_command.hex()}", force=True)
+                            await asyncio.sleep(2)
+
+                        settings_info = await data_store.get_setting_info_by_address(device_address)
+                        if not settings_info:
+                            setting_info_command = create_command(CMD_TYPE_SETTINGS)
+                            await client.write_gatt_char(CHARACTERISTIC_UUID, setting_info_command)
+                            log(device.name, f"⚙️ Setting Info command sent: {setting_info_command.hex()}", force=True)
                             await asyncio.sleep(2)
 
                         # Checking whether to send cell_info_command
@@ -681,12 +690,6 @@ async def connect_and_run(device):
                             log(device.name, f"✅ Command successfully sent: {cell_info_command.hex()}", force=True)
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
                             await asyncio.sleep(2)
-
-                            settings_info = await data_store.get_setting_info_by_address(device_address)
-                            if not settings_info:
-                                setting_info_command = create_command(CMD_TYPE_SETTINGS)
-                                await client.write_gatt_char(CHARACTERISTIC_UUID, setting_info_command)
-                                log(device.name, f"⚙️ Setting Info command sent: {setting_info_command.hex()}", force=True)
                             
                         await asyncio.sleep(10)
 
