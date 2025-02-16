@@ -197,6 +197,8 @@
                             title="Timed Stored Data" />
               <ToggleButton :value="currentSetting?.charging_float_mode"
                             title="Charging Float Mode" />
+
+              <SettingsList :settings="currentSetting" />
             </template>
 
             <q-separator class="q-mt-md"
@@ -210,10 +212,13 @@
                   Періодичність сповіщеннь ( Alerts ):
 
                   <q-tooltip>
-                    Це значення задається в цілих годинах. Якщо встановлено 12
-                    годин, то ви не отримуватимете важливих сповіщень про стан
+                    Це значення задається в цілих годинах. Якщо встановлено
+                    12
+                    годин, то ви не отримуватимете важливих сповіщень про
+                    стан
                     батареї частіше ніж раз на 12 годин. Це зроблено, щоб
-                    уникнути надмірної кількості повідомлень у вашій скриньці.
+                    уникнути надмірної кількості повідомлень у вашій
+                    скриньці.
                   </q-tooltip>
                 </p>
                 <q-input :disable="!token"
@@ -291,6 +296,7 @@ import { useSessionStorage } from '../helpers/utils';
 import type { Alert, Device, Config } from '../models';
 import DevicesList from '../components/DevicesList.vue';
 import ToggleButton from '../components/ToggleButton.vue';
+import SettingsList from '../components/SettingsList.vue';
 import { eventBus } from "../eventBus";
 
 const tab = ref('Alerts');
