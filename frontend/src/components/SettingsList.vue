@@ -7,11 +7,9 @@
                       expand-separator
                       icon="perm_identity"
                       label="Base Settings">
-      <q-card>
+      <q-card style="background: transparent;">
         <q-card-section style="background: transparent;">
-          Base Settings
-
-          <div class="row justify-between items-center">
+          <div class="row q-gutter-x-md justify-between items-center">
             <span>Cell count:</span>
 
             <q-input outlined
