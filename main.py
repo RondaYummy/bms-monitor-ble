@@ -676,7 +676,7 @@ async def connect_and_run(device):
                             setting_info_command = create_command(CMD_TYPE_SETTINGS)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, setting_info_command)
                             log(device.name, f"⚙️ Setting Info command sent: {setting_info_command.hex()}", force=True)
-                            await asyncio.sleep(2)
+                            await asyncio.sleep(10)
 
                         # Checking whether to send cell_info_command
                         last_update = await data_store.get_last_cell_info_update(device.name)
