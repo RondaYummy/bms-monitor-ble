@@ -8,7 +8,8 @@
                       icon="perm_identity"
                       label="Base Settings">
       <q-card style="background: transparent;">
-        <q-card-section style="background: transparent;">
+        <q-card-section class='column'
+                        style="background: transparent;">
           <div class="row q-gutter-x-md justify-between items-center">
             <span>Cell count:</span>
 
@@ -24,6 +25,16 @@
             <q-input :readonly="readonlyInputs"
                      outlined
                      v-model="st.nominal_battery_capacity"
+                     dense />
+          </div>
+
+          <div class="row q-gutter-x-md justify-between items-center">
+            <span>Balance Trig. Volt.{{ getUnit('balance_trigger_voltage')
+              }}:</span>
+
+            <q-input :readonly="readonlyInputs"
+                     outlined
+                     v-model="st.balance_trigger_voltage"
                      dense />
           </div>
         </q-card-section>
@@ -128,7 +139,7 @@ watch(() => props.settings, (newValue) => {
 
 <style scoped lang="scss">
 .q-input {
-  max-width: 50%;
+  max-width: 55px;
 }
 
 .q-input:focus-within {
