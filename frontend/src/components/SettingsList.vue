@@ -109,47 +109,6 @@
 
           <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
-              {{ getUnit('soc_100_voltage') }}
-            </span>
-
-            <q-input :readonly="readonlyInputs"
-                     outlined
-                     v-model="st.soc_100_voltage"
-                     dense />
-          </div>
-          <div class="row q-gutter-x-md justify-between items-center custom">
-            <span>
-              {{ getUnit('soc_100_voltage') }}
-            </span>
-
-            <q-input :readonly="readonlyInputs"
-                     outlined
-                     v-model="st.soc_100_voltage"
-                     dense />
-          </div>
-          <div class="row q-gutter-x-md justify-between items-center custom">
-            <span>
-              {{ getUnit('soc_100_voltage') }}
-            </span>
-
-            <q-input :readonly="readonlyInputs"
-                     outlined
-                     v-model="st.soc_100_voltage"
-                     dense />
-          </div>
-          <div class="row q-gutter-x-md justify-between items-center custom">
-            <span>
-              {{ getUnit('soc_100_voltage') }}
-            </span>
-
-            <q-input :readonly="readonlyInputs"
-                     outlined
-                     v-model="st.soc_100_voltage"
-                     dense />
-          </div>
-
-          <div class="row q-gutter-x-md justify-between items-center custom">
-            <span>
               {{ getUnit('cell_ovpr') }}
             </span>
 
