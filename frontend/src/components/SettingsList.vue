@@ -20,7 +20,9 @@
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center">
-            <span>Battery Capacity{{ getUnit('cell_count') }}:</span>
+            <span>
+              Battery Capacity{{ getUnit('cell_count') }}:
+            </span>
 
             <q-input :readonly="readonlyInputs"
                      outlined
@@ -29,12 +31,57 @@
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center">
-            <span>Balance Trig. Volt.{{ getUnit('balance_trigger_voltage')
-              }}:</span>
+            <span>
+              Balance Trig. Volt.{{ getUnit('balance_trigger_voltage') }}:
+            </span>
 
             <q-input :readonly="readonlyInputs"
                      outlined
                      v-model="st.balance_trigger_voltage"
+                     dense />
+          </div>
+
+          <div class="row q-gutter-x-md justify-between items-center">
+            <span>
+              Start Balance Volt.{{ getUnit('start_balance_voltage') }}:
+            </span>
+
+            <q-input :readonly="readonlyInputs"
+                     outlined
+                     v-model="st.start_balance_voltage"
+                     dense />
+          </div>
+
+          <div class="row q-gutter-x-md justify-between items-center">
+            <span>
+              Max Balance Current{{ getUnit('max_balance_current') }}:
+            </span>
+
+            <q-input :readonly="readonlyInputs"
+                     outlined
+                     v-model="st.max_balance_current"
+                     dense />
+          </div>
+
+          <div class="row q-gutter-x-md justify-between items-center">
+            <span>
+              Cell OVP{{ getUnit('cell_ovp') }}:
+            </span>
+
+            <q-input :readonly="readonlyInputs"
+                     outlined
+                     v-model="st.cell_ovp"
+                     dense />
+          </div>
+
+          <div class="row q-gutter-x-md justify-between items-center">
+            <span>
+              Vol. Cell RCV{{ getUnit('cell_request_charge_voltage') }}:
+            </span>
+
+            <q-input :readonly="readonlyInputs"
+                     outlined
+                     v-model="st.cell_request_charge_voltage"
                      dense />
           </div>
         </q-card-section>
