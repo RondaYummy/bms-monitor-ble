@@ -533,6 +533,8 @@ watch(
   },
   { deep: true },
 );
+
+console.log(props.settings, 'props.settings');
 </script>
 
 <style scoped lang="scss">
@@ -550,5 +552,9 @@ watch(
 
 .custom:focus-within span {
   color: green;
+}
+
+.custom {
+  margin: 5px 0px;
 }
 </style>
