@@ -12,7 +12,7 @@
           <div class="row q-gutter-x-md justify-between items-center">
             <span>Cell count:</span>
 
-            <q-input :disabled="disabledInputs"
+            <q-input :disable="disabledInputs"
                      outlined
                      v-model="st.cell_count"
                      dense />
