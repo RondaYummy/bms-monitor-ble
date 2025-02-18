@@ -531,10 +531,8 @@ watch(
     console.log('newValue: ', newValue);
     st.value = newValue;
   },
-  { deep: true },
+  { deep: true, immediate: true },
 );
-
-console.log(props.settings, 'props.settings');
 </script>
 
 <style scoped lang="scss">
