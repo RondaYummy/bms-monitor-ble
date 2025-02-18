@@ -17,6 +17,15 @@
                      v-model="st.cell_count"
                      dense />
           </div>
+
+          <div class="row q-gutter-x-md justify-between items-center">
+            <span>Battery Capacity{{ getUnit('cell_count') }}:</span>
+
+            <q-input :readonly="readonlyInputs"
+                     outlined
+                     v-model="st.nominal_battery_capacity"
+                     dense />
+          </div>
         </q-card-section>
       </q-card>
     </q-expansion-item>
@@ -50,6 +59,7 @@
 </template>
 
 <script lang="ts" setup>
+import { getUnit } from 'src/helpers/utils';
 import type { SettingInfo } from 'src/models';
 import { ref, watch } from 'vue';
 
@@ -127,5 +137,9 @@ watch(() => props.settings, (newValue) => {
   box-shadow: 0 0 8px hsla(120, 100%, 25%, 0.6);
   border-radius: 4px;
   // }
+}
+
+.q-input:focus-within~span {
+  color: green;
 }
 </style>
