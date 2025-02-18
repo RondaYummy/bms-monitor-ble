@@ -197,6 +197,12 @@
                             title="Timed Stored Data" />
               <ToggleButton :value="currentSetting?.charging_float_mode"
                             title="Charging Float Mode" />
+              <ToggleButton :value="currentSetting?.gps_heartbeat"
+                            title="GPS Heartbeat" />
+              <ToggleButton :value="currentSetting?.disable_pcl_module"
+                            title="Disable PCL Module" />
+              <ToggleButton :value="currentSetting?.charge_utpr"
+                            title="Charge UTPR" />
 
               <SettingsList :settings="currentSetting" />
             </template>
