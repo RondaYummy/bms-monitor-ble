@@ -127,8 +127,7 @@
                      v-model="st.soc_100_voltage"
                      dense />
           </div>
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('soc_100_voltage') }}
             </span>
@@ -138,8 +137,7 @@
                      v-model="st.soc_100_voltage"
                      dense />
           </div>
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('soc_100_voltage') }}
             </span>
@@ -150,8 +148,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('cell_ovpr') }}
             </span>
@@ -162,8 +159,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('cell_uvpr') }}
             </span>
@@ -174,8 +170,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('cell_uvp') }}
             </span>
@@ -186,8 +181,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('power_off_voltage') }}
             </span>
@@ -198,8 +192,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('cell_request_float_voltage') }}
             </span>
@@ -210,8 +203,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('smart_sleep_voltage') }}
             </span>
@@ -222,8 +214,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('max_charge_current') }}
             </span>
@@ -234,8 +225,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('charge_ocp_delay') }}
             </span>
@@ -246,8 +236,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('charge_ocp_recovery') }}
             </span>
@@ -258,8 +247,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('max_discharge_current') }}
             </span>
@@ -270,8 +258,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('discharge_ocp_delay') }}
             </span>
@@ -282,8 +269,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('discharge_ocp_recovery') }}
             </span>
@@ -294,8 +280,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('charge_otp') }}
             </span>
@@ -306,8 +291,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('charge_otp_recovery') }}
             </span>
@@ -318,8 +302,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('discharge_otp') }}
             </span>
@@ -330,8 +313,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('discharge_otp_recovery') }}
             </span>
@@ -342,8 +324,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('charge_utp') }}
             </span>
@@ -354,8 +335,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('mos_otp') }}
             </span>
@@ -366,8 +346,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('mos_otp_recovery') }}
             </span>
@@ -378,8 +357,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('short_circuit_protection_delay') }}
             </span>
@@ -390,8 +368,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('short_circuit_protection_recovery') }}
             </span>
@@ -402,8 +379,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('device_address') }}
             </span>
@@ -414,8 +390,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('port_switch') }}
             </span>
@@ -426,8 +401,7 @@
                      dense />
           </div>
 
-          <div
-               class="row q-gutter-x-md justify-between items-center custom custom">
+          <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('precharge_time') }}
             </span>
