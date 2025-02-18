@@ -7,9 +7,9 @@
                       expand-separator
                       icon="perm_identity"
                       label="Base Settings">
-      <q-card style="background: transparent;">
-        <q-card-section class='column'
-                        style="background: transparent;">
+      <q-card style="background: transparent">
+        <q-card-section class="column"
+                        style="background: transparent">
           <div class="row q-gutter-x-md justify-between items-center custom">
             <span>{{ getUnit('cell_count') }}</span>
 
@@ -50,8 +50,8 @@
                       icon="signal_wifi_off"
                       header-class="text-orange"
                       label="Advance Settings">
-      <q-card style="background: transparent;">
-        <q-card-section class='column'>
+      <q-card style="background: transparent">
+        <q-card-section class="column">
           <div class="row q-gutter-x-md justify-between items-center custom">
             <span>
               {{ getUnit('start_balance_voltage') }}
@@ -443,7 +443,7 @@
                       icon="drafts"
                       label="Con. Wire Res. Settings"
                       header-class="text-purple">
-      <q-card style="background: transparent;">
+      <q-card style="background: transparent">
         <q-card-section>
           Con. Wire Res. Settings
           <!-- <div class="row q-gutter-x-md justify-between items-center custom">
@@ -468,8 +468,8 @@ import type { SettingInfo } from 'src/models';
 import { ref, watch } from 'vue';
 
 const defaultSettings: SettingInfo = {
-  name: "",
-  address: "",
+  name: '',
+  address: '',
   cell_count: 0,
   nominal_battery_capacity: 0,
   balance_trigger_voltage: 0,
@@ -525,10 +525,14 @@ const props = defineProps<{ settings: SettingInfo; }>();
 const st = ref<SettingInfo>(defaultSettings);
 const readonlyInputs = ref(true);
 
-watch(() => props.settings, (newValue) => {
-  console.log('newValue: ', newValue);
-  st.value = newValue;
-});
+watch(
+  () => props.settings,
+  (newValue) => {
+    console.log('newValue: ', newValue);
+    st.value = newValue;
+  },
+  { deep: true },
+);
 </script>
 
 <style scoped lang="scss">
