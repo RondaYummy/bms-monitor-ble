@@ -12,7 +12,7 @@
           <div class="row q-gutter-x-md justify-between items-center">
             <span>Cell count:</span>
 
-            <q-input :disable="disabledInputs"
+            <q-input :readonly="readonlyInputs"
                      outlined
                      v-model="st.cell_count"
                      dense />
@@ -109,7 +109,7 @@ const defaultSettings: SettingInfo = {
 
 const props = defineProps<{ settings: SettingInfo; }>();
 const st = ref<SettingInfo>(defaultSettings);
-const disabledInputs = ref(true);
+const readonlyInputs = ref(true);
 
 watch(() => props.settings, (newValue) => {
   st.value = newValue;
