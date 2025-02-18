@@ -51,6 +51,7 @@ input {
   font-size: 1.5em;
   font-weight: 700;
   color: white;
+  text-align: left;
 }
 
 .toggle-wrapper {

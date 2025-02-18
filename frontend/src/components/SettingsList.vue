@@ -513,5 +513,6 @@ watch(
 
 .custom {
   margin: 5px 0px;
+  flex-wrap: nowrap;
 }
 </style>
