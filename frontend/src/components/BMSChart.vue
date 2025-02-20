@@ -143,13 +143,13 @@ const chartOptions = ref({
         const now = new Date();
         const diff = now.getTime() - date.getTime();
         if (diff > 2 * 24 * 60 * 60 * 1000) {
-          return date.toLocaleDateString('en-GB', {
+          return date.toLocaleDateString('uk-UA', {
             day: '2-digit',
             month: 'short',
-            year: 'numeric'
+            year: '2-digit'
           });
         } else {
-          return date.toLocaleTimeString('en-GB', {
+          return date.toLocaleTimeString('uk-UA', {
             hour: '2-digit',
             minute: '2-digit'
           });
