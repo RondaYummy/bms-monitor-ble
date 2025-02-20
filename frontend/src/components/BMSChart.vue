@@ -6,6 +6,7 @@
                label="Day"
                :disable="selectedRange === '1d'"
                :loading="loadingRangeData === '1d'"
+               :color="selectedRange === '1d' ? 'bg-positive' : ''"
                size="sm"
                flat
                @click="zoomRange('1d')" />
@@ -13,6 +14,7 @@
                label="Week"
                :disable="selectedRange === '1w'"
                :loading="loadingRangeData === '1w'"
+               :color="selectedRange === '1w' ? 'bg-positive' : ''"
                size="sm"
                flat
                @click="zoomRange('1w')" />
@@ -20,6 +22,7 @@
                label="Month"
                :disable="selectedRange === '1m'"
                :loading="loadingRangeData === '1m'"
+               :color="selectedRange === '1m' ? 'bg-positive' : ''"
                size="sm"
                flat
                @click="zoomRange('1m')" />
@@ -27,12 +30,15 @@
                label="Year"
                :disable="selectedRange === '1y'"
                :loading="loadingRangeData === '1y'"
+               :color="selectedRange === '1y' ? 'bg-positive' : ''"
                size="sm"
                flat
                @click="zoomRange('1y')" />
         <q-btn id="custom"
                label="Custom"
                size="sm"
+               :color="selectedRange === 'custom' ? 'bg-positive' : ''"
+               :loading="loadingRangeData === 'custom'"
                flat
                @click="rangeDialog = true" />
 
@@ -126,12 +132,29 @@ const chartOptions = ref({
       style: {
         colors: '#aaa',
       },
+      // formatter: function (value: string | number) {
+      //   const date = new Date(value);
+      //   const offset = date.getTimezoneOffset();
+      //   const localDate = new Date(date.getTime() - offset * 60 * 1000);
+      //   return `${localDate.toISOString().slice(11, 16)}`;
+      // },
       formatter: function (value: string | number) {
         const date = new Date(value);
-        const offset = date.getTimezoneOffset();
-        const localDate = new Date(date.getTime() - offset * 60 * 1000);
-        return `${localDate.toISOString().slice(11, 16)}`;
-      },
+        const now = new Date();
+        const diff = now.getTime() - date.getTime();
+        if (diff > 2 * 24 * 60 * 60 * 1000) {
+          return date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+          });
+        } else {
+          return date.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        }
+      }
     },
   },
   title: {
