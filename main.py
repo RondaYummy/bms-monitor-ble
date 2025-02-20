@@ -285,7 +285,7 @@ async def get_cell_info():
 
 @app.get("/api/aggregated-data")
 async def get_aggregated_data(
-    days: int = Query(1, ge=1, description="Number of days to fetch data for"),
+    days: int = Query(1, ge=0, description="Number of days to fetch data for"),
     from_date: Optional[str] = Query(None, alias="from", description="Start date in format YYYY/MM/DD"),
     to_date: Optional[str] = Query(None, alias="to", description="End date in format YYYY/MM/DD")
 ):
