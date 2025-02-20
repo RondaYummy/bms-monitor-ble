@@ -1,22 +1,29 @@
 <template>
-  <div class="chart-container">
-    <div class="chart-header">
-      <h3>BMS Data</h3>
+  <div class="chart-container q-mt-md">
+    <div class="row">
       <div class="chart-actions">
         <q-btn id="one_day"
                label="1Д"
+               :outline="selectedRange === '1d'"
+               :disable="selectedRange === '1d'"
                flat
                @click="zoomRange('1d')" />
         <q-btn id="one_week"
                label="1Т"
+               :outline="selectedRange === '1w'"
+               :disable="selectedRange === '1w'"
                flat
                @click="zoomRange('1w')" />
         <q-btn id="one_month"
                label="1М"
+               :outline="selectedRange === '1m'"
+               :disable="selectedRange === '1m'"
                flat
                @click="zoomRange('1m')" />
         <q-btn id="one_year"
                label="1Р"
+               :outline="selectedRange === '1y'"
+               :disable="selectedRange === '1y'"
                flat
                @click="zoomRange('1y')" />
       </div>
@@ -40,6 +47,7 @@ interface SeriesData {
   yaxis?: number;
 }
 const chartRef = ref<{ chart: ApexCharts; } | null>(null);
+const selectedRange = ref('1d');
 
 const chartOptions = ref({
   chart: {
@@ -158,8 +166,18 @@ const data = ref();
 const days = ref(1);
 const intervalId = ref();
 
-function zoomRange(range: '1d' | '1w' | '1m' | '1y' | 'all') {
+async function zoomRange(range: '1d' | '1w' | '1m' | '1y' | 'all') {
   if (!chartRef.value) return;
+  if (range === '1d') {
+    days.value = 1;
+  } else if (range === '1w') {
+    days.value = 7;
+  } else if (range === '1m') {
+    days.value = 30;
+  } else if (range === '1y') {
+    days.value = 365;
+  }
+  await fetchDataAndProcess(days.value);
 
   const chart = chartRef.value?.chart;
   const now = new Date().getTime();
@@ -307,7 +325,6 @@ onBeforeUnmount(async () => {
 
 watch(() => props.tab, async (newTab) => {
   try {
-    console.log('WATCH');
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { currentSeries, powerSeries } = processAggregatedData(data.value, newTab);
 
