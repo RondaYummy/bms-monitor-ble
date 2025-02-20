@@ -102,7 +102,7 @@
             <div class='column alerts-box'>
               <q-banner v-for="alert of alerts"
                         :key="alert?.id"
-                        v-touch-hold.mouse="() => token && handleHold(alert)"
+                        v-touch-swipe.mouse.right.left="deleteErrorAlert(alert?.id)"
                         inline-actions
                         :class="{
                           'bg-negative': alert?.level === 'critical',
@@ -131,15 +131,10 @@
                     </span>
                   </div>
 
-                  <p v-if="alert?.id !== holdAlert?.id"
+                  <p v-if="alert?.id"
                      class='q-mt-md text-left'>
                     {{ alert?.message }}
                   </p>
-                  <div v-else>
-                    <q-btn @click="deleteErrorAlert"
-                           color="black"
-                           label="Видалити сповіщення" />
-                  </div>
                 </div>
 
               </q-banner>
@@ -316,7 +311,6 @@ const notFoundDevices = ref(false);
 const selectedLevel = ref();
 const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
-const holdAlert = ref<Alert>();
 const token = useSessionStorage("access_token");
 const config = ref<Config>();
 const settings = ref();
@@ -359,10 +353,6 @@ function getAlertIcon(level: string | undefined): string {
   if (level === 'error') return 'error';
   if (level === 'critical') return 'flash_on';
   return '';
-}
-
-function handleHold(alert: Alert): void {
-  holdAlert.value = alert;
 }
 
 function checkResponse(response: Response) {
@@ -429,7 +419,7 @@ async function updateConfigs() {
   }
 }
 
-async function deleteErrorAlert() {
+async function deleteErrorAlert(id: string) {
   try {
     token.value = sessionStorage.getItem("access_token");
     const response = await fetch('/api/error-alerts', {
@@ -438,7 +428,7 @@ async function deleteErrorAlert() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token.value}`
       },
-      body: JSON.stringify({ id: holdAlert.value?.id }),
+      body: JSON.stringify({ id: id }),
     });
     checkResponse(response);
     fetchErrorAlerts();
