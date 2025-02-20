@@ -102,7 +102,7 @@
             <div class='column alerts-box'>
               <q-banner v-for="alert of alerts"
                         :key="alert?.id"
-                        v-touch-swipe.mouse.right.left="deleteErrorAlert(alert?.id)"
+                        v-touch-swipe.mouse.right.left="() => deleteErrorAlert(alert?.id)"
                         inline-actions
                         :class="{
                           'bg-negative': alert?.level === 'critical',
@@ -419,7 +419,7 @@ async function updateConfigs() {
   }
 }
 
-async function deleteErrorAlert(id: string) {
+async function deleteErrorAlert(id: number) {
   try {
     token.value = sessionStorage.getItem("access_token");
     const response = await fetch('/api/error-alerts', {
