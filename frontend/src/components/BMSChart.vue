@@ -185,11 +185,11 @@ const chartOptions = ref({
     x: {
       formatter: (value: string) => {
         const date = new Date(value);
-        return `${date.toLocaleDateString('en-GB', {
+        return `${date.toLocaleDateString('uk-UA', {
           day: '2-digit',
           month: 'short',
-          year: 'numeric',
-        })} ${date.toLocaleTimeString('en-GB', {
+          year: '2-digit'
+        })} ${date.toLocaleTimeString('uk-UA', {
           hour: '2-digit',
           minute: '2-digit',
         })}`;
@@ -220,7 +220,7 @@ async function zoomRange(ranges: '1d' | '1w' | '1m' | '1y' | 'custom') {
   } else if (ranges === 'custom') {
     days.value = 0;
   }
-  console.log(range.value, 'range.value');
+
   if (ranges !== 'custom') {
     range.value = '';
   }
