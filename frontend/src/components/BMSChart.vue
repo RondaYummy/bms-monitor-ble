@@ -254,6 +254,7 @@ async function fetchAggregatedData(
 ): Promise<any[]> {
   try {
     let url = `/api/aggregated-data?days=${days}`;
+    console.log('range: ', range);
     if (range && range.from && range.to) {
       url += `&from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`;
     }
@@ -401,7 +402,8 @@ watch(
 
 .apexcharts-tooltip,
 .apexcharts-menu,
-.q-date__view {
+:deep(.q-date__header),
+:deep(.q-date__view) {
   background: #1e1f26;
   color: white;
 }
