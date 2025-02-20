@@ -198,7 +198,8 @@ async function zoomRange(ranges: '1d' | '1w' | '1m' | '1y' | 'custom') {
   } else if (ranges === 'custom') {
     days.value = 0;
   }
-  if (range.value !== 'custom') {
+  console.log(range.value, 'range.value');
+  if (ranges !== 'custom') {
     range.value = '';
   }
   await fetchDataAndProcess(days.value, range.value);
@@ -254,7 +255,6 @@ async function fetchAggregatedData(
 ): Promise<any[]> {
   try {
     let url = `/api/aggregated-data?days=${days}`;
-    console.log('range: ', range);
     if (range && range.from && range.to) {
       url += `&from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`;
     }
@@ -334,7 +334,6 @@ async function fetchDataAndProcess(
   },
 ) {
   try {
-    console.log('range!: ', range);
     data.value = await fetchAggregatedData(days, range);
     console.log('Aggregated Data: ', data.value);
 
