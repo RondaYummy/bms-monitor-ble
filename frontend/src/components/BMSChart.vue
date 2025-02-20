@@ -3,56 +3,38 @@
     <div class="row">
       <div class="chart-actions">
         <q-btn id="one_day"
-               label="День"
-               :outline="selectedRange === '1d'"
+               label="Day"
                :disable="selectedRange === '1d'"
                :loading="loadingRangeData === '1d'"
                flat
                @click="zoomRange('1d')" />
         <q-btn id="one_week"
-               label="Тиждень"
-               :outline="selectedRange === '1w'"
+               label="Week"
                :disable="selectedRange === '1w'"
                :loading="loadingRangeData === '1w'"
                flat
                @click="zoomRange('1w')" />
         <q-btn id="one_month"
-               label="Місяць"
-               :outline="selectedRange === '1m'"
+               label="Month"
                :disable="selectedRange === '1m'"
                :loading="loadingRangeData === '1m'"
                flat
                @click="zoomRange('1m')" />
         <q-btn id="one_year"
-               label="Рік"
-               :outline="selectedRange === '1y'"
+               label="Year"
                :disable="selectedRange === '1y'"
                :loading="loadingRangeData === '1y'"
                flat
                @click="zoomRange('1y')" />
         <q-btn id="custom"
-               label="Обрати дати"
+               label="Custom"
                flat
                @click="rangeDialog = true" />
 
         <q-dialog v-model="rangeDialog">
-          <q-card style="width: 300px"
-                  class="q-px-sm q-pb-md">
-            <q-card-section>
-              <div class="text-h6">Оберіть відрізок, за який показати дані</div>
-            </q-card-section>
-
-            <q-item dense>
-              <q-item-section avatar>
-                <q-icon name="date_range" />
-              </q-item-section>
-              <q-item-section>
-                <q-date v-model="range"
-                        @update:model-value="zoomRange('custom')"
-                        range />
-              </q-item-section>
-            </q-item>
-          </q-card>
+          <q-date v-model="range"
+                  @update:model-value="zoomRange('custom')"
+                  range />
         </q-dialog>
       </div>
     </div>
@@ -216,6 +198,9 @@ async function zoomRange(ranges: '1d' | '1w' | '1m' | '1y' | 'custom') {
   } else if (ranges === 'custom') {
     days.value = 0;
   }
+  if (range.value !== 'custom') {
+    range.value = '';
+  }
   await fetchDataAndProcess(days.value, range.value);
 
   const chart = chartRef.value?.chart;
@@ -374,10 +359,10 @@ async function fetchDataAndProcess(
 
 onMounted(async () => {
   loadingRangeData.value = '1d';
-  await fetchDataAndProcess(days.value);
+  await fetchDataAndProcess(days.value, range.value);
   loadingRangeData.value = '';
   intervalId.value = setInterval(async () => {
-    await fetchDataAndProcess(days.value);
+    await fetchDataAndProcess(days.value, range.value);
   }, 30000);
 });
 
@@ -415,7 +400,8 @@ watch(
 }
 
 .apexcharts-tooltip,
-.apexcharts-menu {
+.apexcharts-menu,
+.q-date__view {
   background: #1e1f26;
   color: white;
 }
