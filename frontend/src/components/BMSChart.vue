@@ -196,7 +196,7 @@ const chartOptions = ref({
       },
     },
   },
-  // colors: ['#FF4560', '#008FFB', '#F2C037'],
+  colors: ['#0480de'],
 });
 
 const series = ref<SeriesData[]>([]);

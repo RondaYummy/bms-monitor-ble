@@ -11,9 +11,9 @@ class DataStore:
         self.active_tokens = {}
         self.lock = asyncio.Lock()
 
-    async def add_token(self, token: str, device_name: str):
+    async def add_token(self, token: str):
         async with self.lock:
-            self.active_tokens[token] = {"device_name": device_name}
+            self.active_tokens[token] = {"active": True}
 
     async def remove_token(self, token: str):
         async with self.lock:
