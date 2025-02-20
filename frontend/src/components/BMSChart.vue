@@ -3,33 +3,60 @@
     <div class="row">
       <div class="chart-actions">
         <q-btn id="one_day"
-               label="1Д"
+               label="День"
                :outline="selectedRange === '1d'"
                :disable="selectedRange === '1d'"
                :loading="loadingRangeData === '1d'"
                flat
                @click="zoomRange('1d')" />
         <q-btn id="one_week"
-               label="1Т"
+               label="Тиждень"
                :outline="selectedRange === '1w'"
                :disable="selectedRange === '1w'"
                :loading="loadingRangeData === '1w'"
                flat
                @click="zoomRange('1w')" />
         <q-btn id="one_month"
-               label="1М"
+               label="Місяць"
                :outline="selectedRange === '1m'"
                :disable="selectedRange === '1m'"
                :loading="loadingRangeData === '1m'"
                flat
                @click="zoomRange('1m')" />
         <q-btn id="one_year"
-               label="1Р"
+               label="Рік"
                :outline="selectedRange === '1y'"
                :disable="selectedRange === '1y'"
                :loading="loadingRangeData === '1y'"
                flat
                @click="zoomRange('1y')" />
+        <q-btn id="custom"
+               label="Обрати дати"
+               flat
+               @click="rangeDialog = true" />
+
+
+        <q-dialog v-model="rangeDialog">
+          <q-card style="width: 300px"
+                  class="q-px-sm q-pb-md">
+            <q-card-section>
+              <div class="text-h6">Оберіть відрізок, за який показати дані</div>
+            </q-card-section>
+
+            <q-item dense>
+              <q-item-section avatar>
+                <q-icon name="date_range" />
+              </q-item-section>
+              <q-item-section>
+                <q-date v-model="range"
+                        @update:model-value="zoomRange('custom')"
+                        range />
+              </q-item-section>
+            </q-item>
+
+
+          </q-card>
+        </q-dialog>
       </div>
     </div>
     <apex-chart ref="chartRef"
@@ -53,6 +80,8 @@ interface SeriesData {
 const chartRef = ref<{ chart: ApexCharts; } | null>(null);
 const selectedRange = ref('1d');
 const loadingRangeData = ref('');
+const rangeDialog = ref(false);
+const range = ref();
 
 const chartOptions = ref({
   chart: {
@@ -171,27 +200,30 @@ const data = ref();
 const days = ref(1);
 const intervalId = ref();
 
-async function zoomRange(range: '1d' | '1w' | '1m' | '1y' | 'all') {
+async function zoomRange(ranges: '1d' | '1w' | '1m' | '1y' | 'all' | 'custom') {
   if (!chartRef.value) return;
+  selectedRange.value = ranges;
+  loadingRangeData.value = ranges;
 
-  selectedRange.value = range;
-  loadingRangeData.value = range;
-  if (range === '1d') {
+  if (ranges === '1d') {
     days.value = 1;
-  } else if (range === '1w') {
+  } else if (ranges === '1w') {
     days.value = 7;
-  } else if (range === '1m') {
+  } else if (ranges === '1m') {
     days.value = 30;
-  } else if (range === '1y') {
+  } else if (ranges === '1y') {
     days.value = 365;
+  } else if (ranges === 'custom') {
+    days.value = 0;
   }
-  await fetchDataAndProcess(days.value);
+  console.log(range.value, 'range');
+  await fetchDataAndProcess(days.value, range.value);
 
   const chart = chartRef.value?.chart;
   const now = new Date().getTime();
 
   let from, to;
-  switch (range) {
+  switch (range.value) {
     case '1d': // 1 day
       from = now - 24 * 60 * 60 * 1000;
       to = now;
@@ -295,7 +327,7 @@ function processAggregatedData(data: any[], tab: string) {
   }
 }
 
-async function fetchDataAndProcess(days: number = 1) {
+async function fetchDataAndProcess(days: number = 1, range?) {
   try {
     data.value = await fetchAggregatedData(days);
     console.log('Aggregated Data: ', data.value);
