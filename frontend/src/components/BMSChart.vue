@@ -334,6 +334,7 @@ async function fetchDataAndProcess(
   },
 ) {
   try {
+    console.log('range!: ', range);
     data.value = await fetchAggregatedData(days, range);
     console.log('Aggregated Data: ', data.value);
 
