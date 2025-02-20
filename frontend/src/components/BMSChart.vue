@@ -131,7 +131,7 @@ const chartOptions = ref({
 
 const series = ref<SeriesData[]>([]);
 const data = ref();
-const days = ref(3);
+const days = ref(1);
 const intervalId = ref();
 
 async function fetchAggregatedData(days: number = 1): Promise<any[]> {
