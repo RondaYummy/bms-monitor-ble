@@ -15,10 +15,10 @@
                label="1М"
                flat
                @click="zoomRange('1m')" />
-        <q-btn id="all"
-               label="Усі дані"
+        <q-btn id="one_year"
+               label="1Р"
                flat
-               @click="zoomRange('all')" />
+               @click="zoomRange('1y')" />
       </div>
     </div>
     <apex-chart ref="chartRef"
@@ -158,7 +158,7 @@ const data = ref();
 const days = ref(1);
 const intervalId = ref();
 
-function zoomRange(range: '1d' | '1w' | '1m' | 'all') {
+function zoomRange(range: '1d' | '1w' | '1m' | '1y' | 'all') {
   if (!chartRef.value) return;
 
   const chart = chartRef.value?.chart;
@@ -176,6 +176,10 @@ function zoomRange(range: '1d' | '1w' | '1m' | 'all') {
       break;
     case '1m': // 1 month
       from = now - 30 * 24 * 60 * 60 * 1000;
+      to = now;
+      break;
+    case '1y': // 1 year
+      from = now - 365 * 24 * 60 * 60 * 1000;
       to = now;
       break;
     case 'all': // Усі дані – встановити діапазон за даними графіка
