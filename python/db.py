@@ -472,6 +472,21 @@ def insert_data(timestamp, current, power, device_address, device_name):
         print(f"Error inserting data: {e}")
         raise
 
+def fetch_all_data_range(from_dt: datetime, to_dt: datetime):
+    """
+    Отримує дані з таблиці, відфільтровані по діапазону дат.
+    """
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            from_str = from_dt.strftime('%Y-%m-%d %H:%M:%S')
+            to_str = to_dt.strftime('%Y-%m-%d %H:%M:%S')
+            cursor.execute('SELECT * FROM bms_data WHERE timestamp BETWEEN ? AND ?', (from_str, to_str))
+            return cursor.fetchall()
+    except sqlite3.Error as e:
+        print(f"Error fetching data: {e}")
+        raise
+    
 def fetch_all_data(days=None):
     """
     Gets records from the table for the current day if days=1.

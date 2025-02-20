@@ -3,6 +3,7 @@ from datetime import datetime
 import yaml
 from uuid import uuid4
 from typing import Optional
+from datetime import datetime, timedelta
 
 import uvicorn
 from bleak import BleakClient, BleakScanner
@@ -283,8 +284,24 @@ async def get_cell_info():
     return cell_info_data
 
 @app.get("/api/aggregated-data")
-async def get_cell_info(days: int = Query(..., ge=1, description="Number of days to fetch data for")):
-    aggregated_data = db.fetch_all_data(days=days)
+async def get_aggregated_data(
+    days: int = Query(1, ge=1, description="Number of days to fetch data for"),
+    from_date: Optional[str] = Query(None, alias="from", description="Start date in format YYYY/MM/DD"),
+    to_date: Optional[str] = Query(None, alias="to", description="End date in format YYYY/MM/DD")
+):
+    if from_date and to_date:
+        try:
+            # Припустимо, формат вхідних даних: YYYY/MM/DD
+            from_dt = datetime.strptime(from_date, "%Y/%m/%d")
+            # Для to_date встановлюємо кінець дня
+            to_dt = datetime.strptime(to_date, "%Y/%m/%d") + timedelta(hours=23, minutes=59, seconds=59)
+        except ValueError as e:
+            return JSONResponse(content={"message": f"Invalid date format: {e}"}, status_code=400)
+        
+        aggregated_data = db.fetch_all_data_range(from_dt, to_dt)
+    else:
+        aggregated_data = db.fetch_all_data(days=days)
+    
     if not aggregated_data:
         return JSONResponse(content={"message": "No aggregated data available yet."}, status_code=404)
     return aggregated_data

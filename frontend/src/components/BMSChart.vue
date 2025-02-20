@@ -35,7 +35,6 @@
                flat
                @click="rangeDialog = true" />
 
-
         <q-dialog v-model="rangeDialog">
           <q-card style="width: 300px"
                   class="q-px-sm q-pb-md">
@@ -53,8 +52,6 @@
                         range />
               </q-item-section>
             </q-item>
-
-
           </q-card>
         </q-dialog>
       </div>
@@ -86,42 +83,42 @@ const range = ref();
 const chartOptions = ref({
   chart: {
     id: 'bms-data-chart',
-    type: "area",
-    background: "#1e1f26",
+    type: 'area',
+    background: '#1e1f26',
     zoom: {
-      enabled: false
+      enabled: false,
     },
     animations: {
       enabled: true,
-      easing: "linear",
+      easing: 'linear',
       dynamicAnimation: {
-        speed: 1000
-      }
+        speed: 1000,
+      },
     },
     dropShadow: {
       enabled: true,
       opacity: 0.3,
       blur: 5,
       left: -7,
-      top: 7
+      top: 7,
     },
   },
   stroke: {
-    curve: "smooth",
+    curve: 'smooth',
     width: 3,
   },
   grid: {
-    borderColor: "#222226",
+    borderColor: '#222226',
     padding: {
       left: 0,
       right: 0,
     },
   },
   markers: {
-    colors: ["#FFFFFF"]
+    colors: ['#FFFFFF'],
   },
   dataLabels: {
-    enabled: false
+    enabled: false,
   },
   legend: {
     show: false,
@@ -130,25 +127,25 @@ const chartOptions = ref({
     type: 'datetime',
     axisBorder: {
       show: true,
-      color: "#222226"
+      color: '#222226',
     },
     axisTicks: {
       show: true,
-      color: "#555",
+      color: '#555',
       height: 6,
     },
     tickAmount: 6,
     labels: {
       style: {
-        colors: "#aaa"
+        colors: '#aaa',
       },
       formatter: function (value: string | number) {
         const date = new Date(value);
         const offset = date.getTimezoneOffset();
         const localDate = new Date(date.getTime() - offset * 60 * 1000);
         return `${localDate.toISOString().slice(11, 16)}`;
-      }
-    }
+      },
+    },
   },
   title: {
     text: 'BMS Data',
@@ -173,23 +170,26 @@ const chartOptions = ref({
     shared: true,
     intersect: false,
     theme: 'dark',
-    y: [{
-      formatter: (val: number) => `${val?.toFixed(2)} W`,
-    }, {
-      formatter: (val: number) => `${val?.toFixed(2)} A`,
-    }],
+    y: [
+      {
+        formatter: (val: number) => `${val?.toFixed(2)} W`,
+      },
+      {
+        formatter: (val: number) => `${val?.toFixed(2)} A`,
+      },
+    ],
     x: {
       formatter: (value: string) => {
         const date = new Date(value);
         return `${date.toLocaleDateString('en-GB', {
           day: '2-digit',
           month: 'short',
-          year: 'numeric'
+          year: 'numeric',
         })} ${date.toLocaleTimeString('en-GB', {
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
         })}`;
-      }
+      },
     },
   },
   // colors: ['#FF4560', '#008FFB', '#F2C037'],
@@ -200,7 +200,7 @@ const data = ref();
 const days = ref(1);
 const intervalId = ref();
 
-async function zoomRange(ranges: '1d' | '1w' | '1m' | '1y' | 'all' | 'custom') {
+async function zoomRange(ranges: '1d' | '1w' | '1m' | '1y' | 'custom') {
   if (!chartRef.value) return;
   selectedRange.value = ranges;
   loadingRangeData.value = ranges;
@@ -216,7 +216,6 @@ async function zoomRange(ranges: '1d' | '1w' | '1m' | '1y' | 'all' | 'custom') {
   } else if (ranges === 'custom') {
     days.value = 0;
   }
-  console.log(range.value, 'range');
   await fetchDataAndProcess(days.value, range.value);
 
   const chart = chartRef.value?.chart;
@@ -240,7 +239,11 @@ async function zoomRange(ranges: '1d' | '1w' | '1m' | '1y' | 'all' | 'custom') {
       from = now - 365 * 24 * 60 * 60 * 1000;
       to = now;
       break;
-    case 'all': // Усі дані – встановити діапазон за даними графіка
+    // case 'custom':
+    //   from = new Date(range.value.from).getTime();
+    //   to = new Date(range.value.to).getTime() + 23 * 60 * 60 * 1000 + 59 * 60 * 1000 + 59 * 1000;
+    //   break;
+    default:
       // Якщо дані вже завантажено, беремо перший і останній час з першої серії
       if (series.value[0]?.data.length) {
         from = new Date(series.value[0].data[0].x).getTime();
@@ -257,9 +260,19 @@ async function zoomRange(ranges: '1d' | '1w' | '1m' | '1y' | 'all' | 'custom') {
   chart.zoomX(from, to);
 }
 
-async function fetchAggregatedData(days: number = 1): Promise<any[]> {
+async function fetchAggregatedData(
+  days: number = 1,
+  range?: {
+    from: string;
+    to: string;
+  },
+): Promise<any[]> {
   try {
-    const response: any = await fetch(`/api/aggregated-data?days=${days}`);
+    let url = `/api/aggregated-data?days=${days}`;
+    if (range && range.from && range.to) {
+      url += `&from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`;
+    }
+    const response: any = await fetch(url);
     if (!response.ok) {
       throw new Error('Failed to fetch aggregated data');
     }
@@ -327,9 +340,15 @@ function processAggregatedData(data: any[], tab: string) {
   }
 }
 
-async function fetchDataAndProcess(days: number = 1, range?) {
+async function fetchDataAndProcess(
+  days: number = 1,
+  range?: {
+    from: string;
+    to: string;
+  },
+) {
   try {
-    data.value = await fetchAggregatedData(days);
+    data.value = await fetchAggregatedData(days, range);
     console.log('Aggregated Data: ', data.value);
 
     if (!data.value) {
@@ -366,28 +385,31 @@ onBeforeUnmount(async () => {
   clearInterval(intervalId.value);
 });
 
-watch(() => props.tab, async (newTab) => {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { currentSeries, powerSeries } = processAggregatedData(data.value, newTab);
+watch(
+  () => props.tab,
+  async (newTab) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { currentSeries, powerSeries } = processAggregatedData(data.value, newTab);
 
-    series.value = [
-      {
-        name: 'Battery Power',
-        data: powerSeries,
-      },
-      // {
-      //   name: 'Current',
-      //   data: currentSeries,
-      // },
-    ];
-  } catch (error) {
-    console.error('Error processing data:', error);
-  }
-});
+      series.value = [
+        {
+          name: 'Battery Power',
+          data: powerSeries,
+        },
+        // {
+        //   name: 'Current',
+        //   data: currentSeries,
+        // },
+      ];
+    } catch (error) {
+      console.error('Error processing data:', error);
+    }
+  },
+);
 </script>
 
-<style scoped lang='scss'>
+<style scoped lang="scss">
 .chart-container {
   width: 100%;
 }
