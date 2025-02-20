@@ -79,7 +79,7 @@ const chartOptions = ref({
     type: 'area',
     background: '#1e1f26',
     zoom: {
-      enabled: false,
+      enabled: true,
     },
     animations: {
       enabled: true,
@@ -132,12 +132,6 @@ const chartOptions = ref({
       style: {
         colors: '#aaa',
       },
-      // formatter: function (value: string | number) {
-      //   const date = new Date(value);
-      //   const offset = date.getTimezoneOffset();
-      //   const localDate = new Date(date.getTime() - offset * 60 * 1000);
-      //   return `${localDate.toISOString().slice(11, 16)}`;
-      // },
       formatter: function (value: string | number) {
         const date = new Date(value);
         const now = new Date();
@@ -158,7 +152,7 @@ const chartOptions = ref({
     },
   },
   title: {
-    text: 'BMS Data',
+    text: 'BMS',
     align: 'left',
   },
   yaxis: [
