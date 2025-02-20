@@ -1,6 +1,28 @@
 <template>
   <div class="chart-container">
-    <apex-chart type="line"
+    <div class="chart-header">
+      <h3>BMS Data</h3>
+      <div class="chart-actions">
+        <q-btn id="one_day"
+               label="1Д"
+               flat
+               @click="zoomRange('1d')" />
+        <q-btn id="one_week"
+               label="1Т"
+               flat
+               @click="zoomRange('1w')" />
+        <q-btn id="one_month"
+               label="1М"
+               flat
+               @click="zoomRange('1m')" />
+        <q-btn id="all"
+               label="Усі дані"
+               flat
+               @click="zoomRange('all')" />
+      </div>
+    </div>
+    <apex-chart ref="chartRef"
+                type="line"
                 :options="chartOptions"
                 :series="series"></apex-chart>
   </div>
@@ -8,6 +30,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import type ApexCharts from 'apexcharts';
 
 const props = defineProps(['tab']);
 
@@ -16,6 +39,7 @@ interface SeriesData {
   data: any[];
   yaxis?: number;
 }
+const chartRef = ref<{ chart: ApexCharts; } | null>(null);
 
 const chartOptions = ref({
   chart: {
@@ -133,6 +157,42 @@ const series = ref<SeriesData[]>([]);
 const data = ref();
 const days = ref(1);
 const intervalId = ref();
+
+function zoomRange(range: '1d' | '1w' | '1m' | 'all') {
+  if (!chartRef.value) return;
+
+  const chart = chartRef.value?.chart;
+  const now = new Date().getTime();
+
+  let from, to;
+  switch (range) {
+    case '1d': // 1 day
+      from = now - 24 * 60 * 60 * 1000;
+      to = now;
+      break;
+    case '1w': // 1 week
+      from = now - 7 * 24 * 60 * 60 * 1000;
+      to = now;
+      break;
+    case '1m': // 1 month
+      from = now - 30 * 24 * 60 * 60 * 1000;
+      to = now;
+      break;
+    case 'all': // Усі дані – встановити діапазон за даними графіка
+      // Якщо дані вже завантажено, беремо перший і останній час з першої серії
+      if (series.value[0]?.data.length) {
+        from = new Date(series.value[0].data[0].x).getTime();
+        const lastIndex = series.value[0].data.length - 1;
+        to = new Date(series.value[0].data[lastIndex].x).getTime();
+      } else {
+        from = now - 30 * 24 * 60 * 60 * 1000;
+        to = now;
+      }
+      break;
+  }
+
+  chart.zoomX(from, to);
+}
 
 async function fetchAggregatedData(days: number = 1): Promise<any[]> {
   try {
@@ -268,7 +328,8 @@ watch(() => props.tab, async (newTab) => {
   width: 100%;
 }
 
-.apexcharts-tooltip {
+.apexcharts-tooltip,
+.apexcharts-menu {
   background: #1e1f26;
   color: white;
 }
