@@ -6,28 +6,33 @@
                label="Day"
                :disable="selectedRange === '1d'"
                :loading="loadingRangeData === '1d'"
+               size="sm"
                flat
                @click="zoomRange('1d')" />
         <q-btn id="one_week"
                label="Week"
                :disable="selectedRange === '1w'"
                :loading="loadingRangeData === '1w'"
+               size="sm"
                flat
                @click="zoomRange('1w')" />
         <q-btn id="one_month"
                label="Month"
                :disable="selectedRange === '1m'"
                :loading="loadingRangeData === '1m'"
+               size="sm"
                flat
                @click="zoomRange('1m')" />
         <q-btn id="one_year"
                label="Year"
                :disable="selectedRange === '1y'"
                :loading="loadingRangeData === '1y'"
+               size="sm"
                flat
                @click="zoomRange('1y')" />
         <q-btn id="custom"
                label="Custom"
+               size="sm"
                flat
                @click="rangeDialog = true" />
 
