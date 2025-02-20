@@ -6,24 +6,28 @@
                label="1Д"
                :outline="selectedRange === '1d'"
                :disable="selectedRange === '1d'"
+               :loading="loadingRangeData === '1d'"
                flat
                @click="zoomRange('1d')" />
         <q-btn id="one_week"
                label="1Т"
                :outline="selectedRange === '1w'"
                :disable="selectedRange === '1w'"
+               :loading="loadingRangeData === '1w'"
                flat
                @click="zoomRange('1w')" />
         <q-btn id="one_month"
                label="1М"
                :outline="selectedRange === '1m'"
                :disable="selectedRange === '1m'"
+               :loading="loadingRangeData === '1m'"
                flat
                @click="zoomRange('1m')" />
         <q-btn id="one_year"
                label="1Р"
                :outline="selectedRange === '1y'"
                :disable="selectedRange === '1y'"
+               :loading="loadingRangeData === '1y'"
                flat
                @click="zoomRange('1y')" />
       </div>
@@ -48,6 +52,7 @@ interface SeriesData {
 }
 const chartRef = ref<{ chart: ApexCharts; } | null>(null);
 const selectedRange = ref('1d');
+const loadingRangeData = ref('');
 
 const chartOptions = ref({
   chart: {
@@ -168,6 +173,9 @@ const intervalId = ref();
 
 async function zoomRange(range: '1d' | '1w' | '1m' | '1y' | 'all') {
   if (!chartRef.value) return;
+
+  selectedRange.value = range;
+  loadingRangeData.value = range;
   if (range === '1d') {
     days.value = 1;
   } else if (range === '1w') {
@@ -213,6 +221,7 @@ async function zoomRange(range: '1d' | '1w' | '1m' | '1y' | 'all') {
       break;
   }
 
+  loadingRangeData.value = '';
   chart.zoomX(from, to);
 }
 
@@ -313,10 +322,12 @@ async function fetchDataAndProcess(days: number = 1) {
 }
 
 onMounted(async () => {
+  loadingRangeData.value = '1d';
   await fetchDataAndProcess(days.value);
+  loadingRangeData.value = '';
   intervalId.value = setInterval(async () => {
     await fetchDataAndProcess(days.value);
-  }, 60000);
+  }, 30000);
 });
 
 onBeforeUnmount(async () => {
