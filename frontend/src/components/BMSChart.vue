@@ -7,7 +7,7 @@
                :disable="selectedRange === '1d'"
                :loading="loadingRangeData === '1d'"
                :color="selectedRange === '1d' ? 'bg-positive' : ''"
-               size="sm"
+               size="xs"
                flat
                @click="zoomRange('1d')" />
         <q-btn id="one_week"
@@ -15,7 +15,7 @@
                :disable="selectedRange === '1w'"
                :loading="loadingRangeData === '1w'"
                :color="selectedRange === '1w' ? 'bg-positive' : ''"
-               size="sm"
+               size="xs"
                flat
                @click="zoomRange('1w')" />
         <q-btn id="one_month"
@@ -23,7 +23,7 @@
                :disable="selectedRange === '1m'"
                :loading="loadingRangeData === '1m'"
                :color="selectedRange === '1m' ? 'bg-positive' : ''"
-               size="sm"
+               size="xs"
                flat
                @click="zoomRange('1m')" />
         <q-btn id="one_year"
@@ -31,12 +31,12 @@
                :disable="selectedRange === '1y'"
                :loading="loadingRangeData === '1y'"
                :color="selectedRange === '1y' ? 'bg-positive' : ''"
-               size="sm"
+               size="xs"
                flat
                @click="zoomRange('1y')" />
         <q-btn id="custom"
                label="Custom"
-               size="sm"
+               size="xs"
                :color="selectedRange === 'custom' ? 'bg-positive' : ''"
                :loading="loadingRangeData === 'custom'"
                flat
