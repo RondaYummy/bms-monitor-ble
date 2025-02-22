@@ -20,13 +20,15 @@
                v-model="newPassword"
                filled />
 
-      <div class='row'>
+      <div class='row q-gutter-sm q-mt-md'>
         <q-btn @click="updatePassword"
-               color="black"
+               color="positive"
+               size="xs"
                :disable="!token"
                label="Зберегти" />
 
         <q-btn @click="close"
+               size="xs"
                color="black"
                :disable="!token"
                label="Скасувати" />
@@ -38,12 +40,15 @@
 <script setup lang="ts">
 import { checkResponse, useSessionStorage } from 'src/helpers/utils';
 import { defineProps, defineEmits, ref, watch } from 'vue';
+import { useQuasar } from 'quasar';
+
+const $q = useQuasar();
+const token = useSessionStorage("access_token");
 
 interface Props {
   show: boolean;
 }
 
-const token = useSessionStorage("access_token");
 const props = defineProps<Props>();
 const oldPassword = ref('');
 const newPassword = ref('');
@@ -80,6 +85,15 @@ async function updatePassword() {
       body: JSON.stringify({ old_password: oldPassword.value, new_password: newPassword.value }),
     });
     checkResponse(response);
+    const json = await response.json();
+    $q.notify({
+      message: json?.message,
+      color: 'info',
+      icon: 'info',
+      position: 'top',
+      timeout: 2000,
+    });
+    close();
   } catch (error) {
     console.error('Error updating configs:', error);
   }
@@ -89,6 +103,7 @@ async function updatePassword() {
 <style scoped lang='scss'>
 .dialog-body {
   padding: 20px;
+  gap: 10px;
   background: #1e1f26;
 }
 </style>

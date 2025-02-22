@@ -487,7 +487,6 @@ const readonlyInputs = ref(true);
 watch(
   () => props.settings,
   (newValue) => {
-    console.log('newValue: ', newValue);
     st.value = newValue;
   },
   { deep: true, immediate: true },
