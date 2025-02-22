@@ -59,10 +59,9 @@
 </template>
 
 <script setup lang="ts">
-import { formatDuration, parseManufacturingDate } from '../helpers/utils';
+import { checkResponse, formatDuration, parseManufacturingDate } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
 import type { DeviceInfoMap } from '../models';
-import { eventBus } from '../eventBus';
 import { useQuasar } from 'quasar';
 
 const $q = useQuasar();
@@ -71,18 +70,6 @@ const devicesList = ref();
 const attemptToConnectDevice = ref();
 const disconnectDeviceState = ref();
 const props = defineProps(['disconnectBtn', 'connected', 'token']);
-
-function checkResponse(response: Response) {
-  if (response.status === 401) {
-    sessionStorage.removeItem('access_token');
-    sessionStorage.removeItem('access_token_timestamp');
-    eventBus.emit('session:remove', 'access_token');
-    throw new Error('Unauthorized: Access token has been removed.');
-  }
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
-  }
-}
 
 async function fetchDeviceInfo() {
   try {

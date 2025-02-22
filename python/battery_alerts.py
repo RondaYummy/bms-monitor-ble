@@ -1,19 +1,11 @@
-import json
-from fastapi import APIRouter, HTTPException
-from pywebpush import webpush, WebPushException
 from typing import TypedDict, List
 import python.db as db
+from python.push_notifications import send_push_alerts
 from datetime import datetime
 import yaml
 
-router = APIRouter()
-
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
-
-VAPID_CLAIMS = {
-    "sub": "mailto:halevych.dev@gmail.com"
-}
 
 class CellInfo(TypedDict):
     device_address: str
@@ -120,43 +112,8 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
         for alert in alerts:
             alert_id = int(alert['id'])
             db.insert_alert_data(device_address, device_name, alert['id'], datetime.now(), config['n_hours'])
-            await send_push_notifications(device_name, {"id": alert_id, "message": error_codes[alert_id]["message"]}, config)
+            await send_push_alerts(device_name, {"id": alert_id, "message": error_codes[alert_id]["message"]}, config)
 
         return alerts
     except Exception as e:
         pass
-
-async def send_push_notifications(device_name: str, alert, config):
-    message = f"🚨 {device_name}: {alert['message']} (код: {alert['id']})"
-    payload = json.dumps({"title": "🔋 Увага!", "body": message})
-    vapid_private_key = config["VAPID_PRIVATE_KEY"]
-
-    subscriptions = db.get_all_subscriptions()
-    for sub in subscriptions:
-        try:
-            webpush(
-                subscription_info=sub,
-                data=payload,
-                vapid_private_key=vapid_private_key,
-                vapid_claims=VAPID_CLAIMS
-            )
-        except WebPushException as e:
-            if "410 Gone" in str(e):
-                db.remove_old_subscription(sub["endpoint"])
-            else:
-                print(f"Push Notification Error: {str(e)}")
-
-@router.post("/save-subscription")
-def save_subscription(subscription: dict):
-    print("🔍 Incoming subscription:", subscription)
-    if "endpoint" not in subscription or "keys" not in subscription:
-        raise HTTPException(status_code=400, detail="Invalid subscription format")
-
-    existing_subscription = db.get_subscription_by_endpoint(subscription["endpoint"])
-    if existing_subscription:
-        # print("⚠️ Subscription already exists.")
-        return {"message": "Subscription already exists"}
-
-    db.add_subscription(subscription)
-    # print("✅ Subscription saved successfully.")
-    return {"message": "Subscription saved"}

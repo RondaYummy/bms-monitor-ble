@@ -36,6 +36,60 @@ export interface CellInfo {
   total_cycle_capacity: number;
 }
 
+export interface SettingInfo {
+  name: string;                            // device_name
+  address: string;                         // device_address (MAC-адреса)
+  cell_count: number;                      // Cell Count
+  nominal_battery_capacity: number;        // Battery Capacity (Ah)
+  balance_trigger_voltage: number;         // Balance Trigger Voltage (V)
+  start_balance_voltage: number;           // Start Balance Voltage (V)
+  max_balance_current: number;             // Max Balance Current (A)
+  cell_ovp: number;                        // Cell OVP (V)
+  cell_request_charge_voltage: number;     // Vol. Cell RCV (V)
+  soc_100_voltage: number;                 // SOC-100% Voltage (V)
+  cell_ovpr: number;                       // Cell OVPR (V)
+  cell_uvpr: number;                       // Cell UCPR (V)
+  soc_0_voltage: number;                   // SOC-0% Voltage (V)
+  cell_uvp: number;                        // Cell UVP (V)
+  power_off_voltage: number;               // Power Off Voltage (V)
+  cell_request_float_voltage: number;      // Vol. Cell RFV (V)
+  smart_sleep_voltage: number;             // Vol. Smart Sleep (V)
+  smart_sleep: boolean;                    // Smart Sleep (true/false)
+  max_charge_current: number;              // Continued Charge Current (A)
+  charge_ocp_delay: number;                // Charge OCP Delay (s)
+  charge_ocp_recovery: number;             // Charge OCPR Time (s)
+  max_discharge_current: number;           // Continued Discharge Current (A)
+  discharge_ocp_delay: number;             // Discharge OCP Delay (s)
+  discharge_ocp_recovery: number;          // Discharge OCPR Time (s)
+  charge_otp: number;                      // Charge OTP (°C)
+  charge_otp_recovery: number;             // Charge OTPR (°C)
+  discharge_otp: number;                   // Discharge OTP (°C)
+  discharge_otp_recovery: number;          // Discharge OTPR (°C)
+  charge_utp_recovery: number;             // Charge UTPR (°C)
+  charge_utp: number;                      // Charge UTP (°C)
+  mos_otp: number;                         // MOS OTP (°C)
+  mos_otp_recovery: number;                // MOS OTPR (°C)
+  short_circuit_protection_delay: number;  // SCP Delay (μs)
+  short_circuit_protection_recovery: number; // SCPR Time (s)
+  device_address: number;              // Значення, отримане з data[270]
+  connection_wire_resistances: number[];   // Connection Wire Resistances (Ω)
+  charge_switch: boolean;                  // Charge (on/off)
+  discharge_switch: boolean;               // Discharge (on/off)
+  balancer_switch: boolean;                // Balance (on/off)
+  heating_enabled: boolean | null;         // Heating (on/off) або null
+  disable_temperature_sensors: boolean | null; // Disable Temp. Sensor
+  display_always_on: boolean | null;       // Display Always On
+  special_charger: boolean | null;         // Special Charger On
+  timed_stored_data: boolean | null;       // Timed Stored Data
+  charging_float_mode: boolean | null;     // Charging Float Mode
+  gps_heartbeat: boolean | null;           // GPS Heartbeat
+  disable_pcl_module: boolean | null;      // Disable PCL Module
+  port_switch: string | null;              // Port Switch (наприклад, "RS485" або "CAN")
+  precharge_time: number;                  // Precharge Time (s)
+  data_field_enable_control: number;       // Data Field Enable Control
+  controls_bitmask: number;                // Controls Bitmask
+}
+
 export interface Config {
   password: string;
   vapid_public: string;

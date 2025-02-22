@@ -6,6 +6,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 import base64
 import time
+from python.pwd import hash_password
 
 data_aggregator = defaultdict(lambda: {
     "device_name": None,
@@ -30,6 +31,9 @@ DEVICE_CACHE_EXPIRY = 60
 ALERT_CACHE = {}  # {device_address: {error_code: {"timestamp": occurred_at, "id": alert_id}}}
 ALERT_CACHE_EXPIRY = 60
 
+AGGREGATED_CACHE = {}
+AGGREGATED_CACHE_EXPIRY = 60 * 4
+
 async def process_devices():
     """Cyclically calls update_aggregated_data and saves the aggregated data."""
     global data_aggregator
@@ -41,7 +45,7 @@ async def process_devices():
             except Exception as e:
                 print(f"Error processing {device_data['device_name']} ({device_address}): {e}")
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(60 * 5)
 
 def update_aggregated_data(device_name, device_address, current, power):
     """Updates intermediate data for aggregation."""
@@ -181,7 +185,7 @@ def create_table():
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS configs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                password TEXT DEFAULT '123456',
+                password TEXT DEFAULT '',
                 VAPID_PUBLIC_KEY TEXT DEFAULT '',
                 VAPID_PRIVATE_KEY TEXT DEFAULT '',
                 n_hours INTEGER DEFAULT 12
@@ -189,11 +193,12 @@ def create_table():
             ''')
             cursor.execute("SELECT COUNT(*) FROM configs")
             if cursor.fetchone()[0] == 0:
-                vapid_public, vapid_private = generate_vapid_keys()
+                private_pem, public_base64 = generate_vapid_keys()
+                hashed_password = hash_password('123456')
                 cursor.execute('''
                 INSERT INTO configs (password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours)
                 VALUES (?, ?, ?, ?)
-                ''', ('123456', vapid_public, vapid_private, 12))
+                ''', (hashed_password, public_base64, private_pem, 12))
 
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS devices (
@@ -303,11 +308,11 @@ def get_all_devices(only_enabled: bool = False):
         print(f"❌ Error fetching devices: {e}")
         return []
 
-def get_device_by_address(address):
+def get_device_by_address(address, force_refresh: bool = False):
     global DEVICE_CACHE
     now = time.time()
 
-    if address in DEVICE_CACHE and (now - DEVICE_CACHE[address]["timestamp"]) < DEVICE_CACHE_EXPIRY:
+    if not force_refresh and address in DEVICE_CACHE and (now - DEVICE_CACHE[address]["timestamp"]) < DEVICE_CACHE_EXPIRY:
         return DEVICE_CACHE[address]["data"]
 
     try:
@@ -360,7 +365,9 @@ def update_device(address: str, **kwargs):
         raise
 
 def update_device_status(address, connected: bool, enabled: bool):
+    global DEVICE_CACHE
     try:
+        now = time.time()
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
@@ -369,6 +376,9 @@ def update_device_status(address, connected: bool, enabled: bool):
             WHERE address = ?
             ''', (connected, enabled, address))
             conn.commit()
+
+            device_data = get_device_by_address(address, force_refresh=True)
+            DEVICE_CACHE[address] = {"data": device_data, "timestamp": now}
     except sqlite3.Error as e:
         print(f"❌ Error updating status: {e}")
         raise
@@ -467,30 +477,55 @@ def insert_data(timestamp, current, power, device_address, device_name):
         print(f"Error inserting data: {e}")
         raise
 
+def fetch_all_data_range(from_dt: datetime, to_dt: datetime):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            from_str = from_dt.strftime('%Y-%m-%d %H:%M:%S')
+            to_str = to_dt.strftime('%Y-%m-%d %H:%M:%S')
+            cursor.execute('SELECT * FROM bms_data WHERE timestamp BETWEEN ? AND ?', (from_str, to_str))
+            return cursor.fetchall()
+    except sqlite3.Error as e:
+        print(f"Error fetching data: {e}")
+        raise
+    
 def fetch_all_data(days=None):
     """
     Gets records from the table for the current day if days=1.
     If the days parameter is not passed, no data is returned.
+    Results are cached for 1 minute, and the cache key include days.
     """
     if days is None:
         print("No 'days' parameter provided. No data will be fetched.")
         return None
 
+    now = datetime.now()
+    cache_key = days
+
+    if cache_key in AGGREGATED_CACHE:
+        cached_result, cache_time = AGGREGATED_CACHE[cache_key]
+        if (now - cache_time).total_seconds() < AGGREGATED_CACHE_EXPIRY:
+            print("Returning cached data for days =", days)
+            return cached_result
+        else:
+            print("Cache expired for days =", days)
+
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            
+
             if days == 1:
-                # Start of the current day
-                cutoff_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                cutoff_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
             else:
-                # Start of day “n days ago”
-                cutoff_date = (datetime.now() - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
-            
+                cutoff_date = (now - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
+
             cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
-            
-            cursor.execute('SELECT * FROM bms_data WHERE timestamp >= ?', (cutoff_date_str,)) # Query with filtering by timestamp
-            return cursor.fetchall()
+            cursor.execute('SELECT * FROM bms_data WHERE timestamp >= ?', (cutoff_date_str,))
+            result = cursor.fetchall()
+
+            # Save to cache: the key is days, the value is a tuple (result, time)
+            AGGREGATED_CACHE[cache_key] = (result, now)
+            return result
     except sqlite3.Error as e:
         print(f"Error fetching data: {e}")
         raise

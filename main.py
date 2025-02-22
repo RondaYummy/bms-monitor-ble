@@ -3,7 +3,7 @@ from datetime import datetime
 import yaml
 from uuid import uuid4
 from typing import Optional
-from python.battery_alerts import router as alerts_router
+from datetime import datetime, timedelta
 
 import uvicorn
 from bleak import BleakClient, BleakScanner
@@ -23,6 +23,9 @@ from fastapi import Body
 from python.colors import *
 import python.db as db
 import python.battery_alerts as alerts
+from python.push_notifications import send_push_startup
+from python.pwd import verify_password, hash_password
+from python.push_notifications import router as alerts_router
 from python.data_store import data_store
 
 with open('configs/error_codes.yaml', 'r') as file:
@@ -52,21 +55,52 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(ble_main())
+    asyncio.create_task(db.process_devices())
+
+    config = db.get_config()
+    await send_push_startup(config)
+
 async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(auth_scheme)):
     token = credentials.credentials
     if not await data_store.is_token_valid(token):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+@app.post("/api/change-password", dependencies=[Depends(verify_token)])
+async def change_password(request: Request):
+    body = await request.json()
+    old_password = body.get("old_password", "")
+    new_password = body.get("new_password", "")
+
+    if not old_password or not new_password:
+        raise HTTPException(status_code=400, detail="Both old and new passwords must be provided.")
+
+    config = db.get_config()
+    if not config or not verify_password(old_password, config.get("password", "")):
+        raise HTTPException(status_code=401, detail="Old password is incorrect.")
+
+    hashed_new_password = hash_password(new_password)
+    updated_config = db.update_config(password=hashed_new_password)
+
+    if not updated_config:
+        raise HTTPException(status_code=500, detail="Error updating password.")
+
+    return {"message": "Password changed successfully."}
 
 @app.post("/api/login")
 async def login(request: Request):
     body = await request.json()
     password = body.get("password", "")
     config = db.get_config()
-    if not config or password != config.get("password"):
+    pwd = config.get("password", "")
+    log("LOGIN", f"PASSWORD: {pwd}", force=True)
+    if not config or not verify_password(password, pwd):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     token = str(uuid4())
-    await data_store.add_token(token, "admin")
+    await data_store.add_token(token)
 
     return {"access_token": token}
 
@@ -87,14 +121,22 @@ async def get_configs():
 @app.post("/api/configs", dependencies=[Depends(verify_token)])
 async def update_configs(request: ConfigUpdateRequest):
     updated_config = db.update_config(
-        password=request.password,
-        vapid_public=None,
-        vapid_private=None,
         n_hours=request.n_hours
     )
     if not updated_config:
         raise HTTPException(status_code=500, detail="Error updating config.")
     return {"message": "Configuration updated successfully", "config": updated_config}
+
+@app.get("/api/device-settings")
+async def get_device_settings():
+    try:
+        setting_info = await data_store.get_setting_info()
+        if not setting_info:
+            return JSONResponse(content={"message": "No settings available yet."}, status_code=404)
+
+        return list(setting_info.values())
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting alert: {str(e)}")
 
 class DeleteAlertRequest(BaseModel):
     id: int
@@ -215,6 +257,7 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         log("/api/connect-device", f"🚀 Connection initiated for {found_device}.", force=True)
         task = asyncio.create_task(connect_and_run(found_device))
         active_connections[device_address] = task
+        db.update_device_status(device_address, connected=True, enabled=True)
 
         return JSONResponse(content={"message": f"🚀 Connection initiated for {device_address}. Check logs for updates."}, status_code=200)
 
@@ -261,16 +304,26 @@ async def get_cell_info():
     return cell_info_data
 
 @app.get("/api/aggregated-data")
-async def get_cell_info(days: int = Query(..., ge=1, description="Number of days to fetch data for")):
-    aggregated_data = db.fetch_all_data(days=days)
+async def get_aggregated_data(
+    days: int = Query(1, ge=0, description="Number of days to fetch data for"),
+    from_date: Optional[str] = Query(None, alias="from", description="Start date in format YYYY/MM/DD"),
+    to_date: Optional[str] = Query(None, alias="to", description="End date in format YYYY/MM/DD")
+):
+    if from_date and to_date:
+        try:
+            # YYYY/MM/DD
+            from_dt = datetime.strptime(from_date, "%Y/%m/%d")
+            to_dt = datetime.strptime(to_date, "%Y/%m/%d") + timedelta(hours=23, minutes=59, seconds=59)
+        except ValueError as e:
+            return JSONResponse(content={"message": f"Invalid date format: {e}"}, status_code=400)
+        
+        aggregated_data = db.fetch_all_data_range(from_dt, to_dt)
+    else:
+        aggregated_data = db.fetch_all_data(days=days)
+    
     if not aggregated_data:
         return JSONResponse(content={"message": "No aggregated data available yet."}, status_code=404)
     return aggregated_data
-
-@app.on_event("startup")
-async def startup_event():
-    asyncio.create_task(ble_main())
-    asyncio.create_task(db.process_devices())
 
 def calculate_crc(data):
     return sum(data) % 256
@@ -280,6 +333,7 @@ def create_command(command_type):
     frame[:4] = CMD_HEADER
     frame[4] = command_type
     frame[19] = calculate_crc(frame[:19])
+    print(f"Calculated CRC: {frame[19]}")
     return frame
     
 def log(device_name, message, force=False):
@@ -347,6 +401,9 @@ async def parse_setting_info(data, device_name, device_address):
     log(device_name, "🔍 Parsing Setting Info Frame...")
     try:
         setting_info = {
+            "name": device_name,
+            "address": device_address,
+
             # [MAIN] Base Settings
             "cell_count": data[114], # Cell Count
             "nominal_battery_capacity": int.from_bytes(data[130:134], "little") * 0.001, # Battery Capacity (Ah)
@@ -446,9 +503,11 @@ async def parse_setting_info(data, device_name, device_address):
         setting_info["timed_stored_data"] = bool(bitmask & 0b0000000100000000)  # bit8
         setting_info["charging_float_mode"] = bool(bitmask & 0b0000001000000000)  # bit9
 
-        log(device_name, "✅ Successfully disassembled Setting Info Frame:")
+        await data_store.update_setting_info(device_address, setting_info)
+
+        log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=True)
         for key, value in setting_info.items():
-            log(device_name, f"{key}: {value}")
+            log(device_name, f"{key}: {value}", force=True)
 
         return setting_info
 
@@ -458,9 +517,8 @@ async def parse_setting_info(data, device_name, device_address):
 
 async def parse_cell_info(data, device_name, device_address):
     """Parsing Cell Info Frame (0x02)."""
-    log(device_name, "Parsing Cell Info Frame...")
-
     try:
+        log(device_name, "Parsing Cell Info Frame...")
         # Extract cell data
         cell_voltages = []
         start_index = 6  # Initial index for cell tension
@@ -536,8 +594,7 @@ async def parse_cell_info(data, device_name, device_address):
             "state_of_health": state_of_health,
             "emergency_time_countdown": emergency_time_countdown,
         }
-        
-        log(device_name, f"CELL INFO: {cell_info}")
+
         await data_store.update_cell_info(device_name, cell_info)
         await alerts.evaluate_alerts(device_address=device_address, device_name=device_name, cell_info=cell_info)
 
@@ -639,6 +696,8 @@ async def connect_and_run(device):
                         device_info_data = db.get_device_by_address(device.address)
                         if not device_info_data or not device_info_data.get("connected", False):
                             log(device.name, "❌ Device has been disconnected. Stopping polling.", force=True)
+                            await data_store.clear_buffer(device.name)
+                            active_connections.pop(device_address, None)
                             break
 
                         if not device_info_data or "frame_type" not in device_info_data:
@@ -646,7 +705,14 @@ async def connect_and_run(device):
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
                             log(device.name, f"📲 Device Info command sent: {device_info_command.hex()}", force=True)
-                            await asyncio.sleep(1)
+                            await asyncio.sleep(2)
+
+                        settings_info = await data_store.get_setting_info_by_address(device_address)
+                        if not settings_info:
+                            setting_info_command = create_command(CMD_TYPE_SETTINGS)
+                            await client.write_gatt_char(CHARACTERISTIC_UUID, setting_info_command)
+                            log(device.name, f"⚙️ Setting Info command sent: {setting_info_command.hex()}", force=True)
+                            await asyncio.sleep(10)
 
                         # Checking whether to send cell_info_command
                         last_update = await data_store.get_last_cell_info_update(device.name)
@@ -654,18 +720,18 @@ async def connect_and_run(device):
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
                             log(device.name, f"📢 Device Info command sent: {device_info_command.hex()}", force=True)
-                            await asyncio.sleep(1)  # Delay before 0x96
+                            await asyncio.sleep(2)
 
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
                             log(device.name, f"✅ Command successfully sent: {cell_info_command.hex()}", force=True)
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
-
+                            await asyncio.sleep(2)
+                            
                         await asyncio.sleep(10)
 
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
-
             finally:
                 log(device.name, "🔄 Retrying connection in 10 seconds...", force=True)
                 await asyncio.sleep(10)

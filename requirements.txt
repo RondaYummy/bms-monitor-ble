@@ -5,4 +5,5 @@ PyYAML==6.0
 pydantic
 async_timeout
 pywebpush
-
+cryptography
+argon2-cffi

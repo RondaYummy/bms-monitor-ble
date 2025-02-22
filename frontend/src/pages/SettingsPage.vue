@@ -102,7 +102,7 @@
             <div class='column alerts-box'>
               <q-banner v-for="alert of alerts"
                         :key="alert?.id"
-                        v-touch-hold.mouse="() => token && handleHold(alert)"
+                        v-touch-swipe.mouse.right.left="() => token && deleteErrorAlert(alert?.id)"
                         inline-actions
                         :class="{
                           'bg-negative': alert?.level === 'critical',
@@ -131,15 +131,10 @@
                     </span>
                   </div>
 
-                  <p v-if="alert?.id !== holdAlert?.id"
+                  <p v-if="alert?.id"
                      class='q-mt-md text-left'>
                     {{ alert?.message }}
                   </p>
-                  <div v-else>
-                    <q-btn @click="deleteErrorAlert"
-                           color="black"
-                           label="Видалити сповіщення" />
-                  </div>
                 </div>
 
               </q-banner>
@@ -153,20 +148,90 @@
           </q-tab-panel>
 
           <q-tab-panel name="Settings">
-            <div class="text-h6">Settings</div>
-            Тут будуть ваші налаштування...
+            <q-btn class="q-mt-md"
+                   @click="changePasswordModal = true"
+                   color="black"
+                   :disable="!token"
+                   label="Змінити пароль" />
+            <ChangePasswordModal @update:show="(value) => changePasswordModal = value"
+                                 :show="changePasswordModal" />
+
+            <q-separator class="q-mt-md"
+                         color="orange"
+                         inset />
+
+            <q-btn-dropdown v-if="settings?.length"
+                            class="q-mt-md"
+                            auto-close
+                            stretch
+                            flat
+                            style='flex: 1 1 50%;'
+                            label="Оберіть пристрій">
+
+              <q-list v-if="settings?.length">
+                <q-item clickable
+                        v-for="setting of settings"
+                        class="text-black"
+                        :key="setting?.address"
+                        :name="setting?.name"
+                        :label="setting?.name"
+                        @click="currentSetting = setting">
+                  <q-item-section>{{ setting?.name }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
+
+            <template v-if="currentSetting">
+              <ToggleButton :value="currentSetting?.charge_switch"
+                            title="Charge" />
+              <ToggleButton :value="currentSetting?.discharge_switch"
+                            title="Discharge" />
+              <ToggleButton :value="currentSetting?.balancer_switch"
+                            title="Balance" />
+              <!-- <ToggleButton :value="currentSetting?."
+                            title="Emergency" /> -->
+              <ToggleButton :value="currentSetting?.heating_enabled"
+                            title="Heating" />
+              <ToggleButton :value="currentSetting?.disable_temperature_sensors"
+                            title="Disable Temp. Sensor" />
+              <ToggleButton :value="currentSetting?.display_always_on"
+                            title="Display Always On" />
+              <ToggleButton :value="currentSetting?.special_charger"
+                            title="Special Charger On" />
+              <ToggleButton :value="currentSetting?.smart_sleep"
+                            title="Smart Sleep On" />
+              <ToggleButton :value="currentSetting?.timed_stored_data"
+                            title="Timed Stored Data" />
+              <ToggleButton :value="currentSetting?.charging_float_mode"
+                            title="Charging Float Mode" />
+              <ToggleButton :value="currentSetting?.gps_heartbeat"
+                            title="GPS Heartbeat" />
+              <ToggleButton :value="currentSetting?.disable_pcl_module"
+                            title="Disable PCL Module" />
+              <ToggleButton :value="currentSetting?.charge_utpr"
+                            title="Charge UTPR" />
+
+              <SettingsList :settings="currentSetting" />
+            </template>
+
+            <q-separator class="q-mt-md"
+                         color="orange"
+                         inset />
 
             <div class="column q-mt-md q-mb-md"
                  v-if="config">
               <div class="column">
                 <p>
-                  Періодичність отримання сповіщеннь ( Alerts ):
+                  Періодичність сповіщеннь ( Alerts ):
 
                   <q-tooltip>
-                    Це значення задається в цілих годинах. Якщо встановлено 12
-                    годин, то ви не отримуватимете важливих сповіщень про стан
+                    Це значення задається в цілих годинах. Якщо встановлено
+                    12
+                    годин, то ви не отримуватимете важливих сповіщень про
+                    стан
                     батареї частіше ніж раз на 12 годин. Це зроблено, щоб
-                    уникнути надмірної кількості повідомлень у вашій скриньці.
+                    уникнути надмірної кількості повідомлень у вашій
+                    скриньці.
                   </q-tooltip>
                 </p>
                 <q-input :disable="!token"
@@ -179,7 +244,6 @@
                            color="orange"
                            inset />
             </div>
-
 
             <q-btn @click="updateConfigs"
                    color="black"
@@ -201,7 +265,8 @@
             <template v-if='devices.length'>
               <h6 class="q-mt-md">Знайдені пристрої:</h6>
               <p>
-                Щоб приєднатися до пристрою, просто натисніть на нього. Доданий
+                Щоб приєднатися до пристрою, просто натисніть на нього.
+                Доданий
                 вами девайс, буде підключений приблизно за 10 секунд і ви
                 зможете побачити його на головному екрані.
               </p>
@@ -241,10 +306,12 @@
 
 <script setup lang='ts'>
 import { ref } from 'vue';
-import { useSessionStorage } from '../helpers/utils';
+import { checkResponse, useSessionStorage } from '../helpers/utils';
 import type { Alert, Device, Config } from '../models';
 import DevicesList from '../components/DevicesList.vue';
-import { eventBus } from "../eventBus";
+import ToggleButton from '../components/ToggleButton.vue';
+import SettingsList from '../components/SettingsList.vue';
+import ChangePasswordModal from 'src/components/modals/ChangePasswordModal.vue';
 
 const tab = ref('Alerts');
 const password = ref('');
@@ -254,12 +321,14 @@ const devices = ref<Device[]>([]);
 const attemptToConnectDevice = ref();
 const notFoundDevices = ref(false);
 
+const changePasswordModal = ref(false);
 const selectedLevel = ref();
 const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
-const holdAlert = ref<Alert>();
 const token = useSessionStorage("access_token");
 const config = ref<Config>();
+const settings = ref();
+const currentSetting = ref();
 
 function filterAlertsByLevel(level?: string): void {
   console.log('Selected level: ', level);
@@ -284,8 +353,8 @@ function formatTimestamp(timestamp?: any): string {
   }
 
   const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Місяці від 0 до 11
-  const year = String(date.getFullYear()).slice(2); // Останні дві цифри року
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months from 0 to 11
+  const year = String(date.getFullYear()).slice(2); // Last two digits of the year
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
 
@@ -298,22 +367,6 @@ function getAlertIcon(level: string | undefined): string {
   if (level === 'error') return 'error';
   if (level === 'critical') return 'flash_on';
   return '';
-}
-
-function handleHold(alert: Alert): void {
-  holdAlert.value = alert;
-}
-
-function checkResponse(response: Response) {
-  if (response.status === 401) {
-    sessionStorage.removeItem('access_token');
-    sessionStorage.removeItem('access_token_timestamp');
-    eventBus.emit("session:remove", "access_token");
-    throw new Error('Unauthorized: Access token has been removed.');
-  }
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
-  }
 }
 
 async function fetchErrorAlerts() {
@@ -339,6 +392,17 @@ async function fetchConfigs() {
   }
 }
 
+async function fetchSettings() {
+  try {
+    const response = await fetch('/api/device-settings');
+    checkResponse(response);
+    const data = await response.json();
+    settings.value = data;
+  } catch (error) {
+    console.error('Error fetching configs:', error);
+  }
+}
+
 async function updateConfigs() {
   try {
     const response = await fetch('/api/configs', {
@@ -352,13 +416,12 @@ async function updateConfigs() {
     checkResponse(response);
     const data = await response.json();
     config.value = data;
-    console.log('Config updated:', data);
   } catch (error) {
     console.error('Error updating configs:', error);
   }
 }
 
-async function deleteErrorAlert() {
+async function deleteErrorAlert(id: number) {
   try {
     token.value = sessionStorage.getItem("access_token");
     const response = await fetch('/api/error-alerts', {
@@ -367,7 +430,7 @@ async function deleteErrorAlert() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token.value}`
       },
-      body: JSON.stringify({ id: holdAlert.value?.id }),
+      body: JSON.stringify({ id: id }),
     });
     checkResponse(response);
     fetchErrorAlerts();
@@ -387,8 +450,8 @@ const login = async (pwd: string) => {
   const data = await response.json();
   sessionStorage.setItem("access_token", data.access_token);
   token.value = data?.access_token;
-  console.log("Login successful");
   password.value = '';
+  console.log("Login successful");
   return true;
 };
 
@@ -428,6 +491,7 @@ async function connectToDevice(address: string, name: string) {
 
 fetchErrorAlerts();
 fetchConfigs();
+fetchSettings();
 </script>
 
 <style scoped lang='scss'>
