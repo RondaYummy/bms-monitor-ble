@@ -31,7 +31,7 @@ ALERT_CACHE = {}  # {device_address: {error_code: {"timestamp": occurred_at, "id
 ALERT_CACHE_EXPIRY = 60
 
 AGGREGATED_CACHE = {}
-AGGREGATED_CACHE_EXPIRY = 60
+AGGREGATED_CACHE_EXPIRY = 60 * 4
 
 async def process_devices():
     """Cyclically calls update_aggregated_data and saves the aggregated data."""
@@ -44,7 +44,7 @@ async def process_devices():
             except Exception as e:
                 print(f"Error processing {device_data['device_name']} ({device_address}): {e}")
 
-        await asyncio.sleep(120)
+        await asyncio.sleep(60 * 5)
 
 def update_aggregated_data(device_name, device_address, current, power):
     """Updates intermediate data for aggregation."""
@@ -610,7 +610,6 @@ def get_config():
     global CONFIG_CACHE, CONFIG_CACHE_TIMESTAMP
 
     if CONFIG_CACHE and (time.time() - CONFIG_CACHE_TIMESTAMP) < CONFIG_CACHE_EXPIRY:
-        print(f"CONFIG1: {CONFIG_CACHE}")
         return CONFIG_CACHE
 
     try:
@@ -626,7 +625,6 @@ def get_config():
                     "n_hours": config[3],
                 }
                 CONFIG_CACHE_TIMESTAMP = time.time()
-                print(f"CONFIG2: {CONFIG_CACHE}")
                 return CONFIG_CACHE
             else:
                 return None
