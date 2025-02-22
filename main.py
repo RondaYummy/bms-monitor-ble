@@ -94,7 +94,9 @@ async def login(request: Request):
     body = await request.json()
     password = body.get("password", "")
     config = db.get_config()
-    if not config or not verify_password(password, config.get("password", "")):
+    pwd = config.get("password", "")
+    log("LOGIN", f"PASSWORD: {pwd}")
+    if not config or not verify_password(password, pwd):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     token = str(uuid4())
