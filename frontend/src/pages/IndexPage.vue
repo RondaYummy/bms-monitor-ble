@@ -103,7 +103,7 @@
         <div class='row justify-between'>
           <span>
             Capacity:
-            {{ (calculatedList?.battery_voltage * calculatedList?.nominal_capacity) / 1000 }}
+            {{ ((calculatedList?.battery_voltage * calculatedList?.nominal_capacity) / 1000)?.toFixed(2) }}
             <sup>kW</sup>
 
             <q-tooltip>
@@ -113,7 +113,7 @@
 
           <span>
             Capacity left:
-            {{ (calculatedList?.battery_voltage * calculatedList?.remaining_capacity) / 1000 }}
+            {{ ((calculatedList?.battery_voltage * calculatedList?.remaining_capacity) / 1000)?.toFixed(2) }}
             <sup>kW</sup>
 
             <q-tooltip>
