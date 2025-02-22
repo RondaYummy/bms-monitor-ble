@@ -6,3 +6,4 @@ pydantic
 async_timeout
 pywebpush
 cryptography
+argon2-cffi

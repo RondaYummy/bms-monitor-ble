@@ -6,6 +6,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 import base64
 import time
+from python.pwd import hash_password
 
 data_aggregator = defaultdict(lambda: {
     "device_name": None,
@@ -184,7 +185,7 @@ def create_table():
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS configs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                password TEXT DEFAULT '123456',
+                password TEXT DEFAULT '',
                 VAPID_PUBLIC_KEY TEXT DEFAULT '',
                 VAPID_PRIVATE_KEY TEXT DEFAULT '',
                 n_hours INTEGER DEFAULT 12
@@ -193,10 +194,11 @@ def create_table():
             cursor.execute("SELECT COUNT(*) FROM configs")
             if cursor.fetchone()[0] == 0:
                 private_pem, public_base64 = generate_vapid_keys()
+                hashed_password = hash_password('123456')
                 cursor.execute('''
                 INSERT INTO configs (password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours)
                 VALUES (?, ?, ?, ?)
-                ''', ('123456', public_base64, private_pem, 12))
+                ''', (hashed_password, public_base64, private_pem, 12))
 
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS devices (

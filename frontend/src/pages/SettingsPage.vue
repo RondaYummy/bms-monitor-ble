@@ -237,6 +237,12 @@
                    color="black"
                    :disable="!token"
                    label="Зберегти налаштування" />
+
+            <q-btn @click="changePasswordModal = true"
+                   color="black"
+                   :disable="!token"
+                   label="Змінити пароль" />
+            <ChangePasswordModal :show="changePasswordModal" />
           </q-tab-panel>
 
           <q-tab-panel name="Devices">
@@ -253,7 +259,8 @@
             <template v-if='devices.length'>
               <h6 class="q-mt-md">Знайдені пристрої:</h6>
               <p>
-                Щоб приєднатися до пристрою, просто натисніть на нього. Доданий
+                Щоб приєднатися до пристрою, просто натисніть на нього.
+                Доданий
                 вами девайс, буде підключений приблизно за 10 секунд і ви
                 зможете побачити його на головному екрані.
               </p>
@@ -293,12 +300,12 @@
 
 <script setup lang='ts'>
 import { ref } from 'vue';
-import { useSessionStorage } from '../helpers/utils';
+import { checkResponse, useSessionStorage } from '../helpers/utils';
 import type { Alert, Device, Config } from '../models';
 import DevicesList from '../components/DevicesList.vue';
 import ToggleButton from '../components/ToggleButton.vue';
 import SettingsList from '../components/SettingsList.vue';
-import { eventBus } from "../eventBus";
+import ChangePasswordModal from 'src/components/modals/ChangePasswordModal.vue';
 
 const tab = ref('Alerts');
 const password = ref('');
@@ -308,6 +315,7 @@ const devices = ref<Device[]>([]);
 const attemptToConnectDevice = ref();
 const notFoundDevices = ref(false);
 
+const changePasswordModal = ref(false);
 const selectedLevel = ref();
 const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
@@ -353,18 +361,6 @@ function getAlertIcon(level: string | undefined): string {
   if (level === 'error') return 'error';
   if (level === 'critical') return 'flash_on';
   return '';
-}
-
-function checkResponse(response: Response) {
-  if (response.status === 401) {
-    sessionStorage.removeItem('access_token');
-    sessionStorage.removeItem('access_token_timestamp');
-    eventBus.emit("session:remove", "access_token");
-    throw new Error('Unauthorized: Access token has been removed.');
-  }
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
-  }
 }
 
 async function fetchErrorAlerts() {

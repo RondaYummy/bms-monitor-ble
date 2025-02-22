@@ -2,6 +2,18 @@
 import { onBeforeUnmount, ref, watch } from "vue";
 import { eventBus } from "../eventBus";
 
+export function checkResponse(response: Response) {
+  if (response.status === 401) {
+    sessionStorage.removeItem('access_token');
+    sessionStorage.removeItem('access_token_timestamp');
+    eventBus.emit("session:remove", "access_token");
+    throw new Error('Unauthorized: Access token has been removed.');
+  }
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
+  }
+}
+
 export const useSessionStorage = (key: string) => {
   const value = ref(sessionStorage.getItem(key));
 

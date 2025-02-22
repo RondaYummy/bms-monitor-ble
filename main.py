@@ -24,6 +24,7 @@ from python.colors import *
 import python.db as db
 import python.battery_alerts as alerts
 from python.push_notifications import send_push_startup
+from python.pwd import verify_password, hash_password
 from python.push_notifications import router as alerts_router
 from python.data_store import data_store
 
@@ -67,13 +68,33 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(auth_
     if not await data_store.is_token_valid(token):
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
+@app.post("/api/change-password", dependencies=[Depends(verify_token)])
+async def change_password(request: Request):
+    body = await request.json()
+    old_password = body.get("old_password", "")
+    new_password = body.get("new_password", "")
+
+    if not old_password or not new_password:
+        raise HTTPException(status_code=400, detail="Both old and new passwords must be provided.")
+
+    config = db.get_config(include_sensitive=True)
+    if not config or not verify_password(old_password, config.get("password", "")):
+        raise HTTPException(status_code=401, detail="Old password is incorrect.")
+
+    hashed_new_password = hash_password(new_password)
+    updated_config = db.update_config(password=hashed_new_password)
+
+    if not updated_config:
+        raise HTTPException(status_code=500, detail="Error updating password.")
+
+    return {"message": "Password changed successfully."}
+
 @app.post("/api/login")
 async def login(request: Request):
     body = await request.json()
     password = body.get("password", "")
     config = db.get_config()
-    print(f"CONFIG ROUTE: {config}")
-    if not config or password != config.get("password"):
+    if not config or not verify_password(password, config.get("password", "")):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     token = str(uuid4())
@@ -98,9 +119,6 @@ async def get_configs():
 @app.post("/api/configs", dependencies=[Depends(verify_token)])
 async def update_configs(request: ConfigUpdateRequest):
     updated_config = db.update_config(
-        password=request.password,
-        vapid_public=None,
-        vapid_private=None,
         n_hours=request.n_hours
     )
     if not updated_config:
