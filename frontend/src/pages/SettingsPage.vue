@@ -238,11 +238,12 @@
                    :disable="!token"
                    label="Зберегти налаштування" />
 
-            <q-btn @click="changePasswordModal = true"
+            <q-btn class="q-mt-md"
+                   @click="changePasswordModal = true"
                    color="black"
                    :disable="!token"
                    label="Змінити пароль" />
-            <ChangePasswordModal @update:show='changePasswordModal = false'
+            <ChangePasswordModal @update:show="(value) => changePasswordModal = value"
                                  :show="changePasswordModal" />
           </q-tab-panel>
 
