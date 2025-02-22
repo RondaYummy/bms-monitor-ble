@@ -95,7 +95,7 @@ async def login(request: Request):
     password = body.get("password", "")
     config = db.get_config()
     pwd = config.get("password", "")
-    log("LOGIN", f"PASSWORD: {pwd}")
+    log("LOGIN", f"PASSWORD: {pwd}", force=True)
     if not config or not verify_password(password, pwd):
         raise HTTPException(status_code=401, detail="Invalid password")
 
