@@ -242,7 +242,8 @@
                    color="black"
                    :disable="!token"
                    label="Змінити пароль" />
-            <ChangePasswordModal :show="changePasswordModal" />
+            <ChangePasswordModal @update:show='changePasswordModal = false'
+                                 :show="changePasswordModal" />
           </q-tab-panel>
 
           <q-tab-panel name="Devices">

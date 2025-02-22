@@ -1,6 +1,6 @@
 <template>
   <q-dialog v-model="localShow">
-    <div class="column">
+    <div class="column dialog-body">
       <h6>Змінити пароль</h6>
 
       <q-input :disable="!token"
@@ -85,3 +85,10 @@ async function updatePassword() {
   }
 }
 </script>
+
+<style scoped lang='scss'>
+.dialog-body {
+  padding: 20px;
+  background: #1e1f26;
+}
+</style>
