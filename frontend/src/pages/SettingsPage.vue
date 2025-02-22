@@ -148,8 +148,20 @@
           </q-tab-panel>
 
           <q-tab-panel name="Settings">
+            <q-btn class="q-mt-md"
+                   @click="changePasswordModal = true"
+                   color="black"
+                   :disable="!token"
+                   label="Змінити пароль" />
+            <ChangePasswordModal @update:show="(value) => changePasswordModal = value"
+                                 :show="changePasswordModal" />
+
+            <q-separator class="q-mt-md"
+                         color="orange"
+                         inset />
+
             <q-btn-dropdown v-if="settings?.length"
-                            class="q-mb-md"
+                            class="q-mt-md"
                             auto-close
                             stretch
                             flat
@@ -237,14 +249,6 @@
                    color="black"
                    :disable="!token"
                    label="Зберегти налаштування" />
-
-            <q-btn class="q-mt-md"
-                   @click="changePasswordModal = true"
-                   color="black"
-                   :disable="!token"
-                   label="Змінити пароль" />
-            <ChangePasswordModal @update:show="(value) => changePasswordModal = value"
-                                 :show="changePasswordModal" />
           </q-tab-panel>
 
           <q-tab-panel name="Devices">

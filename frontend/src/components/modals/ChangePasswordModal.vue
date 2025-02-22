@@ -20,7 +20,7 @@
                v-model="newPassword"
                filled />
 
-      <div class='row q-gutter-sm q-mt-md'>
+      <div class='row justify-between q-mt-sm'>
         <q-btn @click="updatePassword"
                color="positive"
                size="xs"
