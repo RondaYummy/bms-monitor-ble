@@ -44,7 +44,7 @@ async def process_devices():
             except Exception as e:
                 print(f"Error processing {device_data['device_name']} ({device_address}): {e}")
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(120)
 
 def update_aggregated_data(device_name, device_address, current, power):
     """Updates intermediate data for aggregation."""
@@ -491,7 +491,7 @@ def fetch_all_data(days=None):
     """
     Gets records from the table for the current day if days=1.
     If the days parameter is not passed, no data is returned.
-    Results are cached for 1 minute, and the cache key включає значення days.
+    Results are cached for 1 minute, and the cache key include days.
     """
     if days is None:
         print("No 'days' parameter provided. No data will be fetched.")

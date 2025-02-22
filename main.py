@@ -290,9 +290,8 @@ async def get_aggregated_data(
 ):
     if from_date and to_date:
         try:
-            # Припустимо, формат вхідних даних: YYYY/MM/DD
+            # YYYY/MM/DD
             from_dt = datetime.strptime(from_date, "%Y/%m/%d")
-            # Для to_date встановлюємо кінець дня
             to_dt = datetime.strptime(to_date, "%Y/%m/%d") + timedelta(hours=23, minutes=59, seconds=59)
         except ValueError as e:
             return JSONResponse(content={"message": f"Invalid date format: {e}"}, status_code=400)
