@@ -102,6 +102,28 @@
 
         <div class='row justify-between'>
           <span>
+            Capacity:
+            {{ (calculatedList?.battery_voltage * calculatedList?.nominal_capacity) / 1000 }}
+            <sup>kW</sup>
+
+            <q-tooltip>
+              Capacity - Це загальний обсяг ємності батареї в кВт.
+            </q-tooltip>
+          </span>
+
+          <span>
+            Capacity left:
+            {{ (calculatedList?.battery_voltage * calculatedList?.remaining_capacity) / 1000 }}
+            <sup>kW</sup>
+
+            <q-tooltip>
+              Capacity left - Це обсяг ємності батареї який залишився в кВт.
+            </q-tooltip>
+          </span>
+        </div>
+
+        <div class='row justify-between'>
+          <span>
             Total C. C.:
             {{ calculatedList?.total_cycle_capacity?.toFixed(2) }}
             <sup>Ah</sup>
