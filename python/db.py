@@ -30,6 +30,9 @@ DEVICE_CACHE_EXPIRY = 60
 ALERT_CACHE = {}  # {device_address: {error_code: {"timestamp": occurred_at, "id": alert_id}}}
 ALERT_CACHE_EXPIRY = 60
 
+AGGREGATED_CACHE = {}
+AGGREGATED_CACHE_EXPIRY = 60
+
 async def process_devices():
     """Cyclically calls update_aggregated_data and saves the aggregated data."""
     global data_aggregator
@@ -473,9 +476,6 @@ def insert_data(timestamp, current, power, device_address, device_name):
         raise
 
 def fetch_all_data_range(from_dt: datetime, to_dt: datetime):
-    """
-    Отримує дані з таблиці, відфільтровані по діапазону дат.
-    """
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -491,26 +491,39 @@ def fetch_all_data(days=None):
     """
     Gets records from the table for the current day if days=1.
     If the days parameter is not passed, no data is returned.
+    Results are cached for 1 minute, and the cache key включає значення days.
     """
     if days is None:
         print("No 'days' parameter provided. No data will be fetched.")
         return None
 
+    now = datetime.now()
+    cache_key = days
+
+    if cache_key in AGGREGATED_CACHE:
+        cached_result, cache_time = AGGREGATED_CACHE[cache_key]
+        if (now - cache_time).total_seconds() < AGGREGATED_CACHE_EXPIRY:
+            print("Returning cached data for days =", days)
+            return cached_result
+        else:
+            print("Cache expired for days =", days)
+
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            
+
             if days == 1:
-                # Start of the current day
-                cutoff_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                cutoff_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
             else:
-                # Start of day “n days ago”
-                cutoff_date = (datetime.now() - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
-            
+                cutoff_date = (now - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
+
             cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
-            
-            cursor.execute('SELECT * FROM bms_data WHERE timestamp >= ?', (cutoff_date_str,)) # Query with filtering by timestamp
-            return cursor.fetchall()
+            cursor.execute('SELECT * FROM bms_data WHERE timestamp >= ?', (cutoff_date_str,))
+            result = cursor.fetchall()
+
+            # Save to cache: the key is days, the value is a tuple (result, time)
+            AGGREGATED_CACHE[cache_key] = (result, now)
+            return result
     except sqlite3.Error as e:
         print(f"Error fetching data: {e}")
         raise
