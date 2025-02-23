@@ -453,7 +453,9 @@ async function updateConfigs() {
 
 async function cancelSubs() {
   await cancelAllSubscriptions(true);
-  pushSubscription.value = await checkPushSubscription();
+  setTimeout(async () => {
+    pushSubscription.value = await checkPushSubscription();
+  }, 1000);
 }
 
 async function subscribePush() {
