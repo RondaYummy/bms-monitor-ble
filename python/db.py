@@ -505,10 +505,7 @@ def fetch_all_data(days=None):
     if cache_key in AGGREGATED_CACHE:
         cached_result, cache_time = AGGREGATED_CACHE[cache_key]
         if (now - cache_time).total_seconds() < AGGREGATED_CACHE_EXPIRY:
-            print("Returning cached data for days =", days)
             return cached_result
-        else:
-            print("Cache expired for days =", days)
 
     try:
         with get_connection() as conn:
