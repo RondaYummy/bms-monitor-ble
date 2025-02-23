@@ -1,5 +1,6 @@
 import type { Config } from 'src/models';
 import { ref } from "vue";
+import { Notify } from 'quasar';
 
 async function fetchConfigs(): Promise<Config | undefined> {
   try {
@@ -64,6 +65,11 @@ export function usePush() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(subscription),
+      }).then(() => {
+        Notify.create({
+          message: 'Ви успішно підписались на сповіщення',
+          color: 'secondary',
+        });
       }).catch(async () => {
         const registration = await navigator.serviceWorker.ready;
         const existingSubscription = await registration.pushManager.getSubscription();
@@ -89,12 +95,16 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return new Uint8Array([...rawData].map((char) => char.charCodeAt(0)));
 }
 
-export function cancelAllSubscriptions() {
+export async function cancelAllSubscriptions() {
   navigator.serviceWorker.getRegistration().then((reg) => {
     if (reg) {
       reg.getNotifications().then((notifications) => {
         notifications.forEach((notification) => notification.close());
         console.log(`✅ Закрито ${notifications.length} сповіщень.`);
+        Notify.create({
+          message: 'Ви успішно скасували підписку на сповіщення',
+          color: 'secondary',
+        });
       });
     } else {
       console.warn("⚠️ Service Worker не зареєстрований.");
