@@ -75,7 +75,7 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
         elif max_temp > 50:
             add_alert(alerts, "1011")
 
-        if cell_info["charge_current"] > 100:
+        if cell_info["charge_current"] > 0:
             add_alert(alerts, "1012")
         elif cell_info["charge_current"] > 80:
             add_alert(alerts, "1013")
