@@ -97,32 +97,40 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 export async function cancelAllSubscriptions(showNotify: boolean = true) {
   navigator.serviceWorker.getRegistration().then((reg) => {
+    if (!reg) {
+      console.error("Service Worker not registered");
+      return;
+    }
+    reg.pushManager.getSubscription().then((subscription) => {
+      if (subscription) {
+        subscription.unsubscribe().then((successful) => {
+          console.log("Push subscription successfully unsubscribed:", successful);
+          if (showNotify) {
+            Notify.create({
+              message: 'Ви успішно скасували підписку на сповіщення',
+              color: 'secondary',
+            });
+          }
+        }).catch((error) => {
+          console.error("Error unsubscribing", error);
+        });
+      } else {
+        console.log("No push subscription found.");
+      }
+    });
+  });
+}
+
+export function checkPushSubscription(): Promise<PushSubscription | null> {
+  return navigator.serviceWorker.getRegistration().then((reg) => {
     if (reg) {
-      reg.getNotifications().then((notifications) => {
-        notifications.forEach((notification) => notification.close());
-        console.log(`✅ Закрито ${notifications.length} сповіщень.`);
-        if (showNotify) {
-          Notify.create({
-            message: 'Ви успішно скасували підписку на сповіщення',
-            color: 'secondary',
-          });
-        }
+      return reg.pushManager.getSubscription().then((subscription) => {
+        console.log("🔍 Push Subscription:", subscription);
+        return subscription;
       });
     } else {
-      console.warn("⚠️ Service Worker не зареєстрований.");
+      return null;
     }
   });
 }
 
-export function checkSubscriptions() {
-  navigator.serviceWorker.getRegistration().then((reg) => {
-    if (reg) {
-      let subs;
-      reg.getNotifications().then((notifications) => {
-        console.log("🔍 Активні сповіщення:", notifications);
-        subs = notifications;
-      });
-      return subs;
-    }
-  });
-}

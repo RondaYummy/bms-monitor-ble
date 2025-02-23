@@ -172,12 +172,12 @@
               <q-btn class="q-mt-md"
                      @click="subscribePush"
                      color="black"
-                     :disable="!token"
+                     :disable="!token || !!pushSubscription"
                      label="Підписатись на PUSH" />
               <q-btn class="q-mt-md"
-                     @click="cancelAllSubscriptions"
+                     @click="cancelSubs"
                      color="black"
-                     :disable="!token"
+                     :disable="!token || !pushSubscription"
                      label="Скасувати підписки" />
             </div>
 
@@ -333,14 +333,14 @@
 </template>
 
 <script setup lang='ts'>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { checkResponse, useSessionStorage } from '../helpers/utils';
 import type { Alert, Device, Config } from '../models';
 import DevicesList from '../components/DevicesList.vue';
 import ToggleButton from '../components/ToggleButton.vue';
 import SettingsList from '../components/SettingsList.vue';
 import ChangePasswordModal from 'src/components/modals/ChangePasswordModal.vue';
-import { cancelAllSubscriptions, usePush } from 'src/composables/usePush';
+import { cancelAllSubscriptions, checkPushSubscription, usePush } from 'src/composables/usePush';
 
 const tab = ref('Alerts');
 const password = ref('');
@@ -350,6 +350,7 @@ const devices = ref<Device[]>([]);
 const attemptToConnectDevice = ref();
 const notFoundDevices = ref(false);
 
+const pushSubscription = ref<PushSubscription | null>(null);
 const changePasswordModal = ref(false);
 const selectedLevel = ref();
 const alerts = ref<Alert[]>();
@@ -450,10 +451,15 @@ async function updateConfigs() {
   }
 }
 
+async function cancelSubs() {
+  await cancelAllSubscriptions(true);
+  pushSubscription.value = await checkPushSubscription();
+}
+
 async function subscribePush() {
   const { subscribeToPush } = usePush();
-  await cancelAllSubscriptions(false);
   await subscribeToPush();
+  pushSubscription.value = await checkPushSubscription();
 }
 
 async function deleteErrorAlert(id: number) {
@@ -523,6 +529,10 @@ async function connectToDevice(address: string, name: string) {
   devices.value = devices.value?.filter((d) => d.address !== address);
   attemptToConnectDevice.value = '';
 }
+
+onMounted(async () => {
+  pushSubscription.value = await checkPushSubscription();
+});
 
 fetchErrorAlerts();
 fetchConfigs();
