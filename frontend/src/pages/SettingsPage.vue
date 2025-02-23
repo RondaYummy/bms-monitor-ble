@@ -148,6 +148,10 @@
           </q-tab-panel>
 
           <q-tab-panel name="Settings">
+            <p class='text-caption'>
+              Цей пароль, для доступу до налаштувань вашого додатку.
+            </p>
+
             <q-btn class="q-mt-md"
                    @click="changePasswordModal = true"
                    color="black"
@@ -161,6 +165,10 @@
                          inset />
 
             <div class='column'>
+              <p class='text-caption'>
+                PUSH сповіщення - це спливаюче повідомлення на екрані смартфона.
+              </p>
+
               <q-btn class="q-mt-md"
                      @click="subscribePush"
                      color="black"
@@ -177,6 +185,9 @@
                          color="orange"
                          inset />
 
+            <p class='text-caption'>
+              Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.
+            </p>
             <q-btn-dropdown v-if="settings?.length"
                             class="q-mt-md"
                             auto-close
