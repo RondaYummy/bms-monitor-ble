@@ -86,7 +86,7 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
 
         if cell_info["state_of_health"] < 90:
             add_alert(alerts, "1016")
-        elif cell_info["state_of_health"] < 101:
+        elif cell_info["state_of_health"] < 80:
             add_alert(alerts, "1017")
 
         if max(cell_info["cell_resistances"]) > 0.5:

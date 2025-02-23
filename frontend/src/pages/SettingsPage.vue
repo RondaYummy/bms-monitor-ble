@@ -160,6 +160,23 @@
                          color="orange"
                          inset />
 
+            <div class='column'>
+              <q-btn class="q-mt-md"
+                     @click="subscribePush"
+                     color="black"
+                     :disable="!token"
+                     label="Підписатись на PUSH" />
+              <q-btn class="q-mt-md"
+                     @click="cancelAllSubscriptions"
+                     color="black"
+                     :disable="!token"
+                     label="Скасувати підписки" />
+            </div>
+
+            <q-separator class="q-mt-md"
+                         color="orange"
+                         inset />
+
             <q-btn-dropdown v-if="settings?.length"
                             class="q-mt-md"
                             auto-close
@@ -312,6 +329,7 @@ import DevicesList from '../components/DevicesList.vue';
 import ToggleButton from '../components/ToggleButton.vue';
 import SettingsList from '../components/SettingsList.vue';
 import ChangePasswordModal from 'src/components/modals/ChangePasswordModal.vue';
+import { cancelAllSubscriptions, usePush } from 'src/composables/usePush';
 
 const tab = ref('Alerts');
 const password = ref('');
@@ -419,6 +437,12 @@ async function updateConfigs() {
   } catch (error) {
     console.error('Error updating configs:', error);
   }
+}
+
+async function subscribePush() {
+  const { subscribeToPush } = usePush();
+  cancelAllSubscriptions();
+  await subscribeToPush();
 }
 
 async function deleteErrorAlert(id: number) {

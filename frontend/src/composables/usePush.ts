@@ -88,3 +88,29 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const rawData = atob(base64);
   return new Uint8Array([...rawData].map((char) => char.charCodeAt(0)));
 }
+
+export function cancelAllSubscriptions() {
+  navigator.serviceWorker.getRegistration().then((reg) => {
+    if (reg) {
+      reg.getNotifications().then((notifications) => {
+        notifications.forEach((notification) => notification.close());
+        console.log(`✅ Закрито ${notifications.length} сповіщень.`);
+      });
+    } else {
+      console.warn("⚠️ Service Worker не зареєстрований.");
+    }
+  });
+}
+
+export function checkSubscriptions() {
+  navigator.serviceWorker.getRegistration().then((reg) => {
+    if (reg) {
+      let subs;
+      reg.getNotifications().then((notifications) => {
+        console.log("🔍 Активні сповіщення:", notifications);
+        subs = notifications;
+      });
+      return subs;
+    }
+  });
+}
