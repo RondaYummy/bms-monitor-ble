@@ -94,7 +94,7 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
         elif max(cell_info["cell_resistances"]) > 0.3:
             add_alert(alerts, "1019")
 
-        if cell_info["battery_voltage"] > 60:
+        if cell_info["battery_voltage"] > 0:
             add_alert(alerts, "1020")
         elif cell_info["battery_voltage"] > 58:
             add_alert(alerts, "1021")

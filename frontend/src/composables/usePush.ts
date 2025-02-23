@@ -95,16 +95,18 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return new Uint8Array([...rawData].map((char) => char.charCodeAt(0)));
 }
 
-export async function cancelAllSubscriptions() {
+export async function cancelAllSubscriptions(showNotify: boolean = true) {
   navigator.serviceWorker.getRegistration().then((reg) => {
     if (reg) {
       reg.getNotifications().then((notifications) => {
         notifications.forEach((notification) => notification.close());
         console.log(`✅ Закрито ${notifications.length} сповіщень.`);
-        Notify.create({
-          message: 'Ви успішно скасували підписку на сповіщення',
-          color: 'secondary',
-        });
+        if (showNotify) {
+          Notify.create({
+            message: 'Ви успішно скасували підписку на сповіщення',
+            color: 'secondary',
+          });
+        }
       });
     } else {
       console.warn("⚠️ Service Worker не зареєстрований.");

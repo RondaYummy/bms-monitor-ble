@@ -452,7 +452,7 @@ async function updateConfigs() {
 
 async function subscribePush() {
   const { subscribeToPush } = usePush();
-  await cancelAllSubscriptions();
+  await cancelAllSubscriptions(false);
   await subscribeToPush();
 }
 
