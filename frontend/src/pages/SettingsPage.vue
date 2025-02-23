@@ -459,7 +459,9 @@ async function cancelSubs() {
 async function subscribePush() {
   const { subscribeToPush } = usePush();
   await subscribeToPush();
-  pushSubscription.value = await checkPushSubscription();
+  setTimeout(async () => {
+    pushSubscription.value = await checkPushSubscription();
+  }, 1000);
 }
 
 async function deleteErrorAlert(id: number) {
@@ -532,6 +534,10 @@ async function connectToDevice(address: string, name: string) {
 
 onMounted(async () => {
   pushSubscription.value = await checkPushSubscription();
+
+  setTimeout(async () => {
+    pushSubscription.value = await checkPushSubscription();
+  }, 2000);
 });
 
 fetchErrorAlerts();
