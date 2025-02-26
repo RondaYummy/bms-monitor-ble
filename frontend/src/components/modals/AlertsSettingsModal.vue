@@ -24,8 +24,9 @@
       <div class='row justify-between q-mt-sm'>
         <q-btn @click="updateConfigs"
                color="black"
+               size="xs"
                :disable="!token"
-               label="Зберегти налаштування" />
+               label="Зберегти" />
 
         <q-btn @click="close"
                size="xs"
