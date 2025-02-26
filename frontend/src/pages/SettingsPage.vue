@@ -185,98 +185,82 @@
                          color="orange"
                          inset />
 
-            <p class='text-caption'>
-              Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.
-            </p>
-            <q-btn-dropdown v-if="settings?.length"
-                            class="q-mt-md"
-                            auto-close
-                            stretch
-                            flat
-                            style='flex: 1 1 50%;'
-                            label="Оберіть пристрій">
-
-              <q-list v-if="settings?.length">
-                <q-item clickable
-                        v-for="setting of settings"
-                        class="text-black"
-                        :key="setting?.address"
-                        :name="setting?.name"
-                        :label="setting?.name"
-                        @click="currentSetting = setting">
-                  <q-item-section>{{ setting?.name }}</q-item-section>
-                </q-item>
-              </q-list>
-            </q-btn-dropdown>
-
-            <template v-if="currentSetting">
-              <ToggleButton :value="currentSetting?.charge_switch"
-                            title="Charge" />
-              <ToggleButton :value="currentSetting?.discharge_switch"
-                            title="Discharge" />
-              <ToggleButton :value="currentSetting?.balancer_switch"
-                            title="Balance" />
-              <!-- <ToggleButton :value="currentSetting?."
-                            title="Emergency" /> -->
-              <ToggleButton :value="currentSetting?.heating_enabled"
-                            title="Heating" />
-              <ToggleButton :value="currentSetting?.disable_temperature_sensors"
-                            title="Disable Temp. Sensor" />
-              <ToggleButton :value="currentSetting?.display_always_on"
-                            title="Display Always On" />
-              <ToggleButton :value="currentSetting?.special_charger"
-                            title="Special Charger On" />
-              <ToggleButton :value="currentSetting?.smart_sleep"
-                            title="Smart Sleep On" />
-              <ToggleButton :value="currentSetting?.timed_stored_data"
-                            title="Timed Stored Data" />
-              <ToggleButton :value="currentSetting?.charging_float_mode"
-                            title="Charging Float Mode" />
-              <ToggleButton :value="currentSetting?.gps_heartbeat"
-                            title="GPS Heartbeat" />
-              <ToggleButton :value="currentSetting?.disable_pcl_module"
-                            title="Disable PCL Module" />
-              <ToggleButton :value="currentSetting?.charge_utpr"
-                            title="Charge UTPR" />
-
-              <SettingsList :settings="currentSetting" />
-            </template>
-
-            <q-separator class="q-mt-md"
-                         color="orange"
-                         inset />
-
             <div class="column q-mt-md q-mb-md"
                  v-if="config">
-              <div class="column">
-                <p>
-                  Періодичність сповіщеннь ( Alerts ):
+              <q-btn class="q-mt-md"
+                     @click="alertsModal = true"
+                     color="black"
+                     :disable="!token"
+                     label="Налаштування Alerts" />
+              <AlertsSettingsModal :config="config"
+                                   :show="alertsModal"
+                                   @update:show="alertsModal = !alertsModal" />
 
-                  <q-tooltip>
-                    Це значення задається в цілих годинах. Якщо встановлено
-                    12
-                    годин, то ви не отримуватимете важливих сповіщень про
-                    стан
-                    батареї частіше ніж раз на 12 годин. Це зроблено, щоб
-                    уникнути надмірної кількості повідомлень у вашій
-                    скриньці.
-                  </q-tooltip>
-                </p>
-                <q-input :disable="!token"
-                         v-model.number="config.n_hours"
-                         type="number"
-                         filled />
-              </div>
+              <q-separator class="q-mt-md"
+                           color="orange"
+                           inset />
+
+              <p class='text-caption'>
+                Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.
+              </p>
+              <q-btn-dropdown v-if="settings?.length"
+                              class="q-mt-md"
+                              auto-close
+                              stretch
+                              flat
+                              style='flex: 1 1 50%;'
+                              label="Оберіть пристрій">
+
+                <q-list v-if="settings?.length">
+                  <q-item clickable
+                          v-for="setting of settings"
+                          class="text-black"
+                          :key="setting?.address"
+                          :name="setting?.name"
+                          :label="setting?.name"
+                          @click="currentSetting = setting">
+                    <q-item-section>{{ setting?.name }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
+
+              <template v-if="currentSetting">
+                <ToggleButton :value="currentSetting?.charge_switch"
+                              title="Charge" />
+                <ToggleButton :value="currentSetting?.discharge_switch"
+                              title="Discharge" />
+                <ToggleButton :value="currentSetting?.balancer_switch"
+                              title="Balance" />
+                <!-- <ToggleButton :value="currentSetting?."
+                            title="Emergency" /> -->
+                <ToggleButton :value="currentSetting?.heating_enabled"
+                              title="Heating" />
+                <ToggleButton :value="currentSetting?.disable_temperature_sensors"
+                              title="Disable Temp. Sensor" />
+                <ToggleButton :value="currentSetting?.display_always_on"
+                              title="Display Always On" />
+                <ToggleButton :value="currentSetting?.special_charger"
+                              title="Special Charger On" />
+                <ToggleButton :value="currentSetting?.smart_sleep"
+                              title="Smart Sleep On" />
+                <ToggleButton :value="currentSetting?.timed_stored_data"
+                              title="Timed Stored Data" />
+                <ToggleButton :value="currentSetting?.charging_float_mode"
+                              title="Charging Float Mode" />
+                <ToggleButton :value="currentSetting?.gps_heartbeat"
+                              title="GPS Heartbeat" />
+                <ToggleButton :value="currentSetting?.disable_pcl_module"
+                              title="Disable PCL Module" />
+                <ToggleButton :value="currentSetting?.charge_utpr"
+                              title="Charge UTPR" />
+
+                <SettingsList :settings="currentSetting" />
+              </template>
 
               <q-separator class="q-mt-md"
                            color="orange"
                            inset />
             </div>
-
-            <q-btn @click="updateConfigs"
-                   color="black"
-                   :disable="!token"
-                   label="Зберегти налаштування" />
           </q-tab-panel>
 
           <q-tab-panel name="Devices">
@@ -341,6 +325,7 @@ import ToggleButton from '../components/ToggleButton.vue';
 import SettingsList from '../components/SettingsList.vue';
 import ChangePasswordModal from 'src/components/modals/ChangePasswordModal.vue';
 import { cancelAllSubscriptions, checkPushSubscription, usePush } from 'src/composables/usePush';
+import AlertsSettingsModal from 'src/components/modals/AlertsSettingsModal.vue';
 
 const tab = ref('Alerts');
 const password = ref('');
@@ -349,6 +334,7 @@ const loadingDevices = ref(false);
 const devices = ref<Device[]>([]);
 const attemptToConnectDevice = ref();
 const notFoundDevices = ref(false);
+const alertsModal = ref(false);
 
 const pushSubscription = ref<PushSubscription | null>(null);
 const changePasswordModal = ref(false);
@@ -435,24 +421,6 @@ async function fetchSettings() {
     settings.value = data;
   } catch (error) {
     console.error('Error fetching configs:', error);
-  }
-}
-
-async function updateConfigs() {
-  try {
-    const response = await fetch('/api/configs', {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token.value}`
-      },
-      body: JSON.stringify({ ...config.value }),
-    });
-    checkResponse(response);
-    const data = await response.json();
-    config.value = data;
-  } catch (error) {
-    console.error('Error updating configs:', error);
   }
 }
 
