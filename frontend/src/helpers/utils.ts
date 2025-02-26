@@ -52,12 +52,12 @@ export const useSessionStorage = (key: string) => {
 
 export function formatDuration(seconds: number) {
   const units = [
-    { label: 'p', seconds: 31536000 }, // 365 days
-    { label: 'm', seconds: 2592000 }, // 30 days
-    { label: 'e', seconds: 86400 }, // 24 hours
-    { label: 'd', seconds: 3600 }, // 60 minutes
-    { label: 'min', seconds: 60 }, // 60 seconds
-    { label: 'с', seconds: 1 },
+    { label: 'y', seconds: 31536000 }, // 1 рік = 365 днів
+    { label: 'mo', seconds: 2592000 }, // 1 місяць = 30 днів
+    { label: 'd', seconds: 86400 }, // 1 день = 24 години
+    { label: 'h', seconds: 3600 }, // 1 година = 60 хвилин
+    { label: 'min', seconds: 60 }, // 1 хвилина = 60 секунд
+    { label: 's', seconds: 1 }, // 1 секунда
   ];
 
   const result = [];
