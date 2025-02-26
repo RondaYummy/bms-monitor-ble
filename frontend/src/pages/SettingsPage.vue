@@ -194,7 +194,7 @@
                      label="Налаштування Alerts" />
               <AlertsSettingsModal :config="config"
                                    :show="alertsModal"
-                                   @update:show="alertsModal = false" />
+                                   @update:show="(value) => alertsModal = value" />
 
               <q-separator class="q-mt-md"
                            color="orange"
