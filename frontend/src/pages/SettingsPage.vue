@@ -152,7 +152,7 @@
               Цей пароль, для доступу до налаштувань вашого додатку.
             </p>
 
-            <q-btn class="q-mt-md"
+            <q-btn class="q-mt-sm"
                    @click="changePasswordModal = true"
                    color="black"
                    :disable="!token"
@@ -169,12 +169,12 @@
                 PUSH сповіщення - це спливаюче повідомлення на екрані смартфона.
               </p>
 
-              <q-btn class="q-mt-md"
+              <q-btn class="q-mt-sm"
                      @click="subscribePush"
                      color="black"
                      :disable="!token || !!pushSubscription"
                      label="Підписатись на PUSH" />
-              <q-btn class="q-mt-md"
+              <q-btn class="q-mt-sm"
                      @click="cancelSubs"
                      color="black"
                      :disable="!token || !pushSubscription"
@@ -187,7 +187,10 @@
 
             <div class="column q-mt-md q-mb-md"
                  v-if="config">
-              <q-btn class="q-mt-md"
+              <p class='text-caption'>
+                Налаштування ваших сповіщень
+              </p>
+              <q-btn class="q-mt-sm"
                      @click="alertsModal = true"
                      color="black"
                      :disable="!token"
@@ -204,7 +207,7 @@
                 Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.
               </p>
               <q-btn-dropdown :disable="!settings?.length"
-                              class="q-mt-md"
+                              class="q-mt-sm"
                               auto-close
                               stretch
                               flat
