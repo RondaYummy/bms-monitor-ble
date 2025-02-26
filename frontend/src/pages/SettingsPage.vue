@@ -402,12 +402,12 @@ function getAlertIcon(level: string | undefined): string {
 async function fetchErrorAlerts() {
   try {
     const response = await fetch('/api/error-alerts');
-    checkResponse(response);
     if (response.status === 404) {
       alerts.value = [];
       alertsMain.value = [];
       return;
     }
+    checkResponse(response);
     const data = await response.json();
     alerts.value = data;
     alertsMain.value = data;
