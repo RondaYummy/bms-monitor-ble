@@ -203,7 +203,7 @@
               <p class='text-caption'>
                 Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.
               </p>
-              <q-btn-dropdown v-if="settings?.length"
+              <q-btn-dropdown :disable="!settings?.length"
                               class="q-mt-md"
                               auto-close
                               stretch
