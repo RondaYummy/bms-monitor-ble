@@ -53,7 +53,7 @@ export const useSessionStorage = (key: string) => {
 export function formatDuration(seconds: number) {
   const units = [
     { label: 'y', seconds: 31536000 }, // 1 рік = 365 днів
-    { label: 'mo', seconds: 2592000 }, // 1 місяць = 30 днів
+    { label: 'm', seconds: 2592000 }, // 1 місяць = 30 днів
     { label: 'd', seconds: 86400 }, // 1 день = 24 години
     { label: 'h', seconds: 3600 }, // 1 година = 60 хвилин
     { label: 'min', seconds: 60 }, // 1 хвилина = 60 секунд
