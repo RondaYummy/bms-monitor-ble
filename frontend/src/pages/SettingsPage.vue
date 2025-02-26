@@ -164,22 +164,20 @@
                          color="orange"
                          inset />
 
-            <div class='column'>
-              <p class='text-caption'>
-                PUSH сповіщення - це спливаюче повідомлення на екрані смартфона.
-              </p>
+            <p class='text-caption'>
+              PUSH сповіщення - це спливаюче повідомлення на екрані смартфона.
+            </p>
 
-              <q-btn class="q-mt-sm"
-                     @click="subscribePush"
-                     color="black"
-                     :disable="!token || !!pushSubscription"
-                     label="Підписатись на PUSH" />
-              <q-btn class="q-mt-sm"
-                     @click="cancelSubs"
-                     color="black"
-                     :disable="!token || !pushSubscription"
-                     label="Скасувати підписки" />
-            </div>
+            <q-btn class="q-mt-sm"
+                   @click="subscribePush"
+                   color="black"
+                   :disable="!token || !!pushSubscription"
+                   label="Підписатись на PUSH" />
+            <q-btn class="q-mt-sm"
+                   @click="cancelSubs"
+                   color="black"
+                   :disable="!token || !pushSubscription"
+                   label="Скасувати підписки" />
 
             <q-separator class="q-mt-md"
                          color="orange"
@@ -535,5 +533,9 @@ fetchSettings();
 
 :deep(.q-field__native) {
   color: white !important;
+}
+
+p {
+  margin: 0;
 }
 </style>
