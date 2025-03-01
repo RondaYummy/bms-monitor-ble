@@ -77,11 +77,11 @@ Inspired by this need, I decided to create my own project using Python and devel
 - https://github.com/maxx-ukoo/jk-bms2pylontech - Pylontech low voltage US2000 Bridge [RS485, ro] (C)
 - https://github.com/ismarintan98/JK_BMS - Simple data monitor [RS485] (C++)
 - https://github.com/Louisvdw/dbus-serialbattery/blob/master/etc/dbus-serialbattery/jkbms.py VenusOS drive [RS485, ro] (Python)
-* https://secondlifestorage.com/index.php?threads/jk-b1a24s-jk-b2a24s-active-balancer.9591/
-* https://github.com/jblance/jkbms
-* https://github.com/jblance/mpp-solar/issues/112
-* https://github.com/jblance/mpp-solar/blob/master/mppsolar/protocols/jk232.py
-* https://github.com/jblance/mpp-solar/blob/master/mppsolar/protocols/jk485.py
-* https://github.com/sshoecraft/jktool
-* https://github.com/Louisvdw/dbus-serialbattery/blob/master/etc/dbus-serialbattery/jkbms.py
-* https://blog.ja-ke.tech/2020/02/07/ltt-power-bms-chinese-protocol.html
+- https://secondlifestorage.com/index.php?threads/jk-b1a24s-jk-b2a24s-active-balancer.9591/ - JK-B1A24S / JK-B2A24S Active Balancer
+- https://github.com/jblance/jkbms
+- https://github.com/jblance/mpp-solar/issues/112 - JK BMS RS485 protocol
+- https://github.com/jblance/mpp-solar/blob/master/mppsolar/protocols/jk232.py
+- https://github.com/jblance/mpp-solar/blob/master/mppsolar/protocols/jk485.py
+- https://github.com/sshoecraft/jktool
+- https://github.com/Louisvdw/dbus-serialbattery/blob/master/etc/dbus-serialbattery/jkbms.py
+- https://blog.ja-ke.tech/2020/02/07/ltt-power-bms-chinese-protocol.html
