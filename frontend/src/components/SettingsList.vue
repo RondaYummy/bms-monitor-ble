@@ -1,6 +1,5 @@
 <template>
-  <q-list padding
-          bordered
+  <q-list bordered
           class="rounded-borders">
     <q-expansion-item dense
                       dense-toggle

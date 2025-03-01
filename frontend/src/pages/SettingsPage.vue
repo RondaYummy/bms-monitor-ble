@@ -532,8 +532,4 @@ fetchSettings();
 :deep(.q-field__native) {
   color: white !important;
 }
-
-p {
-  margin: 0;
-}
 </style>
