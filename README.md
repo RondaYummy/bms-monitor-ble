@@ -72,7 +72,7 @@ Inspired by this need, I decided to create my own project using Python and devel
 ### Top contributors:
 
 <a href="https://github.com/RondaYummy/bms-monitor-ble/graphs/contributors">
-  <img src="https://github.com/RondaYummy/bms-monitor-ble" alt="contrib.rocks image" />
+  <img src="https://contrib.rocks/image?repo=RondaYummy/bms-monitor-ble" alt="contrib.rocks image" />
 </a>
 
 ## References
