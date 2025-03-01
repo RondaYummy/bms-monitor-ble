@@ -69,6 +69,12 @@ The official app left me dissatisfied due to its lack of essential features. It 
 
 Inspired by this need, I decided to create my own project using Python and develop a web application that integrates all these features in one place. Unlike the official app, my application includes real-time notifications, remote accessibility, and, importantly, data visualization through detailed charts—something the official app also lacks. This project is a step toward simplifying BMS monitoring and ensuring a seamless user experience, no matter where I am.
 
+### Top contributors:
+
+<a href="https://github.com/RondaYummy/bms-monitor-ble/graphs/contributors">
+  <img src="https://github.com/RondaYummy/bms-monitor-ble" alt="contrib.rocks image" />
+</a>
+
 ## References
 - https://github.com/syssi/esphome-jk-bms - ESPHome component [RS485 BLE, rw] (C++, Python)
 - https://github.com/PurpleAlien/jk-bms_grafana - Read data and graph in Grafana [RS485, ro] (Python)
