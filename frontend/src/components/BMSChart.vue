@@ -382,6 +382,7 @@ async function fetchDataAndProcess(
 }
 
 function selectTypeChart(type: 'power' | 'current') {
+  selectedTypeChart.value = type;
   const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
   if (type === 'power') {
     chartOptions.value.tooltip.y = [{
