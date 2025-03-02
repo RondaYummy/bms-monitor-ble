@@ -436,7 +436,7 @@ function selectTypeChart(type: 'power' | 'current' | 'remainingCapacity') {
     }];
     series.value = [
       {
-        name: 'Current',
+        name: 'Capacity',
         data: remainingCapacitySeries,
       },
     ];
