@@ -48,6 +48,22 @@
                   range />
         </q-dialog>
       </div>
+      <div class="chart-actions">
+        <q-btn id="power"
+               label="Power"
+               :disable="selectedTypeChart === 'power'"
+               :color="selectedTypeChart === 'power' ? 'bg-positive' : ''"
+               size="xs"
+               flat
+               @click="selectTypeChart('power')" />
+        <q-btn id="current"
+               label="Current"
+               :disable="selectedTypeChart === 'current'"
+               :color="selectedTypeChart === 'current' ? 'bg-positive' : ''"
+               size="xs"
+               flat
+               @click="selectTypeChart('current')" />
+      </div>
     </div>
     <apex-chart ref="chartRef"
                 type="line"
@@ -72,6 +88,7 @@ const selectedRange = ref('1d');
 const loadingRangeData = ref('');
 const rangeDialog = ref(false);
 const range = ref();
+const selectedTypeChart = ref('power');
 
 const chartOptions = ref({
   chart: {
@@ -134,20 +151,10 @@ const chartOptions = ref({
       },
       formatter: function (value: string | number) {
         const date = new Date(value);
-        const now = new Date();
-        const diff = now.getTime() - date.getTime();
-        if (diff > 2 * 24 * 60 * 60 * 1000) {
-          return date.toLocaleDateString('uk-UA', {
-            day: '2-digit',
-            month: 'short',
-            year: '2-digit'
-          });
-        } else {
-          return date.toLocaleTimeString('uk-UA', {
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-        }
+        return date.toLocaleTimeString('uk-UA', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
       }
     },
   },
@@ -357,26 +364,46 @@ async function fetchDataAndProcess(
 ) {
   try {
     data.value = await fetchAggregatedData(days, range);
-    console.log('Aggregated Data: ', data.value);
 
     if (!data.value) {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
+    const { powerSeries } = processAggregatedData(data.value, props.tab);
     series.value = [
       {
         name: 'Battery Power',
         data: powerSeries,
       },
-      // {
-      //   name: 'Current',
-      //   data: currentSeries,
-      // },
     ];
   } catch (error) {
     console.error('Error fetching data:', error);
+  }
+}
+
+function selectTypeChart(type: 'power' | 'current') {
+  const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
+  if (type === 'power') {
+    chartOptions.value.tooltip.y = [{
+      formatter: (val: number) => `${val?.toFixed(2)} W`,
+    }];
+    series.value = [
+      {
+        name: 'Battery Power',
+        data: powerSeries,
+      },
+    ];
+  }
+  if (type === 'current') {
+    chartOptions.value.tooltip.y = [{
+      formatter: (val: number) => `${val?.toFixed(2)} A`,
+    }];
+    series.value = [
+      {
+        name: 'Current',
+        data: currentSeries,
+      },
+    ];
   }
 }
 
@@ -397,18 +424,12 @@ watch(
   () => props.tab,
   async (newTab) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { currentSeries, powerSeries } = processAggregatedData(data.value, newTab);
-
+      const { powerSeries } = processAggregatedData(data.value, newTab);
       series.value = [
         {
           name: 'Battery Power',
           data: powerSeries,
         },
-        // {
-        //   name: 'Current',
-        //   data: currentSeries,
-        // },
       ];
     } catch (error) {
       console.error('Error processing data:', error);
