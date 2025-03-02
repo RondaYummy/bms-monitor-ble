@@ -420,7 +420,7 @@ onBeforeUnmount(async () => {
 
 watch(
   () => props.tab,
-  async (newTab) => {
+  async () => {
     try {
       selectTypeChart(selectedTypeChart.value);
     } catch (error) {
