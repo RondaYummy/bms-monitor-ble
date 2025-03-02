@@ -12,6 +12,7 @@ data_aggregator = defaultdict(lambda: {
     "device_name": None,
     "device_address": None,
     "current_sum": 0,
+    "charge_current_sum": 0,
     "power_sum": 0,
     "current_min": float('inf'),
     "current_max": float('-inf'),
@@ -47,7 +48,7 @@ async def process_devices():
 
         await asyncio.sleep(60 * 5)
 
-def update_aggregated_data(device_name, device_address, current, power):
+def update_aggregated_data(device_name, device_address, current, power, charge_current):
     """Updates intermediate data for aggregation."""
     global data_aggregator
     now = datetime.now()
@@ -70,6 +71,7 @@ def update_aggregated_data(device_name, device_address, current, power):
 
     device_data["current_sum"] += current
     device_data["power_sum"] += power
+    device_data["charge_current_sum"] += charge_current
 
     device_data["current_min"] = min(device_data["current_min"], current)
     device_data["current_max"] = max(device_data["current_max"], current)
@@ -90,6 +92,7 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
     if device_data["count"] > 0:
         current_avg = device_data["current_sum"] / device_data["count"]
         power_avg = device_data["power_sum"] / device_data["count"]
+        charge_current_avg = device_data["charge_current_sum"] / device_data["count"]
     else:
         return  # No data to save
 
@@ -100,6 +103,7 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
             timestamp=timestamp,
             current=current_avg,
             power=power_avg,
+            charge_current=charge_current_avg,
             device_address=device_address,
             device_name=device_name
         )
@@ -154,6 +158,7 @@ def create_table():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT NOT NULL,
                 current REAL NOT NULL,
+                charge_current REAL NOT NULL,
                 power REAL NOT NULL,
                 device_address TEXT NOT NULL,
                 device_name TEXT NOT NULL
@@ -464,14 +469,14 @@ def insert_alert_data(device_address, device_name, error_code, occurred_at, n_ho
         print(f"Error inserting alerts data: {e}")
         raise
 
-def insert_data(timestamp, current, power, device_address, device_name):
+def insert_data(timestamp, current, power, charge_current, device_address, device_name):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-            INSERT INTO bms_data (timestamp, current, power, device_address, device_name)
+            INSERT INTO bms_data (timestamp, current, power, charge_current, device_address, device_name)
             VALUES (?, ?, ?, ?, ?)
-            ''', (timestamp, current, power, device_address, device_name))
+            ''', (timestamp, current, power, charge_current, device_address, device_name))
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error inserting data: {e}")
