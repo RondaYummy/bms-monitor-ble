@@ -489,7 +489,7 @@ def fetch_all_data_range(from_dt: datetime, to_dt: datetime):
             cursor = conn.cursor()
             from_str = from_dt.strftime('%Y-%m-%d %H:%M:%S')
             to_str = to_dt.strftime('%Y-%m-%d %H:%M:%S')
-            cursor.execute('SELECT timestamp, current, power, device_address, device_name, charge_current FROM bms_data WHERE timestamp BETWEEN ? AND ?', (from_str, to_str))
+            cursor.execute('SELECT timestamp, current, power, device_address, device_name, remaining_capacity FROM bms_data WHERE timestamp BETWEEN ? AND ?', (from_str, to_str))
             return cursor.fetchall()
     except sqlite3.Error as e:
         print(f"Error fetching data: {e}")
@@ -523,7 +523,7 @@ def fetch_all_data(days=None):
                 cutoff_date = (now - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
 
             cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
-            cursor.execute('SELECT timestamp, current, power, device_address, device_name, charge_current FROM bms_data WHERE timestamp >= ?', (cutoff_date_str,))
+            cursor.execute('SELECT timestamp, current, power, device_address, device_name, remaining_capacity FROM bms_data WHERE timestamp >= ?', (cutoff_date_str,))
             result = cursor.fetchall()
 
             # Save to cache: the key is days, the value is a tuple (result, time)
