@@ -46,6 +46,10 @@
           <q-date v-model="range"
                   @update:model-value="zoomRange('custom')"
                   range />
+          <q-btn label="OK"
+                 size="xs"
+                 flat
+                 @click="rangeDialog = false" />
         </q-dialog>
       </div>
       <div class="chart-actions">
