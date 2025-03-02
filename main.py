@@ -596,7 +596,7 @@ async def parse_cell_info(data, device_name, device_address):
         await alerts.evaluate_alerts(device_address=device_address, device_name=device_name, cell_info=cell_info)
 
         if await are_all_allowed_devices_connected_and_have_data():
-            db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power)
+            db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power, charge_current=charge_current)
         return cell_info
 
     except Exception as e:
