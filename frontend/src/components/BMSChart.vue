@@ -443,7 +443,7 @@ watch(
 }
 
 .apexcharts-tooltip,
-.apexcharts-menu,
+:deep(.apexcharts-menu),
 :deep(.q-date__header),
 :deep(.q-date__view),
 :deep(.q-date) {
