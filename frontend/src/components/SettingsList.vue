@@ -498,11 +498,9 @@ watch(
 }
 
 .q-input:focus-within {
-  // .q-field__control {
   border: 2px solid green !important;
   box-shadow: 0 0 8px hsla(120, 100%, 25%, 0.6);
   border-radius: 4px;
-  // }
 }
 
 .custom:focus-within span {

@@ -263,7 +263,6 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
     except Exception as e:
         return JSONResponse(content={"error": f"❌ Error connecting to device: {str(e)}"}, status_code=500)
 
-
 @app.get("/api/devices")
 async def discover_devices():
     try:
@@ -286,7 +285,6 @@ async def discover_devices():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"❌ Error searching for devices: {str(e)}")
-
 
 @app.get("/api/device-info")
 async def get_device_info():
