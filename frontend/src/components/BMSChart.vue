@@ -63,13 +63,18 @@
                size="xs"
                flat
                @click="selectTypeChart('power')" />
-        <q-btn id="current"
-               label="Current"
+        <q-btn label="Current"
                :disable="selectedTypeChart === 'current'"
                :color="selectedTypeChart === 'current' ? 'bg-positive' : ''"
                size="xs"
                flat
                @click="selectTypeChart('current')" />
+        <q-btn label="Capacity"
+               :disable="selectedTypeChart === 'remainingCapacity'"
+               :color="selectedTypeChart === 'remainingCapacity' ? 'bg-positive' : ''"
+               size="xs"
+               flat
+               @click="selectTypeChart('remainingCapacity')" />
       </div>
     </div>
     <apex-chart ref="chartRef"
@@ -95,7 +100,7 @@ const selectedRange = ref('1d');
 const loadingRangeData = ref('');
 const rangeDialog = ref(false);
 const range = ref();
-const selectedTypeChart = ref<"power" | "current">('power');
+const selectedTypeChart = ref<"power" | "current" | "remainingCapacity">('power');
 
 const chartOptions = ref({
   chart: {
@@ -309,7 +314,7 @@ async function fetchAggregatedData(
 
 function processAggregatedData(data: any[], tab: string) {
   if (tab === 'All') {
-    const groupedData: Record<string, { currentSum: number; count: number; powerSum: number; }> = {};
+    const groupedData: Record<string, { currentSum: number; count: number; powerSum: number; remainingCapacitySum: number; }> = {};
 
     data.forEach((item: any) => {
       const date = new Date(item[0]);
@@ -318,10 +323,11 @@ function processAggregatedData(data: any[], tab: string) {
       const minuteKey = localDate.toISOString().slice(0, 16);
 
       if (!groupedData[minuteKey]) {
-        groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
+        groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0, remainingCapacitySum: 0 };
       }
       groupedData[minuteKey].currentSum += item[1];
       groupedData[minuteKey].powerSum += item[2];
+      groupedData[minuteKey].remainingCapacitySum += item[5];
       groupedData[minuteKey].count += 1;
     });
 
@@ -335,10 +341,15 @@ function processAggregatedData(data: any[], tab: string) {
       y: values.powerSum,
     }));
 
-    return { currentSeries, powerSeries };
+    const remainingCapacitySeries = Object.entries(groupedData).map(([minute, values]) => ({
+      x: minute,
+      y: values.remainingCapacitySum,
+    }));
+
+    return { currentSeries, powerSeries, remainingCapacitySeries };
   } else {
     // Filter data by `tab`
-    const filteredData = data.filter((item) => item[5] === tab);
+    const filteredData = data.filter((item) => item[4] === tab);
     const currentSeries = filteredData.map((item) => {
       const date = new Date(item[0]);
       const offset = date.getTimezoneOffset();
@@ -359,7 +370,17 @@ function processAggregatedData(data: any[], tab: string) {
       };
     });
 
-    return { currentSeries, powerSeries };
+    const remainingCapacitySeries = filteredData.map((item) => {
+      const date = new Date(item[0]);
+      const offset = date.getTimezoneOffset();
+      const localDate = new Date(date.getTime() - offset * 60 * 1000);
+      return {
+        x: localDate.toISOString().slice(0, 16),
+        y: item[5],
+      };
+    });
+
+    return { currentSeries, powerSeries, remainingCapacitySeries };
   }
 }
 
@@ -384,9 +405,9 @@ async function fetchDataAndProcess(
   }
 }
 
-function selectTypeChart(type: 'power' | 'current') {
+function selectTypeChart(type: 'power' | 'current' | 'remainingCapacity') {
   selectedTypeChart.value = type;
-  const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
+  const { currentSeries, powerSeries, remainingCapacitySeries } = processAggregatedData(data.value, props.tab);
   if (type === 'power') {
     chartOptions.value.tooltip.y = [{
       formatter: (val: number) => `${val?.toFixed(2)} W`,
@@ -406,6 +427,17 @@ function selectTypeChart(type: 'power' | 'current') {
       {
         name: 'Current',
         data: currentSeries,
+      },
+    ];
+  }
+  if (type === 'remainingCapacity') {
+    chartOptions.value.tooltip.y = [{
+      formatter: (val: number) => `${val?.toFixed(2)} A`,
+    }];
+    series.value = [
+      {
+        name: 'Current',
+        data: remainingCapacitySeries,
       },
     ];
   }
