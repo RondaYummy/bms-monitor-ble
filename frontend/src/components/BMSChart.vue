@@ -459,5 +459,6 @@ watch(
   justify-content: center;
   background: #1e1f26;
   color: white;
+  padding: 10px;
 }
 </style>
