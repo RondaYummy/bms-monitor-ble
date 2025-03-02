@@ -44,13 +44,15 @@
 
         <q-dialog v-model="rangeDialog">
           <div class="column q-gutter-sm">
-            <q-date v-model="range"
-                    @update:model-value="zoomRange('custom')"
-                    range />
-            <q-btn label="OK"
-                   size="xs"
-                   flat
-                   @click="rangeDialog = false" />
+            <div class="date-box">
+              <q-date v-model="range"
+                      @update:model-value="zoomRange('custom')"
+                      range />
+              <q-btn label="OK"
+                     color="white"
+                     text-color="black"
+                     @click="rangeDialog = false" />
+            </div>
           </div>
         </q-dialog>
       </div>
@@ -445,6 +447,16 @@ watch(
 .apexcharts-menu,
 :deep(.q-date__header),
 :deep(.q-date__view) {
+  background: #1e1f26;
+  color: white;
+  box-shadow: none;
+}
+
+.date-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   background: #1e1f26;
   color: white;
 }
