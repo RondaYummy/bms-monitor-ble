@@ -418,4 +418,9 @@ fetchCellInfo();
   color: black;
   font-weight: 600;
 }
+
+:deep(.q-tabs) {
+  box-shadow: none;
+  background: #1e1f26 !important;
+}
 </style>
