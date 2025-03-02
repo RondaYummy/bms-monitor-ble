@@ -407,6 +407,7 @@ function selectTypeChart(type: 'power' | 'current') {
       },
     ];
   }
+  chartRef.value?.chart.updateOptions(chartOptions.value);
 }
 
 onMounted(async () => {
