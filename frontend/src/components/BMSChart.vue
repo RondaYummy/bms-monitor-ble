@@ -49,8 +49,7 @@
                       @update:model-value="zoomRange('custom')"
                       range />
               <q-btn label="OK"
-                     color="white"
-                     text-color="black"
+                     color="secondary"
                      @click="rangeDialog = false" />
             </div>
           </div>
@@ -446,7 +445,8 @@ watch(
 .apexcharts-tooltip,
 .apexcharts-menu,
 :deep(.q-date__header),
-:deep(.q-date__view) {
+:deep(.q-date__view),
+:deep(.q-date) {
   background: #1e1f26;
   color: white;
   box-shadow: none;
