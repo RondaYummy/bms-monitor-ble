@@ -88,7 +88,7 @@ const selectedRange = ref('1d');
 const loadingRangeData = ref('');
 const rangeDialog = ref(false);
 const range = ref();
-const selectedTypeChart = ref('power');
+const selectedTypeChart = ref<"power" | "current">('power');
 
 const chartOptions = ref({
   chart: {
@@ -370,13 +370,8 @@ async function fetchDataAndProcess(
       return;
     }
 
-    const { powerSeries } = processAggregatedData(data.value, props.tab);
-    series.value = [
-      {
-        name: 'Battery Power',
-        data: powerSeries,
-      },
-    ];
+    selectTypeChart(selectedTypeChart.value);
+    chartRef.value?.chart.updateOptions(chartOptions.value);
   } catch (error) {
     console.error('Error fetching data:', error);
   }
@@ -427,13 +422,7 @@ watch(
   () => props.tab,
   async (newTab) => {
     try {
-      const { powerSeries } = processAggregatedData(data.value, newTab);
-      series.value = [
-        {
-          name: 'Battery Power',
-          data: powerSeries,
-        },
-      ];
+      selectTypeChart(selectedTypeChart.value);
     } catch (error) {
       console.error('Error processing data:', error);
     }
