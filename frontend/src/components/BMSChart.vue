@@ -215,6 +215,7 @@ async function zoomRange(ranges: '1d' | '1w' | '1m' | '1y' | 'custom') {
   if (!chartRef.value) return;
   selectedRange.value = ranges;
   loadingRangeData.value = ranges;
+  selectedTypeChart.value = 'power';
 
   if (ranges === '1d') {
     days.value = 1;
