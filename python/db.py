@@ -89,6 +89,7 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
         return  # The interval has not yet expired
 
     # Calculating the average value
+    print(f"device_data: {device_data}")
     if device_data["count"] > 0:
         current_avg = device_data["current_sum"] / device_data["count"]
         power_avg = device_data["power_sum"] / device_data["count"]
