@@ -43,13 +43,15 @@
                @click="rangeDialog = true" />
 
         <q-dialog v-model="rangeDialog">
-          <q-date v-model="range"
-                  @update:model-value="zoomRange('custom')"
-                  range />
-          <q-btn label="OK"
-                 size="xs"
-                 flat
-                 @click="rangeDialog = false" />
+          <div class="column q-gutter-sm">
+            <q-date v-model="range"
+                    @update:model-value="zoomRange('custom')"
+                    range />
+            <q-btn label="OK"
+                   size="xs"
+                   flat
+                   @click="rangeDialog = false" />
+          </div>
         </q-dialog>
       </div>
       <div class="chart-actions">
