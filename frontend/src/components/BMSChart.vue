@@ -297,7 +297,7 @@ function processAggregatedData(data: any[], tab: string) {
     const groupedData: Record<string, { currentSum: number; count: number; powerSum: number; }> = {};
 
     data.forEach((item: any) => {
-      const date = new Date(item[1]);
+      const date = new Date(item[0]);
       const offset = date.getTimezoneOffset();
       const localDate = new Date(date.getTime() - offset * 60 * 1000);
       const minuteKey = localDate.toISOString().slice(0, 16);
@@ -305,8 +305,8 @@ function processAggregatedData(data: any[], tab: string) {
       if (!groupedData[minuteKey]) {
         groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
       }
-      groupedData[minuteKey].currentSum += item[2];
-      groupedData[minuteKey].powerSum += item[3];
+      groupedData[minuteKey].currentSum += item[1];
+      groupedData[minuteKey].powerSum += item[2];
       groupedData[minuteKey].count += 1;
     });
 
@@ -325,22 +325,22 @@ function processAggregatedData(data: any[], tab: string) {
     // Filter data by `tab`
     const filteredData = data.filter((item) => item[5] === tab);
     const currentSeries = filteredData.map((item) => {
-      const date = new Date(item[1]);
+      const date = new Date(item[0]);
+      const offset = date.getTimezoneOffset();
+      const localDate = new Date(date.getTime() - offset * 60 * 1000);
+      return {
+        x: localDate.toISOString().slice(0, 16),
+        y: item[1],
+      };
+    });
+
+    const powerSeries = filteredData.map((item) => {
+      const date = new Date(item[0]);
       const offset = date.getTimezoneOffset();
       const localDate = new Date(date.getTime() - offset * 60 * 1000);
       return {
         x: localDate.toISOString().slice(0, 16),
         y: item[2],
-      };
-    });
-
-    const powerSeries = filteredData.map((item) => {
-      const date = new Date(item[1]);
-      const offset = date.getTimezoneOffset();
-      const localDate = new Date(date.getTime() - offset * 60 * 1000);
-      return {
-        x: localDate.toISOString().slice(0, 16),
-        y: item[3],
       };
     });
 
