@@ -9,9 +9,9 @@
               'connected-device': device?.connected,
               'disconnected-device': !device?.connected,
             }"
-                     class="q-mb-10 text-center"
+                     class="q-mt-sm q-mb-10 text-center"
                      color="cyan">
-              {{ device.name }}
+              {{ device.name }} [{{ device.address?.toUpperCase() }}]
             </q-badge>
             <div>{{ device.vendor_id }}</div>
           </div>

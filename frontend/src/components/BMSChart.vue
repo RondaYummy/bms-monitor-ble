@@ -62,7 +62,7 @@
                :color="selectedTypeChart === 'power' ? 'bg-positive' : ''"
                size="xs"
                @click="selectTypeChart('power')">
-          <q-tooltip>
+          <q-tooltip :delay="200">
             Battery Power — Це потужність, яку батарея видає в даний момент.
             Обчислюється як добуток напруги та струму (W).
           </q-tooltip>
@@ -72,7 +72,7 @@
                :color="selectedTypeChart === 'current' ? 'bg-positive' : ''"
                size="xs"
                @click="selectTypeChart('current')">
-          <q-tooltip>
+          <q-tooltip :delay="200">
             Струм заряду, якщо число додатнє, йде заряджання а якщо
             відємне
             -
@@ -84,7 +84,7 @@
                :color="selectedTypeChart === 'remainingCapacity' ? 'bg-positive' : ''"
                size="xs"
                @click="selectTypeChart('remainingCapacity')">
-          <q-tooltip>
+          <q-tooltip :delay="200">
             Це значення вказує на залишкову ємність батареї. Зазвичай воно
             обчислюється у міліампер-годинах (mAh) або ампер-годинах (Ah).
           </q-tooltip>
