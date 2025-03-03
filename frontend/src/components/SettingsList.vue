@@ -403,17 +403,21 @@
                       header-class="text-purple">
       <q-card style="background: transparent">
         <q-card-section>
-          Con. Wire Res. Settings
-          <!-- <div class="row q-gutter-x-md justify-between items-center custom">
-            <span>
-              {{ getUnit('connection_wire_resistances') }}
-            </span>
+          <template v-for="(cw, idx) of st.connection_wire_resistances"
+                    :key="`${cw}_${idx}`">
+            <div class="row q-gutter-x-md justify-between items-center custom">
+              <span>
+                {{ String(idx + 1).padStart(2, '0') }}
+                {{ getUnit('connection_wire_resistances') }}
+              </span>
 
-            <q-input :readonly="readonlyInputs"
-                     outlined
-                     v-model="st.connection_wire_resistances"
-                     dense />
-          </div> -->
+              <q-input :readonly="readonlyInputs"
+                       outlined
+                       v-model="st.connection_wire_resistances[idx]"
+                       :value="cw"
+                       dense />
+            </div>
+          </template>
         </q-card-section>
       </q-card>
     </q-expansion-item>

@@ -159,7 +159,7 @@ const UNIT_MAP = {
   short_circuit_protection_delay: { value: "μs", title: "SCP Delay (Мікроs)" },
   short_circuit_protection_recovery: { value: "s", title: "SCPR Time (s)" },
   device_address: { value: "", title: "Device Address" },
-  connection_wire_resistances: { value: "Ω", title: "Con. Wire Res. (Ом)" },
+  connection_wire_resistances: { value: "mΩ", title: "Con. Wire Res." },
   charge_switch: { value: "", title: "Charge (switch, no unit of measurement)" },
   discharge_switch: { value: "", title: "Discharge (switch, no unit of measurement)" },
   balancer_switch: { value: "", title: "Balance (switch, no unit of measurement)" },
