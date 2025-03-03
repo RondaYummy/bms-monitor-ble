@@ -96,7 +96,6 @@ async def login(request: Request):
     config = db.get_config()
     pwd = config.get("password", "")
 
-    print(f"config: {config}")
     if not config or not pwd:
         raise HTTPException(status_code=404, detail="Password is not set in server configuration")
 
