@@ -118,6 +118,7 @@ async def get_configs():
     if not config:
         raise HTTPException(status_code=404, detail="Config not found.")
     
+    config = config.copy()
     for key in ["VAPID_PRIVATE_KEY", "password"]:
         config.pop(key, None)
     return config
