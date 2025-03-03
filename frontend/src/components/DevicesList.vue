@@ -9,7 +9,7 @@
               'connected-device': device?.connected,
               'disconnected-device': !device?.connected,
             }"
-                     class="q-mt-sm q-mb-10 text-center"
+                     class="q-pa-xs text-weight-medium q-mt-sm q-mb-10 text-center cursor-pointer"
                      color="cyan"
                      @click="copy(device.address)">
               {{ device.name }} [{{ device.address?.toUpperCase() }}]
