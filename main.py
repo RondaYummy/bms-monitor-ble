@@ -78,7 +78,6 @@ async def change_password(request: Request):
         raise HTTPException(status_code=400, detail="Both old and new passwords must be provided.")
 
     config = db.get_config()
-    print(f"config: {config}")
     if not config or not verify_password(old_password, config.get("password", "")):
         raise HTTPException(status_code=401, detail="Old password is incorrect.")
 
@@ -96,7 +95,12 @@ async def login(request: Request):
     password = body.get("password", "")
     config = db.get_config()
     pwd = config.get("password", "")
-    if not config or not verify_password(password, pwd):
+
+    print(f"config: {config}")
+    if not config or not pwd:
+        raise HTTPException(status_code=500, detail="Password is not set in server configuration")
+
+    if not verify_password(password, pwd):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     token = str(uuid4())
