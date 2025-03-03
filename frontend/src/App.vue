@@ -6,7 +6,11 @@
 import { usePush } from "./composables/usePush";
 
 const { subscribeToPush } = usePush();
-subscribeToPush();
+const requestedSubscription = localStorage.getItem('sub-req');
+if (!requestedSubscription) {
+  subscribeToPush();
+  localStorage.setItem('sub-req', 'requested');
+}
 
 const tokenTimestamp = Number(sessionStorage.getItem(`access_token_timestamp`));
 const currentTime = new Date().getTime();

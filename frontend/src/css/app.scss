@@ -41,19 +41,23 @@ body {
 #q-app {
   background: #1e1f26;
 }
+
 main {
   max-width: 500px;
   margin: 0 auto;
   overflow: hidden;
 }
+
 span {
   color: white;
   font-weight: 500;
   font-size: 1.2em;
 }
+
 .gap-10 {
   gap: 10px;
 }
+
 h3 {
   text-align: center;
   font-size: 3.3em;
@@ -112,24 +116,6 @@ sup {
   }
 }
 
-@keyframes jiggle {
-  0% {
-    transform: none;
-  }
-
-  25% {
-    transform: rotateZ(5deg);
-  }
-
-  75% {
-    transform: rotateZ(-5deg);
-  }
-
-  100% {
-    transform: none;
-  }
-}
-
 .mobile-nav {
   position: fixed;
   bottom: 0;
@@ -146,12 +132,6 @@ sup {
   justify-content: center;
   align-items: center;
   flex: 1;
-
-  span {
-    &:hover {
-      animation: jiggle ease-in-out 400ms infinite;
-    }
-  }
 }
 
 .bloc-icon img {

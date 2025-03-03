@@ -56,4 +56,11 @@ self.addEventListener("push", (event: PushEvent) => {
 
   event.waitUntil(self.registration
     .showNotification(data.title, options));
+
+  self.addEventListener('notificationclick', function (event) {
+    event.notification.close();
+    event.waitUntil(
+      self.clients.openWindow('https://solar.levych.com:8443/#/settings')
+    );
+  });
 });

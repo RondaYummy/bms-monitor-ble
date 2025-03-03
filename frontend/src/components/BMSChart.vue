@@ -43,10 +43,38 @@
                @click="rangeDialog = true" />
 
         <q-dialog v-model="rangeDialog">
-          <q-date v-model="range"
-                  @update:model-value="zoomRange('custom')"
-                  range />
+          <div class="column q-gutter-sm">
+            <div class="date-box">
+              <q-date v-model="range"
+                      @update:model-value="zoomRange('custom')"
+                      range />
+              <q-btn label="OK"
+                     color="secondary"
+                     @click="rangeDialog = false" />
+            </div>
+          </div>
         </q-dialog>
+      </div>
+      <div class="chart-actions">
+        <q-btn id="power"
+               label="Power"
+               :disable="selectedTypeChart === 'power'"
+               :color="selectedTypeChart === 'power' ? 'bg-positive' : ''"
+               size="xs"
+               flat
+               @click="selectTypeChart('power')" />
+        <q-btn label="Current"
+               :disable="selectedTypeChart === 'current'"
+               :color="selectedTypeChart === 'current' ? 'bg-positive' : ''"
+               size="xs"
+               flat
+               @click="selectTypeChart('current')" />
+        <q-btn label="Capacity"
+               :disable="selectedTypeChart === 'remainingCapacity'"
+               :color="selectedTypeChart === 'remainingCapacity' ? 'bg-positive' : ''"
+               size="xs"
+               flat
+               @click="selectTypeChart('remainingCapacity')" />
       </div>
     </div>
     <apex-chart ref="chartRef"
@@ -72,6 +100,7 @@ const selectedRange = ref('1d');
 const loadingRangeData = ref('');
 const rangeDialog = ref(false);
 const range = ref();
+const selectedTypeChart = ref<"power" | "current" | "remainingCapacity">('power');
 
 const chartOptions = ref({
   chart: {
@@ -134,20 +163,10 @@ const chartOptions = ref({
       },
       formatter: function (value: string | number) {
         const date = new Date(value);
-        const now = new Date();
-        const diff = now.getTime() - date.getTime();
-        if (diff > 2 * 24 * 60 * 60 * 1000) {
-          return date.toLocaleDateString('uk-UA', {
-            day: '2-digit',
-            month: 'short',
-            year: '2-digit'
-          });
-        } else {
-          return date.toLocaleTimeString('uk-UA', {
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-        }
+        return date.toLocaleTimeString('uk-UA', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
       }
     },
   },
@@ -208,6 +227,7 @@ async function zoomRange(ranges: '1d' | '1w' | '1m' | '1y' | 'custom') {
   if (!chartRef.value) return;
   selectedRange.value = ranges;
   loadingRangeData.value = ranges;
+  selectedTypeChart.value = 'power';
 
   if (ranges === '1d') {
     days.value = 1;
@@ -294,19 +314,20 @@ async function fetchAggregatedData(
 
 function processAggregatedData(data: any[], tab: string) {
   if (tab === 'All') {
-    const groupedData: Record<string, { currentSum: number; count: number; powerSum: number; }> = {};
+    const groupedData: Record<string, { currentSum: number; count: number; powerSum: number; remainingCapacitySum: number; }> = {};
 
     data.forEach((item: any) => {
-      const date = new Date(item[1]);
+      const date = new Date(item[0]);
       const offset = date.getTimezoneOffset();
       const localDate = new Date(date.getTime() - offset * 60 * 1000);
       const minuteKey = localDate.toISOString().slice(0, 16);
 
       if (!groupedData[minuteKey]) {
-        groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0 };
+        groupedData[minuteKey] = { currentSum: 0, powerSum: 0, count: 0, remainingCapacitySum: 0 };
       }
-      groupedData[minuteKey].currentSum += item[2];
-      groupedData[minuteKey].powerSum += item[3];
+      groupedData[minuteKey].currentSum += item[1];
+      groupedData[minuteKey].powerSum += item[2];
+      groupedData[minuteKey].remainingCapacitySum += item[5];
       groupedData[minuteKey].count += 1;
     });
 
@@ -320,12 +341,27 @@ function processAggregatedData(data: any[], tab: string) {
       y: values.powerSum,
     }));
 
-    return { currentSeries, powerSeries };
+    const remainingCapacitySeries = Object.entries(groupedData).map(([minute, values]) => ({
+      x: minute,
+      y: values.remainingCapacitySum,
+    }));
+
+    return { currentSeries, powerSeries, remainingCapacitySeries };
   } else {
     // Filter data by `tab`
-    const filteredData = data.filter((item) => item[5] === tab);
+    const filteredData = data.filter((item) => item[4] === tab);
     const currentSeries = filteredData.map((item) => {
-      const date = new Date(item[1]);
+      const date = new Date(item[0]);
+      const offset = date.getTimezoneOffset();
+      const localDate = new Date(date.getTime() - offset * 60 * 1000);
+      return {
+        x: localDate.toISOString().slice(0, 16),
+        y: item[1],
+      };
+    });
+
+    const powerSeries = filteredData.map((item) => {
+      const date = new Date(item[0]);
       const offset = date.getTimezoneOffset();
       const localDate = new Date(date.getTime() - offset * 60 * 1000);
       return {
@@ -334,17 +370,17 @@ function processAggregatedData(data: any[], tab: string) {
       };
     });
 
-    const powerSeries = filteredData.map((item) => {
-      const date = new Date(item[1]);
+    const remainingCapacitySeries = filteredData.map((item) => {
+      const date = new Date(item[0]);
       const offset = date.getTimezoneOffset();
       const localDate = new Date(date.getTime() - offset * 60 * 1000);
       return {
         x: localDate.toISOString().slice(0, 16),
-        y: item[3],
+        y: item[5],
       };
     });
 
-    return { currentSeries, powerSeries };
+    return { currentSeries, powerSeries, remainingCapacitySeries };
   }
 }
 
@@ -357,27 +393,55 @@ async function fetchDataAndProcess(
 ) {
   try {
     data.value = await fetchAggregatedData(days, range);
-    console.log('Aggregated Data: ', data.value);
 
     if (!data.value) {
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { currentSeries, powerSeries } = processAggregatedData(data.value, props.tab);
+    selectTypeChart(selectedTypeChart.value);
+    chartRef.value?.chart.updateOptions(chartOptions.value);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+}
+
+function selectTypeChart(type: 'power' | 'current' | 'remainingCapacity') {
+  selectedTypeChart.value = type;
+  const { currentSeries, powerSeries, remainingCapacitySeries } = processAggregatedData(data.value, props.tab);
+  if (type === 'power') {
+    chartOptions.value.tooltip.y = [{
+      formatter: (val: number) => `${val?.toFixed(2)} W`,
+    }];
     series.value = [
       {
         name: 'Battery Power',
         data: powerSeries,
       },
-      // {
-      //   name: 'Current',
-      //   data: currentSeries,
-      // },
     ];
-  } catch (error) {
-    console.error('Error fetching data:', error);
   }
+  if (type === 'current') {
+    chartOptions.value.tooltip.y = [{
+      formatter: (val: number) => `${val?.toFixed(2)} A`,
+    }];
+    series.value = [
+      {
+        name: 'Current',
+        data: currentSeries,
+      },
+    ];
+  }
+  if (type === 'remainingCapacity') {
+    chartOptions.value.tooltip.y = [{
+      formatter: (val: number) => `${val?.toFixed(2)} A`,
+    }];
+    series.value = [
+      {
+        name: 'Capacity',
+        data: remainingCapacitySeries,
+      },
+    ];
+  }
+  chartRef.value?.chart.updateOptions(chartOptions.value);
 }
 
 onMounted(async () => {
@@ -395,21 +459,9 @@ onBeforeUnmount(async () => {
 
 watch(
   () => props.tab,
-  async (newTab) => {
+  async () => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { currentSeries, powerSeries } = processAggregatedData(data.value, newTab);
-
-      series.value = [
-        {
-          name: 'Battery Power',
-          data: powerSeries,
-        },
-        // {
-        //   name: 'Current',
-        //   data: currentSeries,
-        // },
-      ];
+      selectTypeChart(selectedTypeChart.value);
     } catch (error) {
       console.error('Error processing data:', error);
     }
@@ -423,10 +475,22 @@ watch(
 }
 
 .apexcharts-tooltip,
-.apexcharts-menu,
+:deep(.apexcharts-menu),
 :deep(.q-date__header),
-:deep(.q-date__view) {
+:deep(.q-date__view),
+:deep(.q-date) {
   background: #1e1f26;
   color: white;
+  box-shadow: none;
+}
+
+.date-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #1e1f26;
+  color: white;
+  padding: 10px;
 }
 </style>

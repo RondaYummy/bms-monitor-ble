@@ -1,5 +1,6 @@
 import type { Config } from 'src/models';
 import { ref } from "vue";
+import { Notify } from 'quasar';
 
 async function fetchConfigs(): Promise<Config | undefined> {
   try {
@@ -64,6 +65,11 @@ export function usePush() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(subscription),
+      }).then(() => {
+        Notify.create({
+          message: 'Ви успішно підписались на сповіщення',
+          color: 'secondary',
+        });
       }).catch(async () => {
         const registration = await navigator.serviceWorker.ready;
         const existingSubscription = await registration.pushManager.getSubscription();
@@ -88,3 +94,43 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const rawData = atob(base64);
   return new Uint8Array([...rawData].map((char) => char.charCodeAt(0)));
 }
+
+export async function cancelAllSubscriptions(showNotify: boolean = true) {
+  navigator.serviceWorker.getRegistration().then((reg) => {
+    if (!reg) {
+      console.error("Service Worker not registered");
+      return;
+    }
+    reg.pushManager.getSubscription().then((subscription) => {
+      if (subscription) {
+        subscription.unsubscribe().then((successful) => {
+          console.log("Push subscription successfully unsubscribed:", successful);
+          if (showNotify) {
+            Notify.create({
+              message: 'Ви успішно скасували підписку на сповіщення',
+              color: 'secondary',
+            });
+          }
+        }).catch((error) => {
+          console.error("Error unsubscribing", error);
+        });
+      } else {
+        console.log("No push subscription found.");
+      }
+    });
+  });
+}
+
+export function checkPushSubscription(): Promise<PushSubscription | null> {
+  return navigator.serviceWorker.getRegistration().then((reg) => {
+    if (reg) {
+      return reg.pushManager.getSubscription().then((subscription) => {
+        console.log("🔍 Push Subscription:", subscription);
+        return subscription;
+      });
+    } else {
+      return null;
+    }
+  });
+}
+
