@@ -98,7 +98,7 @@ async def login(request: Request):
 
     print(f"config: {config}")
     if not config or not pwd:
-        raise HTTPException(status_code=500, detail="Password is not set in server configuration")
+        raise HTTPException(status_code=404, detail="Password is not set in server configuration")
 
     if not verify_password(password, pwd):
         raise HTTPException(status_code=401, detail="Invalid password")

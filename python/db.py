@@ -617,6 +617,7 @@ def get_config():
     global CONFIG_CACHE, CONFIG_CACHE_TIMESTAMP
 
     if CONFIG_CACHE and (time.time() - CONFIG_CACHE_TIMESTAMP) < CONFIG_CACHE_EXPIRY:
+        print(f"CONFIG_CACHE: {CONFIG_CACHE}")
         return CONFIG_CACHE
 
     try:
@@ -632,6 +633,7 @@ def get_config():
                     "n_hours": config[3],
                 }
                 CONFIG_CACHE_TIMESTAMP = time.time()
+                print(f"configconfig: {CONFIG_CACHE}")
                 return CONFIG_CACHE
             else:
                 return None
