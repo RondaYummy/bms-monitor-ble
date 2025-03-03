@@ -61,6 +61,8 @@ def update_aggregated_data(device_name, device_address, current, power, remainin
         raise ValueError(f"Invalid current: {current}")
     if not isinstance(power, (int, float)) or power < 0:
         raise ValueError(f"Invalid power: {power}")
+    if not isinstance(power, (int, float)) or remaining_capacity < 0:
+        raise ValueError(f"Invalid remaining_capacity: {remaining_capacity}")
 
     device_data = data_aggregator[device_address]
 
@@ -117,6 +119,7 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
         "power_sum": 0,
         "current_min": float('inf'),
         "current_max": float('-inf'),
+        "remaining_capacity": 0,
         "count": 0,
         "last_insert_time": now
     })
