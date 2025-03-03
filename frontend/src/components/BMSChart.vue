@@ -432,7 +432,7 @@ function selectTypeChart(type: 'power' | 'current' | 'remainingCapacity') {
   }
   if (type === 'remainingCapacity') {
     chartOptions.value.tooltip.y = [{
-      formatter: (val: number) => `${val?.toFixed(2)} A`,
+      formatter: (val: number) => `${val?.toFixed(2)} Ah`,
     }];
     series.value = [
       {
