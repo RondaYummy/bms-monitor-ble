@@ -61,7 +61,6 @@
                :disable="selectedTypeChart === 'power'"
                :color="selectedTypeChart === 'power' ? 'bg-positive' : ''"
                size="xs"
-               flat
                @click="selectTypeChart('power')">
           <q-tooltip>
             Battery Power — Це потужність, яку батарея видає в даний момент.
@@ -72,7 +71,6 @@
                :disable="selectedTypeChart === 'current'"
                :color="selectedTypeChart === 'current' ? 'bg-positive' : ''"
                size="xs"
-               flat
                @click="selectTypeChart('current')">
           <q-tooltip>
             Струм заряду, якщо число додатнє, йде заряджання а якщо
@@ -85,7 +83,6 @@
                :disable="selectedTypeChart === 'remainingCapacity'"
                :color="selectedTypeChart === 'remainingCapacity' ? 'bg-positive' : ''"
                size="xs"
-               flat
                @click="selectTypeChart('remainingCapacity')">
           <q-tooltip>
             Це значення вказує на залишкову ємність батареї. Зазвичай воно
