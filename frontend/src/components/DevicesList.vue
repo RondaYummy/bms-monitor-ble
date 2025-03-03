@@ -10,10 +10,11 @@
               'disconnected-device': !device?.connected,
             }"
                      class="q-mt-sm q-mb-10 text-center"
-                     color="cyan">
+                     color="cyan"
+                     @click="copy(device.address)">
               {{ device.name }} [{{ device.address?.toUpperCase() }}]
             </q-badge>
-            <div>{{ device.vendor_id }}</div>
+            <div class="text-left">{{ device.vendor_id }}</div>
           </div>
           <div class="column">
             <div class="q-mb-10">
@@ -63,6 +64,7 @@ import { checkResponse, formatDuration, parseManufacturingDate } from '../helper
 import { ref, onBeforeUnmount } from 'vue';
 import type { DeviceInfoMap } from '../models';
 import { useQuasar } from 'quasar';
+import { copyToClipboard } from 'quasar';
 
 const $q = useQuasar();
 
@@ -70,6 +72,27 @@ const devicesList = ref();
 const attemptToConnectDevice = ref();
 const disconnectDeviceState = ref();
 const props = defineProps(['disconnectBtn', 'connected', 'token']);
+
+async function copy(value: string) {
+  copyToClipboard(value)
+    .then(() => {
+      $q.notify({
+        message: 'Адресу пристрою успішно скопійовано.',
+        color: 'green',
+        position: 'top',
+        timeout: 1000,
+      });
+    })
+    .catch(() => {
+      $q.notify({
+        message: 'Сталася помилка під час копіювання адреси пристрою.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
+    });
+}
 
 async function fetchDeviceInfo() {
   try {
