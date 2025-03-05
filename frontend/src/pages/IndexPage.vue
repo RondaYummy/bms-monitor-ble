@@ -306,7 +306,7 @@ interface BeforeInstallPromptEvent extends Event {
 let deferredPrompt: BeforeInstallPromptEvent;
 
 window.addEventListener('beforeinstallprompt', (event: Event) => {
-  // Запобігти автоматичному показу діалогу
+  // Prevent the dialog from showing automatically
   // event.preventDefault();
   deferredPrompt = event as BeforeInstallPromptEvent;
 });

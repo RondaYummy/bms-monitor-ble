@@ -335,7 +335,6 @@ def create_command(command_type):
     frame[:4] = CMD_HEADER
     frame[4] = command_type
     frame[19] = calculate_crc(frame[:19])
-    print(f"Calculated CRC: {frame[19]}")
     return frame
     
 def log(device_name, message, force=False):

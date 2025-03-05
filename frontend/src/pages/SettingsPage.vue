@@ -512,6 +512,10 @@ onMounted(async () => {
   setTimeout(async () => {
     pushSubscription.value = await checkPushSubscription();
   }, 2000);
+
+  setInterval(async () => {
+    await Promise.allSettled([fetchSettings(), fetchConfigs()]);
+  }, 10000);
 });
 
 fetchErrorAlerts();
