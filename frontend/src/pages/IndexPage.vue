@@ -271,7 +271,7 @@
                       label="Devices">
         <q-list>
           <q-item clickable
-                  v-for="device of Object.keys(devicesList)"
+                  v-for="device of Object.keys(devicesList)?.sort()"
                   class="text-black"
                   :key="device"
                   :name="device"

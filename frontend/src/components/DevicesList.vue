@@ -62,7 +62,7 @@
 <script setup lang="ts">
 import { checkResponse, formatDuration, parseManufacturingDate } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
-import type { DeviceInfoMap } from '../models';
+import type { DeviceInfo } from '../models';
 import { useQuasar } from 'quasar';
 import { copyToClipboard } from 'quasar';
 
@@ -98,11 +98,11 @@ async function fetchDeviceInfo() {
   try {
     const response = await fetch('/api/device-info');
     checkResponse(response);
-    const data: DeviceInfoMap = await response.json();
-    if (props.connected && data) {
-      devicesList.value = Object.values(data).filter((d: any) => d.connected);
+    const data: DeviceInfo[] = await response.json();
+    if (props.connected) {
+      devicesList.value = data.filter((d: any) => d.connected)?.sort((a, b) =>  b.name.localeCompare(a.name));
     } else {
-      devicesList.value = data;
+      devicesList.value = data?.sort((a, b) =>  b.name.localeCompare(a.name));
     }
   } catch (error) {
     console.error('Error fetching device info:', error);

@@ -119,12 +119,15 @@ export interface DeviceInfo {
   software_version: string;
   device_uptime: number;
   power_on_count: number;
-  device_name: string;
-  device_address: string;
+  name: string;
+  address: string;
   manufacturing_date: string;
   serial_number: string;
   user_data: string;
   connected: boolean;
+  id: number;
+  added_at: string;
+  enabled: boolean;
 }
 
 export interface DeviceInfoMap {
