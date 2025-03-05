@@ -18,7 +18,3 @@
     </q-footer>
   </q-layout>
 </template>
-
-<script setup lang="ts">
-
-</script>

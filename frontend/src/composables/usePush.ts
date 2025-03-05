@@ -5,7 +5,7 @@ import { Notify } from 'quasar';
 async function fetchConfigs(): Promise<Config | undefined> {
   try {
     const response = await fetch('/api/configs');
-    const data = await response.json();
+    const data: Config = await response.json();
     return data;
   } catch (error) {
     console.error('Error fetching configs:', error);
@@ -46,7 +46,7 @@ export function usePush() {
 
       const existingSubscription = await registration.pushManager.getSubscription();
       if (existingSubscription) {
-        console.log("🔄 Підписка вже існує:", existingSubscription);
+        console.info("🔄 Підписка вже існує:", existingSubscription);
         pushSubscription.value = existingSubscription;
         return;
       }
@@ -59,7 +59,7 @@ export function usePush() {
       });
 
       pushSubscription.value = subscription;
-      console.log("✅ Нова Push Subscription отримана:", subscription);
+      console.info("✅ Нова Push Subscription отримана:", subscription);
 
       await fetch("/api/save-subscription", {
         method: "POST",
@@ -76,7 +76,7 @@ export function usePush() {
         if (existingSubscription) {
           await existingSubscription.unsubscribe();
           pushSubscription.value = null;
-          console.log("✅ Підписка успішно видалена.");
+          console.info("✅ Підписка успішно видалена.");
         }
       });
 
@@ -104,7 +104,7 @@ export async function cancelAllSubscriptions(showNotify: boolean = true) {
     reg.pushManager.getSubscription().then((subscription) => {
       if (subscription) {
         subscription.unsubscribe().then((successful) => {
-          console.log("Push subscription successfully unsubscribed:", successful);
+          console.info("Push subscription successfully unsubscribed:", successful);
           if (showNotify) {
             Notify.create({
               message: 'Ви успішно скасували підписку на сповіщення',
@@ -125,7 +125,7 @@ export function checkPushSubscription(): Promise<PushSubscription | null> {
   return navigator.serviceWorker.getRegistration().then((reg) => {
     if (reg) {
       return reg.pushManager.getSubscription().then((subscription) => {
-        console.log("🔍 Push Subscription:", subscription);
+        console.info("🔍 Push Subscription:", subscription);
         return subscription;
       });
     } else {

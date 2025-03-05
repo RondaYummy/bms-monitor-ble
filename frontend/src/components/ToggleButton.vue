@@ -100,7 +100,7 @@ label.toggle-item {
       width: 1.7em;
       height: 1.7em;
       top: 0.2em;
-      left: -0.5em;
+      left: 0.2em;
       background: #fff;
     }
   }

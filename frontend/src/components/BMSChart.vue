@@ -284,12 +284,8 @@ async function zoomRange(ranges: '1d' | '1w' | '1m' | '1y' | 'custom') {
       from = now - 365 * 24 * 60 * 60 * 1000;
       to = now;
       break;
-    // case 'custom':
-    //   from = new Date(range.value.from).getTime();
-    //   to = new Date(range.value.to).getTime() + 23 * 60 * 60 * 1000 + 59 * 60 * 1000 + 59 * 1000;
-    //   break;
     default:
-      // Якщо дані вже завантажено, беремо перший і останній час з першої серії
+      // If the data is already loaded, take the first and last time from the first series
       if (series.value[0]?.data.length) {
         from = new Date(series.value[0].data[0].x).getTime();
         const lastIndex = series.value[0].data.length - 1;
@@ -467,7 +463,7 @@ onMounted(async () => {
   loadingRangeData.value = '';
   intervalId.value = setInterval(async () => {
     await fetchDataAndProcess(days.value, range.value);
-  }, 30000);
+  }, 60000);
 });
 
 onBeforeUnmount(async () => {

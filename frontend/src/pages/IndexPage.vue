@@ -388,7 +388,6 @@ async function fetchCellInfo() {
       throw new Error('Failed to fetch cell info');
     }
     const data = await response.json();
-    console.log('Cell Info:', data);
     devicesList.value = data;
   } catch (error) {
     console.error('Error fetching cell info:', error);

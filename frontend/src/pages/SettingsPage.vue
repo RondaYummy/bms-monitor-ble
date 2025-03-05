@@ -251,8 +251,6 @@
                             title="GPS Heartbeat" />
               <ToggleButton :value="currentSetting?.disable_pcl_module"
                             title="Disable PCL Module" />
-              <ToggleButton :value="currentSetting?.charge_utpr"
-                            title="Charge UTPR" />
 
               <SettingsList :settings="currentSetting" />
             </template>
@@ -318,7 +316,7 @@
 <script setup lang='ts'>
 import { ref, onMounted } from 'vue';
 import { checkResponse, useSessionStorage } from '../helpers/utils';
-import type { Alert, Device, Config } from '../models';
+import type { Alert, Device, Config, SettingInfo } from '../models';
 import DevicesList from '../components/DevicesList.vue';
 import ToggleButton from '../components/ToggleButton.vue';
 import SettingsList from '../components/SettingsList.vue';
@@ -342,8 +340,8 @@ const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
 const token = useSessionStorage("access_token");
 const config = ref<Config>();
-const settings = ref();
-const currentSetting = ref();
+const settings = ref<SettingInfo[]>();
+const currentSetting = ref<SettingInfo>();
 
 function filterAlertsByLevel(level?: string): void {
   console.log('Selected level: ', level);
@@ -405,7 +403,7 @@ async function fetchConfigs() {
   try {
     const response = await fetch('/api/configs');
     checkResponse(response);
-    const data = await response.json();
+    const data: Config = await response.json();
     config.value = data;
   } catch (error) {
     console.error('Error fetching configs:', error);
@@ -416,8 +414,8 @@ async function fetchSettings() {
   try {
     const response = await fetch('/api/device-settings');
     checkResponse(response);
-    const data = await response.json();
-    settings.value = data;
+    const data: SettingInfo[] = await response.json();
+    settings.value = data?.sort((a, b) => b.name.localeCompare(a.name));
   } catch (error) {
     console.error('Error fetching configs:', error);
   }

@@ -100,9 +100,9 @@ async function fetchDeviceInfo() {
     checkResponse(response);
     const data: DeviceInfo[] = await response.json();
     if (props.connected) {
-      devicesList.value = data.filter((d: any) => d.connected)?.sort((a, b) =>  b.name.localeCompare(a.name));
+      devicesList.value = data.filter((d: any) => d.connected)?.sort((a, b) => b.name.localeCompare(a.name));
     } else {
-      devicesList.value = data?.sort((a, b) =>  b.name.localeCompare(a.name));
+      devicesList.value = data?.sort((a, b) => b.name.localeCompare(a.name));
     }
   } catch (error) {
     console.error('Error fetching device info:', error);
@@ -172,7 +172,8 @@ async function disconnectDevice(address: string, name: string) {
 fetchDeviceInfo();
 const intervalId = setInterval(async () => {
   await fetchDeviceInfo();
-}, 3000);
+}, 5000);
+
 onBeforeUnmount(() => {
   clearInterval(intervalId);
 });
