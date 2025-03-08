@@ -213,7 +213,7 @@
 
               <q-list v-if="settings?.length">
                 <q-item clickable
-                        v-for="setting of settings"
+                        v-for="setting of settings?.sort((a, b) => b.name.localeCompare(a.name))"
                         class="text-black"
                         :key="setting?.address"
                         :name="setting?.name"
@@ -415,7 +415,7 @@ async function fetchSettings() {
     const response = await fetch('/api/device-settings');
     checkResponse(response);
     const data: SettingInfo[] = await response.json();
-    settings.value = data?.sort((a, b) => b.name.localeCompare(a.name));
+    settings.value = data;
   } catch (error) {
     console.error('Error fetching configs:', error);
   }
