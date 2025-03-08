@@ -95,8 +95,11 @@ async def login(request: Request):
     password = body.get("password", "")
     config = db.get_config()
     pwd = config.get("password", "")
-    log("LOGIN", f"PASSWORD: {pwd}", force=True)
-    if not config or not verify_password(password, pwd):
+
+    if not config or not pwd:
+        raise HTTPException(status_code=404, detail="Password is not set in server configuration")
+
+    if not verify_password(password, pwd):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     token = str(uuid4())
@@ -114,6 +117,7 @@ async def get_configs():
     if not config:
         raise HTTPException(status_code=404, detail="Config not found.")
     
+    config = config.copy()
     for key in ["VAPID_PRIVATE_KEY", "password"]:
         config.pop(key, None)
     return config
@@ -264,7 +268,6 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
     except Exception as e:
         return JSONResponse(content={"error": f"❌ Error connecting to device: {str(e)}"}, status_code=500)
 
-
 @app.get("/api/devices")
 async def discover_devices():
     try:
@@ -287,7 +290,6 @@ async def discover_devices():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"❌ Error searching for devices: {str(e)}")
-
 
 @app.get("/api/device-info")
 async def get_device_info():
@@ -333,7 +335,6 @@ def create_command(command_type):
     frame[:4] = CMD_HEADER
     frame[4] = command_type
     frame[19] = calculate_crc(frame[:19])
-    print(f"Calculated CRC: {frame[19]}")
     return frame
     
 def log(device_name, message, force=False):
@@ -599,7 +600,7 @@ async def parse_cell_info(data, device_name, device_address):
         await alerts.evaluate_alerts(device_address=device_address, device_name=device_name, cell_info=cell_info)
 
         if await are_all_allowed_devices_connected_and_have_data():
-            db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power)
+            db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power, remaining_capacity=remaining_capacity)
         return cell_info
 
     except Exception as e:

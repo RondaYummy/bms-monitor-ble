@@ -148,7 +148,11 @@
           </q-tab-panel>
 
           <q-tab-panel name="Settings">
-            <q-btn class="q-mt-md"
+            <p class='text-caption'>
+              Цей пароль, для доступу до налаштувань вашого додатку.
+            </p>
+
+            <q-btn class="q-mt-sm"
                    @click="changePasswordModal = true"
                    color="black"
                    :disable="!token"
@@ -160,8 +164,47 @@
                          color="orange"
                          inset />
 
-            <q-btn-dropdown v-if="settings?.length"
-                            class="q-mt-md"
+            <p class='text-caption'>
+              PUSH сповіщення - це спливаюче повідомлення на екрані смартфона.
+            </p>
+
+            <q-btn class="q-mt-sm"
+                   @click="subscribePush"
+                   color="black"
+                   :disable="!token || !!pushSubscription"
+                   label="Підписатись на PUSH" />
+            <q-btn class="q-mt-sm"
+                   @click="cancelSubs"
+                   color="black"
+                   :disable="!token || !pushSubscription"
+                   label="Скасувати підписки" />
+
+            <q-separator class="q-mt-md"
+                         color="orange"
+                         inset />
+
+            <p class='text-caption'>
+              Налаштування ваших сповіщень
+            </p>
+            <q-btn class="q-mt-sm"
+                   @click="alertsModal = true"
+                   color="black"
+                   :disable="!token"
+                   label="Налаштування Alerts" />
+            <AlertsSettingsModal v-if="config"
+                                 :config="config"
+                                 :show="alertsModal"
+                                 @update:show="(value) => alertsModal = value" />
+
+            <q-separator class="q-mt-md"
+                         color="orange"
+                         inset />
+
+            <p class='text-caption'>
+              Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.
+            </p>
+            <q-btn-dropdown :disable="!settings?.length"
+                            class="q-mt-sm"
                             auto-close
                             stretch
                             flat
@@ -170,7 +213,7 @@
 
               <q-list v-if="settings?.length">
                 <q-item clickable
-                        v-for="setting of settings"
+                        v-for="setting of sortDevices(settings)"
                         class="text-black"
                         :key="setting?.address"
                         :name="setting?.name"
@@ -208,8 +251,6 @@
                             title="GPS Heartbeat" />
               <ToggleButton :value="currentSetting?.disable_pcl_module"
                             title="Disable PCL Module" />
-              <ToggleButton :value="currentSetting?.charge_utpr"
-                            title="Charge UTPR" />
 
               <SettingsList :settings="currentSetting" />
             </template>
@@ -217,38 +258,6 @@
             <q-separator class="q-mt-md"
                          color="orange"
                          inset />
-
-            <div class="column q-mt-md q-mb-md"
-                 v-if="config">
-              <div class="column">
-                <p>
-                  Періодичність сповіщеннь ( Alerts ):
-
-                  <q-tooltip>
-                    Це значення задається в цілих годинах. Якщо встановлено
-                    12
-                    годин, то ви не отримуватимете важливих сповіщень про
-                    стан
-                    батареї частіше ніж раз на 12 годин. Це зроблено, щоб
-                    уникнути надмірної кількості повідомлень у вашій
-                    скриньці.
-                  </q-tooltip>
-                </p>
-                <q-input :disable="!token"
-                         v-model.number="config.n_hours"
-                         type="number"
-                         filled />
-              </div>
-
-              <q-separator class="q-mt-md"
-                           color="orange"
-                           inset />
-            </div>
-
-            <q-btn @click="updateConfigs"
-                   color="black"
-                   :disable="!token"
-                   label="Зберегти налаштування" />
           </q-tab-panel>
 
           <q-tab-panel name="Devices">
@@ -305,13 +314,15 @@
 </template>
 
 <script setup lang='ts'>
-import { ref } from 'vue';
-import { checkResponse, useSessionStorage } from '../helpers/utils';
-import type { Alert, Device, Config } from '../models';
+import { ref, onMounted } from 'vue';
+import { checkResponse, sortDevices, useSessionStorage } from '../helpers/utils';
+import type { Alert, Device, Config, SettingInfo } from '../models';
 import DevicesList from '../components/DevicesList.vue';
 import ToggleButton from '../components/ToggleButton.vue';
 import SettingsList from '../components/SettingsList.vue';
 import ChangePasswordModal from 'src/components/modals/ChangePasswordModal.vue';
+import { cancelAllSubscriptions, checkPushSubscription, usePush } from 'src/composables/usePush';
+import AlertsSettingsModal from 'src/components/modals/AlertsSettingsModal.vue';
 
 const tab = ref('Alerts');
 const password = ref('');
@@ -320,15 +331,17 @@ const loadingDevices = ref(false);
 const devices = ref<Device[]>([]);
 const attemptToConnectDevice = ref();
 const notFoundDevices = ref(false);
+const alertsModal = ref(false);
 
+const pushSubscription = ref<PushSubscription | null>(null);
 const changePasswordModal = ref(false);
 const selectedLevel = ref();
 const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
 const token = useSessionStorage("access_token");
 const config = ref<Config>();
-const settings = ref();
-const currentSetting = ref();
+const settings = ref<SettingInfo[]>();
+const currentSetting = ref<SettingInfo>();
 
 function filterAlertsByLevel(level?: string): void {
   console.log('Selected level: ', level);
@@ -372,6 +385,11 @@ function getAlertIcon(level: string | undefined): string {
 async function fetchErrorAlerts() {
   try {
     const response = await fetch('/api/error-alerts');
+    if (response.status === 404) {
+      alerts.value = [];
+      alertsMain.value = [];
+      return;
+    }
     checkResponse(response);
     const data = await response.json();
     alerts.value = data;
@@ -385,7 +403,7 @@ async function fetchConfigs() {
   try {
     const response = await fetch('/api/configs');
     checkResponse(response);
-    const data = await response.json();
+    const data: Config = await response.json();
     config.value = data;
   } catch (error) {
     console.error('Error fetching configs:', error);
@@ -396,29 +414,26 @@ async function fetchSettings() {
   try {
     const response = await fetch('/api/device-settings');
     checkResponse(response);
-    const data = await response.json();
+    const data: SettingInfo[] = await response.json();
     settings.value = data;
   } catch (error) {
     console.error('Error fetching configs:', error);
   }
 }
 
-async function updateConfigs() {
-  try {
-    const response = await fetch('/api/configs', {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token.value}`
-      },
-      body: JSON.stringify({ ...config.value }),
-    });
-    checkResponse(response);
-    const data = await response.json();
-    config.value = data;
-  } catch (error) {
-    console.error('Error updating configs:', error);
-  }
+async function cancelSubs() {
+  await cancelAllSubscriptions(true);
+  setTimeout(async () => {
+    pushSubscription.value = await checkPushSubscription();
+  }, 1000);
+}
+
+async function subscribePush() {
+  const { subscribeToPush } = usePush();
+  await subscribeToPush();
+  setTimeout(async () => {
+    pushSubscription.value = await checkPushSubscription();
+  }, 1000);
 }
 
 async function deleteErrorAlert(id: number) {
@@ -488,6 +503,18 @@ async function connectToDevice(address: string, name: string) {
   devices.value = devices.value?.filter((d) => d.address !== address);
   attemptToConnectDevice.value = '';
 }
+
+onMounted(async () => {
+  pushSubscription.value = await checkPushSubscription();
+
+  setTimeout(async () => {
+    pushSubscription.value = await checkPushSubscription();
+  }, 2000);
+
+  setInterval(async () => {
+    await Promise.allSettled([fetchSettings(), fetchConfigs()]);
+  }, 10000);
+});
 
 fetchErrorAlerts();
 fetchConfigs();

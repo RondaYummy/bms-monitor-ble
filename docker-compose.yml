@@ -22,14 +22,14 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-      - /var/run/dbus:/var/run/dbus  # Доступ до D-Bus
+      - /var/run/dbus:/var/run/dbus  # Access to D-Bus
       - sqlite_data:/app/data
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
     environment:
       - DBUS_SESSION_BUS_ADDRESS=unix:path=/var/run/dbus/system_bus_socket
       - TZ=Europe/Kiev
-    privileged: true  # Дозволяє доступ до Bluetooth-адаптера
+    privileged: true  # Allows access to the Bluetooth adapter
     devices:
       - "/dev/ttyUSB0:/dev/ttyUSB0"
     restart: unless-stopped

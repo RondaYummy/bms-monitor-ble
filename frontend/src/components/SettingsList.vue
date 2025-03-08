@@ -1,6 +1,5 @@
 <template>
-  <q-list padding
-          bordered
+  <q-list bordered
           class="rounded-borders">
     <q-expansion-item dense
                       dense-toggle
@@ -404,17 +403,21 @@
                       header-class="text-purple">
       <q-card style="background: transparent">
         <q-card-section>
-          Con. Wire Res. Settings
-          <!-- <div class="row q-gutter-x-md justify-between items-center custom">
-            <span>
-              {{ getUnit('connection_wire_resistances') }}
-            </span>
+          <template v-for="(cw, idx) of st.connection_wire_resistances"
+                    :key="`${cw}_${idx}`">
+            <div class="row q-gutter-x-md justify-between items-center custom">
+              <span>
+                {{ String(idx + 1).padStart(2, '0') }}
+                {{ getUnit('connection_wire_resistances') }}
+              </span>
 
-            <q-input :readonly="readonlyInputs"
-                     outlined
-                     v-model="st.connection_wire_resistances"
-                     dense />
-          </div> -->
+              <q-input :readonly="readonlyInputs"
+                       outlined
+                       v-model="st.connection_wire_resistances[idx]"
+                       :value="cw"
+                       dense />
+            </div>
+          </template>
         </q-card-section>
       </q-card>
     </q-expansion-item>
@@ -466,15 +469,15 @@ const defaultSettings: SettingInfo = {
   charge_switch: false,
   discharge_switch: false,
   balancer_switch: false,
-  heating_enabled: null,
-  disable_temperature_sensors: null,
-  display_always_on: null,
-  special_charger: null,
-  timed_stored_data: null,
-  charging_float_mode: null,
-  gps_heartbeat: null,
-  disable_pcl_module: null,
-  port_switch: null,
+  heating_enabled: false,
+  disable_temperature_sensors: false,
+  display_always_on: false,
+  special_charger: false,
+  timed_stored_data: false,
+  charging_float_mode: false,
+  gps_heartbeat: false,
+  disable_pcl_module: false,
+  port_switch: '',
   precharge_time: 0,
   data_field_enable_control: 0,
   controls_bitmask: 0,
@@ -499,11 +502,9 @@ watch(
 }
 
 .q-input:focus-within {
-  // .q-field__control {
   border: 2px solid green !important;
   box-shadow: 0 0 8px hsla(120, 100%, 25%, 0.6);
   border-radius: 4px;
-  // }
 }
 
 .custom:focus-within span {

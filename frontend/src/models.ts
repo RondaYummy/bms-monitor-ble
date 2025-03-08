@@ -38,7 +38,7 @@ export interface CellInfo {
 
 export interface SettingInfo {
   name: string;                            // device_name
-  address: string;                         // device_address (MAC-адреса)
+  address: string;                         // device_address (MAC address)
   cell_count: number;                      // Cell Count
   nominal_battery_capacity: number;        // Battery Capacity (Ah)
   balance_trigger_voltage: number;         // Balance Trigger Voltage (V)
@@ -71,20 +71,20 @@ export interface SettingInfo {
   mos_otp_recovery: number;                // MOS OTPR (°C)
   short_circuit_protection_delay: number;  // SCP Delay (μs)
   short_circuit_protection_recovery: number; // SCPR Time (s)
-  device_address: number;              // Значення, отримане з data[270]
+  device_address: number;                    // The value obtained from data[270].
   connection_wire_resistances: number[];   // Connection Wire Resistances (Ω)
   charge_switch: boolean;                  // Charge (on/off)
   discharge_switch: boolean;               // Discharge (on/off)
   balancer_switch: boolean;                // Balance (on/off)
-  heating_enabled: boolean | null;         // Heating (on/off) або null
-  disable_temperature_sensors: boolean | null; // Disable Temp. Sensor
-  display_always_on: boolean | null;       // Display Always On
-  special_charger: boolean | null;         // Special Charger On
-  timed_stored_data: boolean | null;       // Timed Stored Data
-  charging_float_mode: boolean | null;     // Charging Float Mode
-  gps_heartbeat: boolean | null;           // GPS Heartbeat
-  disable_pcl_module: boolean | null;      // Disable PCL Module
-  port_switch: string | null;              // Port Switch (наприклад, "RS485" або "CAN")
+  heating_enabled: boolean;                // Heating (on/off) або null
+  disable_temperature_sensors: boolean;    // Disable Temp. Sensor
+  display_always_on: boolean;              // Display Always On
+  special_charger: boolean;                // Special Charger On
+  timed_stored_data: boolean;              // Timed Stored Data
+  charging_float_mode: boolean;            // Charging Float Mode
+  gps_heartbeat: boolean;                  // GPS Heartbeat
+  disable_pcl_module: boolean;             // Disable PCL Module
+  port_switch: string;                     // Port Switch (e.g., "RS485" або "CAN")
   precharge_time: number;                  // Precharge Time (s)
   data_field_enable_control: number;       // Data Field Enable Control
   controls_bitmask: number;                // Controls Bitmask
@@ -119,12 +119,15 @@ export interface DeviceInfo {
   software_version: string;
   device_uptime: number;
   power_on_count: number;
-  device_name: string;
-  device_address: string;
+  name: string;
+  address: string;
   manufacturing_date: string;
   serial_number: string;
   user_data: string;
   connected: boolean;
+  id: number;
+  added_at: string;
+  enabled: boolean;
 }
 
 export interface DeviceInfoMap {

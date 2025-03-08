@@ -52,12 +52,12 @@ export const useSessionStorage = (key: string) => {
 
 export function formatDuration(seconds: number) {
   const units = [
-    { label: 'p', seconds: 31536000 }, // 365 days
-    { label: 'm', seconds: 2592000 }, // 30 days
-    { label: 'e', seconds: 86400 }, // 24 hours
-    { label: 'd', seconds: 3600 }, // 60 minutes
-    { label: 'min', seconds: 60 }, // 60 seconds
-    { label: 'с', seconds: 1 },
+    { label: 'y', seconds: 31536000 }, // 1 year = 365 days
+    { label: 'm', seconds: 2592000 }, // 1 month = 30 days
+    { label: 'd', seconds: 86400 }, // 1 day = 24 hours
+    { label: 'h', seconds: 3600 }, // 1 hour = 60 minutes
+    { label: 'min', seconds: 60 }, // 1 minute = 60 seconds
+    { label: 's', seconds: 1 }, // 1 second
   ];
 
   const result = [];
@@ -125,6 +125,10 @@ export function parseManufacturingDate(dateStr: string): string {
   return `${day}-${month}-${year}`;
 }
 
+export function sortDevices<T extends { name: string; }>(arr: T[]): T[] {
+  return arr?.sort((a, b) => b.name.localeCompare(a.name));
+}
+
 const UNIT_MAP = {
   cell_count: { value: "", title: "Cell Count" },
   nominal_battery_capacity: { value: "Ah", title: "Battery Capacity" },
@@ -159,7 +163,7 @@ const UNIT_MAP = {
   short_circuit_protection_delay: { value: "μs", title: "SCP Delay (Мікроs)" },
   short_circuit_protection_recovery: { value: "s", title: "SCPR Time (s)" },
   device_address: { value: "", title: "Device Address" },
-  connection_wire_resistances: { value: "Ω", title: "Con. Wire Res. (Ом)" },
+  connection_wire_resistances: { value: "mΩ", title: "Con. Wire Res." },
   charge_switch: { value: "", title: "Charge (switch, no unit of measurement)" },
   discharge_switch: { value: "", title: "Discharge (switch, no unit of measurement)" },
   balancer_switch: { value: "", title: "Balance (switch, no unit of measurement)" },

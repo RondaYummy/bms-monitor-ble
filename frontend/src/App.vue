@@ -6,13 +6,17 @@
 import { usePush } from "./composables/usePush";
 
 const { subscribeToPush } = usePush();
-subscribeToPush();
+const requestedSubscription = localStorage.getItem('sub-req');
+if (!requestedSubscription) {
+  subscribeToPush();
+  localStorage.setItem('sub-req', 'requested');
+}
 
 const tokenTimestamp = Number(sessionStorage.getItem(`access_token_timestamp`));
 const currentTime = new Date().getTime();
 const elapsedTime = (currentTime - tokenTimestamp) / 1000;
 if (elapsedTime >= 3600) {
-  console.log('Time expired!');
+  console.info('Time expired!');
   sessionStorage.removeItem(`access_token`);
   sessionStorage.removeItem(`access_token_timestamp`);
 }
@@ -50,5 +54,3 @@ if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
   });
 }
 </script>
-
-<style lang='scss'></style>

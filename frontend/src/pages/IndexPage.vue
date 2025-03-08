@@ -102,6 +102,28 @@
 
         <div class='row justify-between'>
           <span>
+            Capacity:
+            {{ ((calculatedList?.battery_voltage * calculatedList?.nominal_capacity) / 1000)?.toFixed(2) }}
+            <sup>kW</sup>
+
+            <q-tooltip>
+              Capacity - Це загальний обсяг ємності батареї в кВт.
+            </q-tooltip>
+          </span>
+
+          <span>
+            Capacity left:
+            {{ ((calculatedList?.battery_voltage * calculatedList?.remaining_capacity) / 1000)?.toFixed(2) }}
+            <sup>kW</sup>
+
+            <q-tooltip>
+              Capacity left - Це обсяг ємності батареї який залишився в кВт.
+            </q-tooltip>
+          </span>
+        </div>
+
+        <div class='row justify-between'>
+          <span>
             Total C. C.:
             {{ calculatedList?.total_cycle_capacity?.toFixed(2) }}
             <sup>Ah</sup>
@@ -249,7 +271,7 @@
                       label="Devices">
         <q-list>
           <q-item clickable
-                  v-for="device of Object.keys(devicesList)"
+                  v-for="device of Object.keys(devicesList)?.sort()"
                   class="text-black"
                   :key="device"
                   :name="device"
@@ -284,7 +306,7 @@ interface BeforeInstallPromptEvent extends Event {
 let deferredPrompt: BeforeInstallPromptEvent;
 
 window.addEventListener('beforeinstallprompt', (event: Event) => {
-  // Запобігти автоматичному показу діалогу
+  // Prevent the dialog from showing automatically
   // event.preventDefault();
   deferredPrompt = event as BeforeInstallPromptEvent;
 });
@@ -366,7 +388,6 @@ async function fetchCellInfo() {
       throw new Error('Failed to fetch cell info');
     }
     const data = await response.json();
-    console.log('Cell Info:', data);
     devicesList.value = data;
   } catch (error) {
     console.error('Error fetching cell info:', error);
@@ -395,5 +416,10 @@ fetchCellInfo();
 :deep(.q-menu) {
   color: black;
   font-weight: 600;
+}
+
+:deep(.q-tabs) {
+  box-shadow: none;
+  background: #1e1f26 !important;
 }
 </style>

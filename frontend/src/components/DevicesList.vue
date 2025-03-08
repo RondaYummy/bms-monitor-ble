@@ -9,11 +9,12 @@
               'connected-device': device?.connected,
               'disconnected-device': !device?.connected,
             }"
-                     class="q-mb-10 text-center"
-                     color="cyan">
-              {{ device.name }}
+                     class="q-pa-xs cursor-pointer text-weight-bold q-mt-sm q-mb-10 text-center cursor-pointer"
+                     color="cyan"
+                     @click="copy(device.address)">
+              {{ device.name }} [{{ device.address?.toUpperCase() }}]
             </q-badge>
-            <div>{{ device.vendor_id }}</div>
+            <div class="text-left">{{ device.vendor_id }}</div>
           </div>
           <div class="column">
             <div class="q-mb-10">
@@ -59,10 +60,11 @@
 </template>
 
 <script setup lang="ts">
-import { checkResponse, formatDuration, parseManufacturingDate } from '../helpers/utils';
+import { checkResponse, formatDuration, parseManufacturingDate, sortDevices } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
-import type { DeviceInfoMap } from '../models';
+import type { DeviceInfo } from '../models';
 import { useQuasar } from 'quasar';
+import { copyToClipboard } from 'quasar';
 
 const $q = useQuasar();
 
@@ -71,15 +73,36 @@ const attemptToConnectDevice = ref();
 const disconnectDeviceState = ref();
 const props = defineProps(['disconnectBtn', 'connected', 'token']);
 
+async function copy(value: string) {
+  copyToClipboard(value)
+    .then(() => {
+      $q.notify({
+        message: 'Адресу пристрою успішно скопійовано.',
+        color: 'green',
+        position: 'top',
+        timeout: 1000,
+      });
+    })
+    .catch(() => {
+      $q.notify({
+        message: 'Сталася помилка під час копіювання адреси пристрою.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
+    });
+}
+
 async function fetchDeviceInfo() {
   try {
     const response = await fetch('/api/device-info');
     checkResponse(response);
-    const data: DeviceInfoMap = await response.json();
-    if (props.connected && data) {
-      devicesList.value = Object.values(data).filter((d: any) => d.connected);
+    const data: DeviceInfo[] = await response.json();
+    if (props.connected) {
+      devicesList.value = sortDevices(data.filter((d: any) => d.connected));
     } else {
-      devicesList.value = data;
+      devicesList.value = sortDevices(data);
     }
   } catch (error) {
     console.error('Error fetching device info:', error);
@@ -149,7 +172,8 @@ async function disconnectDevice(address: string, name: string) {
 fetchDeviceInfo();
 const intervalId = setInterval(async () => {
   await fetchDeviceInfo();
-}, 3000);
+}, 5000);
+
 onBeforeUnmount(() => {
   clearInterval(intervalId);
 });

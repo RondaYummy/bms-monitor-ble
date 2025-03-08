@@ -67,8 +67,8 @@ input {
 }
 
 label.toggle-item {
-  width: 7em;
-  height: 3em;
+  width: 6.7em;
+  height: 2.5em;
   display: inline-block;
   border-radius: 50px;
   margin: 5px;
@@ -97,10 +97,10 @@ label.toggle-item {
 
     &:before {
       border: 3px solid #fff;
-      width: 2em;
-      height: 2em;
-      top: 0.3em;
-      left: 0.21em;
+      width: 1.7em;
+      height: 1.7em;
+      top: 0.2em;
+      left: 0.2em;
       background: #fff;
     }
   }
