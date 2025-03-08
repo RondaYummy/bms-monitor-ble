@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { checkResponse, formatDuration, parseManufacturingDate } from '../helpers/utils';
+import { checkResponse, formatDuration, parseManufacturingDate, sortDevices } from '../helpers/utils';
 import { ref, onBeforeUnmount } from 'vue';
 import type { DeviceInfo } from '../models';
 import { useQuasar } from 'quasar';
@@ -100,9 +100,9 @@ async function fetchDeviceInfo() {
     checkResponse(response);
     const data: DeviceInfo[] = await response.json();
     if (props.connected) {
-      devicesList.value = data.filter((d: any) => d.connected)?.sort((a, b) => b.name.localeCompare(a.name));
+      devicesList.value = sortDevices(data.filter((d: any) => d.connected));
     } else {
-      devicesList.value = data?.sort((a, b) => b.name.localeCompare(a.name));
+      devicesList.value = sortDevices(data);
     }
   } catch (error) {
     console.error('Error fetching device info:', error);

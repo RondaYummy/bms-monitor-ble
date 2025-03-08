@@ -213,7 +213,7 @@
 
               <q-list v-if="settings?.length">
                 <q-item clickable
-                        v-for="setting of settings?.sort((a, b) => b.name.localeCompare(a.name))"
+                        v-for="setting of sortDevices(settings)"
                         class="text-black"
                         :key="setting?.address"
                         :name="setting?.name"
@@ -315,7 +315,7 @@
 
 <script setup lang='ts'>
 import { ref, onMounted } from 'vue';
-import { checkResponse, useSessionStorage } from '../helpers/utils';
+import { checkResponse, sortDevices, useSessionStorage } from '../helpers/utils';
 import type { Alert, Device, Config, SettingInfo } from '../models';
 import DevicesList from '../components/DevicesList.vue';
 import ToggleButton from '../components/ToggleButton.vue';

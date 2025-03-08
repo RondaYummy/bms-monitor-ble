@@ -125,6 +125,10 @@ export function parseManufacturingDate(dateStr: string): string {
   return `${day}-${month}-${year}`;
 }
 
+export function sortDevices<T extends { name: string; }>(arr: T[]): T[] {
+  return arr?.sort((a, b) => b.name.localeCompare(a.name));
+}
+
 const UNIT_MAP = {
   cell_count: { value: "", title: "Cell Count" },
   nominal_battery_capacity: { value: "Ah", title: "Battery Capacity" },
