@@ -4,6 +4,7 @@ import pluginVue from 'eslint-plugin-vue'
 import pluginQuasar from '@quasar/app-vite/eslint'
 import vueTsEslintConfig from '@vue/eslint-config-typescript'
 import prettierSkipFormatting from '@vue/eslint-config-prettier/skip-formatting'
+import tsParser from '@typescript-eslint/parser'
 
 export default [
   {
@@ -71,7 +72,6 @@ export default [
     // add your custom rules here
     rules: {
       'prefer-promise-reject-errors': 'off',
-      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
 
       // allow debugger during development only
       'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
