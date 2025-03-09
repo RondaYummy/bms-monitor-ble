@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { axios } from 'src/boot/axios';
+import { api } from 'src/boot/axios';
 import { Config } from 'src/models';
 import { ref } from 'vue';
 
@@ -17,7 +17,7 @@ export const useConfigStore = defineStore('config', () => {
 
   async function fetchConfigs() {
     try {
-      const response = await axios.get('/api/configs');
+      const response = await api.get('/api/configs');
       const data: Config = response.data;
       config.value = data;
     } catch (error) {
@@ -27,7 +27,7 @@ export const useConfigStore = defineStore('config', () => {
 
   async function updateConfigs() {
     try {
-      const response = await axios.post('/api/configs', { ...config.value });
+      const response = await api.post('/api/configs', { ...config.value });
       config.value = response.data;
     } catch (error) {
       console.error('Error updating configs:', error);
