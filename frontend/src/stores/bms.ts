@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { axios } from 'src/boot/axios';
+import { api } from 'src/boot/axios';
 import { sortDevices } from 'src/helpers/utils';
 import { CellInfo, DeviceInfo, SettingInfo } from 'src/models';
 import { ref } from 'vue';
@@ -24,7 +24,7 @@ export const useBmsStore = defineStore('bms', () => {
 
   async function fetchSettings() {
     try {
-      const response = await axios.get('/api/device-settings');
+      const response = await api.get('/api/device-settings');
       const data: SettingInfo[] = response.data;
       settings.value = data;
     } catch (error) {
@@ -34,7 +34,7 @@ export const useBmsStore = defineStore('bms', () => {
 
   async function fetchCellInfo() {
     try {
-      const response = await axios.get('/api/cell-info');
+      const response = await api.get('/api/cell-info');
       const data = response.data;
       cellInfo.value = data;
     } catch (error) {
@@ -44,7 +44,7 @@ export const useBmsStore = defineStore('bms', () => {
 
   async function fetchDeviceInfo(connected: boolean) {
     try {
-      const response = await axios.get('/api/device-info');
+      const response = await api.get('/api/device-info');
       const data: DeviceInfo[] = await response.data;
       if (connected) {
         deviceInfo.value = sortDevices(data.filter((d: any) => d.connected));

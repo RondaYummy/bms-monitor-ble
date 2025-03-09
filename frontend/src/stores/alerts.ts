@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { axios } from 'src/boot/axios';
+import { api } from 'src/boot/axios';
 import { Alert } from 'src/models';
 import { ref } from 'vue';
 
@@ -12,7 +12,7 @@ export const useAlertsStore = defineStore('alerts', () => {
 
   async function fetchErrorAlerts() {
     try {
-      const response = await axios.get('/api/error-alerts', {
+      const response = await api.get('/api/error-alerts', {
         validateStatus: (status) => status < 500
       });
 
@@ -29,7 +29,7 @@ export const useAlertsStore = defineStore('alerts', () => {
 
   async function deleteErrorAlert(id: number) {
     try {
-      await axios.post('/api/error-alerts', { id });
+      await api.post('/api/error-alerts', { id });
       fetchErrorAlerts();
     } catch (error) {
       console.error('Error remove error alerts:', error);
