@@ -1,18 +1,16 @@
 import { boot } from 'quasar/wrappers';
 import axios from 'axios';
 import { eventBus } from 'src/eventBus';
-import { useSessionStorage } from 'src/helpers/utils';
 
 const api = axios.create({
   baseURL: '',
 });
 
-const token = useSessionStorage('access_token');
-
 api.interceptors.request.use(
   config => {
-    if (token.value) {
-      config.headers.Authorization = `Bearer ${token.value}`;
+    const token = sessionStorage.getItem("access_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
