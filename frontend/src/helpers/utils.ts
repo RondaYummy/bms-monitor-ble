@@ -1,6 +1,7 @@
 
 import { onBeforeUnmount, ref, watch } from "vue";
 import { eventBus } from "../eventBus";
+import { copyToClipboard, Notify } from 'quasar';
 
 export const useSessionStorage = (key: string) => {
   const value = ref(sessionStorage.getItem(key));
@@ -233,4 +234,29 @@ export function getAlertIcon(level: string | undefined): string {
   if (level === 'error') return 'error';
   if (level === 'critical') return 'flash_on';
   return '';
+}
+
+export function isInstalled() {
+  return window?.matchMedia('(display-mode: standalone)')?.matches;
+}
+
+export async function copy(value: string) {
+  copyToClipboard(value)
+    .then(() => {
+      Notify.create({
+        message: 'Адресу пристрою успішно скопійовано.',
+        color: 'green',
+        position: 'top',
+        timeout: 1000,
+      });
+    })
+    .catch(() => {
+      Notify.create({
+        message: 'Сталася помилка під час копіювання адреси пристрою.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
+    });
 }

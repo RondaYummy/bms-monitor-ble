@@ -417,7 +417,7 @@ async function connectToDevice(address: string, name: string) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token.value}`
+      "Authorization": `Bearer ${sessionStorage.getItem("access_token")}`
     },
     body: JSON.stringify({ address, name }),
   });

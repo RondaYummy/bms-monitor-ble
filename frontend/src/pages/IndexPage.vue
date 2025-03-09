@@ -288,7 +288,7 @@
 <script setup lang="ts">
 import LoaderComponent from '../components/LoaderComponent.vue';
 import BMSChart from '../components/BMSChart.vue';
-import { calculateAutonomyTime, calculateAverage, calculateAveragePerIndex } from '../helpers/utils';
+import { calculateAutonomyTime, calculateAverage, calculateAveragePerIndex, isInstalled } from '../helpers/utils';
 import { ref, watch, onBeforeUnmount, computed } from 'vue';
 import type { BeforeInstallPromptEvent, CellInfo } from '../models';
 import { useBmsStore } from 'src/stores/bms';
@@ -307,10 +307,6 @@ window.addEventListener('beforeinstallprompt', (event: Event) => {
   // event.preventDefault();
   deferredPrompt = event as BeforeInstallPromptEvent;
 });
-
-function isInstalled() {
-  return window?.matchMedia('(display-mode: standalone)')?.matches;
-}
 
 watch(devicesList, () => {
   selectSingleDevice(tab.value);

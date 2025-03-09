@@ -60,11 +60,10 @@
 </template>
 
 <script setup lang="ts">
-import { formatDuration, parseManufacturingDate } from '../helpers/utils';
+import { copy, formatDuration, parseManufacturingDate } from '../helpers/utils';
 import { ref, onBeforeUnmount, computed } from 'vue';
 import type { DeviceInfo } from '../models';
 import { useQuasar } from 'quasar';
-import { copyToClipboard } from 'quasar';
 import { useBmsStore } from 'src/stores/bms';
 
 const $q = useQuasar();
@@ -74,27 +73,6 @@ const devicesList = computed<DeviceInfo[]>(() => bmsStore.deviceInfo);
 const attemptToConnectDevice = ref();
 const disconnectDeviceState = ref();
 const props = defineProps(['disconnectBtn', 'connected', 'token']);
-
-async function copy(value: string) {
-  copyToClipboard(value)
-    .then(() => {
-      $q.notify({
-        message: 'Адресу пристрою успішно скопійовано.',
-        color: 'green',
-        position: 'top',
-        timeout: 1000,
-      });
-    })
-    .catch(() => {
-      $q.notify({
-        message: 'Сталася помилка під час копіювання адреси пристрою.',
-        color: 'red',
-        icon: 'warning',
-        position: 'top',
-        timeout: 2000,
-      });
-    });
-}
 
 async function connectToDevice(address: string, name: string) {
   try {
