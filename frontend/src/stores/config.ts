@@ -25,5 +25,14 @@ export const useConfigStore = defineStore('config', () => {
     }
   }
 
-  return { config, updateConfig, fetchConfigs };
+  async function updateConfigs() {
+    try {
+      const response = await axios.post('/api/configs', { ...config.value });
+      config.value = response.data;
+    } catch (error) {
+      console.error('Error updating configs:', error);
+    }
+  }
+
+  return { config, updateConfig, fetchConfigs, updateConfigs };
 });

@@ -303,8 +303,7 @@
 
             <div>
               <div class="text-h6 q-mt-md">Ваші пристрої:</div>
-              <DevicesList :disconnect-btn="true"
-                           :token="token" />
+              <DevicesList :disconnect-btn="true" />
             </div>
           </q-tab-panel>
         </q-tab-panels>

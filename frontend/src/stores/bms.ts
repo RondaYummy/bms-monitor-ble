@@ -8,6 +8,7 @@ export const useBmsStore = defineStore('bms', () => {
   const cellInfo = ref<Record<string, CellInfo>>({});
   const deviceInfo = ref<DeviceInfo[]>([]);
   const settings = ref<SettingInfo[]>([]);
+  const devices = ref();
 
   function updateCellInfo(newInfo: Record<string, CellInfo>) {
     cellInfo.value = newInfo;
@@ -55,5 +56,5 @@ export const useBmsStore = defineStore('bms', () => {
     }
   }
 
-  return { cellInfo, deviceInfo, settings, updateCellInfo, updateDeviceInfo, updateSettings, fetchSettings, fetchCellInfo, fetchDeviceInfo };
+  return { devices, cellInfo, deviceInfo, settings, updateCellInfo, updateDeviceInfo, updateSettings, fetchSettings, fetchCellInfo, fetchDeviceInfo };
 });

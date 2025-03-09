@@ -29,12 +29,7 @@ export const useAlertsStore = defineStore('alerts', () => {
 
   async function deleteErrorAlert(id: number) {
     try {
-      await axios.post('/api/error-alerts', { id }, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${sessionStorage.getItem("access_token")}`
-        }
-      });
+      await axios.post('/api/error-alerts', { id });
       fetchErrorAlerts();
     } catch (error) {
       console.error('Error remove error alerts:', error);

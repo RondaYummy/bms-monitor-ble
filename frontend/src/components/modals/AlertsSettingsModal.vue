@@ -22,7 +22,7 @@
       </div>
 
       <div class='row justify-between q-mt-sm'>
-        <q-btn @click="updateConfigs"
+        <q-btn @click="configStore.updateConfigs"
                color="black"
                size="xs"
                :disable="!token"
@@ -41,9 +41,11 @@
 <script setup lang="ts">
 import { useSessionStorage } from 'src/helpers/utils';
 import type { Config } from 'src/models';
+import { useConfigStore } from 'src/stores/config';
 import { defineProps, defineEmits, ref, watch } from 'vue';
 
 const token = useSessionStorage("access_token");
+const configStore = useConfigStore();
 
 interface Props {
   show: boolean;
@@ -68,23 +70,6 @@ watch(() => props.show, (newVal) => {
 watch(localShow, (newVal) => {
   emits('update:show', newVal);
 });
-
-async function updateConfigs() {
-  try {
-    const response = await fetch('/api/configs', {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token.value}`
-      },
-      body: JSON.stringify({ ...config.value }),
-    });
-    const data = await response.json();
-    config.value = data;
-  } catch (error) {
-    console.error('Error updating configs:', error);
-  }
-}
 
 function close() {
   localShow.value = false;

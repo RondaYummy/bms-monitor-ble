@@ -40,7 +40,7 @@
            class="row justify-around q-pa-sm">
         <q-btn v-if="device.connected"
                color="black"
-               :disable="!props.token || !!disconnectDeviceState"
+               :disable="!token || !!disconnectDeviceState"
                :loading="disconnectDeviceState === device.address"
                dense
                @click="disconnectDevice(device.address, device.name)"
@@ -50,7 +50,7 @@
                dense
                :loading="attemptToConnectDevice === device.address"
                @click="connectToDevice(device.address, device.name)"
-               :disable="!props.token || !!attemptToConnectDevice"
+               :disable="!token || !!attemptToConnectDevice"
                label="Приєднатися" />
       </div>
       <q-separator color="orange"
@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { copy, formatDuration, parseManufacturingDate } from '../helpers/utils';
+import { copy, formatDuration, parseManufacturingDate, useSessionStorage } from '../helpers/utils';
 import { ref, onBeforeUnmount, computed } from 'vue';
 import type { DeviceInfo } from '../models';
 import { useQuasar } from 'quasar';
@@ -68,11 +68,12 @@ import { useBmsStore } from 'src/stores/bms';
 
 const $q = useQuasar();
 const bmsStore = useBmsStore();
+const token = useSessionStorage("access_token");
 
 const devicesList = computed<DeviceInfo[]>(() => bmsStore.deviceInfo);
 const attemptToConnectDevice = ref();
 const disconnectDeviceState = ref();
-const props = defineProps(['disconnectBtn', 'connected', 'token']);
+const props = defineProps(['disconnectBtn', 'connected']);
 
 async function connectToDevice(address: string, name: string) {
   try {
@@ -81,7 +82,7 @@ async function connectToDevice(address: string, name: string) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${props.token}`,
+        Authorization: `Bearer ${token.value}`,
       },
       body: JSON.stringify({ address, name }),
     });
@@ -119,7 +120,7 @@ async function disconnectDevice(address: string, name: string) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${props.token}`,
+        Authorization: `Bearer ${token.value}`,
       },
       body: JSON.stringify({ address, name }),
     });
