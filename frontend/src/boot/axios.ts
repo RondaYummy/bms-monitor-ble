@@ -9,6 +9,7 @@ const api = axios.create({
 api.interceptors.request.use(
   config => {
     const token = sessionStorage.getItem("access_token");
+    console.log('token: ', token);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -24,6 +25,7 @@ api.interceptors.response.use(
   error => {
     const { response } = error;
     if (response) {
+      console.log('response.status: ', response.status);
       if (response.status === 401) {
         sessionStorage.removeItem('access_token');
         sessionStorage.removeItem('access_token_timestamp');
