@@ -289,19 +289,16 @@
 import LoaderComponent from '../components/LoaderComponent.vue';
 import BMSChart from '../components/BMSChart.vue';
 import { calculateAutonomyTime, calculateAverage, calculateAveragePerIndex } from '../helpers/utils';
-import { ref, watch, onBeforeUnmount } from 'vue';
-import type { CellInfo } from '../models';
+import { ref, watch, onBeforeUnmount, computed } from 'vue';
+import type { BeforeInstallPromptEvent, CellInfo } from '../models';
+import { useBmsStore } from 'src/stores/bms';
 
-const devicesList = ref<Record<string, CellInfo>>({});
+const bmsStore = useBmsStore();
+
+const devicesList = computed<Record<string, CellInfo>>(() => bmsStore.cellInfo);
 const installAppDialog = ref(false);
 const calculatedList = ref<any>();
 const tab = ref('All');
-
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string; }>;
-  prompt(): Promise<void>;
-}
 
 let deferredPrompt: BeforeInstallPromptEvent;
 
@@ -381,31 +378,18 @@ function selectSingleDevice(tab: string) {
   }
 }
 
-async function fetchCellInfo() {
-  try {
-    const response = await fetch('/api/cell-info');
-    if (!response.ok) {
-      throw new Error('Failed to fetch cell info');
-    }
-    const data = await response.json();
-    devicesList.value = data;
-  } catch (error) {
-    console.error('Error fetching cell info:', error);
-  }
-}
-
 if (!isInstalled()) {
   installAppDialog.value = true;
 }
 const intervalId = setInterval(async () => {
-  await fetchCellInfo();
+  await bmsStore.fetchCellInfo();
 }, 3000);
 
 onBeforeUnmount(() => {
   clearInterval(intervalId);
 });
 
-fetchCellInfo();
+bmsStore.fetchCellInfo();
 </script>
 
 <style scoped lang='scss'>

@@ -38,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { checkResponse, useSessionStorage } from 'src/helpers/utils';
+import { useSessionStorage } from 'src/helpers/utils';
 import { defineProps, defineEmits, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 
@@ -84,7 +84,6 @@ async function updatePassword() {
       },
       body: JSON.stringify({ old_password: oldPassword.value, new_password: newPassword.value }),
     });
-    checkResponse(response);
     const json = await response.json();
     $q.notify({
       message: json?.message,

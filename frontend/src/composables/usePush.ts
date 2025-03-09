@@ -1,16 +1,6 @@
-import type { Config } from 'src/models';
 import { ref } from "vue";
 import { Notify } from 'quasar';
-
-async function fetchConfigs(): Promise<Config | undefined> {
-  try {
-    const response = await fetch('/api/configs');
-    const data: Config = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error fetching configs:', error);
-  }
-}
+import { useConfigStore } from 'src/stores/config';
 
 export function usePush() {
   const pushSubscription = ref<PushSubscription | null>(null);
@@ -51,11 +41,12 @@ export function usePush() {
         return;
       }
 
-      const config = await fetchConfigs();
-      if (!config) throw new Error("Config not found");
+      const configStore = useConfigStore();
+      await configStore.fetchConfigs();
+      if (!configStore.config) throw new Error("Config not found");
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(config?.VAPID_PUBLIC_KEY),
+        applicationServerKey: urlBase64ToUint8Array(configStore.config?.VAPID_PUBLIC_KEY),
       });
 
       pushSubscription.value = subscription;

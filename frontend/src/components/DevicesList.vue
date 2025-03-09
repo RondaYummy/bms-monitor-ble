@@ -60,15 +60,17 @@
 </template>
 
 <script setup lang="ts">
-import { checkResponse, formatDuration, parseManufacturingDate, sortDevices } from '../helpers/utils';
-import { ref, onBeforeUnmount } from 'vue';
+import { formatDuration, parseManufacturingDate } from '../helpers/utils';
+import { ref, onBeforeUnmount, computed } from 'vue';
 import type { DeviceInfo } from '../models';
 import { useQuasar } from 'quasar';
 import { copyToClipboard } from 'quasar';
+import { useBmsStore } from 'src/stores/bms';
 
 const $q = useQuasar();
+const bmsStore = useBmsStore();
 
-const devicesList = ref();
+const devicesList = computed<DeviceInfo[]>(() => bmsStore.deviceInfo);
 const attemptToConnectDevice = ref();
 const disconnectDeviceState = ref();
 const props = defineProps(['disconnectBtn', 'connected', 'token']);
@@ -94,21 +96,6 @@ async function copy(value: string) {
     });
 }
 
-async function fetchDeviceInfo() {
-  try {
-    const response = await fetch('/api/device-info');
-    checkResponse(response);
-    const data: DeviceInfo[] = await response.json();
-    if (props.connected) {
-      devicesList.value = sortDevices(data.filter((d: any) => d.connected));
-    } else {
-      devicesList.value = sortDevices(data);
-    }
-  } catch (error) {
-    console.error('Error fetching device info:', error);
-  }
-}
-
 async function connectToDevice(address: string, name: string) {
   try {
     attemptToConnectDevice.value = address;
@@ -121,7 +108,6 @@ async function connectToDevice(address: string, name: string) {
       body: JSON.stringify({ address, name }),
     });
 
-    checkResponse(response);
     const data = await response.json();
     if (data?.error) {
       $q.notify({
@@ -151,7 +137,7 @@ async function connectToDevice(address: string, name: string) {
 async function disconnectDevice(address: string, name: string) {
   try {
     disconnectDeviceState.value = address;
-    const response = await fetch('/api/disconnect-device', {
+    await fetch('/api/disconnect-device', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -159,7 +145,6 @@ async function disconnectDevice(address: string, name: string) {
       },
       body: JSON.stringify({ address, name }),
     });
-    checkResponse(response);
   } catch (error) {
     console.error('Error disconnect device info:', error);
   } finally {
@@ -169,9 +154,9 @@ async function disconnectDevice(address: string, name: string) {
   }
 }
 
-fetchDeviceInfo();
+bmsStore.fetchDeviceInfo(props.connected);
 const intervalId = setInterval(async () => {
-  await fetchDeviceInfo();
+  await bmsStore.fetchDeviceInfo(props.connected);
 }, 5000);
 
 onBeforeUnmount(() => {

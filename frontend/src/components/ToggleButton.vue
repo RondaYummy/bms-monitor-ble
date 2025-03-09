@@ -22,6 +22,7 @@ const props = defineProps({
 });
 const checked = ref(props.value);
 const disabled = ref(true);
+
 watch(() => props.value, (newValue) => {
   checked.value = newValue;
 });

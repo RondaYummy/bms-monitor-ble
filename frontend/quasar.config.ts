@@ -14,6 +14,8 @@ export default defineConfig(() => {
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
     boot: [
       'apexcharts',
+      'pinia',
+      'axios',
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css

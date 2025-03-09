@@ -102,7 +102,7 @@
             <div class='column alerts-box'>
               <q-banner v-for="alert of alerts"
                         :key="alert?.id"
-                        v-touch-swipe.mouse.right.left="() => token && deleteErrorAlert(alert?.id)"
+                        v-touch-swipe.mouse.right.left="() => token && alertsStore.deleteErrorAlert(alert?.id)"
                         inline-actions
                         :class="{
                           'bg-negative': alert?.level === 'critical',
@@ -314,8 +314,8 @@
 </template>
 
 <script setup lang='ts'>
-import { ref, onMounted } from 'vue';
-import { checkResponse, sortDevices, useSessionStorage } from '../helpers/utils';
+import { ref, onMounted, computed } from 'vue';
+import { formatTimestamp, getAlertIcon, sortDevices, useSessionStorage } from '../helpers/utils';
 import type { Alert, Device, Config, SettingInfo } from '../models';
 import DevicesList from '../components/DevicesList.vue';
 import ToggleButton from '../components/ToggleButton.vue';
@@ -323,6 +323,15 @@ import SettingsList from '../components/SettingsList.vue';
 import ChangePasswordModal from 'src/components/modals/ChangePasswordModal.vue';
 import { cancelAllSubscriptions, checkPushSubscription, usePush } from 'src/composables/usePush';
 import AlertsSettingsModal from 'src/components/modals/AlertsSettingsModal.vue';
+import { useConfigStore } from 'src/stores/config';
+import { useAlertsStore } from 'src/stores/alerts';
+import { useBmsStore } from 'src/stores/bms';
+
+const configStore = useConfigStore();
+const alertsStore = useAlertsStore();
+const bmsStore = useBmsStore();
+
+const token = useSessionStorage("access_token");
 
 const tab = ref('Alerts');
 const password = ref('');
@@ -336,89 +345,23 @@ const alertsModal = ref(false);
 const pushSubscription = ref<PushSubscription | null>(null);
 const changePasswordModal = ref(false);
 const selectedLevel = ref();
-const alerts = ref<Alert[]>();
 const alertsMain = ref<Alert[]>();
-const token = useSessionStorage("access_token");
-const config = ref<Config>();
-const settings = ref<SettingInfo[]>();
+const config = computed<Config>(() => configStore.config);
+const alerts = computed<Alert[]>(() => alertsStore.alerts);
+const settings = computed<SettingInfo[]>(() => bmsStore.settings);
 const currentSetting = ref<SettingInfo>();
 
 function filterAlertsByLevel(level?: string): void {
   console.log('Selected level: ', level);
+  if (!alertsMain.value) {
+    return;
+  }
   if (!level) {
-    alerts.value = alertsMain.value;
+    alertsStore.updateAlerts(alertsMain.value);
     return;
   }
   selectedLevel.value = level;
-  alerts.value = alertsMain.value?.filter((a) => a.level === level);
-}
-
-function formatTimestamp(timestamp?: any): string {
-  if (!timestamp) {
-    return 'Invalid timestamp';
-  }
-
-  const cleanTimestamp = timestamp.split('.')[0];
-  const date = new Date(cleanTimestamp.replace(' ', 'T'));
-
-  if (isNaN(date.getTime())) {
-    return 'Invalid date';
-  }
-
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months from 0 to 11
-  const year = String(date.getFullYear()).slice(2); // Last two digits of the year
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-
-  return `${month}.${day}.${year} ${hours}.${minutes}`;
-}
-
-function getAlertIcon(level: string | undefined): string {
-  if (level === 'info') return 'priority_high';
-  if (level === 'warning') return 'warning';
-  if (level === 'error') return 'error';
-  if (level === 'critical') return 'flash_on';
-  return '';
-}
-
-async function fetchErrorAlerts() {
-  try {
-    const response = await fetch('/api/error-alerts');
-    if (response.status === 404) {
-      alerts.value = [];
-      alertsMain.value = [];
-      return;
-    }
-    checkResponse(response);
-    const data = await response.json();
-    alerts.value = data;
-    alertsMain.value = data;
-  } catch (error) {
-    console.error('Error fetching error alerts:', error);
-  }
-}
-
-async function fetchConfigs() {
-  try {
-    const response = await fetch('/api/configs');
-    checkResponse(response);
-    const data: Config = await response.json();
-    config.value = data;
-  } catch (error) {
-    console.error('Error fetching configs:', error);
-  }
-}
-
-async function fetchSettings() {
-  try {
-    const response = await fetch('/api/device-settings');
-    checkResponse(response);
-    const data: SettingInfo[] = await response.json();
-    settings.value = data;
-  } catch (error) {
-    console.error('Error fetching configs:', error);
-  }
+  alertsStore.updateAlerts(alertsMain.value?.filter((a) => a.level === level));
 }
 
 async function cancelSubs() {
@@ -436,31 +379,12 @@ async function subscribePush() {
   }, 1000);
 }
 
-async function deleteErrorAlert(id: number) {
-  try {
-    token.value = sessionStorage.getItem("access_token");
-    const response = await fetch('/api/error-alerts', {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token.value}`
-      },
-      body: JSON.stringify({ id: id }),
-    });
-    checkResponse(response);
-    fetchErrorAlerts();
-  } catch (error) {
-    console.error('Error remove error alerts:', error);
-  }
-}
-
 const login = async (pwd: string) => {
   const response = await fetch("/api/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password: pwd }),
   });
-  checkResponse(response);
 
   const data = await response.json();
   sessionStorage.setItem("access_token", data.access_token);
@@ -478,10 +402,8 @@ async function fetchDevices() {
     if (!response?.ok) {
       notFoundDevices.value = true;
     }
-    checkResponse(response);
     const data = await response.json();
     devices.value = data?.devices;
-    console.log('Discovered devices: ', data);
   } catch (error) {
     console.error(error);
   } finally {
@@ -491,7 +413,7 @@ async function fetchDevices() {
 
 async function connectToDevice(address: string, name: string) {
   attemptToConnectDevice.value = address;
-  const response = await fetch('/api/connect-device', {
+  await fetch('/api/connect-device', {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -499,7 +421,6 @@ async function connectToDevice(address: string, name: string) {
     },
     body: JSON.stringify({ address, name }),
   });
-  checkResponse(response);
   devices.value = devices.value?.filter((d) => d.address !== address);
   attemptToConnectDevice.value = '';
 }
@@ -512,13 +433,11 @@ onMounted(async () => {
   }, 2000);
 
   setInterval(async () => {
-    await Promise.allSettled([fetchSettings(), fetchConfigs()]);
+    await Promise.allSettled([bmsStore.fetchSettings(), configStore.fetchConfigs()]);
   }, 10000);
 });
 
-fetchErrorAlerts();
-fetchConfigs();
-fetchSettings();
+Promise.allSettled([alertsStore.fetchErrorAlerts(), configStore.fetchConfigs(), bmsStore.fetchSettings()]);
 </script>
 
 <style scoped lang='scss'>

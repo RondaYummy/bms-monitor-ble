@@ -2,18 +2,6 @@
 import { onBeforeUnmount, ref, watch } from "vue";
 import { eventBus } from "../eventBus";
 
-export function checkResponse(response: Response) {
-  if (response.status === 401) {
-    sessionStorage.removeItem('access_token');
-    sessionStorage.removeItem('access_token_timestamp');
-    eventBus.emit("session:remove", "access_token");
-    throw new Error('Unauthorized: Access token has been removed.');
-  }
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}: ${response.statusText}`);
-  }
-}
-
 export const useSessionStorage = (key: string) => {
   const value = ref(sessionStorage.getItem(key));
 
@@ -216,4 +204,33 @@ type UnitMapKeys = keyof typeof UNIT_MAP;
 export function getUnit(key: UnitMapKeys): string {
   const unit = UNIT_MAP[key];
   return `${unit.title} ${unit.value}: `;
+}
+
+export function formatTimestamp(timestamp?: any): string {
+  if (!timestamp) {
+    return 'Invalid timestamp';
+  }
+
+  const cleanTimestamp = timestamp.split('.')[0];
+  const date = new Date(cleanTimestamp.replace(' ', 'T'));
+
+  if (isNaN(date.getTime())) {
+    return 'Invalid date';
+  }
+
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months from 0 to 11
+  const year = String(date.getFullYear()).slice(2); // Last two digits of the year
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${month}.${day}.${year} ${hours}.${minutes}`;
+}
+
+export function getAlertIcon(level: string | undefined): string {
+  if (level === 'info') return 'priority_high';
+  if (level === 'warning') return 'warning';
+  if (level === 'error') return 'error';
+  if (level === 'critical') return 'flash_on';
+  return '';
 }

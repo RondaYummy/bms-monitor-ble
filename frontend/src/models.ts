@@ -139,3 +139,9 @@ export interface Config {
   VAPID_PUBLIC_KEY: string;
   n_hours: number;
 }
+
+export interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string; }>;
+  prompt(): Promise<void>;
+}

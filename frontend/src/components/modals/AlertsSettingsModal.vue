@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { checkResponse, useSessionStorage } from 'src/helpers/utils';
+import { useSessionStorage } from 'src/helpers/utils';
 import type { Config } from 'src/models';
 import { defineProps, defineEmits, ref, watch } from 'vue';
 
@@ -79,7 +79,6 @@ async function updateConfigs() {
       },
       body: JSON.stringify({ ...config.value }),
     });
-    checkResponse(response);
     const data = await response.json();
     config.value = data;
   } catch (error) {
