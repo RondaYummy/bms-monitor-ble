@@ -36,5 +36,21 @@ export const useAlertsStore = defineStore('alerts', () => {
     }
   }
 
-  return { alerts, updateAlerts, fetchErrorAlerts, deleteErrorAlert };
+  return {
+    // ==============
+    //   GETTERS
+    // ==============
+    alerts,
+
+    // ==============
+    //   MUTATIONS
+    // ==============
+    updateAlerts,
+
+    // ==============
+    //   ACTIONS
+    // ==============
+    fetchErrorAlerts,
+    deleteErrorAlert,
+  };
 });

@@ -4,6 +4,9 @@ import { Config } from 'src/models';
 import { ref } from 'vue';
 
 export const useConfigStore = defineStore('config', () => {
+  // ==============
+  //   STATE
+  // ==============
   const config = ref<Config>({
     n_hours: 12,
     password: '',
@@ -11,10 +14,16 @@ export const useConfigStore = defineStore('config', () => {
     vapid_public: '',
   });
 
+  // ==============
+  //   MUTATIONS
+  // ==============
   function updateConfig(newInfo: Config) {
     config.value = newInfo;
   }
 
+  // ==============
+  //   ACTIONS
+  // ==============
   async function fetchConfigs() {
     try {
       const response = await api.get('/api/configs');
@@ -34,5 +43,21 @@ export const useConfigStore = defineStore('config', () => {
     }
   }
 
-  return { config, updateConfig, fetchConfigs, updateConfigs };
+  return {
+    // ==============
+    //   GETTERS
+    // ==============
+    config,
+
+    // ==============
+    //   MUTATIONS
+    // ==============
+    updateConfig,
+
+    // ==============
+    //   ACTIONS
+    // ==============
+    fetchConfigs,
+    updateConfigs,
+  };
 });

@@ -78,19 +78,10 @@ const props = defineProps(['disconnectBtn', 'connected']);
 async function connectToDevice(address: string, name: string) {
   try {
     attemptToConnectDevice.value = address;
-    const response = await fetch('/api/connect-device', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token.value}`,
-      },
-      body: JSON.stringify({ address, name }),
-    });
-
-    const data = await response.json();
-    if (data?.error) {
+    const res = await bmsStore.connectToDevice(address, name);
+    if (res?.data?.error) {
       $q.notify({
-        message: data?.error,
+        message: res?.data?.error,
         color: 'red',
         icon: 'warning',
         position: 'top',
@@ -116,14 +107,7 @@ async function connectToDevice(address: string, name: string) {
 async function disconnectDevice(address: string, name: string) {
   try {
     disconnectDeviceState.value = address;
-    await fetch('/api/disconnect-device', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token.value}`,
-      },
-      body: JSON.stringify({ address, name }),
-    });
+    await bmsStore.disconnectDevice(address, name);
   } catch (error) {
     console.error('Error disconnect device info:', error);
   } finally {

@@ -336,7 +336,6 @@ const tab = ref('Alerts');
 const password = ref('');
 const isPwd = ref(true);
 const loadingDevices = ref(false);
-const devices = ref<Device[]>([]);
 const attemptToConnectDevice = ref();
 const notFoundDevices = ref(false);
 const alertsModal = ref(false);
@@ -348,6 +347,7 @@ const alertsMain = ref<Alert[]>();
 const config = computed<Config>(() => configStore.config);
 const alerts = computed<Alert[]>(() => alertsStore.alerts);
 const settings = computed<SettingInfo[]>(() => bmsStore.settings);
+const devices = computed<Device[]>(() => bmsStore.devices);
 const currentSetting = ref<SettingInfo>();
 
 function filterAlertsByLevel(level?: string): void {
@@ -389,7 +389,7 @@ const login = async (pwd: string) => {
   sessionStorage.setItem("access_token", data.access_token);
   token.value = data?.access_token;
   password.value = '';
-  console.log("Login successful");
+  console.info("---Successful---");
   return true;
 };
 
@@ -397,12 +397,10 @@ async function fetchDevices() {
   try {
     loadingDevices.value = true;
     notFoundDevices.value = false;
-    const response = await fetch('/api/devices');
-    if (!response?.ok) {
+    const response = await bmsStore.fetchDevices();
+    if (!response) {
       notFoundDevices.value = true;
     }
-    const data = await response.json();
-    devices.value = data?.devices;
   } catch (error) {
     console.error(error);
   } finally {
@@ -412,15 +410,8 @@ async function fetchDevices() {
 
 async function connectToDevice(address: string, name: string) {
   attemptToConnectDevice.value = address;
-  await fetch('/api/connect-device', {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${sessionStorage.getItem("access_token")}`
-    },
-    body: JSON.stringify({ address, name }),
-  });
-  devices.value = devices.value?.filter((d) => d.address !== address);
+  await bmsStore.connectToDevice(address, name);
+  bmsStore.updateDevices(devices.value.filter((d) => d.address !== address));
   attemptToConnectDevice.value = '';
 }
 

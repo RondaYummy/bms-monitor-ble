@@ -1,28 +1,42 @@
+import { AxiosResponse } from 'axios';
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
 import { sortDevices } from 'src/helpers/utils';
-import { CellInfo, DeviceInfo, SettingInfo } from 'src/models';
+import { CellInfo, Device, DeviceInfo, SettingInfo } from 'src/models';
 import { ref } from 'vue';
 
 export const useBmsStore = defineStore('bms', () => {
+  // ==============
+  //   STATE
+  // ==============
   const cellInfo = ref<Record<string, CellInfo>>({});
   const deviceInfo = ref<DeviceInfo[]>([]);
   const settings = ref<SettingInfo[]>([]);
-  const devices = ref();
+  const devices = ref<Device[]>([]);
 
-  function updateCellInfo(newInfo: Record<string, CellInfo>) {
+  // ==============
+  //   MUTATIONS
+  // ==============
+  function updateCellInfo(newInfo: Record<string, CellInfo>): void {
     cellInfo.value = newInfo;
   }
 
-  function updateDeviceInfo(newInfo: DeviceInfo[]) {
+  function updateDeviceInfo(newInfo: DeviceInfo[]): void {
     deviceInfo.value = newInfo;
   }
 
-  function updateSettings(newSettings: SettingInfo[]) {
+  function updateSettings(newSettings: SettingInfo[]): void {
     settings.value = newSettings;
   }
 
-  async function fetchSettings() {
+  function updateDevices(newDevices: Device[]) {
+    devices.value = newDevices;
+  }
+
+  // ==============
+  //   ACTIONS
+  // ==============
+  async function fetchSettings(): Promise<void> {
     try {
       const response = await api.get('/api/device-settings');
       const data: SettingInfo[] = response.data;
@@ -32,7 +46,7 @@ export const useBmsStore = defineStore('bms', () => {
     }
   }
 
-  async function fetchCellInfo() {
+  async function fetchCellInfo(): Promise<void> {
     try {
       const response = await api.get('/api/cell-info');
       const data = response.data;
@@ -42,7 +56,7 @@ export const useBmsStore = defineStore('bms', () => {
     }
   }
 
-  async function fetchDeviceInfo(connected: boolean) {
+  async function fetchDeviceInfo(connected: boolean): Promise<void> {
     try {
       const response = await api.get('/api/device-info');
       const data: DeviceInfo[] = await response.data;
@@ -56,5 +70,54 @@ export const useBmsStore = defineStore('bms', () => {
     }
   }
 
-  return { devices, cellInfo, deviceInfo, settings, updateCellInfo, updateDeviceInfo, updateSettings, fetchSettings, fetchCellInfo, fetchDeviceInfo };
+  async function connectToDevice(address: string, name: string): Promise<AxiosResponse<any, any>> {
+    return await api.post('/api/connect-device', { address, name });
+  }
+
+  async function disconnectDevice(address: string, name: string) {
+    try {
+      await api.post('/api/disconnect-device', { address, name });
+    } catch (error: any) {
+      throw new Error('Error disconnect device info:', error);
+    }
+  }
+
+  async function fetchDevices(): Promise<Device[] | undefined> {
+    try {
+      const response = await api.get('/api/devices');
+      const data = await response.data;
+      updateDevices(data?.devices);
+      return devices.value;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  return {
+    // ==============
+    //   GETTERS
+    // ==============
+    devices,
+    cellInfo,
+    deviceInfo,
+    settings,
+
+    // ==============
+    //   MUTATIONS
+    // ==============
+    updateCellInfo,
+    updateDeviceInfo,
+    updateSettings,
+    updateDevices,
+
+    // ==============
+    //   ACTIONS
+    // ==============
+    fetchSettings,
+    fetchCellInfo,
+    fetchDeviceInfo,
+    fetchDevices,
+    connectToDevice,
+    disconnectDevice,
+  };
 });

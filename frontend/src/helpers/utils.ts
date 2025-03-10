@@ -25,7 +25,6 @@ export const useSessionStorage = (key: string) => {
   window.addEventListener("storage", syncWithStorage);
 
   eventBus.on("session:remove", (removedKey) => {
-    console.log(removedKey, 'removedKey');
     if (removedKey === key) {
       value.value = null;
     }
