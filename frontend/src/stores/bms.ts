@@ -3,7 +3,7 @@ import { Notify } from 'quasar';
 import { api } from 'src/boot/axios';
 import { sortDevices } from 'src/helpers/utils';
 import { CellInfo, Device, DeviceInfo, SettingInfo } from 'src/models';
-import { ref } from 'vue';
+import { readonly, ref } from 'vue';
 
 export const useBmsStore = defineStore('bms', () => {
   // ==============
@@ -143,10 +143,18 @@ export const useBmsStore = defineStore('bms', () => {
     // ==============
     //   STATE
     // ==============
-    devices,
-    cellInfo,
-    deviceInfo,
-    settingInfo,
+    get devices() {
+      return readonly(devices);
+    },
+    get cellInfo() {
+      return readonly(cellInfo);
+    },
+    get deviceInfo() {
+      return readonly(deviceInfo);
+    },
+    get settingInfo() {
+      return readonly(settingInfo);
+    },
 
     // ==============
     //   GETTERS

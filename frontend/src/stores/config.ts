@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
 import { Config } from 'src/models';
-import { ref } from 'vue';
+import { ref, readonly } from 'vue';
 
 export const useConfigStore = defineStore('config', () => {
   // ==============
@@ -54,7 +54,9 @@ export const useConfigStore = defineStore('config', () => {
     // ==============
     //   STATE
     // ==============
-    config,
+    get config() {
+      return readonly(config);
+    },
 
     // ==============
     //   GETTERS

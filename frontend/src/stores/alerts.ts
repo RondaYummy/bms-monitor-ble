@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { api } from 'src/boot/axios';
 import { Alert } from 'src/models';
-import { ref } from 'vue';
+import { readonly, ref } from 'vue';
 
 export const useAlertsStore = defineStore('alerts', () => {
   // ==============
@@ -56,7 +56,9 @@ export const useAlertsStore = defineStore('alerts', () => {
     // ==============
     //   STATE
     // ==============
-    alerts,
+    get alerts() {
+      return readonly(alerts);
+    },
 
     // ==============
     //   GETTERS
