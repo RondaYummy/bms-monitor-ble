@@ -7,6 +7,12 @@ import {
 } from 'vue-router';
 import routes from './routes';
 
+declare module 'vue-router' {
+  interface RouteMeta {
+    pageTitle: string;
+  }
+}
+
 /*
  * If not building with SSR mode, you can
  * directly export the Router instantiation;
@@ -29,6 +35,11 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     // quasar.conf.js -> build -> vueRouterMode
     // quasar.conf.js -> build -> publicPath
     history: createHistory(process.env.VUE_ROUTER_BASE),
+  });
+
+  Router.afterEach((to) => {
+    const title = to.meta?.pageTitle || 'BMS Monitor';
+    document.title = title;
   });
 
   return Router;
