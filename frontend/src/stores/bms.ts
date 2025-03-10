@@ -1,5 +1,5 @@
-import { AxiosResponse } from 'axios';
 import { defineStore } from 'pinia';
+import { Notify } from 'quasar';
 import { api } from 'src/boot/axios';
 import { sortDevices } from 'src/helpers/utils';
 import { CellInfo, Device, DeviceInfo, SettingInfo } from 'src/models';
@@ -61,7 +61,7 @@ export const useBmsStore = defineStore('bms', () => {
       const data: SettingInfo[] = response.data;
       settingInfo.value = data;
     } catch (error) {
-      console.error('Error fetching device settings:', error);
+      console.error('Error fetching device settings: ', error);
     }
   }
 
@@ -71,7 +71,7 @@ export const useBmsStore = defineStore('bms', () => {
       const data = response.data;
       cellInfo.value = data;
     } catch (error) {
-      console.error('Error fetching cell info:', error);
+      console.error('Error fetching cell info: ', error);
     }
   }
 
@@ -85,19 +85,46 @@ export const useBmsStore = defineStore('bms', () => {
         deviceInfo.value = sortDevices(data);
       }
     } catch (error) {
-      console.error('Error fetching device info:', error);
+      console.error('Error fetching device info: ', error);
     }
   }
 
-  async function connectToDevice(address: string, name: string): Promise<AxiosResponse<any, any>> {
-    return await api.post('/api/connect-device', { address, name });
+  async function connectToDevice(address: string, name: string): Promise<void> {
+    try {
+      const res = await api.post('/api/connect-device', { address, name });
+      if (res?.data?.error) {
+        Notify.create({
+          message: res?.data?.error,
+          color: 'red',
+          icon: 'warning',
+          position: 'top',
+          timeout: 2000,
+        });
+      }
+    } catch (error) {
+      console.error('Error connecting to device: ', error);
+      Notify.create({
+        message: 'Error connecting to device.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
+    }
   }
 
-  async function disconnectDevice(address: string, name: string) {
+  async function disconnectDevice(address: string, name: string): Promise<void> {
     try {
       await api.post('/api/disconnect-device', { address, name });
     } catch (error: any) {
-      throw new Error('Error disconnect device info:', error);
+      console.error('Error disconnect device info: ', error);
+      Notify.create({
+        message: 'Error disconnecting device.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
     }
   }
 
@@ -108,7 +135,7 @@ export const useBmsStore = defineStore('bms', () => {
       updateDevices(data?.devices);
       return devices.value;
     } catch (error) {
-      console.error(error);
+      console.error('Error fetching devices: ', error);
     }
   }
 

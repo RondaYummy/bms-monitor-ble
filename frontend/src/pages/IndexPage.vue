@@ -296,9 +296,9 @@ import { useBmsStore } from 'src/stores/bms';
 const bmsStore = useBmsStore();
 
 const devicesList = computed<Record<string, CellInfo>>(bmsStore.getCellInfo);
-const installAppDialog = ref(false);
+const installAppDialog = ref<boolean>(false);
 const calculatedList = ref<any>();
-const tab = ref('All');
+const tab = ref<string>('All');
 
 let deferredPrompt: BeforeInstallPromptEvent;
 

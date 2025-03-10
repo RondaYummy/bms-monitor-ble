@@ -313,7 +313,7 @@
 </template>
 
 <script setup lang='ts'>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
 import { formatTimestamp, getAlertIcon, sortDevices, useSessionStorage } from '../helpers/utils';
 import type { Alert, Device, Config, SettingInfo } from '../models';
 import DevicesList from '../components/DevicesList.vue';
@@ -332,17 +332,18 @@ const bmsStore = useBmsStore();
 
 const token = useSessionStorage("access_token");
 
-const tab = ref('Alerts');
-const password = ref('');
-const isPwd = ref(true);
-const loadingDevices = ref(false);
-const attemptToConnectDevice = ref();
-const notFoundDevices = ref(false);
-const alertsModal = ref(false);
+const tab = ref<string>('Alerts');
+const password = ref<string>('');
+const isPwd = ref<boolean>(true);
+const loadingDevices = ref<boolean>(false);
+const attemptToConnectDevice = ref<string>('');
+const notFoundDevices = ref<boolean>(false);
+const alertsModal = ref<boolean>(false);
+const intervalId = ref<NodeJS.Timeout>();
 
 const pushSubscription = ref<PushSubscription | null>(null);
 const changePasswordModal = ref(false);
-const selectedLevel = ref();
+const selectedLevel = ref<string>();
 const alertsMain = ref<Alert[]>();
 const config = computed<Config>(configStore.getConfig);
 const alerts = computed<Alert[]>(alertsStore.getAlerts);
@@ -421,14 +422,17 @@ async function connectToDevice(address: string, name: string) {
 
 onMounted(async () => {
   pushSubscription.value = await checkPushSubscription();
-
   setTimeout(async () => {
     pushSubscription.value = await checkPushSubscription();
   }, 2000);
 
-  setInterval(async () => {
+  intervalId.value = setInterval(async () => {
     await Promise.allSettled([bmsStore.fetchSettings(), configStore.fetchConfigs()]);
   }, 10000);
+});
+
+onBeforeUnmount(() => {
+  clearInterval(intervalId.value);
 });
 
 Promise.allSettled([alertsStore.fetchErrorAlerts(), configStore.fetchConfigs(), bmsStore.fetchSettings()]);

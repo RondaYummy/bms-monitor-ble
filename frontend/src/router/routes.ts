@@ -5,16 +5,25 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
+    meta: {
+      pageTitle: 'BMS Monitor | Cell info',
+    },
   },
   {
     path: '/devices',
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/DevicesPage.vue') }],
+    meta: {
+      pageTitle: 'BMS Monitor | Devices',
+    },
   },
   {
     path: '/settings',
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/SettingsPage.vue') }],
+    meta: {
+      pageTitle: 'BMS Monitor | Settings',
+    },
   },
 
   // Always leave this as last one,
@@ -22,6 +31,9 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
+    meta: {
+      pageTitle: 'BMS Monitor | Error',
+    },
   },
 ];
 

@@ -63,58 +63,30 @@
 import { copy, formatDuration, parseManufacturingDate, useSessionStorage } from '../helpers/utils';
 import { ref, onBeforeUnmount, computed } from 'vue';
 import type { DeviceInfo } from '../models';
-import { useQuasar } from 'quasar';
 import { useBmsStore } from 'src/stores/bms';
 
-const $q = useQuasar();
 const bmsStore = useBmsStore();
 const token = useSessionStorage("access_token");
 
 const devicesList = computed<DeviceInfo[]>(bmsStore.getDeviceInfo);
-const attemptToConnectDevice = ref();
-const disconnectDeviceState = ref();
+const attemptToConnectDevice = ref<string>('');
+const disconnectDeviceState = ref<string>('');
 const props = defineProps(['disconnectBtn', 'connected']);
 
 async function connectToDevice(address: string, name: string) {
-  try {
-    attemptToConnectDevice.value = address;
-    const res = await bmsStore.connectToDevice(address, name);
-    if (res?.data?.error) {
-      $q.notify({
-        message: res?.data?.error,
-        color: 'red',
-        icon: 'warning',
-        position: 'top',
-        timeout: 2000,
-      });
-    }
-  } catch (error) {
-    console.error('Error connecting to device:', error);
-    $q.notify({
-      message: 'Error connecting to device.',
-      color: 'red',
-      icon: 'warning',
-      position: 'top',
-      timeout: 2000,
-    });
-  } finally {
-    setTimeout(() => {
-      attemptToConnectDevice.value = '';
-    }, 3000);
-  }
+  attemptToConnectDevice.value = address;
+  await bmsStore.connectToDevice(address, name);
+  setTimeout(() => {
+    attemptToConnectDevice.value = '';
+  }, 3000);
 }
 
 async function disconnectDevice(address: string, name: string) {
-  try {
-    disconnectDeviceState.value = address;
-    await bmsStore.disconnectDevice(address, name);
-  } catch (error) {
-    console.error('Error disconnect device info:', error);
-  } finally {
-    setTimeout(() => {
-      disconnectDeviceState.value = '';
-    }, 3000);
-  }
+  disconnectDeviceState.value = address;
+  await bmsStore.disconnectDevice(address, name);
+  setTimeout(() => {
+    disconnectDeviceState.value = '';
+  }, 3000);
 }
 
 bmsStore.fetchDeviceInfo(props.connected);
