@@ -4,12 +4,28 @@ import { Alert } from 'src/models';
 import { ref } from 'vue';
 
 export const useAlertsStore = defineStore('alerts', () => {
+  // ==============
+  //   STATE
+  // ==============
   const alerts = ref<Alert[]>([]);
 
+  // ==============
+  //   GETTERS
+  // ==============
+  function getAlerts(): Alert[] {
+    return alerts.value;
+  }
+
+  // ==============
+  //   MUTATIONS
+  // ==============
   function updateAlerts(newInfo: Alert[]) {
     alerts.value = newInfo;
   }
 
+  // ==============
+  //   ACTIONS
+  // ==============
   async function fetchErrorAlerts() {
     try {
       const response = await api.get('/api/error-alerts', {
@@ -38,9 +54,14 @@ export const useAlertsStore = defineStore('alerts', () => {
 
   return {
     // ==============
-    //   GETTERS
+    //   STATE
     // ==============
     alerts,
+
+    // ==============
+    //   GETTERS
+    // ==============
+    getAlerts,
 
     // ==============
     //   MUTATIONS

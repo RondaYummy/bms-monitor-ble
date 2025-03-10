@@ -11,22 +11,41 @@ export const useBmsStore = defineStore('bms', () => {
   // ==============
   const cellInfo = ref<Record<string, CellInfo>>({});
   const deviceInfo = ref<DeviceInfo[]>([]);
-  const settings = ref<SettingInfo[]>([]);
+  const settingInfo = ref<SettingInfo[]>([]);
   const devices = ref<Device[]>([]);
+
+  // ==============
+  //   GETTERS
+  // ==============
+  function getDevices(): Device[] {
+    return devices.value;
+  }
+
+  function getCellInfo(): Record<string, CellInfo> {
+    return cellInfo.value;
+  }
+
+  function getDeviceInfo(): DeviceInfo[] {
+    return deviceInfo.value;
+  }
+
+  function getSettingInfo(): SettingInfo[] {
+    return settingInfo.value;
+  }
 
   // ==============
   //   MUTATIONS
   // ==============
   function updateCellInfo(newInfo: Record<string, CellInfo>): void {
     cellInfo.value = newInfo;
-  }
+  };
 
   function updateDeviceInfo(newInfo: DeviceInfo[]): void {
     deviceInfo.value = newInfo;
   }
 
   function updateSettings(newSettings: SettingInfo[]): void {
-    settings.value = newSettings;
+    settingInfo.value = newSettings;
   }
 
   function updateDevices(newDevices: Device[]) {
@@ -40,7 +59,7 @@ export const useBmsStore = defineStore('bms', () => {
     try {
       const response = await api.get('/api/device-settings');
       const data: SettingInfo[] = response.data;
-      settings.value = data;
+      settingInfo.value = data;
     } catch (error) {
       console.error('Error fetching device settings:', error);
     }
@@ -95,12 +114,20 @@ export const useBmsStore = defineStore('bms', () => {
 
   return {
     // ==============
-    //   GETTERS
+    //   STATE
     // ==============
     devices,
     cellInfo,
     deviceInfo,
-    settings,
+    settingInfo,
+
+    // ==============
+    //   GETTERS
+    // ==============
+    getDevices,
+    getCellInfo,
+    getDeviceInfo,
+    getSettingInfo,
 
     // ==============
     //   MUTATIONS

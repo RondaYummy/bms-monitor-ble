@@ -100,7 +100,7 @@
             </div>
 
             <div class='column alerts-box'>
-              <q-banner v-for="alert of alerts"
+              <q-banner v-for="alert of alertsMain"
                         :key="alert?.id"
                         v-touch-swipe.mouse.right.left="() => token && alertsStore.deleteErrorAlert(alert?.id)"
                         inline-actions
@@ -313,7 +313,7 @@
 </template>
 
 <script setup lang='ts'>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { formatTimestamp, getAlertIcon, sortDevices, useSessionStorage } from '../helpers/utils';
 import type { Alert, Device, Config, SettingInfo } from '../models';
 import DevicesList from '../components/DevicesList.vue';
@@ -344,23 +344,27 @@ const pushSubscription = ref<PushSubscription | null>(null);
 const changePasswordModal = ref(false);
 const selectedLevel = ref();
 const alertsMain = ref<Alert[]>();
-const config = computed<Config>(() => configStore.config);
-const alerts = computed<Alert[]>(() => alertsStore.alerts);
-const settings = computed<SettingInfo[]>(() => bmsStore.settings);
-const devices = computed<Device[]>(() => bmsStore.devices);
+const config = computed<Config>(configStore.getConfig);
+const alerts = computed<Alert[]>(alertsStore.getAlerts);
+const settings = computed<SettingInfo[]>(bmsStore.getSettingInfo);
+const devices = computed<Device[]>(bmsStore.getDevices);
 const currentSetting = ref<SettingInfo>();
+
+watch(alerts, () => {
+  alertsMain.value = alerts.value;
+});
 
 function filterAlertsByLevel(level?: string): void {
   console.log('Selected level: ', level);
-  if (!alertsMain.value) {
+  if (!alerts.value) {
     return;
   }
   if (!level) {
-    alertsStore.updateAlerts(alertsMain.value);
+    alertsMain.value = alerts.value;
     return;
   }
   selectedLevel.value = level;
-  alertsStore.updateAlerts(alertsMain.value?.filter((a) => a.level === level));
+  alertsMain.value = alerts.value?.filter((a) => a.level === level);
 }
 
 async function cancelSubs() {

@@ -295,7 +295,7 @@ import { useBmsStore } from 'src/stores/bms';
 
 const bmsStore = useBmsStore();
 
-const devicesList = computed<Record<string, CellInfo>>(() => bmsStore.cellInfo);
+const devicesList = computed<Record<string, CellInfo>>(bmsStore.getCellInfo);
 const installAppDialog = ref(false);
 const calculatedList = ref<any>();
 const tab = ref('All');

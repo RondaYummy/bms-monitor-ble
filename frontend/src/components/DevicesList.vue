@@ -70,7 +70,7 @@ const $q = useQuasar();
 const bmsStore = useBmsStore();
 const token = useSessionStorage("access_token");
 
-const devicesList = computed<DeviceInfo[]>(() => bmsStore.deviceInfo);
+const devicesList = computed<DeviceInfo[]>(bmsStore.getDeviceInfo);
 const attemptToConnectDevice = ref();
 const disconnectDeviceState = ref();
 const props = defineProps(['disconnectBtn', 'connected']);

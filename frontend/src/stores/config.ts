@@ -15,6 +15,13 @@ export const useConfigStore = defineStore('config', () => {
   });
 
   // ==============
+  //   GETTERS
+  // ==============
+  function getConfig(): Config {
+    return config.value;
+  }
+
+  // ==============
   //   MUTATIONS
   // ==============
   function updateConfig(newInfo: Config) {
@@ -45,9 +52,14 @@ export const useConfigStore = defineStore('config', () => {
 
   return {
     // ==============
-    //   GETTERS
+    //   STATE
     // ==============
     config,
+
+    // ==============
+    //   GETTERS
+    // ==============
+    getConfig,
 
     // ==============
     //   MUTATIONS
