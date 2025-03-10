@@ -62,6 +62,7 @@ function check_deploy() {
 
     if [ $changed = 1 ]; then
         deploy
+        pm2 reset "⚙️ DEPLOY: [BLE] BMS Monitor!"
     else
         dt=$(date +%d.%m.%Y\ %H:%M:%S)
         echo "[$dt] Branch is up to date"
