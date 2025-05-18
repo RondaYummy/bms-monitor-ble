@@ -58,6 +58,7 @@ chmod +x deploy.sh
 npm install pm2 -g
 pm2 start ecosystem.config.js
 ```
+
 ### Clear Database
 ```bash
 docker ps
