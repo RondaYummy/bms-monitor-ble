@@ -4,9 +4,17 @@ from datetime import datetime
 from pysolarmanv5 import PySolarmanV5, V5FrameError
 from python.data_store import data_store
 
-# Параметри
+# This is the local IP address of the WiFi stick connected to the Deye (or Solarman) inverter.
+# This stick works as a TCP server that listens to port 8899 and transmits data via the Modbus protocol.
 INVERTER_IP = "192.168.31.39"
+
+# This is the serial number of the Wi-Fi stick itself (data logger), not the inverter.
+# It is unique for each stick and is usually indicated
+# in the local web interface of the Wi-Fi stick (e.g. http://192.168.31.39) or on the sticker of the stick
 LOGGER_SN = 2993578387
+
+# This is the Modbus Slave ID, i.e. the internal identifier of the device in the Modbus network.
+# For Deye inverters via WiFi stick, it is always 1 (unless you connect directly via RS485 with a different ID).
 SLAVE_ID = 1
 
 def to_signed(val):
@@ -48,9 +56,9 @@ async def read_deye():
         })
 
     except V5FrameError as err:
-        print(f"❌ Modbus помилка: {err}")
+        print(f"❌ Modbus error: {err}")
     except Exception as err:
-        print(f"❌ Інша помилка: {err}")
+        print(f"❌ Another error: {err}")
     finally:
         modbus.disconnect()
 

@@ -140,13 +140,6 @@ async def get_configs():
         deye_data = await data_store.get_deye_data()
         if not deye_data:
             return JSONResponse(content={"message": "No Deye data available yet."}, status_code=404)
-        log("DEYE", f"🔆 PV1 Power: {deye_data['pv1_power']} %", force=False)
-        log("DEYE", f"🔆 PV2 Power: {deye_data['pv2_power']} W", force=False)
-        log("DEYE", f"🔅 Total PV:  {deye_data['total_pv']} W", force=False)
-        log("DEYE", f"🏠 Load:      {deye_data['load_power']} W", force=False)
-        log("DEYE", f"🔋 Battery:   {deye_data['battery_power']:+} W | {deye_data['battery_voltage']:.2f} V | SoC: {deye_data['battery_soc']}%", force=False)
-        log("DEYE", f"🌐 Grid:      {deye_data['grid_power']:+} W (+'імпорт', -'експорт')", force=False)
-        log("DEYE", f"⚖️ Balance:   {deye_data['net_balance']:+} W (енергорівновага системи)", force=False)
         return deye_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting alert: {str(e)}")

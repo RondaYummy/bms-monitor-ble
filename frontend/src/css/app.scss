@@ -167,6 +167,12 @@ sup {
   left: 0px;
 }
 
+.indicate-info {
+  top: 10px;
+  right: 0px;
+  cursor: pointer;
+}
+
 .indicate::before {
   content: '';
   width: 12px;

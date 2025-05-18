@@ -1,11 +1,38 @@
 # BMS Monitor [BLE]
-## Battery Management System JK-BMS control via Bluetooth low energy
+## 🔋 Monitoring System for JK-BMS and Deye Inverter
+
+This application provides full real-time monitoring of your energy system.  
+It connects to:
+
+- **JK-BMS** via Bluetooth low energy (using the `bleak` library)
+- **Deye Inverter** via WiFi stick (using `pysolarmanv5`)
+
+### 🧠 Key Features:
+- Battery voltage, current, power, SOC, SOH
+- Cell temperatures, internal resistance, cycle count, balancing
+- Solar generation, home consumption, grid import/export
+
+### ⚠️ WEB PUSH Notifications
+Critical events (e.g. overheating, cell imbalance, low charge) are sent as push notifications to the PWA frontend.
+
+### 📱 Progressive Web App (PWA)
+The frontend is a PWA that works offline, supports mobile devices, and receives browser push notifications.
+
+### 🚀 Why it's better:
+- **No limitations of native apps** (e.g. Bluetooth only from a phone)
+- **All data in one place** — accessible from any device
+- **Runs autonomously on Raspberry Pi 5**, with no cloud dependency, 24/7
+
+> Full control over your energy system — stable, local, and convenient.
+
 
 <p align="center">
   <img src="devices.png" style="height: 500px; object-fit: contain;">
   <img src="summary.png" style="height: 500px; object-fit: contain;">
   <img src="settings.png" style="height: 500px; object-fit: contain;">
 </p>
+
+
 
 ## Supported devices
 #### All JK-BMS models with software version >=6.0 are using the implemented protocol and should be supported.

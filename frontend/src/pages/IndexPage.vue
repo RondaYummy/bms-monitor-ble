@@ -53,6 +53,52 @@
           red: deyeData?.load_power > deyeData?.total_pv,
           orange: deyeData?.load_power <= deyeData?.total_pv,
         }"></div>
+
+        <div class="indicate indicate-info">
+          <q-icon @click="showInfo = true" name="info" size="24px" color="white" />
+        </div>
+
+        <q-dialog v-model="showInfo">
+          <q-card dark>
+            <q-card-section>
+              <div class="tooltip-content">
+                <strong>🔋 Система моніторингу JK-BMS та інвертора Deye</strong>
+                <p>
+                  Додаток дозволяє моніторити усю енергосистему в реальному часі. Він підключається до:
+                <ul>
+                  <li><strong>JK-BMS</strong> — через Bluetooth (<code>bleak</code>)</li>
+                  <li><strong>Deye</strong> — через WiFi-стік (<code>pysolarmanv5</code>)</li>
+                </ul>
+                </p>
+                <p>
+                  <strong>Зчитуються ключові параметри:</strong><br>
+                  Напруга, струм, SOC, SOH, температури, потужність, баланс комірок, генерація з панелей, споживання
+                  будинку.
+                </p>
+                <p>
+                  ⚠️ <strong>Критичні події</strong> (наприклад, перегрів, дисбаланс, низький заряд) надсилаються як
+                  <strong>Web Push-сповіщення</strong> у PWA-додаток.
+                </p>
+                <p>
+                  📱 Фронтенд — <strong>PWA-додаток</strong>, який працює офлайн, підтримує мобільні пристрої та
+                  браузерні повідомлення.
+                </p>
+                <p>
+                  🚀 Працює автономно на <strong>Raspberry Pi 5</strong>, без хмарних залежностей.
+                </p>
+                <p>
+                  <em>Набагато зручніше, ніж офіційні додатки: усі дані — в одному місці, з будь-якого пристрою.</em>
+                </p>
+              </div>
+
+            </q-card-section>
+
+            <q-card-actions align="right">
+              <q-btn flat label="OK" color="primary" v-close-popup />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
+
         <div class="row justify-between">
           <h3>
             {{ calculatedList?.battery_voltage?.toFixed(2) }}
@@ -307,6 +353,7 @@ const deyeData = computed<DeyeRealtimeData>(deyeStore.getDeyeData)
 
 const installAppDialog = ref<boolean>(false)
 const calculatedList = ref<any>()
+const showInfo = ref(false);
 const tab = ref<string>('All')
 
 let deferredPrompt: BeforeInstallPromptEvent
