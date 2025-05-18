@@ -12,6 +12,9 @@
 * JK_BD6A20S6P, hw 17U, sw 17.02
 * JK_BD6A17S6P, hw 11.XA, sw 11.48
 
+#### All Deye models from this list are supported.
+* SUN-6K-SG01/03/LP1-EU/AU
+
 ## First steeps:
 ### Clone project:
 ```bash
@@ -91,3 +94,5 @@ Inspired by this need, I decided to create my own project using Python and devel
 - https://github.com/sshoecraft/jktool
 - https://github.com/Louisvdw/dbus-serialbattery/blob/master/etc/dbus-serialbattery/jkbms.py
 - https://blog.ja-ke.tech/2020/02/07/ltt-power-bms-chinese-protocol.html
+- https://dy-support.org/community/postid/19450
+- https://github.com/kellerza/sunsynk/issues/59

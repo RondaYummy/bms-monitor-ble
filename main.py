@@ -27,6 +27,7 @@ from python.push_notifications import send_push_startup
 from python.pwd import verify_password, hash_password
 from python.push_notifications import router as alerts_router
 from python.data_store import data_store
+from python.read_deye import run_deye_loop
 
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
@@ -59,6 +60,7 @@ app.add_middleware(
 async def startup_event():
     asyncio.create_task(ble_main())
     asyncio.create_task(db.process_devices())
+    asyncio.create_task(run_deye_loop())
 
     config = db.get_config()
     await send_push_startup(config)
@@ -111,6 +113,7 @@ class ConfigUpdateRequest(BaseModel):
     password: Optional[str] = None
     VAPID_PUBLIC_KEY: Optional[str] = None
     n_hours: Optional[int] = None
+
 @app.get("/api/configs")
 async def get_configs():
     config = db.get_config()
@@ -130,6 +133,23 @@ async def update_configs(request: ConfigUpdateRequest):
     if not updated_config:
         raise HTTPException(status_code=500, detail="Error updating config.")
     return {"message": "Configuration updated successfully", "config": updated_config}
+
+@app.get("/api/deye-info")
+async def get_configs():
+    try:
+        deye_data = await data_store.get_deye_data()
+        if not deye_data:
+            return JSONResponse(content={"message": "No Deye data available yet."}, status_code=404)
+        log("DEYE", f"🔆 PV1 Power: {deye_data['battery_soc']} %", force=False)
+        log("DEYE", f"🔆 PV2 Power: {deye_data['pv2_power']} W", force=False)
+        log("DEYE", f"🔅 Total PV:  {deye_data['total_pv']} W", force=False)
+        log("DEYE", f"🏠 Load:      {deye_data['load_power']} W", force=False)
+        log("DEYE", f"🔋 Battery:   {deye_data['battery_power']:+} W | {deye_data['battery_voltage']:.2f} V | SoC: {deye_data['battery_soc']}%", force=False)
+        log("DEYE", f"🌐 Grid:      {deye_data['grid_power']:+} W (+'імпорт', -'експорт')", force=False)
+        log("DEYE", f"⚖️ Balance:   {deye_data['net_balance']:+} W (енергорівновага системи)", force=False)
+        return deye_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting alert: {str(e)}")
 
 @app.get("/api/device-settings")
 async def get_device_settings():

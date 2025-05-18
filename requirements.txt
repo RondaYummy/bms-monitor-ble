@@ -7,3 +7,4 @@ async_timeout
 pywebpush
 cryptography
 argon2-cffi
+pysolarmanv5

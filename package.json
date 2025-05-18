@@ -1,7 +1,7 @@
 {
   "name": "bms-monitor-ble",
   "version": "4.4.0",
-  "description": "Simple application for controlling JK-BMS via Bluetooth low energy",
+  "description": "Simple application for controlling JK-BMS via Bluetooth low energy and Deye Inverter Monitor",
   "main": "ecosystem.config.js",
   "directories": {
     "doc": "docs"

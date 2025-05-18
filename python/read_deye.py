@@ -1,0 +1,60 @@
+import asyncio
+import time
+from datetime import datetime
+from pysolarmanv5 import PySolarmanV5, V5FrameError
+from python.data_store import data_store
+
+# Параметри
+INVERTER_IP = "192.168.31.39"
+LOGGER_SN = 2993578387
+SLAVE_ID = 1
+
+def to_signed(val):
+    return val - 0x10000 if val >= 0x8000 else val
+
+async def read_deye():
+    modbus = PySolarmanV5(INVERTER_IP, LOGGER_SN, port=8899, mb_slave_id=SLAVE_ID)
+
+    try:
+        pv1_power = modbus.read_holding_registers(186, 1)[0]
+        pv2_power = modbus.read_holding_registers(187, 1)[0]
+        total_pv = pv1_power + pv2_power
+        time.sleep(0.1)
+
+        load_power = to_signed(modbus.read_holding_registers(178, 1)[0])
+        time.sleep(0.1)
+
+        bat_power = to_signed(modbus.read_holding_registers(190, 1)[0])
+        bat_voltage = modbus.read_holding_registers(183, 1)[0] * 0.01
+        bat_soc = modbus.read_holding_registers(184, 1)[0]
+        time.sleep(0.1)
+
+        grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
+        time.sleep(0.1)
+
+        net_balance = total_pv + grid_power - load_power - bat_power
+        print(f"pv1_power: {pv1_power}")
+        await data_store.update_deye_data({
+            "timestamp": datetime.utcnow().isoformat(),
+            "pv1_power": pv1_power,
+            "pv2_power": pv2_power,
+            "total_pv": total_pv,
+            "load_power": load_power,
+            "grid_power": grid_power,
+            "battery_power": bat_power,
+            "battery_voltage": bat_voltage,
+            "battery_soc": bat_soc,
+            "net_balance": net_balance
+        })
+
+    except V5FrameError as err:
+        print(f"❌ Modbus помилка: {err}")
+    except Exception as err:
+        print(f"❌ Інша помилка: {err}")
+    finally:
+        modbus.disconnect()
+
+async def run_deye_loop():
+    while True:
+        await read_deye()
+        await asyncio.sleep(5)
