@@ -39,7 +39,7 @@ export const useDeyeStore = defineStore('deye', () => {
   // ==============
   async function fetchDeyeData(): Promise<DeyeRealtimeData | undefined> {
     try {
-      const response = await api.get('/api/devices')
+      const response = await api.get('/api/deye-info')
       const data = await response.data
       console.log(data, 'data');
       updateDeyeData(data)
