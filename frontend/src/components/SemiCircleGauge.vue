@@ -2,7 +2,7 @@
   <div class="gauge-wrapper">
     <apexchart type="radialBar" height="250" :options="chartOptions" :series="[percentage]" />
     <div class="center-content">
-      <img :src="image" alt="inverter" class="inverter-image" />
+      <img :src="image" alt="inverter" draggable="false" class="inverter-image" />
       <div class="value-text2" v-if="additionalValue">
         {{ additionalValue }}
       </div>
@@ -36,7 +36,7 @@ import { computed } from 'vue'
 const props = defineProps<{ value: number; image: string; tooltip?: string; additionalValue?: string; max?: number }>()
 const max = props.max ?? 7000
 
-const kilowatts = computed(() => (props.value / 1000).toFixed(1))
+const kilowatts = computed(() => props.value > 0 ? (props.value / 1000).toFixed(2) : 0)
 const percentage = computed(() => (props.value / max * 100))
 
 const getColor = (val: number) => {
@@ -138,24 +138,20 @@ const chartOptions = computed(() => ({
 .labels {
   position: absolute;
   width: 100%;
-  top: 79%;
+  top: 64%;
   display: flex;
   justify-content: space-between;
-  padding: 0 16%;
+  padding: 0 17%;
   font-size: 12px;
-  color: #666;
+
+  span {
+    color: black;
+    font-weight: 700;
+  }
 
   @media screen and (max-width: 368px) {
     top: 68%;
     padding: 0 15%;
-  }
-
-  .left-label {
-    color: #B6FF00;
-  }
-
-  .right-label {
-    color: #FF0004;
   }
 }
 </style>

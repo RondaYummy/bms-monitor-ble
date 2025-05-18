@@ -1,5 +1,6 @@
 <template>
-  <q-page class="column items-center justify-evenly q-pt-lg q-pr-lg q-pl-lg" v-if="!calculatedList && !deyeData && !devicesList?.length">
+  <q-page class="column items-center justify-evenly q-pt-lg q-pr-lg q-pl-lg"
+    v-if="!calculatedList && !deyeData && !devicesList?.length">
     <LoaderComponent />
   </q-page>
   <q-page v-else class="column items-center justify-evenly q-pa-lg">
@@ -13,7 +14,7 @@
         <div class="column">
           <div>
             <SemiCircleGauge :value="deyeData?.total_pv || 0" :image="'/inverter/solar_panel_yellow_200x200.png'"
-              :tooltip="'Потужність, яку генерують сонячні панелі ( разом ).'" />
+              :tooltip="`Потужність, яку генерують сонячні панелі ( разом ).\n1 MPPT вхід (PV): ${deyeData?.pv1_power}\n2 MPPT вхід (PV): ${deyeData?.pv2_power}`" />
           </div>
 
           <div>
@@ -45,12 +46,12 @@
       </h6>
       <div class="column gap-10 full-width q-mt-sm">
         <div class="indicate indicate-charge" :class="{
-          green: calculatedList?.charging_status === 1,
-          orange: calculatedList?.charging_status !== 1,
+          green: deyeData?.total_pv > deyeData?.load_power,
+          orange: deyeData?.total_pv <= deyeData?.load_power,
         }"></div>
         <div class="indicate indicate-discharge" :class="{
-          red: calculatedList?.discharging_status === 1,
-          orange: calculatedList?.discharging_status !== 1,
+          red: deyeData?.load_power > deyeData?.total_pv,
+          orange: deyeData?.load_power <= deyeData?.total_pv,
         }"></div>
         <div class="row justify-between">
           <h3>
@@ -242,7 +243,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -260,7 +261,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
