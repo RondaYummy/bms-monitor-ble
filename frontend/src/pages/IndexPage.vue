@@ -3,21 +3,47 @@
     <LoaderComponent />
   </q-page>
   <q-page v-else class="column items-center justify-evenly q-pa-lg">
-    <div>
-      <p class="row justify-between">
-        <span>🔅 Total PV: {{ deyeData?.total_pv }} W</span>
-        <span>🏠 Load: {{ deyeData?.load_power }} W</span>
-      </p>
+    <template v-if="deyeData">
+      <h6>Deye
+        <q-tooltip>
+          Блок даних з інвертора
+        </q-tooltip>
+      </h6>
+      <div class="row justify-between full-width">
+        <div class="column">
+          {{ deyeData?.total_pv }}
+          <div>
+            <SemiCircleGauge :value="deyeData?.total_pv || 0" :image="'/inverter/solar_panel_yellow_200x200.png'"
+              :tooltip="'Потужність, яку генерують сонячні панелі ( разом ).'" />
+          </div>
 
-      <span class="row justify-center">🌐 Grid: {{ deyeData?.grid_power }} W (+'імпорт', -'експорт')</span>
-      <span class="row justify-center">⚖️ Balance: {{ deyeData?.net_balance }} W (енергорівновага системи)</span>
-      <span class="row justify-center">🔋 Battery: {{ deyeData?.battery_power }} W | {{ deyeData?.battery_voltage }} V |
-        SoC: {{ deyeData?.battery_soc }} %
-      </span>
+          <div>
+            <SemiCircleGauge :value="deyeData?.battery_power || 0" :image="'/inverter/battery_yellow_200x200.png'"
+              :tooltip="'Потужність заряду/розряду акумулятора'" :additional-value="`${deyeData?.battery_soc || 0}%`" />
+          </div>
+        </div>
 
-    </div>
+        <div class="column">
+          <div>
+            <SemiCircleGauge :value="deyeData?.grid_power || 0"
+              :image="'/inverter/transmission_tower_yellow_200x200.png'"
+              :tooltip="'Потужність, яка надходить з/до мережі'" />
+          </div>
+
+          <div>
+            <SemiCircleGauge :value="deyeData?.load_power || 0" :image="'/inverter/house_yellow_200x200.png'"
+              :tooltip="'Cпоживання електроенергії твоїм будинком або підключеними пристроями.'" />
+          </div>
+        </div>
+      </div>
+    </template>
 
     <template v-if="devicesList">
+      <h6>JK-BMS
+        <q-tooltip>
+          Блок даних з BMS
+        </q-tooltip>
+      </h6>
       <div class="column gap-10 full-width q-mt-sm">
         <div class="indicate indicate-charge" :class="{
           green: calculatedList?.charging_status === 1,
@@ -217,7 +243,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -235,7 +261,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -271,6 +297,7 @@ import { ref, watch, onBeforeUnmount, computed } from 'vue'
 import type { BeforeInstallPromptEvent, CellInfo, DeyeRealtimeData } from '../models'
 import { useBmsStore } from 'src/stores/bms'
 import { useDeyeStore } from 'src/stores/deye'
+import SemiCircleGauge from 'src/components/SemiCircleGauge.vue'
 
 const bmsStore = useBmsStore()
 const deyeStore = useDeyeStore()
