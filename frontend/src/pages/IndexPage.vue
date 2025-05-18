@@ -12,28 +12,19 @@
       </h6>
       <div class="row justify-between full-width">
         <div class="column">
-          <div>
-            <SemiCircleGauge :value="deyeData?.total_pv || 0" :image="'/inverter/solar_panel_yellow_200x200.png'"
-              :tooltip="`Потужність, яку генерують сонячні панелі ( разом ).\n1 MPPT вхід (PV): ${deyeData?.pv1_power}\n2 MPPT вхід (PV): ${deyeData?.pv2_power}`" />
-          </div>
+          <SemiCircleGauge :value="deyeData?.total_pv || 0" :image="'/inverter/solar_panel_yellow_200x200.png'"
+            :tooltip="`Потужність, яку генерують сонячні панелі ( разом ).\n1 MPPT вхід (PV): ${deyeData?.pv1_power}\n2 MPPT вхід (PV): ${deyeData?.pv2_power}`" />
 
-          <div>
-            <SemiCircleGauge :value="deyeData?.battery_power || 0" :image="'/inverter/battery_yellow_200x200.png'"
-              :tooltip="'Потужність заряду/розряду акумулятора'" :additional-value="`${deyeData?.battery_soc || 0}%`" />
-          </div>
+          <SemiCircleGauge :value="deyeData?.battery_power || 0" :image="'/inverter/battery_yellow_200x200.png'"
+            :tooltip="'Потужність заряду/розряду акумулятора'" :additional-value="`${deyeData?.battery_soc || 0}%`" />
         </div>
 
         <div class="column">
-          <div>
-            <SemiCircleGauge :value="deyeData?.grid_power || 0"
-              :image="'/inverter/transmission_tower_yellow_200x200.png'"
-              :tooltip="'Потужність, яка надходить з/до мережі'" />
-          </div>
+          <SemiCircleGauge :value="deyeData?.grid_power || 0" :image="'/inverter/transmission_tower_yellow_200x200.png'"
+            :tooltip="'Потужність, яка надходить з/до мережі'" />
 
-          <div>
-            <SemiCircleGauge :value="deyeData?.load_power || 0" :image="'/inverter/house_yellow_200x200.png'"
-              :tooltip="'Cпоживання електроенергії твоїм будинком або підключеними пристроями.'" />
-          </div>
+          <SemiCircleGauge :value="deyeData?.load_power || 0" :image="'/inverter/house_yellow_200x200.png'"
+            :tooltip="'Cпоживання електроенергії твоїм будинком або підключеними пристроями.'" />
         </div>
       </div>
     </template>
@@ -288,7 +279,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -306,7 +297,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
