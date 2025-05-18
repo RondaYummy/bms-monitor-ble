@@ -1,5 +1,5 @@
 <template>
-  <q-page class="column items-center justify-evenly q-pt-lg q-pr-lg q-pl-lg" v-if="!calculatedList">
+  <q-page class="column items-center justify-evenly q-pt-lg q-pr-lg q-pl-lg" v-if="!calculatedList && !deyeData && !devicesList?.length">
     <LoaderComponent />
   </q-page>
   <q-page v-else class="column items-center justify-evenly q-pa-lg">
@@ -11,7 +11,6 @@
       </h6>
       <div class="row justify-between full-width">
         <div class="column">
-          {{ deyeData?.total_pv }}
           <div>
             <SemiCircleGauge :value="deyeData?.total_pv || 0" :image="'/inverter/solar_panel_yellow_200x200.png'"
               :tooltip="'Потужність, яку генерують сонячні панелі ( разом ).'" />

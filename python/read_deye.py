@@ -33,7 +33,7 @@ async def read_deye():
         time.sleep(0.1)
 
         net_balance = total_pv + grid_power - load_power - bat_power
-        print(f"pv1_power: {pv1_power}")
+
         await data_store.update_deye_data({
             "timestamp": datetime.utcnow().isoformat(),
             "pv1_power": pv1_power,

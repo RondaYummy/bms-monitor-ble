@@ -14,8 +14,18 @@
       </q-tooltip>
     </div>
     <div class="labels">
-      <span class="left-label">0</span>
-      <span class="right-label">7</span>
+      <span class="left-label">
+        0
+        <q-tooltip>
+          Мінімальне значення
+        </q-tooltip>
+      </span>
+      <span class="right-label">
+        7
+        <q-tooltip>
+          Максимальне значення
+        </q-tooltip>
+      </span>
     </div>
   </div>
 </template>
@@ -23,11 +33,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const { value, tooltip, additionalValue } = defineProps<{ value: number; image: string; tooltip?: string; additionalValue?: string }>()
-const max = 7000
+const props = defineProps<{ value: number; image: string; tooltip?: string; additionalValue?: string; max?: number }>()
+const max = props.max ?? 7000
 
-const kilowatts = computed(() => (value / 1000).toFixed(1))
-const percentage = computed(() => (value / max) * 100)
+const kilowatts = computed(() => (props.value / 1000).toFixed(1))
+const percentage = computed(() => (props.value / max * 100))
 
 const getColor = (val: number) => {
   if (val < 85) return '#B6FF00'       // до 85% — зелений
@@ -115,11 +125,19 @@ const chartOptions = computed(() => ({
 .labels {
   position: absolute;
   width: 100%;
-  top: 78%;
+  top: 79%;
   display: flex;
   justify-content: space-between;
   padding: 0 30px;
-  font-size: 14px;
+  font-size: 12px;
   color: #666;
+
+  .left-label {
+    color: #B6FF00;
+  }
+
+  .right-label {
+    color: #FF0004;
+  }
 }
 </style>
