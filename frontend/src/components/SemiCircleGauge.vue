@@ -149,9 +149,20 @@ const chartOptions = computed(() => ({
     font-weight: 700;
   }
 
+  @media screen and (max-width: 500px) {
+    top: 58%;
+    padding: 0 16%;
+  }
+
+  @media screen and (max-width: 448px) {
+    top: 51%;
+    padding: 0 16%;
+  }
+
   @media screen and (max-width: 368px) {
-    top: 68%;
+    top: 44%;
     padding: 0 15%;
+    font-size: 10px;
   }
 }
 </style>
