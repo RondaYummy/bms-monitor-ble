@@ -89,9 +89,22 @@ const chartOptions = computed(() => ({
 .gauge-wrapper {
   position: relative;
   width: 100%;
-  max-width: 200px;
+  max-width: 225px;
   margin: 0 auto;
   margin-bottom: 10px;
+
+  @media screen and (max-width: 500px) {
+    max-width: 200px;
+  }
+
+  @media screen and (max-width: 448px) {
+    max-width: 160px;
+  }
+
+  @media screen and (max-width: 368px) {
+    max-width: 130px;
+    margin-bottom: 20px;
+  }
 }
 
 .center-content {
@@ -128,9 +141,14 @@ const chartOptions = computed(() => ({
   top: 79%;
   display: flex;
   justify-content: space-between;
-  padding: 0 30px;
+  padding: 0 16%;
   font-size: 12px;
   color: #666;
+
+  @media screen and (max-width: 368px) {
+    top: 68%;
+    padding: 0 15%;
+  }
 
   .left-label {
     color: #B6FF00;
