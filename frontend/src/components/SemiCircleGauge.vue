@@ -37,7 +37,7 @@ const props = defineProps<{ value: number; image: string; tooltip?: string; addi
 const max = props.max ?? 7000
 
 const kilowatts = computed(() => props.value > 0 ? (props.value / 1000).toFixed(2) : 0)
-const percentage = computed(() => (props.value / max * 100))
+const percentage = computed(() => (Math.abs(props.value) / max * 100))
 
 const getColor = (val: number) => {
   if (val < 85) return '#B6FF00'       // до 85% — зелений
