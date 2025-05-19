@@ -164,18 +164,15 @@ sup {
   top: 10px;
   left: 24px;
 }
-
 .indicate-grid {
   top: -20px;
   left: 15px;
 }
-
 .indicate-info {
   top: 10px;
   right: 24px;
   cursor: pointer;
 }
-
 .indicate::before {
   content: '';
   width: 12px;
@@ -186,12 +183,14 @@ sup {
   left: 0px;
   animation: pulse 1.5s infinite;
 }
-
+.white::before {
+  background-color: white;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.507);
+}
 .green::before {
   background-color: #0f0;
   box-shadow: 0 0 5px rgba(0, 128, 0, 0.5);
 }
-
 .red::before {
   top: 30px;
   left: 30px;
