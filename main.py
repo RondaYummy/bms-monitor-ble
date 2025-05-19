@@ -28,7 +28,6 @@ from python.pwd import verify_password, hash_password
 from python.push_notifications import router as alerts_router
 from python.data_store import data_store
 from python.read_deye import run_deye_loop
-from python.tapo.tapo_service import tapo_sync
 from concurrent.futures import ThreadPoolExecutor
 from python.tapo.tapo_routes import router as tapo_router
 from python.tapo.tapo_service import check_all_tapo_devices
@@ -66,7 +65,6 @@ executor = ThreadPoolExecutor()
 @app.on_event("startup")
 async def startup_event():
     loop = asyncio.get_running_loop()
-    loop.run_in_executor(executor, tapo_sync)
     asyncio.create_task(ble_main())
     asyncio.create_task(db.process_devices())
     asyncio.create_task(run_deye_loop())
