@@ -42,7 +42,7 @@
 import { useSessionStorage } from 'src/helpers/utils';
 import type { Config } from 'src/models';
 import { useConfigStore } from 'src/stores/config';
-import { defineProps, defineEmits, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 
 const token = useSessionStorage("access_token");
 const configStore = useConfigStore();

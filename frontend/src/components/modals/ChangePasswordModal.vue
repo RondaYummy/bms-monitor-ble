@@ -39,7 +39,7 @@
 
 <script setup lang="ts">
 import { useSessionStorage } from 'src/helpers/utils';
-import { defineProps, defineEmits, ref, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 
 const $q = useQuasar();

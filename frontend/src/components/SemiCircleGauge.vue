@@ -6,7 +6,7 @@
       <div class="value-text2" v-if="additionalValue">
         {{ additionalValue }}
       </div>
-      <div class="value-text">
+      <div class="value-text" :class="{ green: Number(kilowatts) > 0, unique: Number(kilowatts) < 0 }">
         {{ kilowatts }} kW
       </div>
       <q-tooltip v-if="tooltip">
@@ -124,7 +124,7 @@ const chartOptions = computed(() => ({
 
 .value-text {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   color: white;
   margin-top: -7px;
 }
@@ -133,6 +133,10 @@ const chartOptions = computed(() => ({
   font-size: 16px;
   font-weight: 600;
   margin-top: -24px;
+}
+
+.green {
+  color: #B6FF00;
 }
 
 .labels {
