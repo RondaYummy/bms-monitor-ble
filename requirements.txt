@@ -8,3 +8,4 @@ pywebpush
 cryptography
 argon2-cffi
 pysolarmanv5
+git+https://github.com/almottier/TapoP100.git@main

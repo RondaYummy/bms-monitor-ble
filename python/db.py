@@ -228,6 +228,21 @@ def create_table():
                 user_data TEXT
             )
             ''')
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS tapo_devices (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ip TEXT NOT NULL UNIQUE,
+                email TEXT NOT NULL,
+                password TEXT NOT NULL,
+                device_on BOOLEAN DEFAULT FALSE,
+                device_id TEXT,
+                name TEXT,
+                model TEXT,
+                fw_ver TEXT,
+                hw_ver TEXT,
+                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            ''')
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
@@ -670,4 +685,82 @@ def update_config(password=None, vapid_public=None, vapid_private=None, n_hours=
             return updated_config
     except sqlite3.Error as e:
         print(f"Error updating config: {e}")
+        return None
+
+def get_tapo_device_by_ip(ip):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM tapo_devices WHERE ip = ?", (ip,))
+        row = cursor.fetchone()
+        if row:
+            columns = [desc[0] for desc in cursor.description]
+            return dict(zip(columns, row))
+        return None
+
+def insert_tapo_device(ip, email, password):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT id FROM tapo_devices WHERE ip = ?", (ip,))
+            existing = cursor.fetchone()
+            if existing:
+                return get_tapo_device_by_ip(ip)
+
+            cursor.execute('''
+                INSERT INTO tapo_devices (
+                    ip, email, password, added_at, device_on
+                ) VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?)
+            ''', (ip, email, password, False))
+
+            conn.commit()
+            return get_tapo_device_by_ip(ip)
+
+    except sqlite3.Error as e:
+        print(f"❌ Error inserting the Tapo device: {e}")
+        raise
+
+def update_tapo_device_by_ip(ip, info: dict):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute('''
+                UPDATE tapo_devices
+                SET name = ?, model = ?, fw_ver = ?, hw_ver = ?, device_id = ?, device_on = ?
+                WHERE ip = ?
+            ''', (
+                info.get("nickname"),
+                info.get("model"),
+                info.get("fw_ver"),
+                info.get("hw_ver"),
+                info.get("device_id"),
+                info.get("device_on", False),
+                ip
+            ))
+
+            conn.commit()
+
+            return get_tapo_device_by_ip(ip)
+
+    except sqlite3.Error as e:
+        print(f"❌ Error updating the Tapo device: {e}")
+        raise
+
+def get_all_tapo_devices():
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM tapo_devices")
+        rows = cursor.fetchall()
+        columns = [desc[0] for desc in cursor.description]
+        return [dict(zip(columns, row)) for row in rows]
+
+def get_tapo_device_by_ip(ip):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM tapo_devices WHERE ip = ?", (ip,))
+        row = cursor.fetchone()
+        if row:
+            columns = [desc[0] for desc in cursor.description]
+            return dict(zip(columns, row))
         return None
