@@ -36,7 +36,7 @@ import { computed } from 'vue'
 const props = defineProps<{ value: number; image: string; tooltip?: string; additionalValue?: string; max?: number }>()
 const max = props.max ?? 7000
 
-const kilowatts = computed(() => (Math.abs(props.value) / 1000).toFixed(2) || 0)
+const kilowatts = computed(() => (props.value / 1000).toFixed(2) || 0)
 const percentage = computed(() => (Math.abs(props.value) / max * 100))
 
 const getColor = (val: number) => {
