@@ -41,19 +41,11 @@
           green: deyeData?.total_pv > deyeData?.load_power,
           white: deyeData?.total_pv === deyeData?.load_power,
           red: deyeData?.load_power > deyeData?.total_pv,
-        }">
-          <q-tooltip>
-            Індикатор зарядки/розрядки відносно споживання.
-          </q-tooltip>
-        </div>
+        }"></div>
         <div class="indicate indicate-grid" :class="{
           orange: deyeData?.grid_power > 0,
-          white: deyeData?.grid_power === 0,
-        }">
-          <q-tooltip>
-            Індикатор стану використання електроенергії з мережі.
-          </q-tooltip>
-        </div>
+          white: deyeData?.grid_power <= 0,
+        }"></div>
 
         <div class="indicate indicate-info">
           <q-icon @click="showInfo = true" name="info" size="24px" color="white" />
