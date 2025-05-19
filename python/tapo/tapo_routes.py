@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from dto import TapoDeviceCreateDto
+from python.tapo.dto import TapoDeviceCreateDto
 import python.db as db
 from python.tapo.tapo_service import TapoDevice
 from fastapi import (
