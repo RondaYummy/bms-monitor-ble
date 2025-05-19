@@ -13,7 +13,7 @@
       <div class="row justify-between full-width">
         <div class="column">
           <SemiCircleGauge :value="deyeData?.total_pv || 0" :image="'/inverter/solar_panel_yellow_200x200.png'"
-            :tooltip="`Потужність, яку генерують сонячні панелі ( разом ).\n1 MPPT вхід (PV): ${deyeData?.pv1_power}\n2 MPPT вхід (PV): ${deyeData?.pv2_power}`" />
+            :tooltip="`Потужність, яку генерують сонячні панелі ( разом ) | 1 MPPT вхід (PV): ${deyeData?.pv1_power} | 2 MPPT вхід (PV): ${deyeData?.pv2_power}`" />
 
           <SemiCircleGauge :value="deyeData?.battery_power || 0" :image="'/inverter/battery_yellow_200x200.png'"
             :tooltip="'Потужність заряду/розряду акумулятора'" :additional-value="`${deyeData?.battery_soc || 0}%`" />
@@ -35,15 +35,25 @@
           Блок даних з BMS
         </q-tooltip>
       </h6>
+
       <div class="column gap-10 full-width q-mt-sm">
         <div class="indicate indicate-charge" :class="{
           green: deyeData?.total_pv > deyeData?.load_power,
-          orange: deyeData?.total_pv <= deyeData?.load_power,
-        }"></div>
-        <div class="indicate indicate-discharge" :class="{
+          white: deyeData?.total_pv === deyeData?.load_power,
           red: deyeData?.load_power > deyeData?.total_pv,
-          orange: deyeData?.load_power <= deyeData?.total_pv,
-        }"></div>
+        }">
+          <q-tooltip>
+            Індикатор зарядки/розрядки відносно споживання.
+          </q-tooltip>
+        </div>
+        <div class="indicate indicate-grid" :class="{
+          orange: deyeData?.grid_power > 0,
+          white: deyeData?.grid_power === 0,
+        }">
+          <q-tooltip>
+            Індикатор стану використання електроенергії з мережі.
+          </q-tooltip>
+        </div>
 
         <div class="indicate indicate-info">
           <q-icon @click="showInfo = true" name="info" size="24px" color="white" />
