@@ -55,19 +55,24 @@ async def check_and_update_device_status_async(device_row):
     def blocking_check():
         tapo = TapoDevice(device_row["ip"], device_row["email"], device_row["password"])
         status = tapo.get_status()
-        print(f"Status: {status}")
         name = tapo.get_name()
-        # оновлюємо тільки поле device_on, name
-        update_tapo_device_by_ip(device_row["ip"], {
-            "device_on": status["device_on"],
-            "name": name
-        })
-        print(f"✅ {device_row['ip']} — {'ON' if status['on'] else 'OFF'}")
+        info = status.get("info", {})
+
+        update_data = {
+            "device_on": status.get("device_on", False),
+            "name": name,
+            "model": info.get("model"),
+            "fw_ver": info.get("fw_ver"),
+            "hw_ver": info.get("hw_ver"),
+            "device_id": info.get("device_id"),
+        }
+        print(f"Update_data: {update_data}")
+        update_tapo_device_by_ip(device_row["ip"], update_data)
     await loop.run_in_executor(None, blocking_check)
 
 async def check_all_tapo_devices():
     devices = get_all_tapo_devices()
-    semaphore = asyncio.Semaphore(5)  # ліміт паралельних перевірок
+    semaphore = asyncio.Semaphore(5)  # limit of parallel checks
     async def limited(dev):
         async with semaphore:
             await check_and_update_device_status_async(dev)

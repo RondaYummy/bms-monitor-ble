@@ -69,7 +69,7 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function enableDevice(ip: string): Promise<void> {
     try {
-      await api.get(`/api/tapo/devices/${ip}/on`);
+      await api.post(`/api/tapo/devices/${ip}/on`);
       await fetchDevices();
     } catch (error) {
       console.error('Error fetching tapo devices: ', error);
@@ -85,7 +85,7 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function disableDevice(ip: string): Promise<void> {
     try {
-      await api.get(`/api/tapo/devices/${ip}/off`);
+      await api.post(`/api/tapo/devices/${ip}/off`);
       await fetchDevices();
     } catch (error) {
       console.error('Error fetching tapo devices: ', error);

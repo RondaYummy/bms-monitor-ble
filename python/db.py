@@ -725,13 +725,12 @@ def update_tapo_device_by_ip(ip, info: dict):
         with get_connection() as conn:
             cursor = conn.cursor()
             print(f"Update Tapo: {info}")
-
             cursor.execute('''
                 UPDATE tapo_devices
                 SET name = ?, model = ?, fw_ver = ?, hw_ver = ?, device_id = ?, device_on = ?
                 WHERE ip = ?
             ''', (
-                info.get("nickname"),
+                info.get("name"),
                 info.get("model"),
                 info.get("fw_ver"),
                 info.get("hw_ver"),
@@ -741,7 +740,6 @@ def update_tapo_device_by_ip(ip, info: dict):
             ))
 
             conn.commit()
-
             return get_tapo_device_by_ip(ip)
 
     except sqlite3.Error as e:
@@ -756,10 +754,10 @@ def get_all_tapo_devices():
         columns = [desc[0] for desc in cursor.description]
         return [dict(zip(columns, row)) for row in rows]
 
-def get_tapo_device_by_ip(ip):
+def get_tapo_device_by_id(id):
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM tapo_devices WHERE ip = ?", (ip,))
+        cursor.execute("SELECT * FROM tapo_devices WHERE id = ?", (id,))
         row = cursor.fetchone()
         if row:
             columns = [desc[0] for desc in cursor.description]
