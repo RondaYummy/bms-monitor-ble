@@ -22,27 +22,22 @@ def to_signed(val):
 
 async def read_deye():
     modbus = PySolarmanV5(INVERTER_IP, LOGGER_SN, port=8899, mb_slave_id=SLAVE_ID)
-
     try:
         pv1_power = modbus.read_holding_registers(186, 1)[0]
         pv2_power = modbus.read_holding_registers(187, 1)[0]
         total_pv = pv1_power + pv2_power
         time.sleep(0.1)
-
         load_power = to_signed(modbus.read_holding_registers(178, 1)[0])
         time.sleep(0.1)
-
         bat_power = to_signed(modbus.read_holding_registers(190, 1)[0])
         bat_voltage = modbus.read_holding_registers(183, 1)[0] * 0.01
         bat_soc = modbus.read_holding_registers(184, 1)[0]
         time.sleep(0.1)
-
         grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
         time.sleep(0.1)
-
         net_balance = total_pv + grid_power - load_power - bat_power
 
-        await data_store.update_deye_data({
+        data = {
             "timestamp": datetime.utcnow().isoformat(),
             "pv1_power": pv1_power,
             "pv2_power": pv2_power,
@@ -53,7 +48,9 @@ async def read_deye():
             "battery_voltage": bat_voltage,
             "battery_soc": bat_soc,
             "net_balance": net_balance
-        })
+        }
+        print(f"Upd deye: {data}")
+        await data_store.update_deye_data(data)
 
     except V5FrameError as err:
         print(f"❌ Modbus error: {err}")

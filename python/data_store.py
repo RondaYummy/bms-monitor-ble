@@ -76,6 +76,7 @@ class DataStore:
     async def get_setting_info_by_address(self, device_address):
         async with self.lock:
             return deepcopy(self.setting_info.get(device_address, None))
+
     async def update_deye_data(self, info: dict):
         async with self.lock:
             self.deye_data = info

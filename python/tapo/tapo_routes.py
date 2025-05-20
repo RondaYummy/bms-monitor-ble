@@ -42,30 +42,30 @@ def get_all_tapo_devices():
             device.pop("password", None)
         return {"devices": devices}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Помилка при отриманні списку: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error when receiving a list: {str(e)}")
 
 @router.post("/tapo/devices/{ip}/on", dependencies=[Depends(verify_token)])
 def turn_on_device(ip: str):
     device = db.get_tapo_device_by_ip(ip)
     if not device:
-        raise HTTPException(status_code=404, detail="Пристрій не знайдено")
+        raise HTTPException(status_code=404, detail="Device not found")
     try:
         tapo = TapoDevice(ip, device["email"], device["password"])
         tapo.turn_on()
         db.update_tapo_device_by_ip(ip, {"device_on": True})
         return {"status": "on", "ip": ip}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"❌ Не вдалося увімкнути пристрій: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"❌ The device could not be turned on: {str(e)}")
 
 @router.post("/tapo/devices/{ip}/off", dependencies=[Depends(verify_token)])
 def turn_off_device(ip: str):
     device = db.get_tapo_device_by_ip(ip)
     if not device:
-        raise HTTPException(status_code=404, detail="Пристрій не знайдено")
+        raise HTTPException(status_code=404, detail="Device not found")
     try:
         tapo = TapoDevice(ip, device["email"], device["password"])
         tapo.turn_off()
         db.update_tapo_device_by_ip(ip, {"device_on": False})
         return {"status": "off", "ip": ip}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"❌ Не вдалося вимкнути пристрій: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"❌ The device could not be turned off: {str(e)}")
