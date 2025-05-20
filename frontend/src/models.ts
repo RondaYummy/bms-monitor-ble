@@ -158,3 +158,16 @@ export interface DeyeRealtimeData {
   battery_soc: number // Рівень заряду батареї (%)
   net_balance: number // Чистий енергетичний баланс (Вт)
 }
+
+export interface TapoDevice {
+  id: number;
+  ip: string;
+  email: string;
+  device_on: boolean; // true = увімкнено, false = вимкнено
+  device_id: string;
+  name: string; // base64-кодоване ім'я (можна декодувати при потребі)
+  model: string; // Наприклад, "P100"
+  fw_ver: string; // Наприклад, "1.3.7 Build 20230711 Rel. 61904"
+  hw_ver: string; // Наприклад, "1.0.0"
+  added_at: string; // ISO-датастрока, наприклад "2025-05-20T01:43:17"
+}

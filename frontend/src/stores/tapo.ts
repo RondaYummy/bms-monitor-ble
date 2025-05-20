@@ -1,36 +1,49 @@
 import { defineStore } from 'pinia'
 import { Notify } from 'quasar'
 import { api } from 'src/boot/axios'
-import { Device } from 'src/models'
+import { TapoDevice } from 'src/models'
 import { readonly, ref } from 'vue'
 
 export const useTapoStore = defineStore('tapo', () => {
   // ==============
   //   STATE
   // ==============
-  const devices = ref([])
+  const devices = ref<TapoDevice[]>([]);
 
   // ==============
   //   GETTERS
   // ==============
-  function getDevices(): Device[] {
-    return devices.value
+  function getDevices(): TapoDevice[] {
+    return devices.value;
   }
 
   // ==============
   //   MUTATIONS
   // ==============
-  function updateDevices(newDevices: any) {
-    devices.value = newDevices
+  function updateDevices(newDevices: TapoDevice[]) {
+    devices.value = newDevices;
   }
 
   // ==============
   //   ACTIONS
   // ==============
-  async function addDevice(data: { ip: string; email: string; password: string }): Promise<void> {
+  async function addDevice(data: {
+    ip: string
+    email: string
+    password: string
+  }): Promise<{ status: string; device: TapoDevice } | undefined> {
     try {
-      await api.post('/api/tapo/devices/add', data)
-      await fetchDevices();
+      const res = await api.post('/api/tapo/devices/add', data)
+      await fetchDevices()
+      if (res.data?.status === 'added') {
+        Notify.create({
+          message: 'Tapo device aded success.',
+          color: 'green',
+          position: 'top',
+          timeout: 2000,
+        });
+      }
+      return res.data
     } catch (error) {
       console.error('Error add device: ', error)
       Notify.create({
@@ -39,18 +52,43 @@ export const useTapoStore = defineStore('tapo', () => {
         icon: 'warning',
         position: 'top',
         timeout: 2000,
-      })
+      });
     }
   }
 
-  async function fetchDevices() {
+  async function fetchDevices(): Promise<TapoDevice[] | undefined> {
     try {
       const response = await api.get('/api/tapo/devices')
-      const data = await response.data
+      const data: { devices: TapoDevice[] } = await response.data
       updateDevices(data?.devices)
-      return devices.value
+      return devices.value;
     } catch (error) {
-      console.error('Error fetching tapo devices: ', error)
+      console.error('Error fetching tapo devices: ', error);
+    }
+  }
+
+  async function enableDevice(ip: string): Promise<void> {
+    try {
+      await api.get(`/api/tapo/devices/${ip}/on`);
+      await fetchDevices();
+    } catch (error) {
+      console.error('Error fetching tapo devices: ', error);
+      Notify.create({
+        message: 'Error off device.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
+    }
+  }
+
+  async function disableDevice(ip: string): Promise<void> {
+    try {
+      await api.get(`/api/tapo/devices/${ip}/off`);
+      await fetchDevices();
+    } catch (error) {
+      console.error('Error fetching tapo devices: ', error);
     }
   }
 
@@ -77,5 +115,7 @@ export const useTapoStore = defineStore('tapo', () => {
     // ==============
     fetchDevices,
     addDevice,
+    enableDevice,
+    disableDevice,
   }
 })

@@ -217,6 +217,12 @@
                 :disable="!token || !newTapoDevice.ip || !newTapoDevice.email || !newTapoDevice.password" color="black"
                 label="Додати новий пристрій" />
             </div>
+
+            <div class="column">
+
+              <TapoDevicesList :device="device" v-for="device of tapoDevices" :key="device.id"/>
+              <!-- <TapoDevicesList :device="device" v-for="device of [test]" :key="device.id" /> -->
+            </div>
           </q-tab-panel>
         </q-tab-panels>
       </div>
@@ -227,10 +233,11 @@
 <script setup lang='ts'>
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
 import { formatTimestamp, getAlertIcon, sortDevices, useSessionStorage } from '../helpers/utils';
-import type { Alert, Device, Config, SettingInfo } from '../models';
+import type { Alert, Device, Config, SettingInfo, TapoDevice } from '../models';
 import DevicesList from '../components/DevicesList.vue';
 import ToggleButton from '../components/ToggleButton.vue';
 import SettingsList from '../components/SettingsList.vue';
+import TapoDevicesList from '../components/TapoDevicesList.vue';
 import ChangePasswordModal from 'src/components/modals/ChangePasswordModal.vue';
 import { cancelAllSubscriptions, checkPushSubscription, usePush } from 'src/composables/usePush';
 import AlertsSettingsModal from 'src/components/modals/AlertsSettingsModal.vue';
@@ -238,7 +245,18 @@ import { useConfigStore } from 'src/stores/config';
 import { useAlertsStore } from 'src/stores/alerts';
 import { useBmsStore } from 'src/stores/bms';
 import { useTapoStore } from 'src/stores/tapo';
-
+// const test = {
+//   "id": 1,
+//   "ip": "192.168.31.110",
+//   "email": "basrers199600@gmail.com",
+//   "device_on": 0,
+//   "device_id": "8022FE4F3245AFB0020ACB1E3C612E241CEE072A",
+//   "name": "0YDQvtC30LXRgtC60LAg0LLQsNC90L3QsA==",
+//   "model": "P100",
+//   "fw_ver": "1.3.7 Build 20230711 Rel. 61904",
+//   "hw_ver": "1.0.0",
+//   "added_at": "2025-05-20 01:43:17"
+// } as unknown as TapoDevice;
 const configStore = useConfigStore();
 const alertsStore = useAlertsStore();
 const bmsStore = useBmsStore();
@@ -264,6 +282,7 @@ const config = computed<Config>(configStore.getConfig);
 const alerts = computed<Alert[]>(alertsStore.getAlerts);
 const settings = computed<SettingInfo[]>(bmsStore.getSettingInfo);
 const devices = computed<Device[]>(bmsStore.getDevices);
+const tapoDevices = computed<TapoDevice[]>(tapoStore.getDevices);
 const currentSetting = ref<SettingInfo>();
 
 watch(alerts, () => {
@@ -340,7 +359,9 @@ async function addTapoDevice() {
     ip: newTapoDevice.value.ip,
     email: newTapoDevice.value.email,
     password: newTapoDevice.value.password,
-  })
+  });
+
+  newTapoDevice.value.ip = '';
 }
 
 onMounted(async () => {

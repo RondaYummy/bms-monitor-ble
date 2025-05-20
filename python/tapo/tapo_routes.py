@@ -21,6 +21,7 @@ def add_tapo_device_api(device: TapoDeviceCreateDto):
                 email=device.email,
                 password=device.password
             )
+            info["name"] = tapo.get_name()
             db.update_tapo_device_by_ip(device.ip, info)
         except Exception as conn_err:
             print(f"⚠️ Не вдалося підключитись до пристрою {device.ip}: {conn_err}")

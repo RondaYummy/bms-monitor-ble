@@ -41,7 +41,6 @@ export const useDeyeStore = defineStore('deye', () => {
     try {
       const response = await api.get('/api/deye-info')
       const data = await response.data
-      console.log(data, 'data');
       updateDeyeData(data)
       return deyeData.value
     } catch (error) {

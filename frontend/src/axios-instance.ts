@@ -3,6 +3,7 @@ import { eventBus } from 'src/eventBus';
 
 export const api = axios.create({
   baseURL: '',
+  timeout: 10000,
 });
 
 api.interceptors.request.use(
