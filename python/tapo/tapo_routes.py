@@ -54,7 +54,7 @@ def turn_on_device(ip: str):
         name = tapo.get_name()
         info = status.get("info", {})
         update_data = {
-            "device_on": False,
+            "device_on": info.get("device_on"),
             "name": name,
             "model": info.get("model"),
             "fw_ver": info.get("fw_ver"),
@@ -79,7 +79,7 @@ def turn_off_device(ip: str):
         info = status.get("info", {})
         tapo.turn_off()
         update_data = {
-            "device_on": False,
+            "device_on": info.get("device_on"),
             "name": name,
             "model": info.get("model"),
             "fw_ver": info.get("fw_ver"),

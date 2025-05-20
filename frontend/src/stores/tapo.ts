@@ -74,7 +74,7 @@ export const useTapoStore = defineStore('tapo', () => {
     } catch (error) {
       console.error('Error fetching tapo devices: ', error);
       Notify.create({
-        message: 'Error off device.',
+        message: 'Error on device.',
         color: 'red',
         icon: 'warning',
         position: 'top',

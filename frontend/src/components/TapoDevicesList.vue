@@ -22,7 +22,7 @@
         <div class="column">
             {{ device?.device_on == 1 }}
             {{ device?.device_on == 0 }}
-            <q-icon @click="() => device?.device_on == 1 ? disableDevice() : enableDevice()" name="power_settings_new"
+            <q-icon @click="toggleDevice(device?.device_on)" name="power_settings_new"
                 class="cursor-pointer"
                 :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="2em" />
         </div>
@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { parseManufacturingDate } from 'src/helpers/utils';
+import { parseManufacturingDate } from 'src/helpers/utils'
 import { TapoDevice } from 'src/models'
 import { useTapoStore } from 'src/stores/tapo'
 import { computed, ref } from 'vue'
@@ -41,25 +41,17 @@ const props = defineProps<{ device: TapoDevice }>()
 const device = computed(() => props.device)
 const disableButton = ref(false)
 
-async function disableDevice() {
-    if (disableButton.value) return;
+async function toggleDevice(state: number) {
     try {
+        if (disableButton.value) return
         disableButton.value = true
-        await tapoStore.disableDevice(props.device?.ip)
-    } catch (error) {
-        console.error(error)
-    } finally {
-        disableButton.value = false
-    }
-}
-
-async function enableDevice() {
-    if (disableButton.value) return;
-    try {
-        disableButton.value = true
-        await tapoStore.enableDevice(props.device?.ip)
-    } catch (error) {
-        console.error(error)
+        if (state == 1) {
+            await tapoStore.disableDevice(props.device?.ip)
+        } else {
+            await tapoStore.enableDevice(props.device?.ip)
+        }
+    } catch (err) {
+        console.error(err)
     } finally {
         disableButton.value = false
     }
