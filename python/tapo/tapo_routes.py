@@ -12,27 +12,26 @@ router = APIRouter()
 @router.post("/tapo/devices/add", dependencies=[Depends(verify_token)])
 def add_tapo_device_api(device: TapoDeviceCreateDto):
     try:
+        existing = db.get_tapo_device_by_ip(device.ip)
+        if existing:
+            raise HTTPException(
+                status_code=409,
+                detail=f"⚠️ The device with IP {device.ip} already exists in the database."
+            )
         try:
-            tapo = TapoDevice(device.ip, device.email, device.password)
-            info = tapo.get_info()
-
-            added = db.insert_tapo_device(
+            db.insert_tapo_device(
                 ip=device.ip,
                 email=device.email,
                 password=device.password
             )
-            info["name"] = tapo.get_name()
-            db.update_tapo_device_by_ip(device.ip, info)
         except Exception as conn_err:
-            print(f"⚠️ Не вдалося підключитись до пристрою {device.ip}: {conn_err}")
-
+            print(f"⚠️ Could not connect to the device {device.ip}: {conn_err}")
         return {
             "status": "added",
-            "device": db.get_tapo_device_by_ip(device.ip)
+            "device": updated
         }
-
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Помилка при додаванні: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error adding: {str(e)}")
 
 @router.get("/tapo/devices")
 def get_all_tapo_devices():

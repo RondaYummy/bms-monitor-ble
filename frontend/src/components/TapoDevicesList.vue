@@ -14,7 +14,7 @@
         </div>
         1
         <div class="column">
-            <q-icon @click="device?.device_on ? disableDevice : enableDevice" name="power_settings_new"
+            <q-icon @click="() => device?.device_on ? disableDevice() : enableDevice()" name="power_settings_new"
                 class="text-white cursor-pointer" size="2em" />
         </div>
     </div>

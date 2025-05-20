@@ -40,7 +40,7 @@ class TapoDevice:
         except Exception as e:
             print(f"❌ Error getting info from {self.ip}: {e}")
             return {
-                "on": False,
+                "device_on": False,
                 "error": str(e)
             }
 
@@ -55,10 +55,11 @@ async def check_and_update_device_status_async(device_row):
     def blocking_check():
         tapo = TapoDevice(device_row["ip"], device_row["email"], device_row["password"])
         status = tapo.get_status()
+        print(f"Status: {status}")
         name = tapo.get_name()
         # оновлюємо тільки поле device_on, name
         update_tapo_device_by_ip(device_row["ip"], {
-            "device_on": status["on"],
+            "device_on": status["device_on"],
             "name": name
         })
         print(f"✅ {device_row['ip']} — {'ON' if status['on'] else 'OFF'}")
