@@ -1,25 +1,34 @@
 <template>
     <div class="row device-row">
-        <h6 class="tect-center">{{ device?.name }}</h6>
+        <h6 class="tect-center full-width text-capitalize">{{ device?.name }}</h6>
+
+        <div class="column">
+            <div class="q-mb-10">
+                Hardware v.
+                <span class="unique">{{ device?.hw_ver }}</span>
+            </div>
+            <div>
+                Software v.
+                <span class="unique">{{ device?.fw_ver }}</span>
+            </div>
+        </div>
 
         <div class="column">
             <span>Model: {{ device?.model }}</span>
-            <span>FW v.: {{ device?.fw_ver }}</span>
-            <span>HW v.: {{ device?.hw_ver }}</span>
-            <span>ON.: {{ device?.device_on }}</span>
-            <span>ip: {{ device?.ip }}</span>
-            <span>email: {{ device?.email }}</span>
-            <span>added_at: {{ device?.added_at }}</span>
+            <span>IP: {{ device?.ip }}</span>
+            <span>Email: {{ device?.email }}</span>
+            <span>{{ parseManufacturingDate(device?.added_at) }}</span>
         </div>
-        1
         <div class="column">
             <q-icon @click="() => device?.device_on == 1 ? disableDevice() : enableDevice()" name="power_settings_new"
-                class="text-white cursor-pointer" size="2em" />
+                class="cursor-pointer"
+                :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="2em" />
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+import { parseManufacturingDate } from 'src/helpers/utils';
 import { TapoDevice } from 'src/models'
 import { useTapoStore } from 'src/stores/tapo'
 import { computed, ref } from 'vue'
@@ -31,6 +40,7 @@ const device = computed(() => props.device)
 const disableButton = ref(false)
 
 async function disableDevice() {
+    if (disableButton.value) return;
     try {
         disableButton.value = true
         await tapoStore.disableDevice(props.device?.ip)
@@ -42,6 +52,7 @@ async function disableDevice() {
 }
 
 async function enableDevice() {
+    if (disableButton.value) return;
     try {
         disableButton.value = true
         await tapoStore.disableDevice(props.device?.ip)
