@@ -26,7 +26,7 @@ from python.push_notifications import send_push_startup
 from python.pwd import verify_password, hash_password
 from python.push_notifications import router as alerts_router
 from python.data_store import data_store
-from python.read_deye import run_deye_loop
+from python.deye.read_deye import run_deye_loop
 from concurrent.futures import ThreadPoolExecutor
 from python.tapo.tapo_routes import router as tapo_router
 from python.tapo.tapo_service import check_all_tapo_devices

@@ -37,7 +37,6 @@ def add_tapo_device_api(device: TapoDeviceCreateDto):
 def get_all_tapo_devices():
     try:
         devices = db.get_all_tapo_devices()
-
         for device in devices:
             device.pop("password", None)
         return {"devices": devices}

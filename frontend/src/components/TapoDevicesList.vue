@@ -6,15 +6,14 @@
             <span>Model: {{ device?.model }}</span>
             <span>FW v.: {{ device?.fw_ver }}</span>
             <span>HW v.: {{ device?.hw_ver }}</span>
-            <span>HW v.: {{ device?.device_on }}</span>
+            <span>ON.: {{ device?.device_on }}</span>
             <span>ip: {{ device?.ip }}</span>
-            <span>name: {{ device?.name }}</span>
             <span>email: {{ device?.email }}</span>
             <span>added_at: {{ device?.added_at }}</span>
         </div>
         1
         <div class="column">
-            <q-icon @click="() => device?.device_on ? disableDevice() : enableDevice()" name="power_settings_new"
+            <q-icon @click="() => device?.device_on == 1 ? disableDevice() : enableDevice()" name="power_settings_new"
                 class="text-white cursor-pointer" size="2em" />
         </div>
     </div>

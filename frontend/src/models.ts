@@ -163,7 +163,7 @@ export interface TapoDevice {
   id: number;
   ip: string;
   email: string;
-  device_on: boolean; // true = увімкнено, false = вимкнено
+  device_on: number; // 1 = увімкнено, 0 = вимкнено
   device_id: string;
   name: string; // base64-кодоване ім'я (можна декодувати при потребі)
   model: string; // Наприклад, "P100"
