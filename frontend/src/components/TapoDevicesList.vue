@@ -20,6 +20,8 @@
             <span>{{ parseManufacturingDate(device?.added_at) }}</span>
         </div>
         <div class="column">
+            {{ device?.device_on == 1 }}
+            {{ device?.device_on == 0 }}
             <q-icon @click="() => device?.device_on == 1 ? disableDevice() : enableDevice()" name="power_settings_new"
                 class="cursor-pointer"
                 :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="2em" />

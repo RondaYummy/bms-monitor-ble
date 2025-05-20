@@ -2,19 +2,6 @@ from PyP100 import PyP110
 from python.db import update_tapo_device_by_ip, get_all_tapo_devices
 import asyncio
 
-# IP = "192.168.31.110"
-# EMAIL = "basrers199600@gmail.com"
-# PASSWORD = "121314Qq"
-
-# def tapo_sync():
-#     try:
-#         plug = PyP110.P110(IP, EMAIL, PASSWORD)
-#         print(f"{plug.getDeviceInfo()}")
-#         print(f"{plug.getDeviceName()}")
-#         plug.turnOn()
-#     except Exception as e:
-#         print("❌ Помилка:", e)
-
 class TapoDevice:
     def __init__(self, ip: str, email: str, password: str):
         self.ip = ip

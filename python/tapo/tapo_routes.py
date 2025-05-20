@@ -50,8 +50,19 @@ def turn_on_device(ip: str):
         raise HTTPException(status_code=404, detail="Device not found")
     try:
         tapo = TapoDevice(ip, device["email"], device["password"])
+        status = tapo.get_status()
+        name = tapo.get_name()
+        info = status.get("info", {})
+        update_data = {
+            "device_on": False,
+            "name": name,
+            "model": info.get("model"),
+            "fw_ver": info.get("fw_ver"),
+            "hw_ver": info.get("hw_ver"),
+            "device_id": info.get("device_id"),
+        }
         tapo.turn_on()
-        db.update_tapo_device_by_ip(ip, {"device_on": True})
+        db.update_tapo_device_by_ip(ip, update_data)
         return {"status": "on", "ip": ip}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"❌ The device could not be turned on: {str(e)}")
@@ -63,8 +74,19 @@ def turn_off_device(ip: str):
         raise HTTPException(status_code=404, detail="Device not found")
     try:
         tapo = TapoDevice(ip, device["email"], device["password"])
+        status = tapo.get_status()
+        name = tapo.get_name()
+        info = status.get("info", {})
         tapo.turn_off()
-        db.update_tapo_device_by_ip(ip, {"device_on": False})
+        update_data = {
+            "device_on": False,
+            "name": name,
+            "model": info.get("model"),
+            "fw_ver": info.get("fw_ver"),
+            "hw_ver": info.get("hw_ver"),
+            "device_id": info.get("device_id"),
+        }
+        db.update_tapo_device_by_ip(ip, update_data)
         return {"status": "off", "ip": ip}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"❌ The device could not be turned off: {str(e)}")
