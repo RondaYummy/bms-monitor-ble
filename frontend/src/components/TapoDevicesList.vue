@@ -57,7 +57,7 @@ async function enableDevice() {
     if (disableButton.value) return;
     try {
         disableButton.value = true
-        await tapoStore.disableDevice(props.device?.ip)
+        await tapoStore.enableDevice(props.device?.ip)
     } catch (error) {
         console.error(error)
     } finally {
