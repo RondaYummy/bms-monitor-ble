@@ -1,3 +1,20 @@
+<p align="center">
+  <img src="devices.png" style="height: 500px; object-fit: contain;">
+  <img src="summary.png" style="height: 500px; object-fit: contain;">
+  <img src="settings.png" style="height: 500px; object-fit: contain;">
+</p>
+
+## Supported devices
+#### All JK-BMS models with software version >=6.0 are using the implemented protocol and should be supported.
+* JK_BD6A20S6P, hw 17U, sw 17.02
+* JK_BD6A17S6P, hw 11.XA, sw 11.48
+
+#### All Deye models from this list are supported.
+* SUN-6K-SG01/03/LP1-EU/AU
+
+#### All TP-Link Tapo P110 Wi-Fi with software version >=1.2.1
+* Tapo P100
+
 # BMS Monitor [BLE]
 ## 🔋 Monitoring System for JK-BMS and Deye Inverter
 
@@ -25,7 +42,7 @@ The frontend is a PWA that works offline, supports mobile devices, and receives 
 
 > Full control over your energy system — stable, local, and convenient.
 
-# ⚠️ IMPORTANT: Before Using Deye Inverter and Tapo Sockets
+## ⚠️ IMPORTANT: Before Using Deye Inverter and Tapo Sockets
 
 To ensure stable system operation, you must **assign static IP addresses** to the inverter and Tapo sockets via your router settings. This prevents random IP changes after reboots and guarantees continuous connectivity.
 
@@ -60,24 +77,6 @@ To ensure stable system operation, you must **assign static IP addresses** to th
 🔁 **After this setup**, the IP addresses will no longer change and your system will maintain a stable connection with the inverter and smart plugs.
 
 ✅ This is highly recommended for all automation systems that depend on consistent local network addresses.
-
-
-<p align="center">
-  <img src="devices.png" style="height: 500px; object-fit: contain;">
-  <img src="summary.png" style="height: 500px; object-fit: contain;">
-  <img src="settings.png" style="height: 500px; object-fit: contain;">
-</p>
-
-## Supported devices
-#### All JK-BMS models with software version >=6.0 are using the implemented protocol and should be supported.
-* JK_BD6A20S6P, hw 17U, sw 17.02
-* JK_BD6A17S6P, hw 11.XA, sw 11.48
-
-#### All Deye models from this list are supported.
-* SUN-6K-SG01/03/LP1-EU/AU
-
-#### All TP-Link Tapo P110 Wi-Fi with software version >=1.2.1
-* Tapo P100
 
 ## First steeps:
 ### Clone project:
