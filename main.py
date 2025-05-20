@@ -16,7 +16,6 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from fastapi import Body
 
@@ -31,6 +30,7 @@ from python.read_deye import run_deye_loop
 from concurrent.futures import ThreadPoolExecutor
 from python.tapo.tapo_routes import router as tapo_router
 from python.tapo.tapo_service import check_all_tapo_devices
+from python.auth.verify_token import verify_token
 
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
@@ -53,7 +53,6 @@ app = FastAPI()
 app.include_router(tapo_router, prefix="/api")
 app.include_router(alerts_router, prefix="/api")
 
-auth_scheme = HTTPBearer()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -81,11 +80,6 @@ async def startup_event():
 
     config = db.get_config()
     await send_push_startup(config)
-
-async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(auth_scheme)):
-    token = credentials.credentials
-    if not await data_store.is_token_valid(token):
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 @app.post("/api/change-password", dependencies=[Depends(verify_token)])
 async def change_password(request: Request):
