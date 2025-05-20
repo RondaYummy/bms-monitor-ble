@@ -25,6 +25,42 @@ The frontend is a PWA that works offline, supports mobile devices, and receives 
 
 > Full control over your energy system — stable, local, and convenient.
 
+# ⚠️ IMPORTANT: Before Using Deye Inverter and Tapo Sockets
+
+To ensure stable system operation, you must **assign static IP addresses** to the inverter and Tapo sockets via your router settings. This prevents random IP changes after reboots and guarantees continuous connectivity.
+
+## ✅ How to do this
+
+1. Open your router’s admin panel in a browser:
+   ```
+   http://192.168.31.1
+   ```
+
+2. Navigate to the section:
+   ```
+   DHCP > Static Leases / Address Reservation / IP Binding
+   ```
+
+3. Add the **MAC address of the inverter's WiFi stick** and assign it a static IP address. Example:
+
+   - **MAC:** `DC:4F:22:xx:xx:xx`
+   - **IP:** `192.168.31.39`
+
+4. Add your **Tapo smart plug** the same way:
+
+   - **MAC:** `AC:84:C6:xx:xx:xx`
+   - **IP:** `192.168.31.110`
+
+5. Save the configuration.
+
+6. Restart your **router** or **devices** to apply the changes.
+
+---
+
+🔁 **After this setup**, the IP addresses will no longer change and your system will maintain a stable connection with the inverter and smart plugs.
+
+✅ This is highly recommended for all automation systems that depend on consistent local network addresses.
+
 
 <p align="center">
   <img src="devices.png" style="height: 500px; object-fit: contain;">

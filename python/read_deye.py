@@ -10,7 +10,7 @@ INVERTER_IP = "192.168.31.40"
 
 # This is the serial number of the Wi-Fi stick itself (data logger), not the inverter.
 # It is unique for each stick and is usually indicated
-# in the local web interface of the Wi-Fi stick (e.g. http://192.168.31.39) or on the sticker of the stick
+# in the local web interface of the Wi-Fi stick (e.g. http://192.168.31.40) or on the sticker of the stick
 LOGGER_SN = 2993578387
 
 # This is the Modbus Slave ID, i.e. the internal identifier of the device in the Modbus network.
