@@ -205,23 +205,19 @@
           <q-tab-panel name="tapo">
             <div class="text-h6 q-mb-sm">TP-LINK Tapo Devices</div>
 
-            <div class="column">
-              <q-input label="Device IP Address" :disable="!token" v-model="newTapoDevice.ip" filled
-                class="q-mb-sm q-mt-sm" />
-              <q-input label="Email from Tapo App" :disable="!token" v-model="newTapoDevice.email" filled
-                class="q-mb-sm" />
-              <q-input label="Password from Tapo App" :disable="!token" v-model="newTapoDevice.password" filled
-                class="q-mb-sm" />
+            <q-input label="Device IP Address" :disable="!token" v-model="newTapoDevice.ip" filled
+              class="q-mb-sm q-mt-sm" />
+            <q-input label="Email from Tapo App" :disable="!token" v-model="newTapoDevice.email" filled
+              class="q-mb-sm" />
+            <q-input label="Password from Tapo App" :disable="!token" v-model="newTapoDevice.password" filled
+              class="q-mb-sm" />
 
-              <q-btn :loading="loadingDevices" @click="addTapoDevice"
-                :disable="!token || !newTapoDevice.ip || !newTapoDevice.email || !newTapoDevice.password" color="black"
-                label="Додати новий пристрій" />
-            </div>
+            <q-btn :loading="loadingDevices" @click="addTapoDevice"
+              :disable="!token || !newTapoDevice.ip || !newTapoDevice.email || !newTapoDevice.password" color="black"
+              label="Додати новий пристрій" />
 
             <div class="column">
-
-              <TapoDevicesList :device="device" v-for="device of tapoDevices" :key="device.id"/>
-              <!-- <TapoDevicesList :device="device" v-for="device of [test]" :key="device.id" /> -->
+              <TapoDevicesList :device="device" v-for="device of tapoDevices" :key="device.id" />
             </div>
           </q-tab-panel>
         </q-tab-panels>
@@ -245,18 +241,7 @@ import { useConfigStore } from 'src/stores/config';
 import { useAlertsStore } from 'src/stores/alerts';
 import { useBmsStore } from 'src/stores/bms';
 import { useTapoStore } from 'src/stores/tapo';
-// const test = {
-//   "id": 1,
-//   "ip": "192.168.31.110",
-//   "email": "basrers199600@gmail.com",
-//   "device_on": 0,
-//   "device_id": "8022FE4F3245AFB0020ACB1E3C612E241CEE072A",
-//   "name": "0YDQvtC30LXRgtC60LAg0LLQsNC90L3QsA==",
-//   "model": "P100",
-//   "fw_ver": "1.3.7 Build 20230711 Rel. 61904",
-//   "hw_ver": "1.0.0",
-//   "added_at": "2025-05-20 01:43:17"
-// } as unknown as TapoDevice;
+
 const configStore = useConfigStore();
 const alertsStore = useAlertsStore();
 const bmsStore = useBmsStore();
@@ -290,7 +275,6 @@ watch(alerts, () => {
 });
 
 function filterAlertsByLevel(level?: string): void {
-  console.log('Selected level: ', level);
   if (!alerts.value) {
     return;
   }

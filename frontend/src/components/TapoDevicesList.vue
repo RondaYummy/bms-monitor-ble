@@ -1,6 +1,12 @@
 <template>
     <div class="row device-row">
-        <h6 class="tect-center full-width text-capitalize">{{ device?.name }}</h6>
+        <h6 class="tect-center full-width text-capitalize">{{ device?.model }} | {{ device?.name }}</h6>
+        <div class="row justify-between">
+            <span class="unique">{{ device?.model }}</span>
+            <q-icon @click="toggleDevice(device?.device_on)" name="power_settings_new" class="cursor-pointer"
+                :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
+            <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
+        </div>
 
         <div class="column">
             <div class="q-mb-10">
@@ -14,15 +20,9 @@
         </div>
 
         <div class="column">
-            <span>Model: {{ device?.model }}</span>
             <span>IP: {{ device?.ip }}</span>
             <span>Email: {{ device?.email }}</span>
-            <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
-        </div>
-        <div class="column">
-            <q-icon @click="toggleDevice(device?.device_on)" name="power_settings_new"
-                class="cursor-pointer"
-                :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="2em" />
+            <span></span>
         </div>
     </div>
 </template>
@@ -61,7 +61,5 @@ async function toggleDevice(state: number) {
 .device-row {
     width: 100%;
     height: 100px;
-    border: 1px solid white;
-    border-radius: 5px;
 }
 </style>
