@@ -142,10 +142,27 @@ exit
 docker compose restart
 ```
 
-## Motivation
-The official app left me dissatisfied due to its lack of essential features. It doesn't provide critical notifications, such as alerts in Telegram for a low battery level, missing charging, or potential issues with the BMS itself. Monitoring these parameters while standing next to the BMS with my phone felt inefficient and inconvenient. I envisioned a solution where I could access all this data and functionality from anywhere in the world, without being tethered to a specific location.
+## 🚀 Motivation
 
-Inspired by this need, I decided to create my own project using Python and develop a web application that integrates all these features in one place. Unlike the official app, my application includes real-time notifications, remote accessibility, and, importantly, data visualization through detailed charts—something the official app also lacks. This project is a step toward simplifying BMS monitoring and ensuring a seamless user experience, no matter where I am.
+The official BMS app left me deeply dissatisfied due to its lack of critical features and usability limitations. It didn’t provide **real-time notifications** for important events like low battery charge, missing charging sessions, or abnormal cell behavior. Monitoring these parameters while physically standing next to the BMS with a smartphone felt inefficient and outdated.
+
+I envisioned a solution where I could **access, monitor, and control my entire energy system from anywhere**, without being tied to a specific location or mobile app.
+
+So I decided to build my own system — starting with **Python** and a lightweight **web interface** that consolidates all the essential features the official tools lacked. My application adds:
+
+- 🔔 **Web push notifications** for overheating, cell imbalance, and battery issues  
+- 🌍 **Remote access via PWA**, accessible from any browser or device  
+- 📊 **Advanced data visualization** through real-time charts and logs
+
+As the project grew, I expanded beyond the BMS:
+
+- 💡 **TP-Link Tapo smart plugs** were integrated to enable **remote power control** of connected devices (e.g. chargers, inverters, routers). Now I can automatically turn them on/off based on battery state or schedule.  
+- ⚡ **Deye Inverter** support was added via Wi-Fi stick to monitor **solar generation**, **grid consumption**, and **system balancing**.  
+- 🧠 All these components now work **together as one intelligent system**, running autonomously on a **Raspberry Pi 5**, without relying on the cloud.
+
+> The goal was simple: **bring clarity, control, and automation** to my energy setup — in a way that’s stable, open, and privacy-friendly.
+
+This project is my attempt to create a fully local, integrated, and extensible energy management platform — something I believe every DIY energy enthusiast should have access to.
 
 ```markdown
 ## 🗺️ Roadmap / Features
