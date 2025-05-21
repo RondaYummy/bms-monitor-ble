@@ -1,4 +1,4 @@
-### 🔋 Devices overview | 📊 System summary | ⚙️ Settings page
+###        🔋 Devices overview   |   📊 System summary   |   ⚙️ Settings page
 
 <p align="center">
   <img src="devices.png" style="height: 500px; object-fit: contain;">
@@ -95,6 +95,7 @@ graph TD
   PythonApp --> DB[(SQLite DB)]
   PythonApp --> PWA[Frontend (PWA)]
   PythonApp --> Push[Web Push Notifications]
+```
   
 ## First steeps:
 ### To access your application from outside the local network, you need to get a static IP address from your Internet provider.
@@ -161,6 +162,7 @@ Inspired by this need, I decided to create my own project using Python and devel
 - [x] Dockerized backend
 - [ ] Telegram bot alerts
 - [ ] Admin dashboard with charts
+```
 
 ### Top contributors:
 <a href="https://github.com/RondaYummy/bms-monitor-ble/graphs/contributors">
