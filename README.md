@@ -88,7 +88,7 @@ To connect to a Tapo outlet, you need to specify the outlet IP and EMAIL and PAS
 
 ### ⚙️ System Architecture
 
-```mermaid
+```markdown
 graph TD
   BMS[JK-BMS] --> PythonApp[Python Backend]
   Deye[Deye Inverter] --> PythonApp
