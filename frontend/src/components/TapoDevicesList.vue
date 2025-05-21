@@ -1,11 +1,19 @@
 <template>
     <div class="row device-row">
-        <h6 class="tect-center full-width text-capitalize">{{ device?.model }} | {{ device?.name }}</h6>
-        <div class="row justify-between">
-            <span class="unique">{{ device?.model }}</span>
+        <h6 class="tect-center full-width text-capitalize">{{ device?.name }}</h6>
+        <div class="row justify-between funll-width">
+            <div class="column">
+                <span class="unique">{{ device?.model }}</span>
+                <span class="unique">{{ device?.ip }}</span>
+            </div>
+
             <q-icon @click="toggleDevice(device?.device_on)" name="power_settings_new" class="cursor-pointer"
                 :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
-            <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
+
+            <div>
+                <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
+                <span>{{ device?.email }}</span>
+            </div>
         </div>
 
         <div class="column">
@@ -17,12 +25,6 @@
                 Software v.
                 <span class="unique">{{ device?.fw_ver }}</span>
             </div>
-        </div>
-
-        <div class="column">
-            <span>IP: {{ device?.ip }}</span>
-            <span>Email: {{ device?.email }}</span>
-            <span></span>
         </div>
     </div>
 </template>
