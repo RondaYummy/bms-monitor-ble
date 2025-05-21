@@ -1,3 +1,5 @@
+### 🔋 Devices overview | 📊 System summary | ⚙️ Settings page
+
 <p align="center">
   <img src="devices.png" style="height: 500px; object-fit: contain;">
   <img src="summary.png" style="height: 500px; object-fit: contain;">
@@ -78,16 +80,25 @@ To ensure stable system operation, you must **assign static IP addresses** to th
 
 ✅ This is highly recommended for all automation systems that depend on consistent local network addresses.
 
+#### Deye
+To connect to the inverter, you need to pass the following variables: INVERTER_IP, LOGGER_SN.
+
+#### TP-Link Tapo
+To connect to a Tapo outlet, you need to specify the outlet IP and EMAIL and PASSWORD from the official Tapo app.
+
+### ⚙️ System Architecture
+
+```mermaid
+graph TD
+  BMS[JK-BMS (Bluetooth)] -->|BLE / Bleak| PythonApp[Python Backend]
+  Deye[Deye Inverter (WiFi)] -->|pysolarmanv5| PythonApp
+  PythonApp --> DB[(SQLite DB)]
+  PythonApp --> PWA[Frontend (PWA)]
+  PythonApp --> Push[Web Push Notifications]
+  
 ## First steeps:
-### Clone project:
-```bash
-git clone https://github.com/RondaYummy/bms-monitor-ble.git
-```
-1. Install Node.
-2. Install Yarn.
-3. Install Docker-compose.
-4. Setup Nginx and SSL ( https://github.com/RondaYummy/bms-monitor-ble/blob/main/docs/nginx.md )
-5. To access from outside the local network, you need to get a static IP address.
+### To access your application from outside the local network, you need to get a static IP address from your Internet provider.
+### And etup Nginx and SSL ( https://github.com/RondaYummy/bms-monitor-ble/blob/main/docs/nginx.md )
 
 ### Make sure that the systemctl service is running:
 ```bash
@@ -105,30 +116,27 @@ yarn build
 yarn static
 ```
 
-### [PROD]
+### [PROD] - [DEV] 
 ```bash
 yarn prod
-```
-
-### [DEV] 
-```bash
 yarn dev
 ```
 
 ### [AUTO] Deploy via PM2
 
-#### Preparing
+#### Preparing:
 ```bash
 echo "$(whoami) ALL=(ALL) NOPASSWD: /sbin/reboot" | sudo tee /etc/sudoers.d/reboot-nopasswd
 chmod +x deploy.sh
 npm install pm2 -g
 ```
 
+### [AUTO] Deploy start:
 ```bash
 pm2 start ecosystem.config.js
 ```
 
-### Clear Database
+### Clear Database [Example]
 ```bash
 docker ps
 docker exec -it bms-monitor-ble-python-app-1 bash
@@ -137,21 +145,32 @@ exit
 docker compose restart
 ```
 
-#### Deye
-To connect to the inverter, you need to pass the following variables: INVERTER_IP, LOGGER_SN.
-
-#### TP-Link Tapo
-To connect to a Tapo outlet, you need to specify the outlet IP and EMAIL and PASSWORD from the official Tapo app.
-
 ## Motivation
 The official app left me dissatisfied due to its lack of essential features. It doesn't provide critical notifications, such as alerts in Telegram for a low battery level, missing charging, or potential issues with the BMS itself. Monitoring these parameters while standing next to the BMS with my phone felt inefficient and inconvenient. I envisioned a solution where I could access all this data and functionality from anywhere in the world, without being tethered to a specific location.
 
 Inspired by this need, I decided to create my own project using Python and develop a web application that integrates all these features in one place. Unlike the official app, my application includes real-time notifications, remote accessibility, and, importantly, data visualization through detailed charts—something the official app also lacks. This project is a step toward simplifying BMS monitoring and ensuring a seamless user experience, no matter where I am.
 
+```markdown
+## 🗺️ Roadmap / Features
+
+- [x] JK-BMS monitoring via BLE
+- [x] Deye Inverter monitoring via WiFi
+- [x] TP-Link Tapo plug integration
+- [x] PWA frontend with offline support
+- [x] Web push notifications
+- [x] Dockerized backend
+- [ ] Telegram bot alerts
+- [ ] Admin dashboard with charts
+
 ### Top contributors:
 <a href="https://github.com/RondaYummy/bms-monitor-ble/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=RondaYummy/bms-monitor-ble" alt="contrib.rocks image" />
 </a>
+
+## 💬 Feedback & Support
+
+Feel free to open an issue if you encounter any problems, or suggest new features here:  
+👉 [GitHub Issues](https://github.com/RondaYummy/bms-monitor-ble/issues)
 
 ## References
 - https://github.com/syssi/esphome-jk-bms - ESPHome component [RS485 BLE, rw] (C++, Python)
