@@ -1,5 +1,3 @@
-###        🔋 Devices overview   |   📊 System summary   |   ⚙️ Settings page
-
 <p align="center">
   <img src="devices.png" style="height: 500px; object-fit: contain;">
   <img src="summary.png" style="height: 500px; object-fit: contain;">
