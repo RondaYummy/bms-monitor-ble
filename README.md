@@ -97,8 +97,7 @@ To connect to a Tapo outlet, you need to specify the outlet IP and EMAIL and PAS
 </code>
   
 ## First steeps:
-#### To access your application from outside the local network, you need to get a static IP address from your Internet provider.
-#### And etup Nginx and SSL ( https://github.com/RondaYummy/bms-monitor-ble/blob/main/docs/nginx.md )
+#### To access your application from outside the local network, you need to get a static IP address from your Internet provider. And etup Nginx and SSL ( https://github.com/RondaYummy/bms-monitor-ble/blob/main/docs/nginx.md )
 
 ### Make sure that the systemctl service is running:
 ```bash
