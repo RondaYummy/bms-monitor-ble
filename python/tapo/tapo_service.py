@@ -4,11 +4,6 @@ import asyncio
 
 TAPO_CACHE: dict[str, TapoDevice] = {}
 
-def get_tapo_device(ip: str, email: str, password: str) -> TapoDevice:
-    if ip not in TAPO_CACHE:
-        TAPO_CACHE[ip] = TapoDevice(ip, email, password)
-    return TAPO_CACHE[ip]
-
 class TapoDevice:
     def __init__(self, ip: str, email: str, password: str):
         self.ip = ip
@@ -43,6 +38,11 @@ class TapoDevice:
 
     def turn_off(self):
         self.plug.turnOff()
+
+def get_tapo_device(ip: str, email: str, password: str) -> TapoDevice:
+    if ip not in TAPO_CACHE:
+        TAPO_CACHE[ip] = TapoDevice(ip, email, password)
+    return TAPO_CACHE[ip]
 
 async def check_and_update_device_status_async(device_row):
     loop = asyncio.get_event_loop()
