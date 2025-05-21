@@ -67,3 +67,12 @@ async def check_and_update_device_status_async(device_row):
             print(f"❌ Failed to update device {device_row['ip']}: {e}")
 
     await loop.run_in_executor(None, blocking_check)
+
+async def check_all_tapo_devices():
+    devices = get_all_tapo_devices()
+    semaphore = asyncio.Semaphore(5)  # limit of parallel checks
+    async def limited(dev):
+        async with semaphore:
+            await check_and_update_device_status_async(dev)
+
+    await asyncio.gather(*(limited(d) for d in devices))
