@@ -90,8 +90,8 @@ To connect to a Tapo outlet, you need to specify the outlet IP and EMAIL and PAS
 
 ```mermaid
 graph TD
-  BMS[JK-BMS (Bluetooth)] -->|BLE / Bleak| PythonApp[Python Backend]
-  Deye[Deye Inverter (WiFi)] -->|pysolarmanv5| PythonApp
+  BMS[JK-BMS (Bluetooth)] --> PythonApp[Python Backend]
+  Deye[Deye Inverter (WiFi)] --> PythonApp
   PythonApp --> DB[(SQLite DB)]
   PythonApp --> PWA[Frontend (PWA)]
   PythonApp --> Push[Web Push Notifications]
