@@ -88,7 +88,7 @@ To connect to a Tapo outlet, you need to specify the outlet IP and EMAIL and PAS
 
 ### ⚙️ System Architecture
 
-<code>graph TD
+<code>Graph TD
   BMS[JK-BMS] --> PythonApp[Python Backend]
   Deye[Deye Inverter] --> PythonApp
   PythonApp --> DB[SQLite DB]
@@ -162,6 +162,17 @@ Inspired by this need, I decided to create my own project using Python and devel
 - [ ] Telegram bot alerts
 - [ ] Admin dashboard with charts
 ```
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| BLE Communication | [bleak](https://github.com/hbldh/bleak) (Python) |
+| Inverter API | [pysolarmanv5](https://github.com/srph/pysolarmanv5) |
+| Smart Plugs | [TapoP100 fork](https://github.com/almottier/TapoP100) |
+| Backend | Python / FastAPI / SQLite |
+| Frontend | Vue 3 + TypeScript + Quasar + PWA |
+| Deployment | Docker + PM2 |
 
 ### Top contributors:
 <a href="https://github.com/RondaYummy/bms-monitor-ble/graphs/contributors">
