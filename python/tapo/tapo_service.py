@@ -2,6 +2,13 @@ from PyP100 import PyP110
 from python.db import update_tapo_device_by_ip, get_all_tapo_devices
 import asyncio
 
+TAPO_CACHE: dict[str, TapoDevice] = {}
+
+def get_tapo_device(ip: str, email: str, password: str) -> TapoDevice:
+    if ip not in TAPO_CACHE:
+        TAPO_CACHE[ip] = TapoDevice(ip, email, password)
+    return TAPO_CACHE[ip]
+
 class TapoDevice:
     def __init__(self, ip: str, email: str, password: str):
         self.ip = ip
@@ -39,29 +46,24 @@ class TapoDevice:
 
 async def check_and_update_device_status_async(device_row):
     loop = asyncio.get_event_loop()
+
     def blocking_check():
-        tapo = TapoDevice(device_row["ip"], device_row["email"], device_row["password"])
-        status = tapo.get_status()
-        name = tapo.get_name()
-        info = status.get("info", {})
+        try:
+            tapo = get_tapo_device(device_row["ip"], device_row["email"], device_row["password"])
+            status = tapo.get_status()
+            name = tapo.get_name()
+            info = status.get("info", {})
 
-        update_data = {
-            "device_on": status.get("device_on", False),
-            "name": name,
-            "model": info.get("model"),
-            "fw_ver": info.get("fw_ver"),
-            "hw_ver": info.get("hw_ver"),
-            "device_id": info.get("device_id"),
-        }
-        print(f"Update_data: {update_data}")
-        update_tapo_device_by_ip(device_row["ip"], update_data)
+            update_data = {
+                "device_on": status.get("device_on", False),
+                "name": name,
+                "model": info.get("model"),
+                "fw_ver": info.get("fw_ver"),
+                "hw_ver": info.get("hw_ver"),
+                "device_id": info.get("device_id"),
+            }
+            update_tapo_device_by_ip(device_row["ip"], update_data)
+        except Exception as e:
+            print(f"❌ Failed to update device {device_row['ip']}: {e}")
+
     await loop.run_in_executor(None, blocking_check)
-
-async def check_all_tapo_devices():
-    devices = get_all_tapo_devices()
-    semaphore = asyncio.Semaphore(5)  # limit of parallel checks
-    async def limited(dev):
-        async with semaphore:
-            await check_and_update_device_status_async(dev)
-
-    await asyncio.gather(*(limited(d) for d in devices))

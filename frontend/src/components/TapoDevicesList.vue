@@ -17,11 +17,9 @@
             <span>Model: {{ device?.model }}</span>
             <span>IP: {{ device?.ip }}</span>
             <span>Email: {{ device?.email }}</span>
-            <span>{{ parseManufacturingDate(device?.added_at) }}</span>
+            <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
         </div>
         <div class="column">
-            {{ device?.device_on == 1 }}
-            {{ device?.device_on == 0 }}
             <q-icon @click="toggleDevice(device?.device_on)" name="power_settings_new"
                 class="cursor-pointer"
                 :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="2em" />
@@ -30,11 +28,12 @@
 </template>
 
 <script setup lang="ts">
-import { parseManufacturingDate } from 'src/helpers/utils'
+import { useSessionStorage } from 'src/helpers/utils'
 import { TapoDevice } from 'src/models'
 import { useTapoStore } from 'src/stores/tapo'
 import { computed, ref } from 'vue'
 
+const token = useSessionStorage("access_token");
 const tapoStore = useTapoStore()
 
 const props = defineProps<{ device: TapoDevice }>()
@@ -43,7 +42,7 @@ const disableButton = ref(false)
 
 async function toggleDevice(state: number) {
     try {
-        if (disableButton.value) return
+        if (disableButton.value || !token) return
         disableButton.value = true
         if (state == 1) {
             await tapoStore.disableDevice(props.device?.ip)
