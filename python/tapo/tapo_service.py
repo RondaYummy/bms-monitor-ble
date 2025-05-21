@@ -2,8 +2,6 @@ from PyP100 import PyP110
 from python.db import update_tapo_device_by_ip, get_all_tapo_devices
 import asyncio
 
-TAPO_CACHE: dict[str, TapoDevice] = {}
-
 class TapoDevice:
     def __init__(self, ip: str, email: str, password: str):
         self.ip = ip
@@ -38,6 +36,8 @@ class TapoDevice:
 
     def turn_off(self):
         self.plug.turnOff()
+
+TAPO_CACHE: dict[str, TapoDevice] = {}
 
 def get_tapo_device(ip: str, email: str, password: str) -> TapoDevice:
     if ip not in TAPO_CACHE:
