@@ -21,9 +21,8 @@ def to_signed(val):
     return val - 0x10000 if val >= 0x8000 else val
 
 async def read_deye():
-    print("🔌 Connecting to Deye inverter...")
     modbus = PySolarmanV5(INVERTER_IP, LOGGER_SN, port=8899, mb_slave_id=SLAVE_ID)
-    print("📡 Connection established, reading data...")
+    print("📡 Connection Deye inverter established, reading data...")
     try:
         pv1_power = modbus.read_holding_registers(186, 1)[0]
         pv2_power = modbus.read_holding_registers(187, 1)[0]

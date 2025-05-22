@@ -529,7 +529,7 @@ async def parse_setting_info(data, device_name, device_address):
 
         await data_store.update_setting_info(device_address, setting_info)
 
-        log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=True)
+        log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=False)
         for key, value in setting_info.items():
             log(device_name, f"{key}: {value}", force=True)
 
