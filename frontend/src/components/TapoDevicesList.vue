@@ -1,10 +1,10 @@
 <template>
     <div class="row device-row">
-        <h6 class="tect-center full-width text-capitalize">{{ device?.name }}</h6>
+        <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">{{ device?.name }}</h6>
         <div class="row justify-between full-width">
             <div class="column">
                 <span class="unique">{{ device?.model }}</span>
-                <span class="unique">{{ device?.ip }}</span>
+                <span @click="copy(device?.ip)" class="unique">{{ device?.ip }}</span>
             </div>
 
             <q-icon @click="toggleDevice(device?.device_on)" name="power_settings_new" class="cursor-pointer"
@@ -23,18 +23,18 @@
 
         <div class="column">
             <span>{{ device?.email }}</span>
-            <span>
-                <span>{{ device?.fw_ver }}</span>
+            <p>
+                {{ device?.fw_ver }}
                 <q-tooltip>
                     Software version.
                 </q-tooltip>
-            </span>
+            </p>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { useSessionStorage } from 'src/helpers/utils'
+import { copy, useSessionStorage } from 'src/helpers/utils'
 import { TapoDevice } from 'src/models'
 import { useTapoStore } from 'src/stores/tapo'
 import { computed, ref } from 'vue'
