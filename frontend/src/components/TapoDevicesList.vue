@@ -10,7 +10,7 @@
             <q-icon @click="toggleDevice(device?.device_on)" name="power_settings_new" class="cursor-pointer"
                 :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
 
-            <div class="justify-between funll-width">
+            <div class="column">
                 <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
                 <span>{{ device?.email }}</span>
             </div>
