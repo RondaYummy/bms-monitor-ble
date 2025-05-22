@@ -12,19 +12,15 @@
 
             <div class="column">
                 <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
-                <span>{{ device?.email }}</span>
+                <span class="unique">{{ device?.hw_ver }}</span>
             </div>
         </div>
 
         <div class="column">
-            <div class="q-mb-10">
-                Hardware v.
-                <span class="unique">{{ device?.hw_ver }}</span>
-            </div>
-            <div>
-                Software v.
-                <span class="unique">{{ device?.fw_ver }}</span>
-            </div>
+            <span>{{ device?.email }}</span>
+            <span>
+                SW v. <span class="unique">{{ device?.fw_ver }}</span>
+            </span>
         </div>
     </div>
 </template>
