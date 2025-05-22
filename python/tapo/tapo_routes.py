@@ -53,15 +53,16 @@ def turn_on_device(ip: str):
         status = tapo.get_status()
         name = tapo.get_name()
         info = status.get("info", {})
+        tapo.turn_on()
+
         update_data = {
-            "device_on": info.get("device_on"),
+            "device_on": True,
             "name": name,
             "model": info.get("model"),
             "fw_ver": info.get("fw_ver"),
             "hw_ver": info.get("hw_ver"),
             "device_id": info.get("device_id"),
         }
-        tapo.turn_on()
         db.update_tapo_device_by_ip(ip, update_data)
         return {"status": "on", "ip": ip}
     except Exception as e:
@@ -78,8 +79,9 @@ def turn_off_device(ip: str):
         name = tapo.get_name()
         info = status.get("info", {})
         tapo.turn_off()
+
         update_data = {
-            "device_on": info.get("device_on"),
+            "device_on": False,
             "name": name,
             "model": info.get("model"),
             "fw_ver": info.get("fw_ver"),

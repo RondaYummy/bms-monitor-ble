@@ -1,6 +1,12 @@
 <template>
     <div class="row device-row">
-        <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">{{ device?.name }}</h6>
+        <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">
+            {{ device?.name }}
+            <span :class="{
+                'text-green': device?.device_on == 1,
+                'text-red': device?.device_on == 0,
+            }">{{ device?.device_on == 1 ? ' ON' : ' OFF' }}</span>
+        </h6>
         <div class="row justify-between full-width">
             <div class="column">
                 <span class="unique">{{ device?.model }}</span>
@@ -66,6 +72,8 @@ async function toggleDevice(state: number) {
 <style scoped lang="scss">
 .device-row {
     width: 100%;
-    height: 100px;
+    padding: 10px;
+    border: 1px solid white;
+    border-radius: 10px;
 }
 </style>
