@@ -1,7 +1,7 @@
 <template>
     <div class="row device-row">
         <h6 class="tect-center full-width text-capitalize">{{ device?.name }}</h6>
-        <div class="row justify-between funll-width">
+        <div class="row justify-between full-width">
             <div class="column">
                 <span class="unique">{{ device?.model }}</span>
                 <span class="unique">{{ device?.ip }}</span>
@@ -12,14 +12,22 @@
 
             <div class="column">
                 <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
-                <span class="unique">{{ device?.hw_ver }}</span>
+                <span class="unique">
+                    {{ device?.hw_ver }}
+                    <q-tooltip>
+                        Hardware version.
+                    </q-tooltip>
+                </span>
             </div>
         </div>
 
         <div class="column">
             <span>{{ device?.email }}</span>
             <span>
-                SW v. <span class="unique">{{ device?.fw_ver }}</span>
+                <span>{{ device?.fw_ver }}</span>
+                <q-tooltip>
+                    Software version.
+                </q-tooltip>
             </span>
         </div>
     </div>
