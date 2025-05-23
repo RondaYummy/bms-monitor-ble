@@ -34,7 +34,8 @@ async def read_deye():
         bat_voltage = modbus.read_holding_registers(183, 1)[0] * 0.01
         bat_soc = modbus.read_holding_registers(184, 1)[0]
         time.sleep(0.1)
-        grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
+        grid_power = to_signed(modbus.read_holding_registers(173, 1)[0])
+        # grid_power = to_signed(modbus.read_holding_registers(175, 1)[0])
         time.sleep(0.1)
         net_balance = total_pv + grid_power - load_power - bat_power
         for addr in range(170, 180):
