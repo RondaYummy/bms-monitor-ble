@@ -2,11 +2,11 @@
     <div class="row device-row">
         <q-icon @click="toggleDevice(device?.device_on)" name="power_settings_new" class="cursor-pointer toggle-device"
             :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
-        <q-badge :class="{
+        <div :class="{
             'connected-device': device?.device_on == 1,
             'disconnected-device': device?.device_on == 0,
-        }" class="q-pa-xs cursor-pointer text-weight-bold q-mt-sm q-mb-10 text-center cursor-pointer" color="cyan">
-        </q-badge>
+        }" class="q-pa-xs cursor-pointer text-weight-bold q-mt-sm q-mb-10 text-center cursor-pointer badge">
+        </div>
 
         <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">
             {{ device?.name }}
@@ -30,7 +30,6 @@
         </div>
 
         <div class="column full-width">
-            <span>{{ device?.email }}</span>
             <p>
                 {{ device?.fw_ver }}
                 <q-tooltip>
@@ -86,5 +85,10 @@ async function toggleDevice(state: number) {
     position: absolute;
     top: 4px;
     right: 4px;
+}
+
+.badge:before {
+    top: -9px;
+    left: 0px;
 }
 </style>
