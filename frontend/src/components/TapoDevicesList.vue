@@ -10,7 +10,10 @@
 
         <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">
             {{ device?.name }}
-            <q-icon @click.prevent="deleteDevice(device?.ip)" class="q-pl-md" name="delete" size="2.5em"></q-icon>
+            <q-icon @click.prevent="deleteDevice(device?.ip)" class="cursor-pointer" name="delete"
+                size="1.2em"></q-icon>
+                <q-icon class="cursor-pointer" name="edit"
+                size="1.2em"></q-icon>
         </h6>
 
         <div class="row justify-between full-width q-mt-md">
@@ -31,16 +34,18 @@
         </div>
 
         <div class="column full-width">
-            <p>
-                Power: {{ device?.power_watt }} ват.
-                <q-tooltip>
-                    Потужність підключеного приладу через цю розетку у ватах.
-                </q-tooltip>
-            </p>
+            <div class="row">
+                <span>
+                    Power: {{ device?.power_watt }} ват.
+                    <q-tooltip>
+                        Потужність підключеного приладу через цю розетку у ватах.
+                    </q-tooltip>
+                </span>
 
-            <p>
-                Priority: {{ device?.priority }}
-            </p>
+                <span>
+                    Priority: {{ device?.priority }}
+                </span>
+            </div>
 
             <p>
                 {{ device?.fw_ver }}
