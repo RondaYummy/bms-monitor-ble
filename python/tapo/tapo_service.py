@@ -53,6 +53,8 @@ async def check_and_update_device_status_async(device_row):
             status = tapo.get_status()
             name = tapo.get_name()
             info = status.get("info", {})
+            power_watt = tapo.getEnergyUsage() # Only for P110
+            print(f"power_watt: {power_watt}")
 
             update_data = {
                 "device_on": status.get("device_on", False),
