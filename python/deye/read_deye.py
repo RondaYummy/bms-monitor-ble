@@ -38,12 +38,16 @@ async def read_deye():
         # grid_power = to_signed(modbus.read_holding_registers(175, 1)[0])
         time.sleep(0.1)
         net_balance = total_pv + grid_power - load_power - bat_power
-        for addr in range(170, 180):
+        
+        # Для тестування, в якому байті яка інформація.
+        for addr in range(170, 190, 2):
             try:
-                val = modbus.read_holding_registers(addr, 1)[0]
-                print(f"Reg {addr}: {val} / signed: {to_signed(val)}")
+                regs = modbus.read_holding_registers(addr, 2)
+                val32 = (regs[0] << 16) + regs[1]
+                signed_val = val32 if val32 < 2**31 else val32 - 2**32
+                print(f"Reg {addr}-{addr+1}: raw={regs}, uint32={val32}, signed32={signed_val}")
             except Exception as e:
-                print(f"❌ Error reading reg {addr}: {e}")
+                print(f"❌ Error reading {addr}: {e}")
 
         data = {
             "timestamp": datetime.utcnow().isoformat(),
