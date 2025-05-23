@@ -37,8 +37,12 @@ async def read_deye():
         grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
         time.sleep(0.1)
         net_balance = total_pv + grid_power - load_power - bat_power
-        print(f"grid_power: {grid_power}")
-        print(f"read_holding_registers: {modbus.read_holding_registers(172, 1)[0]}")
+        for addr in range(170, 180):
+            try:
+                val = modbus.read_holding_registers(addr, 1)[0]
+                print(f"Reg {addr}: {val} / signed: {to_signed(val)}")
+            except Exception as e:
+                print(f"❌ Error reading reg {addr}: {e}")
 
         data = {
             "timestamp": datetime.utcnow().isoformat(),
