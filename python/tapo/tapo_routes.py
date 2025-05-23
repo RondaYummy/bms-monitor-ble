@@ -97,11 +97,11 @@ def turn_off_device(ip: str):
 
 @router.delete("/tapo/device/{ip}", dependencies=[Depends(verify_token)])
 async def delete_tapo_device(ip: str = Path(..., example="192.168.31.110")):
-    device = get_tapo_device_by_ip(ip)
+    device = db.get_tapo_device_by_ip(ip)
     if not device:
         raise HTTPException(status_code=404, detail="Tapo device not found")
 
-    success = delete_tapo_device_by_ip(ip)
+    success = db.delete_tapo_device_by_ip(ip)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to delete the Tapo device")
     
