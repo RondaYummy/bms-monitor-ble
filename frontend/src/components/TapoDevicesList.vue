@@ -2,22 +2,22 @@
     <div class="row device-row">
         <q-icon @click="toggleDevice(device?.device_on)" name="power_settings_new" class="cursor-pointer toggle-device"
             :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
+        <span class="device-status" :class="{
+            'text-green': device?.device_on == 1,
+            'text-red': device?.device_on == 0,
+        }">{{ device?.device_on == 1 ? ' ON' : ' OFF' }}</span>
 
-        <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize device-status">
+        <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">
             {{ device?.name }}
-            <span :class="{
-                'text-green': device?.device_on == 1,
-                'text-red': device?.device_on == 0,
-            }">{{ device?.device_on == 1 ? ' ON' : ' OFF' }}</span>
         </h6>
 
-        <div class="row justify-between full-width q-mt-sm">
+        <div class="row justify-between full-width q-mt-md">
             <div class="column">
                 <span class="unique">{{ device?.model }}</span>
                 <span @click="copy(device?.ip)" class="unique">{{ device?.ip }}</span>
             </div>
 
-            <div class="column full-width">
+            <div class="column">
                 <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
                 <span class="unique">
                     {{ device?.hw_ver }}
