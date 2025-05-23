@@ -54,15 +54,6 @@ async def check_and_update_device_status_async(device_row):
             name = tapo.get_name()
             info = status.get("info", {})
 
-            power_watt = None
-            if hasattr(tapo.plug, "getEnergyUsage"):
-                try:
-                    power_info = tapo.plug.getEnergyUsage() # Only for P110
-                    power_watt = power_info.get("current_power", None)
-                    print(f"🔌 Power usage (W): {power_watt}")
-                except Exception:
-                    pass
-
             update_data = {
                 "device_on": status.get("device_on", False),
                 "name": name,
