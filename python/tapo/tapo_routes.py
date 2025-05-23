@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Path
 from python.tapo.dto import TapoDeviceCreateDto
 import python.db as db
 from python.auth.verify_token import verify_token
