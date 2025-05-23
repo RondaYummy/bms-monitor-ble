@@ -1,20 +1,21 @@
 <template>
     <div class="row device-row">
-        <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">
+        <q-icon @click="toggleDevice(device?.device_on)" name="power_settings_new" class="cursor-pointer toggle-device"
+            :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
+
+        <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize device-status">
             {{ device?.name }}
             <span :class="{
                 'text-green': device?.device_on == 1,
                 'text-red': device?.device_on == 0,
             }">{{ device?.device_on == 1 ? ' ON' : ' OFF' }}</span>
         </h6>
-        <div class="row justify-between full-width">
+
+        <div class="row justify-between full-width q-mt-sm">
             <div class="column">
                 <span class="unique">{{ device?.model }}</span>
                 <span @click="copy(device?.ip)" class="unique">{{ device?.ip }}</span>
             </div>
-
-            <q-icon @click="toggleDevice(device?.device_on)" name="power_settings_new" class="cursor-pointer"
-                :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
 
             <div class="column full-width">
                 <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
@@ -27,7 +28,7 @@
             </div>
         </div>
 
-        <div class="column">
+        <div class="column full-width">
             <span>{{ device?.email }}</span>
             <p>
                 {{ device?.fw_ver }}
@@ -54,7 +55,9 @@ const disableButton = ref(false)
 
 async function toggleDevice(state: number) {
     try {
-        if (disableButton.value || !token) return
+        if (disableButton.value || !token) {
+            return;
+        }
         disableButton.value = true
         if (state == 1) {
             await tapoStore.disableDevice(props.device?.ip)
@@ -75,5 +78,18 @@ async function toggleDevice(state: number) {
     padding: 10px;
     border: 1px solid white;
     border-radius: 10px;
+    position: relative;
+}
+
+.toggle-device {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+}
+
+.device-status {
+    position: absolute;
+    top: 8px;
+    left: 8px;
 }
 </style>
