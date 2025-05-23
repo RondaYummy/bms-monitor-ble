@@ -205,7 +205,7 @@
           <q-tab-panel name="tapo">
             <div class="text-h6 q-mb-sm">TP-LINK Tapo Devices</div>
 
-            <q-expansion-item :disable="!!token" v-model="expandAddTapoDevice" icon="add" label="Add new device" dark
+            <q-expansion-item :disable="!token" v-model="expandAddTapoDevice" icon="add" label="Add new device" dark
               dense-toggle>
               <div class="row justify-between items-center">
                 <q-input label-color="white" label="Device IP Address" :disable="!token" v-model="newTapoDevice.ip"

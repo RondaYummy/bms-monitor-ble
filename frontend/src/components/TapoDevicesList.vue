@@ -10,7 +10,7 @@
 
         <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">
             {{ device?.name }}
-            <q-icon @click="deleteDevice(device?.ip)" class="q-pl-md" name="delete" size="2.5em"></q-icon>
+            <q-icon @click.prevent="deleteDevice(device?.ip)" class="q-pl-md" name="delete" size="2.5em"></q-icon>
         </h6>
 
         <div class="row justify-between full-width q-mt-md">
