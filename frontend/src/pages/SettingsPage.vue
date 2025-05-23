@@ -205,16 +205,53 @@
           <q-tab-panel name="tapo">
             <div class="text-h6 q-mb-sm">TP-LINK Tapo Devices</div>
 
-            <q-input label="Device IP Address" :disable="!token" v-model="newTapoDevice.ip" filled
-              class="q-mb-sm q-mt-sm" />
-            <q-input label="Email from Tapo App" :disable="!token" v-model="newTapoDevice.email" filled
-              class="q-mb-sm" />
-            <q-input label="Password from Tapo App" :disable="!token" v-model="newTapoDevice.password" filled
-              class="q-mb-sm" />
+            <q-expansion-item :disable="!!token" v-model="expandAddTapoDevice" icon="add" label="Add new device" dark
+              dense-toggle>
+              <div class="row justify-between items-center">
+                <q-input label-color="white" label="Device IP Address" :disable="!token" v-model="newTapoDevice.ip"
+                  filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
+                <q-icon class="q-pl-md" name="help" size="2.5em">
+                  <q-tooltip>
+                    Щоб забезпечити стабільну роботу системи, потрібно **призначити статичні IP-адреси** для інвертора
+                    та
+                    розеток Tapo через налаштування роутера. Це запобігає випадковій зміні IP після перезавантаження та
+                    гарантує постійне з'єднання.
+                  </q-tooltip>
+                </q-icon>
+              </div>
 
-            <q-btn :loading="loadingDevices" @click="addTapoDevice"
-              :disable="!token || !newTapoDevice.ip || !newTapoDevice.email || !newTapoDevice.password" color="black"
-              label="Додати новий пристрій" />
+              <div class="row justify-between items-center">
+                <q-input label-color="white" label="Priority" :disable="!token" v-model="newTapoDevice.priority" filled
+                  class="q-mb-sm" style="flex: 1 1 auto" />
+                <q-icon class="q-pl-md" name="help" size="2.5em">
+                  <q-tooltip>
+                    Приорітет пристрою, чим вищий приорітет, тим важливіший пристрій. Наприклад автоматична система буде
+                    включати прилади з вищим приорітеом в першу чергу.
+                  </q-tooltip>
+                </q-icon>
+              </div>
+
+              <div class="row justify-between items-center">
+                <q-input label-color="white" label="Device power ( W )" :disable="!token"
+                  v-model="newTapoDevice.power_watt" filled class="q-mb-sm" style="flex: 1 1 auto" />
+                <q-icon class="q-pl-md" name="help" size="2.5em">
+                  <q-tooltip>
+                    Потужність прилада, який вмикається цією розеткою Tapo. Наприклад бойлер, який використовує 2 кВт -
+                    вказуєте 2000 ват.
+                  </q-tooltip>
+                </q-icon>
+              </div>
+
+              <q-input label-color="white" label="Email from Tapo App" :disable="!token" v-model="newTapoDevice.email"
+                filled class="q-mb-sm" />
+
+              <q-input label-color="white" label="Password from Tapo App" :disable="!token"
+                v-model="newTapoDevice.password" filled class="q-mb-sm" />
+
+              <q-btn :loading="loadingDevices" @click="addTapoDevice"
+                :disable="!token || !newTapoDevice.ip || !newTapoDevice.email || !newTapoDevice.password" color="black"
+                label="Додати новий пристрій" />
+            </q-expansion-item>
 
             <div class="column q-mt-md q-mb-md">
               <TapoDevicesList :device="device" v-for="device of tapoDevices" :key="device.id" />
@@ -249,6 +286,7 @@ const tapoStore = useTapoStore();
 
 const token = useSessionStorage("access_token");
 
+const expandAddTapoDevice = ref(false);
 const tab = ref<string>('Alerts');
 const password = ref<string>('');
 const isPwd = ref<boolean>(true);
@@ -257,7 +295,7 @@ const attemptToConnectDevice = ref<string>('');
 const notFoundDevices = ref<boolean>(false);
 const alertsModal = ref<boolean>(false);
 const intervalId = ref<NodeJS.Timeout>();
-const newTapoDevice = ref({ ip: '', email: '', password: '' });
+const newTapoDevice = ref({ ip: '', email: '', password: '', power_watt: 0, priority: 1 });
 
 const pushSubscription = ref<PushSubscription | null>(null);
 const changePasswordModal = ref(false);
@@ -343,6 +381,8 @@ async function addTapoDevice() {
     ip: newTapoDevice.value.ip,
     email: newTapoDevice.value.email,
     password: newTapoDevice.value.password,
+    power_watt: newTapoDevice.value?.power_watt,
+    priority: newTapoDevice.value?.priority,
   });
 
   newTapoDevice.value.ip = '';

@@ -91,6 +91,10 @@
                   <em>Набагато зручніше, ніж офіційні додатки: усі дані — в одному місці, з будь-якого пристрою.</em>
                 </p>
               </div>
+
+              <p>
+                GitHub: <a href="https://github.com/RondaYummy/bms-monitor-ble" target="_blank">bms-monitor-ble</a>
+              </p>
             </q-card-section>
 
             <q-card-actions align="right">

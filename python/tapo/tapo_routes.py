@@ -22,7 +22,9 @@ def add_tapo_device_api(device: TapoDeviceCreateDto):
             db.insert_tapo_device(
                 ip=device.ip,
                 email=device.email,
-                password=device.password
+                password=device.password,
+                power_watt=device.power_watt,
+                priority=device.priority
             )
         except Exception as conn_err:
             print(f"⚠️ Could not connect to the device {device.ip}: {conn_err}")
@@ -92,3 +94,15 @@ def turn_off_device(ip: str):
         return {"status": "off", "ip": ip}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"❌ The device could not be turned off: {str(e)}")
+
+@router.delete("/tapo/device/{ip}", dependencies=[Depends(verify_token)])
+async def delete_tapo_device(ip: str = Path(..., example="192.168.31.110")):
+    device = get_tapo_device_by_ip(ip)
+    if not device:
+        raise HTTPException(status_code=404, detail="Tapo device not found")
+
+    success = delete_tapo_device_by_ip(ip)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to delete the Tapo device")
+    
+    return {"message": f"Tapo device with IP {ip} deleted successfully"}

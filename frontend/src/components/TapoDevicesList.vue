@@ -10,6 +10,7 @@
 
         <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">
             {{ device?.name }}
+            <q-icon @click="deleteDevice(device?.ip)" class="q-pl-md" name="delete" size="2.5em"></q-icon>
         </h6>
 
         <div class="row justify-between full-width q-mt-md">
@@ -30,6 +31,8 @@
         </div>
 
         <div class="column full-width">
+            <p>Потужність: {{ device?.power_watt }}</p>
+            <p>Приорітет: {{ device?.priority }}</p>
             <p>
                 {{ device?.fw_ver }}
                 <q-tooltip>
@@ -41,33 +44,36 @@
 </template>
 
 <script setup lang="ts">
-import { copy, useSessionStorage } from 'src/helpers/utils'
-import { TapoDevice } from 'src/models'
-import { useTapoStore } from 'src/stores/tapo'
-import { computed, ref } from 'vue'
+import { copy, useSessionStorage } from 'src/helpers/utils';
+import { TapoDevice } from 'src/models';
+import { useTapoStore } from 'src/stores/tapo';
+import { computed } from 'vue';
 
 const token = useSessionStorage("access_token");
 const tapoStore = useTapoStore()
 
 const props = defineProps<{ device: TapoDevice }>()
 const device = computed(() => props.device)
-const disableButton = ref(false)
+
+async function deleteDevice(ip: string) {
+    if (!token) {
+        return;
+    }
+    await tapoStore.removeDevice(ip);
+}
 
 async function toggleDevice(state: number) {
+    if (!token) {
+        return;
+    }
     try {
-        if (disableButton.value || !token) {
-            return;
-        }
-        disableButton.value = true
         if (state == 1) {
-            await tapoStore.disableDevice(props.device?.ip)
+            await tapoStore.disableDevice(props.device?.ip);
         } else {
-            await tapoStore.enableDevice(props.device?.ip)
+            await tapoStore.enableDevice(props.device?.ip);
         }
     } catch (err) {
-        console.error(err)
-    } finally {
-        disableButton.value = false
+        console.error(err);
     }
 }
 </script>

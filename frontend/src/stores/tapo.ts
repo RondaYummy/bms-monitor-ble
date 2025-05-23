@@ -28,9 +28,11 @@ export const useTapoStore = defineStore('tapo', () => {
   //   ACTIONS
   // ==============
   async function addDevice(data: {
-    ip: string
-    email: string
-    password: string
+    ip: string;
+    email: string;
+    password: string;
+    power_watt: number;
+    priority: number;
   }): Promise<{ status: string; device: TapoDevice } | undefined> {
     try {
       const res = await api.post('/api/tapo/devices/add', data)
@@ -99,6 +101,28 @@ export const useTapoStore = defineStore('tapo', () => {
     }
   }
 
+  async function removeDevice(ip: string): Promise<void> {
+    try {
+      const res = await api.delete(`/api/tapo/device/${ip}`);
+      await fetchDevices();
+      Notify.create({
+        message: res.data?.message,
+        color: 'green',
+        position: 'top',
+        timeout: 2000,
+      });
+    } catch (error) {
+      console.error('Error disable tapo device: ', error);
+      Notify.create({
+        message: 'Error disable device.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
+    }
+  }
+
   return {
     // ==============
     //   STATE
@@ -124,5 +148,6 @@ export const useTapoStore = defineStore('tapo', () => {
     addDevice,
     enableDevice,
     disableDevice,
+    removeDevice,
   }
 })

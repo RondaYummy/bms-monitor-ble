@@ -243,6 +243,14 @@ def create_table():
                 added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             ''')
+            cursor.execute("PRAGMA table_info(tapo_devices)")
+            columns = {row[1] for row in cursor.fetchall()}
+
+            if "power_watt" not in columns:
+                cursor.execute("ALTER TABLE tapo_devices ADD COLUMN power_watt INTEGER DEFAULT 0")
+
+            if "priority" not in columns:
+                cursor.execute("ALTER TABLE tapo_devices ADD COLUMN priority INTEGER DEFAULT 0")
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
@@ -762,3 +770,14 @@ def get_tapo_device_by_id(id):
             columns = [desc[0] for desc in cursor.description]
             return dict(zip(columns, row))
         return None
+
+def delete_tapo_device_by_ip(ip: str):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM tapo_devices WHERE ip = ?", (ip,))
+            conn.commit()
+            return cursor.rowcount > 0  # True if at least 1 line was deleted
+    except sqlite3.Error as e:
+        print(f"❌ Error deleting the Tapo device with IP {ip}: {e}")
+        raise

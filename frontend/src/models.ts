@@ -165,6 +165,8 @@ export interface TapoDevice {
   email: string;
   device_on: number; // 1 = увімкнено, 0 = вимкнено
   device_id: string;
+  power_watt: number;
+  priority: number;
   name: string; // base64-кодоване ім'я (можна декодувати при потребі)
   model: string; // Наприклад, "P100"
   fw_ver: string; // Наприклад, "1.3.7 Build 20230711 Rel. 61904"
