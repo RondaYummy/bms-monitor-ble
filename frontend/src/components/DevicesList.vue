@@ -109,37 +109,6 @@ ul {
   width: 100%;
 }
 
-.connected-device,
-.disconnected-device {
-  position: relative;
-}
-
-li .connected-device::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background-color: #0f0;
-  border-radius: 50%;
-  position: absolute;
-  top: -9px;
-  left: -9px;
-  box-shadow: 0 0 5px rgba(0, 128, 0, 0.5);
-  animation: pulse 1.5s infinite;
-}
-
-li .disconnected-device::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background-color: #ff0266;
-  border-radius: 50%;
-  position: absolute;
-  top: -9px;
-  left: -9px;
-  box-shadow: 0 0 5px #ff026780;
-  animation: pulse 1.5s infinite;
-}
-
 h2,
 p {
   margin: 0;

@@ -72,9 +72,9 @@ export const useTapoStore = defineStore('tapo', () => {
       await api.post(`/api/tapo/devices/${ip}/on`);
       await fetchDevices();
     } catch (error) {
-      console.error('Error fetching tapo devices: ', error);
+      console.error('Error enable tapo device: ', error);
       Notify.create({
-        message: 'Error on device.',
+        message: 'Error enable device.',
         color: 'red',
         icon: 'warning',
         position: 'top',
@@ -88,7 +88,14 @@ export const useTapoStore = defineStore('tapo', () => {
       await api.post(`/api/tapo/devices/${ip}/off`);
       await fetchDevices();
     } catch (error) {
-      console.error('Error fetching tapo devices: ', error);
+      console.error('Error disable tapo device: ', error);
+      Notify.create({
+        message: 'Error disable device.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
     }
   }
 

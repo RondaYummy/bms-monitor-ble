@@ -200,3 +200,34 @@ sup {
   background-color: rgb(56, 189, 248);
   box-shadow: 0 0 5px rgba(56, 189, 248, 0.6);
 }
+
+.connected-device,
+.disconnected-device {
+  position: relative;
+}
+
+.connected-device::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background-color: #0f0;
+  border-radius: 50%;
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  box-shadow: 0 0 5px rgba(0, 128, 0, 0.5);
+  animation: pulse 1.5s infinite;
+}
+
+.disconnected-device::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background-color: #ff0266;
+  border-radius: 50%;
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  box-shadow: 0 0 5px #ff026780;
+  animation: pulse 1.5s infinite;
+}
