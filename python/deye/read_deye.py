@@ -20,6 +20,10 @@ SLAVE_ID = 1
 def to_signed(val):
     return val - 0x10000 if val >= 0x8000 else val
 
+def to_signed_32bit(hi: int, lo: int) -> int:
+    value = (hi << 16) + lo
+    return value if value < 0x80000000 else value - 0x100000000
+
 async def read_deye():
     modbus = PySolarmanV5(INVERTER_IP, LOGGER_SN, port=8899, mb_slave_id=SLAVE_ID)
     print("📡 Connection Deye inverter established, reading data...")
@@ -41,6 +45,11 @@ async def read_deye():
         # grid_power = to_signed(modbus.read_holding_registers(175, 1)[0])
         time.sleep(0.1)
         net_balance = total_pv + grid_power - load_power - bat_power
+
+        time.sleep(0.1)
+        reg = modbus.read_holding_registers(31071, 2)  # Grid power import/export
+        grid_power = to_signed_32bit(reg[0], reg[1])   # Correct signed 32-bit interpretation
+        print(f"⚡ Grid Power: {grid_power} W")
         
         # Для тестування, в якому байті яка інформація.
         # for addr in range(170, 180):
