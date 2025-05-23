@@ -46,11 +46,6 @@ async def read_deye():
         time.sleep(0.1)
         net_balance = total_pv + grid_power - load_power - bat_power
 
-        time.sleep(0.1)
-        reg = modbus.read_holding_registers(31071, 2)  # Grid power import/export
-        grid_power = to_signed_32bit(reg[0], reg[1])   # Correct signed 32-bit interpretation
-        print(f"⚡ Grid Power: {grid_power} W")
-        
         # Для тестування, в якому байті яка інформація.
         # for addr in range(170, 180):
         #     try:
