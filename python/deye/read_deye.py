@@ -50,7 +50,6 @@ async def read_deye():
             "battery_soc": bat_soc,
             "net_balance": net_balance
         }
-        print(f"Upd deye: {data}")
         await data_store.update_deye_data(data)
 
     except V5FrameError as err:
