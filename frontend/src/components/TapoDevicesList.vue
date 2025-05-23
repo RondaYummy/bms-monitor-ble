@@ -56,16 +56,12 @@ const props = defineProps<{ device: TapoDevice }>()
 const device = computed(() => props.device)
 
 async function deleteDevice(ip: string) {
-    if (!token) {
-        return;
-    }
+    if (!token) return;
     await tapoStore.removeDevice(ip);
 }
 
 async function toggleDevice(state: number) {
-    if (!token) {
-        return;
-    }
+    if (!token) return;
     try {
         if (state == 1) {
             await tapoStore.disableDevice(props.device?.ip);
