@@ -33,18 +33,14 @@ async def read_deye():
         bat_power = to_signed(modbus.read_holding_registers(190, 1)[0])
         bat_voltage = modbus.read_holding_registers(183, 1)[0] * 0.01
         bat_soc = modbus.read_holding_registers(184, 1)[0]
+        # time.sleep(0.1)
+        # grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
         time.sleep(0.1)
-        grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
-        time.sleep(0.1)
-        grid_power1 = to_signed(modbus.read_holding_registers(173, 1)[0])
-        time.sleep(0.1)
-        grid_power2 = to_signed(modbus.read_holding_registers(175, 1)[0])
+        grid_power = to_signed(modbus.read_holding_registers(173, 1)[0])
+        # time.sleep(0.1)
+        # grid_power = to_signed(modbus.read_holding_registers(175, 1)[0])
         time.sleep(0.1)
         net_balance = total_pv + grid_power - load_power - bat_power
-
-        print(f"grid_power: {grid_power}")
-        print(f"grid_power1: {grid_power1}")
-        print(f"grid_power2: {grid_power2}")
         
         # Для тестування, в якому байті яка інформація.
         # for addr in range(170, 180):
