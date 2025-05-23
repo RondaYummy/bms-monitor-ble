@@ -37,7 +37,11 @@
                     Потужність підключеного приладу через цю розетку у ватах.
                 </q-tooltip>
             </p>
-            <p>Priority: {{ device?.priority }}</p>
+
+            <p>
+                Priority: {{ device?.priority }}
+            </p>
+
             <p>
                 {{ device?.fw_ver }}
                 <q-tooltip>
