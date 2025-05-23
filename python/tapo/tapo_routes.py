@@ -19,7 +19,7 @@ def add_tapo_device_api(device: TapoDeviceCreateDto):
                 detail=f"⚠️ The device with IP {device.ip} already exists in the database."
             )
         try:
-            updated = db.insert_tapo_device(
+            db.insert_tapo_device(
                 ip=device.ip,
                 email=device.email,
                 password=device.password,
@@ -30,7 +30,6 @@ def add_tapo_device_api(device: TapoDeviceCreateDto):
             print(f"⚠️ Could not connect to the device {device.ip}: {conn_err}")
         return {
             "status": "added",
-            "device": updated
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error adding: {str(e)}")
