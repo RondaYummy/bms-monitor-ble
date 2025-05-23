@@ -55,8 +55,8 @@ function deploy() {
   # END
   echo "====> Оновлення проекту завершено успішно"
 
-  echo "====> Перезапускаємо сервер Ubuntu..."
-  sudo reboot
+  # echo "====> Перезапускаємо сервер Ubuntu..."
+  # sudo reboot
 }
 
 function check_deploy() {
