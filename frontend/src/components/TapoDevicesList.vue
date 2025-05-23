@@ -16,7 +16,7 @@
             <q-icon @click="toggleDevice(device?.device_on)" name="power_settings_new" class="cursor-pointer"
                 :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
 
-            <div class="column">
+            <div class="column full-width">
                 <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
                 <span class="unique">
                     {{ device?.hw_ver }}

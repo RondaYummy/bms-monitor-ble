@@ -724,7 +724,6 @@ def update_tapo_device_by_ip(ip, info: dict):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            print(f"Update Tapo: {info}")
             cursor.execute('''
                 UPDATE tapo_devices
                 SET name = ?, model = ?, fw_ver = ?, hw_ver = ?, device_id = ?, device_on = ?

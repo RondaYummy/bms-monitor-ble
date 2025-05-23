@@ -216,7 +216,7 @@
               :disable="!token || !newTapoDevice.ip || !newTapoDevice.email || !newTapoDevice.password" color="black"
               label="Додати новий пристрій" />
 
-            <div class="column q-mt-sm q-mb-sm">
+            <div class="column q-mt-md q-mb-md">
               <TapoDevicesList :device="device" v-for="device of tapoDevices" :key="device.id" />
             </div>
           </q-tab-panel>
