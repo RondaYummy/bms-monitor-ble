@@ -37,6 +37,8 @@ async def read_deye():
         grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
         time.sleep(0.1)
         net_balance = total_pv + grid_power - load_power - bat_power
+        print(f"grid_power: {grid_power}")
+        print(f"read_holding_registers: {modbus.read_holding_registers(172, 1)[0]}")
 
         data = {
             "timestamp": datetime.utcnow().isoformat(),
