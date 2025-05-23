@@ -705,7 +705,7 @@ def get_tapo_device_by_ip(ip):
             return dict(zip(columns, row))
         return None
 
-def insert_tapo_device(ip, email, password):
+def insert_tapo_device(ip, email, password, power_watt=0, priority=0):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -717,9 +717,9 @@ def insert_tapo_device(ip, email, password):
 
             cursor.execute('''
                 INSERT INTO tapo_devices (
-                    ip, email, password, added_at, device_on
-                ) VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?)
-            ''', (ip, email, password, False))
+                    ip, email, password, added_at, device_on, power_watt, priority
+                ) VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?)
+            ''', (ip, email, password, False, power_watt, priority))
 
             conn.commit()
             return get_tapo_device_by_ip(ip)
