@@ -21,18 +21,6 @@ function deploy() {
   docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down
   docker compose -f $COMPOSE_FILE -p $PROJECT_NAME up -d
 
-  echo "====> Видаляємо непотрібні  Докер-образи, контейнери, імеджі та мережі"
-  docker system prune --all --force --volumes
-  # Очищає все непотрібне, включаючи:
-  # - Зупинені контейнери.
-  # - Невикористовувані образи (включаючи "dangling" і "непов'язані").
-  # - Невикористовувані мережі.
-  # - Неприв'язані томи (завдяки опції --volumes).
-
-  # docker system prune -f # Видалення непотрібних контейнерів, образів та мереж
-  # docker volume prune -f # Видалення неприєднаних томів (не зачіпає sqlite_data)
-  # docker image prune -f
-
   if [ $? -ne 0 ]; then
     echo "❌ Помилка під час ребілду та запуску контейнерів"
     exit 1
@@ -51,6 +39,18 @@ function deploy() {
     exit 1
   fi
   echo "✅ Статичні файли успішно скопійовані"
+
+  echo "====> Видаляємо непотрібні  Докер-образи, контейнери, імеджі та мережі"
+  docker system prune --all --force --volumes
+  # Очищає все непотрібне, включаючи:
+  # - Зупинені контейнери.
+  # - Невикористовувані образи (включаючи "dangling" і "непов'язані").
+  # - Невикористовувані мережі.
+  # - Неприв'язані томи (завдяки опції --volumes).
+
+  # docker system prune -f # Видалення непотрібних контейнерів, образів та мереж
+  # docker volume prune -f # Видалення неприєднаних томів (не зачіпає sqlite_data)
+  # docker image prune -f
 
   # END
   echo "====> Оновлення проекту завершено успішно"
