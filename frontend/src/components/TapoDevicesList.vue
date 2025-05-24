@@ -9,10 +9,10 @@
         </div>
 
         <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">
-            {{ device?.name }}
-            <q-icon @click.prevent="deleteDevice(device?.ip)" class="cursor-pointer" name="delete"
-                size="1.2em"></q-icon>
-            <q-icon class="cursor-pointer" name="edit" size="1.2em"></q-icon>
+            <span>{{ device?.name }}</span>
+            <q-icon @click.prevent="deleteDevice(device?.ip)" class="cursor-pointer q-mr-md" name="delete"
+                size="1.5em"></q-icon>
+            <q-icon class="cursor-pointer" name="edit" size="1.5em"></q-icon>
         </h6>
 
         <div class="row justify-between full-width q-mt-md">
@@ -24,7 +24,7 @@
             <div class="column">
                 <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
                 <div class="row">
-                    <span>
+                    <span class="q-mr-sm">
                         [ {{ device?.priority }} ]
                         <q-tooltip>
                             Приорітет пристрою, для автоматичного увімкнення чи вимкнення. Більше число, більший
@@ -33,7 +33,7 @@
                     </span>
 
                     <span class="unique">
-                        {{ device?.power_watt }} ват.
+                        {{ device?.power_watt }} Вт
                         <q-tooltip>
                             Потужність підключеного приладу через цю розетку у ватах.
                         </q-tooltip>
@@ -42,9 +42,9 @@
             </div>
         </div>
 
-        <div class="column full-width">
-            <span class="unique">
-                [ {{ device?.hw_ver }}] 
+        <div class="row justify-center full-width">
+            <span class="unique q-mr-sm">
+                [ {{ device?.hw_ver }} ]
                 <q-tooltip>
                     Hardware version.
                 </q-tooltip>
