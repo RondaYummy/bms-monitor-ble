@@ -12,8 +12,7 @@
             {{ device?.name }}
             <q-icon @click.prevent="deleteDevice(device?.ip)" class="cursor-pointer" name="delete"
                 size="1.2em"></q-icon>
-                <q-icon class="cursor-pointer" name="edit"
-                size="1.2em"></q-icon>
+            <q-icon class="cursor-pointer" name="edit" size="1.2em"></q-icon>
         </h6>
 
         <div class="row justify-between full-width q-mt-md">
@@ -24,29 +23,32 @@
 
             <div class="column">
                 <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
-                <span class="unique">
-                    {{ device?.hw_ver }}
-                    <q-tooltip>
-                        Hardware version.
-                    </q-tooltip>
-                </span>
+                <div class="row">
+                    <span class="unique">
+                        {{ device?.power_watt }} ват.
+                        <q-tooltip>
+                            Потужність підключеного приладу через цю розетку у ватах.
+                        </q-tooltip>
+                    </span>
+
+                    <span class="unique">
+                        {{ device?.priority }}
+                        <q-tooltip>
+                            Приорітет пристрою, для автоматичного увімкнення чи вимкнення. Більше число, більший
+                            приорітет.
+                        </q-tooltip>
+                    </span>
+                </div>
             </div>
         </div>
 
         <div class="column full-width">
-            <div class="row">
-                <span>
-                    Power: {{ device?.power_watt }} ват.
-                    <q-tooltip>
-                        Потужність підключеного приладу через цю розетку у ватах.
-                    </q-tooltip>
-                </span>
-
-                <span>
-                    Priority: {{ device?.priority }}
-                </span>
-            </div>
-
+            <span class="unique">
+                {{ device?.hw_ver }}
+                <q-tooltip>
+                    Hardware version.
+                </q-tooltip>
+            </span>
             <p>
                 {{ device?.fw_ver }}
                 <q-tooltip>

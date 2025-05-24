@@ -15,12 +15,12 @@
           <SemiCircleGauge :value="deyeData?.total_pv || 0" :image="'/inverter/solar_panel_yellow_200x200.png'"
             :tooltip="`Потужність, яку генерують сонячні панелі ( разом ) | 1 MPPT вхід (PV): ${deyeData?.pv1_power} | 2 MPPT вхід (PV): ${deyeData?.pv2_power}`" />
 
-          <SemiCircleGauge :value="deyeData?.battery_power || 0" :image="'/inverter/battery_yellow_200x200.png'"
+          <SemiCircleGauge :value="-(deyeData?.battery_power || 0)" :image="'/inverter/battery_yellow_200x200.png'"
             :tooltip="'Потужність заряду/розряду акумулятора'" :additional-value="`${deyeData?.battery_soc || 0}%`" />
         </div>
 
         <div class="column">
-          <SemiCircleGauge :value="deyeData?.grid_power || 0" :image="'/inverter/transmission_tower_yellow_200x200.png'"
+          <SemiCircleGauge :value="-(deyeData?.grid_power || 0)" :image="'/inverter/transmission_tower_yellow_200x200.png'"
             :tooltip="'Потужність, яка надходить з/до мережі'" />
 
           <SemiCircleGauge :value="deyeData?.load_power || 0" :image="'/inverter/house_yellow_200x200.png'"
