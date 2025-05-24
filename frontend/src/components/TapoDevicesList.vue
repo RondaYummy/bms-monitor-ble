@@ -24,18 +24,18 @@
             <div class="column">
                 <span>{{ new Date(device?.added_at)?.toLocaleDateString() }}</span>
                 <div class="row">
-                    <span class="unique">
-                        {{ device?.power_watt }} ват.
+                    <span>
+                        [ {{ device?.priority }} ]
                         <q-tooltip>
-                            Потужність підключеного приладу через цю розетку у ватах.
+                            Приорітет пристрою, для автоматичного увімкнення чи вимкнення. Більше число, більший
+                            приорітет.
                         </q-tooltip>
                     </span>
 
                     <span class="unique">
-                        {{ device?.priority }}
+                        {{ device?.power_watt }} ват.
                         <q-tooltip>
-                            Приорітет пристрою, для автоматичного увімкнення чи вимкнення. Більше число, більший
-                            приорітет.
+                            Потужність підключеного приладу через цю розетку у ватах.
                         </q-tooltip>
                     </span>
                 </div>
@@ -44,17 +44,17 @@
 
         <div class="column full-width">
             <span class="unique">
-                {{ device?.hw_ver }}
+                [ {{ device?.hw_ver }}] 
                 <q-tooltip>
                     Hardware version.
                 </q-tooltip>
             </span>
-            <p>
+            <span>
                 {{ device?.fw_ver }}
                 <q-tooltip>
                     Software version.
                 </q-tooltip>
-            </p>
+            </span>
         </div>
     </div>
 </template>
