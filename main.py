@@ -29,6 +29,7 @@ from python.deye.read_deye import run_deye_loop
 from concurrent.futures import ThreadPoolExecutor
 from python.push_notifications import router as alerts_router
 from python.tapo.tapo_routes import router as tapo_router
+from python.tapo.find_tapo import router as tapo_find_router
 from python.tapo.tapo_service import check_all_tapo_devices
 from python.auth.verify_token import verify_token
 
@@ -53,6 +54,7 @@ app = FastAPI()
 
 app.include_router(tapo_router, prefix="/api")
 app.include_router(alerts_router, prefix="/api")
+app.include_router(tapo_find_router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,

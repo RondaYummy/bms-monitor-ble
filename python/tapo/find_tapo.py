@@ -1,12 +1,14 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import ipaddress
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from PyP100 import PyP110
-from .tapo_routes import router
+from python.auth.verify_token import verify_token
 
 MAX_WORKERS = 100
+
+router = APIRouter()
 
 class ScanRequest(BaseModel):
     email: str
@@ -42,7 +44,7 @@ def try_check_device(ip: str, email: str, password: str):
     except Exception:
         return None
 
-@router.post("/tapo/devices/search")
+@router.post("/tapo/devices/search", dependencies=[Depends(verify_token)])
 def search_tapo_devices(request: ScanRequest):
     try:
         network = ipaddress.ip_network(request.subnet)
