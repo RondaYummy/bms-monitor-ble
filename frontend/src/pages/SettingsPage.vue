@@ -212,9 +212,9 @@
                 :disable="!token || !newTapoDevice.email || !newTapoDevice.password" color="black"
                 label="Шукати пристрої Tapo" />
 
-              <q-separator v-if="notFoundTapoDevices" class="q-mt-md q-mb-md" color="white" />
+              <q-separator v-if="!tapoStore.foundDevices?.length" class="q-mt-md q-mb-md" color="white" />
 
-              <template v-if="notFoundTapoDevices">
+              <template v-if="!tapoStore.foundDevices?.length">
                 <h6 class="q-mt-md">Нових пристроїв TP-Link Tapo не знайдено.</h6>
               </template>
 
@@ -230,7 +230,7 @@
               </q-list>
 
               <q-dialog v-model="openModalAddTapo" persistent>
-                <q-card style="min-width: 350px">
+                <q-card dark style="min-width: 350px">
                   <q-card-section>
                     <div class="text-h6">{{ modalAddTapoDeviceData?.nmae }}</div>
                   </q-card-section>
@@ -341,7 +341,6 @@ const attemptToConnectDevice = ref<string>('');
 const openModalAddTapo = ref<boolean>(false);
 const modalAddTapoDeviceData = ref();
 const notFoundDevices = ref<boolean>(false);
-const notFoundTapoDevices = ref<boolean>(false);
 const alertsModal = ref<boolean>(false);
 const intervalId = ref<NodeJS.Timeout>();
 const newTapoDevice = ref({ ip: '', email: '', password: '', power_watt: 0, priority: 1 });
@@ -382,10 +381,7 @@ async function openModalAddTapoDevice(device: any) {
 async function searchTapoDevices() {
   loadingTapoDevices.value = true;
   try {
-    const devices = await tapoStore.searchTapoDevices({ email: newTapoDevice.value.email, password: newTapoDevice.value.password });
-    if (!devices?.length) {
-      notFoundTapoDevices.value = true;
-    }
+    await tapoStore.searchTapoDevices({ email: newTapoDevice.value.email, password: newTapoDevice.value.password });
   } catch (error) {
     console.error(error);
   } finally {
@@ -453,7 +449,6 @@ async function addTapoDevice() {
     power_watt: newTapoDevice.value?.power_watt,
     priority: newTapoDevice.value?.priority,
   });
-
   newTapoDevice.value.ip = '';
 }
 

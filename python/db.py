@@ -809,7 +809,7 @@ def delete_tapo_device_by_ip(ip: str):
         print(f"❌ Error deleting the Tapo device with IP {ip}: {e}")
         raise
 
-def create_deye_device(ip, serial_number, slave_id=1):
+def create_deye_device(ip, serial_number, slave_id=1, device_on=1):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -819,9 +819,9 @@ def create_deye_device(ip, serial_number, slave_id=1):
                 return get_deye_device_by_ip(ip)
 
             cursor.execute('''
-                INSERT INTO deye_devices (ip, serial_number, slave_id)
-                VALUES (?, ?, ?)
-            ''', (ip, serial_number, slave_id))
+                INSERT INTO deye_devices (ip, serial_number, slave_id, device_on)
+                VALUES (?, ?, ?, ?)
+            ''', (ip, serial_number, slave_id, device_on))
             conn.commit()
             return get_deye_device_by_ip(ip)
     except sqlite3.Error as e:

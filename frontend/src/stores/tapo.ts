@@ -8,21 +8,21 @@ export const useTapoStore = defineStore('tapo', () => {
   // ==============
   //   STATE
   // ==============
-  const devices = ref<TapoDevice[]>([])
-  const foundDevices = ref()
+  const devices = ref<TapoDevice[]>([]);
+  const foundDevices = ref();
 
   // ==============
   //   GETTERS
   // ==============
   function getDevices(): TapoDevice[] {
-    return devices.value
+    return devices.value;
   }
 
   // ==============
   //   MUTATIONS
   // ==============
   function updateDevices(newDevices: TapoDevice[]) {
-    devices.value = newDevices
+    devices.value = newDevices;
   }
 
   // ==============
@@ -39,6 +39,10 @@ export const useTapoStore = defineStore('tapo', () => {
       const res = await api.post('/api/tapo/devices/add', data)
       await fetchDevices()
       if (res.data?.status === 'added') {
+        const index = foundDevices.value.findIndex((d: TapoDevice) => d.ip === data.ip)
+        if (index !== -1) {
+          foundDevices.value.splice(index, 1)
+        }
         Notify.create({
           message: 'Tapo device aded success.',
           color: 'green',
@@ -46,7 +50,7 @@ export const useTapoStore = defineStore('tapo', () => {
           timeout: 2000,
         })
       }
-      return res.data
+      return res.data;
     } catch (error) {
       console.error('Error add device: ', error)
       Notify.create({
@@ -55,7 +59,7 @@ export const useTapoStore = defineStore('tapo', () => {
         icon: 'warning',
         position: 'top',
         timeout: 2000,
-      })
+      });
     }
   }
 
