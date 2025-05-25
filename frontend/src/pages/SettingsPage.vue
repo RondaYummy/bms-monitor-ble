@@ -217,7 +217,7 @@
                 :disable="!token || !newTapoDevice.email || !newTapoDevice.password" color="black"
                 label="Шукати пристрої Tapo" />
 
-              <q-separator class="q-mt-md" color="white" />
+              <q-separator class="q-mt-md q-mb-md" color="white" />
 
               <template v-if="!tapoStore.foundDevices?.length">
                 <h6 class="q-mt-md">
@@ -225,9 +225,12 @@
                 </h6>
               </template>
 
-              <q-list v-else bordered separator>
+              <h6 v-if="tapoStore.foundDevices?.length" class="q-mt-md">
+                Знайдено нові пристрої TP-Link Tapo:
+              </h6>
+              <q-list v-if="tapoStore.foundDevices?.length" bordered separator>
                 <q-item v-for="device of tapoStore.foundDevices" :key="device?.ip" clickable :disable="openModalAddTapo"
-                  @click="token && openModalAddTapoDevice(device)" v-ripple>
+                  @click="token && openModalAddTapoDevice(device)" v-ripple class="justify-between items-center">
                   <div class="text-h6">
                     {{ device?.name }}
                   </div>
@@ -238,7 +241,7 @@
               <q-dialog v-model="openModalAddTapo" persistent>
                 <q-card style="min-width: 350px">
                   <q-card-section>
-                    <div class="text-h6">Your address</div>
+                    <div class="text-h6">{{ modalAddTapoDeviceData?.nmae }}</div>
                   </q-card-section>
 
                   <q-card-section class="q-pt-none">
@@ -294,6 +297,12 @@
                 </q-card>
               </q-dialog>
             </q-expansion-item>
+
+            <q-separator class="q-mt-md q-mb-md" color="white" />
+
+            <h6 class="q-mt-md">
+              Ваші пристрої TP-Link Tapo.
+            </h6>
 
             <div class="column q-mt-md q-mb-md">
               <TapoDevicesList :device="device" v-for="device of tapoDevices" :key="device.id" />
