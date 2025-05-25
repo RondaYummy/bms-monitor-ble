@@ -4,9 +4,9 @@ import python.db as db
 from python.auth.verify_token import verify_token
 from python.tapo.tapo_service import TapoDevice
 
-router = APIRouter()
+router = APIRouter(prefix="/tapo", tags=["TP-Link Tapo Devices"])
 
-@router.post("/tapo/devices/add", dependencies=[Depends(verify_token)])
+@router.post("/devices/add", dependencies=[Depends(verify_token)])
 def add_tapo_device_api(device: TapoDeviceCreateDto):
     try:
         existing = db.get_tapo_device_by_ip(device.ip)
@@ -31,7 +31,7 @@ def add_tapo_device_api(device: TapoDeviceCreateDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error adding: {str(e)}")
 
-@router.get("/tapo/devices")
+@router.get("/devices")
 def get_all_tapo_devices():
     try:
         devices = db.get_all_tapo_devices()
@@ -41,7 +41,7 @@ def get_all_tapo_devices():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error when receiving a list: {str(e)}")
 
-@router.post("/tapo/devices/{ip}/on", dependencies=[Depends(verify_token)])
+@router.post("/devices/{ip}/on", dependencies=[Depends(verify_token)])
 def turn_on_device(ip: str):
     device = db.get_tapo_device_by_ip(ip)
     if not device:
@@ -66,7 +66,7 @@ def turn_on_device(ip: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"❌ The device could not be turned on: {str(e)}")
 
-@router.post("/tapo/devices/{ip}/off", dependencies=[Depends(verify_token)])
+@router.post("/devices/{ip}/off", dependencies=[Depends(verify_token)])
 def turn_off_device(ip: str):
     device = db.get_tapo_device_by_ip(ip)
     if not device:
@@ -91,7 +91,7 @@ def turn_off_device(ip: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"❌ The device could not be turned off: {str(e)}")
 
-@router.delete("/tapo/device/{ip}", dependencies=[Depends(verify_token)])
+@router.delete("/device/{ip}", dependencies=[Depends(verify_token)])
 async def delete_tapo_device(ip: str = Path(..., example="192.168.31.110")):
     device = db.get_tapo_device_by_ip(ip)
     if not device:

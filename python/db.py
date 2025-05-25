@@ -235,22 +235,36 @@ def create_table():
                 email TEXT NOT NULL,
                 password TEXT NOT NULL,
                 device_on BOOLEAN DEFAULT FALSE,
+                auto_enabled BOOLEAN DEFAULT FALSE,
                 device_id TEXT,
                 name TEXT,
                 model TEXT,
                 fw_ver TEXT,
                 hw_ver TEXT,
-                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                power_watt INTEGER DEFAULT 0,
+                priority INTEGER DEFAULT 0
             )
             ''')
-            cursor.execute("PRAGMA table_info(tapo_devices)")
-            columns = {row[1] for row in cursor.fetchall()}
-
-            if "power_watt" not in columns:
-                cursor.execute("ALTER TABLE tapo_devices ADD COLUMN power_watt INTEGER DEFAULT 0")
-
-            if "priority" not in columns:
-                cursor.execute("ALTER TABLE tapo_devices ADD COLUMN priority INTEGER DEFAULT 0")
+            cursor.execute('''
+            CREATE TABLE IF NOT EXISTS deye_devices (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ip TEXT NOT NULL UNIQUE,
+                serial_number TEXT NOT NULL,
+                slave_id INTEGER DEFAULT 1,
+                timestamp TEXT,
+                pv1_power REAL,
+                pv2_power REAL,
+                total_pv REAL,
+                load_power REAL,
+                grid_power REAL,
+                battery_power REAL,
+                battery_voltage REAL,
+                battery_soc REAL,
+                net_balance REAL,
+                device_on INTEGER DEFAULT 1
+            )
+            ''')
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
@@ -793,4 +807,91 @@ def delete_tapo_device_by_ip(ip: str):
             return cursor.rowcount > 0  # True if at least 1 line was deleted
     except sqlite3.Error as e:
         print(f"❌ Error deleting the Tapo device with IP {ip}: {e}")
+        raise
+
+def create_deye_device(ip, serial_number, slave_id=1):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM deye_devices WHERE ip = ?", (ip,))
+            existing = cursor.fetchone()
+            if existing:
+                return get_deye_device_by_ip(ip)
+
+            cursor.execute('''
+                INSERT INTO deye_devices (ip, serial_number, slave_id)
+                VALUES (?, ?, ?)
+            ''', (ip, serial_number, slave_id))
+            conn.commit()
+            return get_deye_device_by_ip(ip)
+    except sqlite3.Error as e:
+        print(f"❌ Error inserting Deye device: {e}")
+        raise
+
+def update_deye_device_data(ip, data: dict):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            fields = []
+            values = []
+
+            for key in [
+                "pv1_power", "pv2_power", "total_pv", "load_power", "grid_power",
+                "battery_power", "battery_voltage", "battery_soc", "net_balance", "timestamp"
+            ]:
+                if key in data:
+                    fields.append(f"{key} = ?")
+                    values.append(data[key])
+
+            if not fields:
+                raise ValueError("No valid fields to update.")
+
+            values.append(ip)
+            sql = f'''
+                UPDATE deye_devices
+                SET {", ".join(fields)}
+                WHERE ip = ?
+            '''
+            cursor.execute(sql, values)
+            conn.commit()
+            return get_deye_device_by_ip(ip)
+    except sqlite3.Error as e:
+        print(f"❌ Error updating Deye device {ip}: {e}")
+        raise
+
+def get_deye_device_by_ip(ip):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM deye_devices WHERE ip = ?", (ip,))
+            row = cursor.fetchone()
+            if row:
+                columns = [desc[0] for desc in cursor.description]
+                return dict(zip(columns, row))
+            return None
+    except sqlite3.Error as e:
+        print(f"❌ Error fetching Deye device by IP {ip}: {e}")
+        return None
+
+def get_all_deye_devices():
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM deye_devices")
+            rows = cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description]
+            return [dict(zip(columns, row)) for row in rows]
+    except sqlite3.Error as e:
+        print(f"❌ Error fetching all Deye devices: {e}")
+        return []
+
+def delete_deye_device_by_ip(ip: str):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM deye_devices WHERE ip = ?", (ip,))
+            conn.commit()
+            return cursor.rowcount > 0  # True якщо щось видалилось
+    except sqlite3.Error as e:
+        print(f"❌ Error deleting Deye device with IP {ip}: {e}")
         raise

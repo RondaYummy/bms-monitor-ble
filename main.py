@@ -27,11 +27,13 @@ from python.pwd import verify_password, hash_password
 from python.data_store import data_store
 from python.deye.read_deye import run_deye_loop
 from concurrent.futures import ThreadPoolExecutor
+from python.tapo.tapo_service import check_all_tapo_devices
+from python.auth.verify_token import verify_token
+
 from python.push_notifications import router as alerts_router
 from python.tapo.tapo_routes import router as tapo_router
 from python.tapo.find_tapo import router as tapo_find_router
-from python.tapo.tapo_service import check_all_tapo_devices
-from python.auth.verify_token import verify_token
+from python.deye.deye_routes import router as deye_router
 
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
@@ -55,6 +57,7 @@ app = FastAPI()
 app.include_router(tapo_router, prefix="/api")
 app.include_router(alerts_router, prefix="/api")
 app.include_router(tapo_find_router, prefix="/api")
+app.include_router(deye_router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,
@@ -146,16 +149,6 @@ async def update_configs(request: ConfigUpdateRequest):
     if not updated_config:
         raise HTTPException(status_code=500, detail="Error updating config.")
     return {"message": "Configuration updated successfully", "config": updated_config}
-
-@app.get("/api/deye-info")
-async def get_configs():
-    try:
-        deye_data = await data_store.get_deye_data()
-        if not deye_data:
-            return JSONResponse(content={"message": "No Deye data available yet."}, status_code=404)
-        return deye_data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error deleting alert: {str(e)}")
 
 @app.get("/api/device-settings")
 async def get_device_settings():

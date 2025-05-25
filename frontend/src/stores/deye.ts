@@ -7,44 +7,55 @@ export const useDeyeStore = defineStore('deye', () => {
   // ==============
   //   STATE
   // ==============
-  const deyeData = ref<DeyeRealtimeData>({
-    timestamp: '',
-    pv1_power: 0,
-    pv2_power: 0,
-    total_pv: 0,
-    load_power: 0,
-    grid_power: 0,
-    battery_power: 0,
-    battery_voltage: 0,
-    battery_soc: 0,
-    net_balance: 0,
-  })
+  const deyeData = ref<DeyeRealtimeData[]>([]);
 
   // ==============
   //   GETTERS
   // ==============
-  function getDeyeData(): DeyeRealtimeData {
-    return deyeData.value
+  function getDeyeData(): DeyeRealtimeData[] {
+    return deyeData.value;
   }
 
   // ==============
   //   MUTATIONS
   // ==============
-  function updateDeyeData(newDeyeData: DeyeRealtimeData) {
-    deyeData.value = newDeyeData
+  function updateDeyeData(newDeyeData: DeyeRealtimeData[]) {
+    deyeData.value = newDeyeData;
   }
 
   // ==============
   //   ACTIONS
   // ==============
-  async function fetchDeyeData(): Promise<DeyeRealtimeData | undefined> {
+  async function fetchDeyeData(): Promise<DeyeRealtimeData[] | undefined> {
     try {
-      const response = await api.get('/api/deye-info')
-      const data = await response.data
-      updateDeyeData(data)
-      return deyeData.value
+      const response = await api.get('/api/deye/deye-info');
+      const data = await response.data;
+      updateDeyeData(data);
+      return deyeData.value;
     } catch (error) {
-      console.error('Error Deye data: ', error)
+      console.error('Error Deye data: ', error);
+    }
+  }
+
+  async function fetchDeyeDevices(): Promise<DeyeRealtimeData[] | undefined> {
+    try {
+      const response = await api.get('/api/deye/devices');
+      const data = await response.data;
+      updateDeyeData(data);
+      return deyeData.value;
+    } catch (error) {
+      console.error('Error Deye data: ', error);
+    }
+  }
+
+  async function createDeyeDevice(data: {ip: string, serial_number: string, slave_id?: number }): Promise<DeyeRealtimeData[] | undefined> {
+    try {
+      const response = await api.post('/api/deye/device', data);
+      const devices = await response.data;
+      updateDeyeData(devices);
+      return deyeData.value;
+    } catch (error) {
+      console.error('Error create Deye: ', error);
     }
   }
 
@@ -70,5 +81,7 @@ export const useDeyeStore = defineStore('deye', () => {
     //   ACTIONS
     // ==============
     fetchDeyeData,
+    fetchDeyeDevices,
+    createDeyeDevice,
   }
 })

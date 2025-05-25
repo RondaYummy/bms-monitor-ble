@@ -20,7 +20,8 @@
         </div>
 
         <div class="column">
-          <SemiCircleGauge :value="-(deyeData?.grid_power || 0)" :image="'/inverter/transmission_tower_yellow_200x200.png'"
+          <SemiCircleGauge :value="-(deyeData?.grid_power || 0)"
+            :image="'/inverter/transmission_tower_yellow_200x200.png'"
             :tooltip="'Потужність, яка надходить з/до мережі'" />
 
           <SemiCircleGauge :value="deyeData?.load_power || 0" :image="'/inverter/house_yellow_200x200.png'"
@@ -293,7 +294,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -311,7 +312,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -344,7 +345,7 @@ import {
   isInstalled,
 } from '../helpers/utils'
 import { ref, watch, onBeforeUnmount, computed } from 'vue'
-import type { BeforeInstallPromptEvent, CellInfo, DeyeRealtimeData } from '../models'
+import type { BeforeInstallPromptEvent, CellInfo, DeyeSafeValues } from '../models'
 import { useBmsStore } from 'src/stores/bms'
 import { useDeyeStore } from 'src/stores/deye'
 import SemiCircleGauge from 'src/components/SemiCircleGauge.vue'
@@ -353,12 +354,39 @@ const bmsStore = useBmsStore()
 const deyeStore = useDeyeStore()
 
 const devicesList = computed<Record<string, CellInfo>>(bmsStore.getCellInfo)
-const deyeData = computed<DeyeRealtimeData>(deyeStore.getDeyeData)
+const deyeData = computed<DeyeSafeValues>(() => {
+  const data = deyeStore.getDeyeData();
+  const initial: DeyeSafeValues = {
+    pv1_power: 0,
+    pv2_power: 0,
+    total_pv: 0,
+    load_power: 0,
+    grid_power: 0,
+    battery_power: 0,
+    battery_voltage: 0,
+    battery_soc: 0,
+    net_balance: 0,
+  };
 
-const installAppDialog = ref<boolean>(false)
-const calculatedList = ref<any>()
+  if (!Array.isArray(data)) return initial;
+  return data.reduce((acc, curr) => {
+    acc.pv1_power += Number(curr.pv1_power) || 0
+    acc.pv2_power += Number(curr.pv2_power) || 0
+    acc.total_pv += Number(curr.total_pv) || 0
+    acc.load_power += Number(curr.load_power) || 0
+    acc.grid_power += Number(curr.grid_power) || 0
+    acc.battery_power += Number(curr.battery_power) || 0
+    acc.battery_voltage += Number(curr.battery_voltage) || 0
+    acc.battery_soc += Number(curr.battery_soc) || 0
+    acc.net_balance += Number(curr.net_balance) || 0
+    return acc
+  }, initial);
+});
+
+const installAppDialog = ref<boolean>(false);
+const calculatedList = ref<any>();
 const showInfo = ref(false);
-const tab = ref<string>('All')
+const tab = ref<string>('All');
 
 let deferredPrompt: BeforeInstallPromptEvent
 

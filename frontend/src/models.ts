@@ -147,16 +147,33 @@ export interface BeforeInstallPromptEvent extends Event {
 }
 
 export interface DeyeRealtimeData {
-  timestamp: string // ISO-часова мітка (UTC)
-  pv1_power: number // Потужність від сонячної панелі 1 (Вт)
-  pv2_power: number // Потужність від сонячної панелі 2 (Вт)
-  total_pv: number // Загальна PV потужність (Вт)
-  load_power: number // Потужність навантаження (Вт)
-  grid_power: number // Потужність від/до мережі (Вт): + споживання, - віддача
-  battery_power: number // Потужність батареї (Вт): + розряд, - заряд
-  battery_voltage: number // Напруга батареї (В)
-  battery_soc: number // Рівень заряду батареї (%)
-  net_balance: number // Чистий енергетичний баланс (Вт)
+  id: number // Internal database ID (autoincrement)
+  ip: string // Device IP address
+  serial_number: string // Serial number of the inverter
+  slave_id: number // Modbus slave ID (default is 1)
+  timestamp: string // ISO timestamp (UTC)
+  pv1_power: number // PV1 power (W)
+  pv2_power: number // PV2 power (W)
+  total_pv: number // Total PV power (W)
+  load_power: number // Load power (W)
+  grid_power: number // Power to/from the grid (W); positive = import, negative = export
+  battery_power: number // Battery power (W); positive = discharge, negative = charge
+  battery_voltage: number // Battery voltage (V)
+  battery_soc: number // Battery state of charge (%)
+  net_balance: number // Net power balance (W)
+  device_on: number // Device power state; 1 = on, 0 = off
+}
+
+export interface DeyeSafeValues {
+  pv1_power: number
+  pv2_power: number
+  total_pv: number
+  load_power: number
+  grid_power: number
+  battery_power: number
+  battery_voltage: number
+  battery_soc: number
+  net_balance: number
 }
 
 export interface TapoDevice {

@@ -3,9 +3,7 @@
     <p class='unique text-center full-width' v-if='!token'>
       Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
     </p>
-    <p class='charge text-center full-width' v-if='token'>
-      Ви успішно авторизовані та можете змінювати налаштування.
-    </p>
+    <p class='charge text-center full-width' v-if='token'>Ви успішно авторизовані та можете змінювати налаштування.</p>
 
     <div class='row justify-center no-wrap q-gutter-sm q-mb-md' v-if='!token'>
       <q-input v-model="password" dense outlined label="Введіть пароль" label-color="white" color="white"
@@ -18,25 +16,25 @@
       <q-btn @click="login(password)" color="black" label="Підтвердити" />
     </div>
 
-    <div>
+    <div class="full-width">
       <q-tabs v-model="tab" align="justify" narrow-indicator class="q-mb-lg">
         <q-tab class="text-purple" name="Alerts" label="Alerts" />
         <q-tab class="text-orange" name="Settings" label="Settings" />
+      </q-tabs>
+      <q-tabs v-model="tab" align="justify" narrow-indicator class="q-mb-lg">
         <q-tab class="text-blue" name="bms" label="JK-BMS" />
         <q-tab class="text-blue" name="tapo" label="Tapo" />
+        <q-tab class="text-blue" name="deye" label="Deye" />
       </q-tabs>
 
       <div class="q-gutter-y-sm">
-        <q-tab-panels v-model="tab" animated transition-prev="scale" transition-next="scale"
+        <q-tab-panels swipeable infinite v-model="tab" animated transition-prev="scale" transition-next="scale"
           class="text-white text-center transparent">
           <q-tab-panel name="Alerts">
             <div class="text-h6">Alerts</div>
 
             <div class='column items-center justify-center'>
-              <p>
-                Тут ви можете переглянути всі важливі сповіщення про роботу
-                системи.
-              </p>
+              <p>Тут ви можете переглянути всі важливі сповіщення про роботу системи.</p>
 
               <div class='row justify-center'>
                 <q-chip @click="filterAlertsByLevel()" outline clickable color="white" icon="apps">
@@ -96,9 +94,7 @@
           </q-tab-panel>
 
           <q-tab-panel name="Settings">
-            <p class='text-caption'>
-              Цей пароль, для доступу до налаштувань вашого додатку.
-            </p>
+            <p class='text-caption'>Цей пароль, для доступу до налаштувань вашого додатку.</p>
 
             <q-btn class="q-mt-sm" @click="changePasswordModal = true" color="black" :disable="!token"
               label="Змінити пароль" />
@@ -106,9 +102,7 @@
 
             <q-separator class="q-mt-md" color="orange" inset />
 
-            <p class='text-caption'>
-              PUSH сповіщення - це спливаюче повідомлення на екрані смартфона.
-            </p>
+            <p class='text-caption'>PUSH сповіщення - це спливаюче повідомлення на екрані смартфона.</p>
 
             <q-btn class="q-mt-sm" @click="subscribePush" color="black" :disable="!token || !!pushSubscription"
               label="Підписатись на PUSH" />
@@ -117,9 +111,7 @@
 
             <q-separator class="q-mt-md" color="orange" inset />
 
-            <p class='text-caption'>
-              Налаштування ваших сповіщень
-            </p>
+            <p class='text-caption'>Налаштування ваших сповіщень</p>
             <q-btn class="q-mt-sm" @click="alertsModal = true" color="black" :disable="!token"
               label="Налаштування Alerts" />
             <AlertsSettingsModal v-if="config" :config="config" :show="alertsModal"
@@ -127,9 +119,8 @@
 
             <q-separator class="q-mt-md" color="orange" inset />
 
-            <p class='text-caption'>
-              Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.
-            </p>
+            <p class='text-caption'>Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.</p>
+
             <q-btn-dropdown :disable="!settings?.length" class="q-mt-sm" auto-close stretch flat style='flex: 1 1 50%;'
               label="Оберіть пристрій">
 
@@ -189,9 +180,7 @@
               </q-list>
             </template>
             <template v-if="notFoundDevices">
-              <h6 class="q-mt-md">
-                Нових пристроїв JK-BMS не знайдено.
-              </h6>
+              <h6 class="q-mt-md">Нових пристроїв JK-BMS не знайдено.</h6>
             </template>
 
             <q-separator class="q-mt-md" color="white" />
@@ -203,7 +192,7 @@
           </q-tab-panel>
 
           <q-tab-panel name="tapo">
-            <div class="text-h6 q-mb-sm">TP-LINK Tapo Devices</div>
+            <div class="text-h6 q-mb-sm full-width">TP-LINK Tapo Devices</div>
 
             <q-expansion-item :disable="!token" v-model="expandAddTapoDevice" icon="add" label="Add new device" dark
               dense-toggle>
@@ -226,14 +215,10 @@
               <q-separator v-if="notFoundTapoDevices" class="q-mt-md q-mb-md" color="white" />
 
               <template v-if="notFoundTapoDevices">
-                <h6 class="q-mt-md">
-                  Нових пристроїв TP-Link Tapo не знайдено.
-                </h6>
+                <h6 class="q-mt-md">Нових пристроїв TP-Link Tapo не знайдено.</h6>
               </template>
 
-              <h6 v-if="tapoStore.foundDevices?.length" class="q-mt-md">
-                Знайдено нові пристрої TP-Link Tapo:
-              </h6>
+              <h6 v-if="tapoStore.foundDevices?.length" class="q-mt-md">Знайдено нові пристрої TP-Link Tapo:</h6>
               <q-list v-if="tapoStore.foundDevices?.length" bordered separator>
                 <q-item v-for="device of tapoStore.foundDevices" :key="device?.ip" clickable :disable="openModalAddTapo"
                   @click="token && openModalAddTapoDevice(device)" v-ripple class="justify-between items-center">
@@ -306,13 +291,15 @@
 
             <q-separator class="q-mt-md q-mb-md" color="white" />
 
-            <h6 class="q-mt-md">
-              Ваші пристрої TP-Link Tapo.
-            </h6>
+            <h6 class="q-mt-md" v-if="tapoDevices?.length">Ваші пристрої TP-Link Tapo:</h6>
 
-            <div class="column q-mt-md q-mb-md">
+            <div class="column q-mt-md q-mb-md" v-if="tapoDevices?.length">
               <TapoDevicesList :device="device" v-for="device of tapoDevices" :key="device.id" />
             </div>
+          </q-tab-panel>
+
+          <q-tab-panel name="deye">
+            <DeyeTab />
           </q-tab-panel>
         </q-tab-panels>
       </div>
@@ -328,6 +315,7 @@ import DevicesList from '../components/DevicesList.vue';
 import ToggleButton from '../components/ToggleButton.vue';
 import SettingsList from '../components/SettingsList.vue';
 import TapoDevicesList from '../components/TapoDevicesList.vue';
+import DeyeTab from 'src/components/tabs/DeyeTab.vue';
 import ChangePasswordModal from 'src/components/modals/ChangePasswordModal.vue';
 import { cancelAllSubscriptions, checkPushSubscription, usePush } from 'src/composables/usePush';
 import AlertsSettingsModal from 'src/components/modals/AlertsSettingsModal.vue';
