@@ -24,10 +24,10 @@ import python.db as db
 import python.battery_alerts as alerts
 from python.push_notifications import send_push_startup
 from python.pwd import verify_password, hash_password
-from python.push_notifications import router as alerts_router
 from python.data_store import data_store
 from python.deye.read_deye import run_deye_loop
 from concurrent.futures import ThreadPoolExecutor
+from python.push_notifications import router as alerts_router
 from python.tapo.tapo_routes import router as tapo_router
 from python.tapo.tapo_service import check_all_tapo_devices
 from python.auth.verify_token import verify_token
@@ -50,6 +50,7 @@ JK_BMS_OUI = {"c8:47:80"} # Separated by a comma, you can add all the beginnings
 TOKEN_LIFETIME_SECONDS = 3600
 
 app = FastAPI()
+
 app.include_router(tapo_router, prefix="/api")
 app.include_router(alerts_router, prefix="/api")
 

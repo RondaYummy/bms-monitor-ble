@@ -8,31 +8,32 @@ export const useTapoStore = defineStore('tapo', () => {
   // ==============
   //   STATE
   // ==============
-  const devices = ref<TapoDevice[]>([]);
+  const devices = ref<TapoDevice[]>([])
+  const foundDevices = ref()
 
   // ==============
   //   GETTERS
   // ==============
   function getDevices(): TapoDevice[] {
-    return devices.value;
+    return devices.value
   }
 
   // ==============
   //   MUTATIONS
   // ==============
   function updateDevices(newDevices: TapoDevice[]) {
-    devices.value = newDevices;
+    devices.value = newDevices
   }
 
   // ==============
   //   ACTIONS
   // ==============
   async function addDevice(data: {
-    ip: string;
-    email: string;
-    password: string;
-    power_watt: number;
-    priority: number;
+    ip: string
+    email: string
+    password: string
+    power_watt: number
+    priority: number
   }): Promise<{ status: string; device: TapoDevice } | undefined> {
     try {
       const res = await api.post('/api/tapo/devices/add', data)
@@ -43,7 +44,7 @@ export const useTapoStore = defineStore('tapo', () => {
           color: 'green',
           position: 'top',
           timeout: 2000,
-        });
+        })
       }
       return res.data
     } catch (error) {
@@ -54,7 +55,7 @@ export const useTapoStore = defineStore('tapo', () => {
         icon: 'warning',
         position: 'top',
         timeout: 2000,
-      });
+      })
     }
   }
 
@@ -63,63 +64,79 @@ export const useTapoStore = defineStore('tapo', () => {
       const response = await api.get('/api/tapo/devices')
       const data: { devices: TapoDevice[] } = await response.data
       updateDevices(data?.devices)
-      return devices.value;
+      return devices.value
     } catch (error) {
-      console.error('Error fetching tapo devices: ', error);
+      console.error('Error fetching tapo devices: ', error)
     }
   }
 
   async function enableDevice(ip: string): Promise<void> {
     try {
-      await api.post(`/api/tapo/devices/${ip}/on`);
-      await fetchDevices();
+      await api.post(`/api/tapo/devices/${ip}/on`)
+      await fetchDevices()
     } catch (error) {
-      console.error('Error enable tapo device: ', error);
+      console.error('Error enable tapo device: ', error)
       Notify.create({
         message: 'Error enable device.',
         color: 'red',
         icon: 'warning',
         position: 'top',
         timeout: 2000,
-      });
+      })
     }
   }
 
   async function disableDevice(ip: string): Promise<void> {
     try {
-      await api.post(`/api/tapo/devices/${ip}/off`);
-      await fetchDevices();
+      await api.post(`/api/tapo/devices/${ip}/off`)
+      await fetchDevices()
     } catch (error) {
-      console.error('Error disable tapo device: ', error);
+      console.error('Error disable tapo device: ', error)
       Notify.create({
         message: 'Error disable device.',
         color: 'red',
         icon: 'warning',
         position: 'top',
         timeout: 2000,
-      });
+      })
     }
   }
 
   async function removeDevice(ip: string): Promise<void> {
     try {
-      const res = await api.delete(`/api/tapo/device/${ip}`);
-      await fetchDevices();
+      const res = await api.delete(`/api/tapo/device/${ip}`)
+      await fetchDevices()
       Notify.create({
         message: res.data?.message,
         color: 'green',
         position: 'top',
         timeout: 2000,
-      });
+      })
     } catch (error) {
-      console.error('Error disable tapo device: ', error);
+      console.error('Error disable tapo device: ', error)
       Notify.create({
         message: 'Error disable device.',
         color: 'red',
         icon: 'warning',
         position: 'top',
         timeout: 2000,
-      });
+      })
+    }
+  }
+
+  async function searchTapoDevices(data: { email: string; password: string }) {
+    try {
+      const res = await api.post(`/api/tapo/device/`, data);
+      foundDevices.value = res.data?.devices
+    } catch (error) {
+      console.error('Error search tapo devices: ', error)
+      Notify.create({
+        message: 'Error search tapo devices.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      })
     }
   }
 
@@ -130,7 +147,9 @@ export const useTapoStore = defineStore('tapo', () => {
     get devices() {
       return readonly(devices)
     },
-
+    get foundDevices() {
+      return readonly(foundDevices)
+    },
     // ==============
     //   GETTERS
     // ==============
@@ -144,6 +163,7 @@ export const useTapoStore = defineStore('tapo', () => {
     // ==============
     //   ACTIONS
     // ==============
+    searchTapoDevices,
     fetchDevices,
     addDevice,
     enableDevice,

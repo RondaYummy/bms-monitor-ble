@@ -1,13 +1,10 @@
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path, Depends
 from python.tapo.dto import TapoDeviceCreateDto
 import python.db as db
 from python.auth.verify_token import verify_token
 from python.tapo.tapo_service import TapoDevice
-from fastapi import (
-    Depends,
-)
 
-router = APIRouter()
+router = APIRouter(tags=["Tapo"])
 
 @router.post("/tapo/devices/add", dependencies=[Depends(verify_token)])
 def add_tapo_device_api(device: TapoDeviceCreateDto):

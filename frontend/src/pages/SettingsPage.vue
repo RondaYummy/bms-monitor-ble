@@ -207,6 +207,23 @@
 
             <q-expansion-item :disable="!token" v-model="expandAddTapoDevice" icon="add" label="Add new device" dark
               dense-toggle>
+              <q-input label-color="white" label="Email from Tapo App" :disable="!token" v-model="newTapoDevice.email"
+                filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
+              <q-input label-color="white" label="Password from Tapo App" :disable="!token"
+                v-model="newTapoDevice.password" filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
+
+              <div class="text-h6 q-mt-md">
+                Auto search Tapo devices
+              </div>
+
+              <q-btn
+                @click="tapoStore.searchTapoDevices({ email: newTapoDevice.email, password: newTapoDevice.password })"
+                :disable="!token || !newTapoDevice.email || !newTapoDevice.password" color="black"
+                label="Шукати пристрої Tapo" />
+
+              <div class="text-h6 q-mt-md">
+                Manual add Tapo device
+              </div>
               <div class="row justify-between items-center">
                 <q-input label-color="white" label="Device IP Address" :disable="!token" v-model="newTapoDevice.ip"
                   filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
@@ -241,12 +258,6 @@
                   </q-tooltip>
                 </q-icon>
               </div>
-
-              <q-input label-color="white" label="Email from Tapo App" :disable="!token" v-model="newTapoDevice.email"
-                filled class="q-mb-sm" />
-
-              <q-input label-color="white" label="Password from Tapo App" :disable="!token"
-                v-model="newTapoDevice.password" filled class="q-mb-sm" />
 
               <q-btn :loading="loadingDevices" @click="addTapoDevice"
                 :disable="!token || !newTapoDevice.ip || !newTapoDevice.email || !newTapoDevice.password" color="black"
