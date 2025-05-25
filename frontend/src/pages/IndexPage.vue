@@ -477,7 +477,7 @@ if (!isInstalled()) {
 }
 const intervalId = setInterval(async () => {
   await bmsStore.fetchCellInfo()
-  await deyeStore.fetchDeyeData()
+  await deyeStore.fetchDeyeDevices()
 }, 3000)
 
 onBeforeUnmount(() => {
@@ -485,7 +485,7 @@ onBeforeUnmount(() => {
 })
 
 bmsStore.fetchCellInfo()
-deyeStore.fetchDeyeData()
+deyeStore.fetchDeyeDevices()
 </script>
 
 <style scoped lang="scss">

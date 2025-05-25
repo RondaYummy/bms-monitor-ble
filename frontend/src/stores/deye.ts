@@ -26,17 +26,6 @@ export const useDeyeStore = defineStore('deye', () => {
   // ==============
   //   ACTIONS
   // ==============
-  async function fetchDeyeData(): Promise<DeyeRealtimeData[] | undefined> {
-    try {
-      const response = await api.get('/api/deye/deye-info');
-      const data = await response.data;
-      updateDeyeData(data);
-      return deyeData.value;
-    } catch (error) {
-      console.error('Error Deye data: ', error);
-    }
-  }
-
   async function fetchDeyeDevices(): Promise<DeyeRealtimeData[] | undefined> {
     try {
       const response = await api.get('/api/deye/devices');
@@ -56,6 +45,15 @@ export const useDeyeStore = defineStore('deye', () => {
       return deyeData.value;
     } catch (error) {
       console.error('Error create Deye: ', error);
+    }
+  }
+
+  async function deleteDeyeDevice(ip: string): Promise<void> {
+    try {
+      await api.delete(`/api/deye/device?ip=${ip}`);
+      await fetchDeyeDevices();
+    } catch (error) {
+      console.error('Error delete Deye: ', error);
     }
   }
 
@@ -80,8 +78,8 @@ export const useDeyeStore = defineStore('deye', () => {
     // ==============
     //   ACTIONS
     // ==============
-    fetchDeyeData,
     fetchDeyeDevices,
     createDeyeDevice,
+    deleteDeyeDevice,
   }
 })

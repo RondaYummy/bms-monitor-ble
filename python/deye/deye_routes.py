@@ -3,7 +3,6 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 import python.db as db
 from python.auth.verify_token import verify_token
-from python.data_store import data_store
 
 router = APIRouter(prefix="/deye", tags=["Deye Devices"])
 
@@ -16,16 +15,6 @@ class CreateDeyeDeviceRequest(BaseModel):
     slave_id: Optional[int] = Field(1, description="Modbus slave ID")
     device_on: Optional[bool] = Field(True, description="Device power state")
 
-@app.get("/api/deye-info")
-async def get_configs():
-    try:
-        deye_data = await data_store.get_deye_data()
-        if not deye_data:
-            return JSONResponse(content={"message": "No Deye data available yet."}, status_code=404)
-        return deye_data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error deleting alert: {str(e)}")
-
 @router.get("/devices", summary="Get all Deye devices")
 def get_all_deye_devices():
     try:
@@ -34,7 +23,7 @@ def get_all_deye_devices():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete(
-    "/devices/{ip}",
+    "/device/{ip}",
     summary="Delete Deye device by IP",
     dependencies=[Depends(verify_token)]
 )
