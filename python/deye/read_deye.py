@@ -61,7 +61,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             "net_balance": net_balance
         }
 
-        await data_store.update_deye_data(ip, data)
+        await db.update_deye_device_data(ip, data)
 
     except V5FrameError as err:
         print(f"❌ Modbus error on {ip}: {err}")

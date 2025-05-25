@@ -46,7 +46,7 @@ def toggle_deye_device(ip: str, body: DeviceToggleRequest):
         existing = db.get_deye_device_by_ip(ip)
         if not existing:
             raise HTTPException(status_code=404, detail="Device not found")
-        db.update_deye_device_data(ip, {"device_on": int(body.device_on)})
+        # db.update_deye_device_data(ip, {"device_on": int(body.device_on)}) # TODO: update status
         return {"detail": f"Device {ip} state updated to {body.device_on}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
