@@ -4,9 +4,10 @@ import python.db as db
 from python.auth.verify_token import verify_token
 from python.tapo.tapo_service import TapoDevice
 
-router = APIRouter(tags=["Tapo"])
+router = APIRouter()
+from . import find_tapo
 
-@router.post("/tapo/devices/add", dependencies=[Depends(verify_token)])
+@router.post("/tapo/devices/add", tags=["Tapo"])
 def add_tapo_device_api(device: TapoDeviceCreateDto):
     try:
         existing = db.get_tapo_device_by_ip(device.ip)
