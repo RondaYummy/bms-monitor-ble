@@ -78,7 +78,7 @@ while [ 1 ]; do
     now=$(date +%s)
     target=$(date -d '04:00 next day' +%s)
     sleep_time=$(( target - now ))
-    sleep_time=30
+    sleep_time=30 # TODO: hardcoded
     sleep $sleep_time
 
     # sleep 300 # 5 min sleep
