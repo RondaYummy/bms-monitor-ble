@@ -10,7 +10,7 @@
 
         <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">
             <span>{{ device?.name }}</span>
-            <q-icon @click.prevent="deleteDevice(device?.ip)" class="cursor-pointer q-mr-md" name="delete"
+            <q-icon @click.prevent="deleteDevice(device?.ip)" class="cursor-pointer q-mr-sm" name="delete"
                 size="1.5em"></q-icon>
             <q-icon class="cursor-pointer" name="edit" size="1.5em"></q-icon>
         </h6>

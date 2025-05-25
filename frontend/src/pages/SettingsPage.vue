@@ -207,6 +207,13 @@
 
             <q-expansion-item :disable="!token" v-model="expandAddTapoDevice" icon="add" label="Add new device" dark
               dense-toggle>
+              <p>
+                Перш ніж додати новий пристрій TP-Link Tapo, переконайтесь, що він уже доданий в офіційний застосунок
+                Tapo.
+                Після цього введіть у поля нижче ваші облікові дані (email та пароль) — це необхідно для авторизації та
+                доступу до ваших пристроїв.
+              </p>
+
               <q-input label-color="white" label="Email from Tapo App" :disable="!token" v-model="newTapoDevice.email"
                 filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
               <q-input label-color="white" label="Password from Tapo App" :disable="!token"
@@ -216,7 +223,7 @@
                 :disable="!token || !newTapoDevice.email || !newTapoDevice.password" color="black"
                 label="Шукати пристрої Tapo" />
 
-              <q-separator class="q-mt-md q-mb-md" color="white" />
+              <q-separator v-if="notFoundTapoDevices" class="q-mt-md q-mb-md" color="white" />
 
               <template v-if="notFoundTapoDevices">
                 <h6 class="q-mt-md">
