@@ -2,6 +2,11 @@
     <div class="text-h6 q-mb-sm full-width">Deye inverter Devices</div>
     <q-expansion-item :disable="!token" v-model="expandAddDeyeDevice" icon="add" label="Add new device" dark
         dense-toggle>
+        <p>
+            Перш ніж додати ваш інвертор Deye, необхідно дізнатися IP-адресу Wi-Fi стіка та серійний номер пристрою.
+            Рекомендуємо призначити статичну IP-адресу, щоб уникнути збоїв у роботі.
+        </p>
+
         <q-input label-color="white" label="Device IP Address" :disable="!token" v-model="createDeye.ip" filled
             class="q-mb-sm q-mt-sm" />
         <q-input label-color="white" label="Device Serial Number" :disable="!token" v-model="createDeye.serial_number"
