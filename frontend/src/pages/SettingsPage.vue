@@ -212,14 +212,13 @@
               <q-input label-color="white" label="Password from Tapo App" :disable="!token"
                 v-model="newTapoDevice.password" filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
 
-              <q-btn
-                @click="tapoStore.searchTapoDevices({ email: newTapoDevice.email, password: newTapoDevice.password })"
+              <q-btn :loading="loadingTapoDevices" @click="searchTapoDevices"
                 :disable="!token || !newTapoDevice.email || !newTapoDevice.password" color="black"
                 label="Шукати пристрої Tapo" />
 
               <q-separator class="q-mt-md q-mb-md" color="white" />
 
-              <template v-if="!tapoStore.foundDevices?.length">
+              <template v-if="notFoundTapoDevices">
                 <h6 class="q-mt-md">
                   Нових пристроїв TP-Link Tapo не знайдено.
                 </h6>
@@ -342,10 +341,12 @@ const tab = ref<string>('Alerts');
 const password = ref<string>('');
 const isPwd = ref<boolean>(true);
 const loadingDevices = ref<boolean>(false);
+const loadingTapoDevices = ref<boolean>(false);
 const attemptToConnectDevice = ref<string>('');
 const openModalAddTapo = ref<boolean>(false);
 const modalAddTapoDeviceData = ref();
 const notFoundDevices = ref<boolean>(false);
+const notFoundTapoDevices = ref<boolean>(false);
 const alertsModal = ref<boolean>(false);
 const intervalId = ref<NodeJS.Timeout>();
 const newTapoDevice = ref({ ip: '', email: '', password: '', power_watt: 0, priority: 1 });
@@ -381,6 +382,20 @@ async function openModalAddTapoDevice(device: any) {
   modalAddTapoDeviceData.value = device;
   openModalAddTapo.value = true;
   newTapoDevice.value.ip = device?.ip;
+}
+
+async function searchTapoDevices() {
+  loadingTapoDevices.value = true;
+  try {
+    const devices = await tapoStore.searchTapoDevices({ email: newTapoDevice.value.email, password: newTapoDevice.value.password });
+    if (!devices?.length) {
+      notFoundTapoDevices.value = true;
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loadingTapoDevices.value = false;
+  }
 }
 
 async function cancelSubs() {

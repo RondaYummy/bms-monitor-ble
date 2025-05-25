@@ -127,7 +127,8 @@ export const useTapoStore = defineStore('tapo', () => {
   async function searchTapoDevices(data: { email: string; password: string }) {
     try {
       const res = await api.post(`/api/tapo/devices/search`, data);
-      foundDevices.value = res.data?.devices
+      foundDevices.value = res.data?.devices;
+      return foundDevices.value;
     } catch (error) {
       console.error('Error search tapo devices: ', error)
       Notify.create({
