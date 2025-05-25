@@ -14,6 +14,7 @@
 
 #### All TP-Link Tapo P110 Wi-Fi with software version >=1.2.1
 * Tapo P100
+* Tapo P110
 
 # BMS Monitor [BLE]
 ## 🔋 Monitoring System for JK-BMS and Deye Inverter
