@@ -212,56 +212,87 @@
               <q-input label-color="white" label="Password from Tapo App" :disable="!token"
                 v-model="newTapoDevice.password" filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
 
-              <div class="text-h6 q-mt-md">
-                Auto search Tapo devices
-              </div>
-
               <q-btn
                 @click="tapoStore.searchTapoDevices({ email: newTapoDevice.email, password: newTapoDevice.password })"
                 :disable="!token || !newTapoDevice.email || !newTapoDevice.password" color="black"
                 label="Шукати пристрої Tapo" />
 
-              <div class="text-h6 q-mt-md">
-                Manual add Tapo device
-              </div>
-              <div class="row justify-between items-center">
-                <q-input label-color="white" label="Device IP Address" :disable="!token" v-model="newTapoDevice.ip"
-                  filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
-                <q-icon class="q-pl-md" name="help" size="2.5em">
-                  <q-tooltip>
-                    Щоб забезпечити стабільну роботу системи, потрібно **призначити статичні IP-адреси** для інвертора
-                    та
-                    розеток Tapo через налаштування роутера. Це запобігає випадковій зміні IP після перезавантаження та
-                    гарантує постійне з'єднання.
-                  </q-tooltip>
-                </q-icon>
-              </div>
+              <q-separator class="q-mt-md" color="white" />
 
-              <div class="row justify-between items-center">
-                <q-input label-color="white" label="Priority" :disable="!token" v-model="newTapoDevice.priority" filled
-                  class="q-mb-sm" style="flex: 1 1 auto" />
-                <q-icon class="q-pl-md" name="help" size="2.5em">
-                  <q-tooltip>
-                    Приорітет пристрою, чим вищий приорітет, тим важливіший пристрій. Наприклад автоматична система буде
-                    включати прилади з вищим приорітеом в першу чергу.
-                  </q-tooltip>
-                </q-icon>
-              </div>
+              <template v-if="!tapoStore.foundDevices?.length">
+                <h6 class="q-mt-md">
+                  Нових пристроїв TP-Link Tapo не знайдено.
+                </h6>
+              </template>
 
-              <div class="row justify-between items-center">
-                <q-input label-color="white" label="Device power ( W )" :disable="!token"
-                  v-model="newTapoDevice.power_watt" filled class="q-mb-sm" style="flex: 1 1 auto" />
-                <q-icon class="q-pl-md" name="help" size="2.5em">
-                  <q-tooltip>
-                    Потужність прилада, який вмикається цією розеткою Tapo. Наприклад бойлер, який використовує 2 кВт -
-                    вказуєте 2000 ват.
-                  </q-tooltip>
-                </q-icon>
-              </div>
+              <q-list v-else bordered separator>
+                <q-item v-for="device of tapoStore.foundDevices" :key="device?.ip" clickable :disable="openModalAddTapo"
+                  @click="token && openModalAddTapoDevice(device)" v-ripple>
+                  <div class="text-h6">
+                    {{ device?.name }}
+                  </div>
+                  {{ device?.ip }} | {{ device?.model }}
+                </q-item>
+              </q-list>
 
-              <q-btn :loading="loadingDevices" @click="addTapoDevice"
-                :disable="!token || !newTapoDevice.ip || !newTapoDevice.email || !newTapoDevice.password" color="black"
-                label="Додати новий пристрій" />
+              <q-dialog v-model="openModalAddTapo" persistent>
+                <q-card style="min-width: 350px">
+                  <q-card-section>
+                    <div class="text-h6">Your address</div>
+                  </q-card-section>
+
+                  <q-card-section class="q-pt-none">
+                    <div class="row justify-between items-center">
+                      <q-input label-color="white" label="Device IP Address" :disable="!token"
+                        v-model="newTapoDevice.ip" filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
+                      <q-icon class="q-pl-md" name="help" size="2.5em">
+                        <q-tooltip>
+                          Щоб забезпечити стабільну роботу системи, потрібно **призначити статичні IP-адреси** для
+                          інвертора
+                          та
+                          розеток Tapo через налаштування роутера. Це запобігає випадковій зміні IP після
+                          перезавантаження
+                          та
+                          гарантує постійне з'єднання.
+                        </q-tooltip>
+                      </q-icon>
+                    </div>
+
+                    <div class="row justify-between items-center">
+                      <q-input label-color="white" label="Priority" :disable="!token" v-model="newTapoDevice.priority"
+                        filled class="q-mb-sm" style="flex: 1 1 auto" />
+                      <q-icon class="q-pl-md" name="help" size="2.5em">
+                        <q-tooltip>
+                          Приорітет пристрою, чим вищий приорітет, тим важливіший пристрій. Наприклад автоматична
+                          система
+                          буде
+                          включати прилади з вищим приорітеом в першу чергу.
+                        </q-tooltip>
+                      </q-icon>
+                    </div>
+
+                    <div class="row justify-between items-center">
+                      <q-input label-color="white" label="Device power ( W )" :disable="!token"
+                        v-model="newTapoDevice.power_watt" filled class="q-mb-sm" style="flex: 1 1 auto" />
+                      <q-icon class="q-pl-md" name="help" size="2.5em">
+                        <q-tooltip>
+                          Потужність прилада, який вмикається цією розеткою Tapo. Наприклад бойлер, який використовує 2
+                          кВт
+                          -
+                          вказуєте 2000 ват.
+                        </q-tooltip>
+                      </q-icon>
+                    </div>
+                  </q-card-section>
+
+                  <q-card-actions align="right" class="text-primary">
+                    <q-btn flat label="Cancel" v-close-popup />
+                    <q-btn v-close-popup :loading="loadingDevices" @click="addTapoDevice"
+                      :disable="!token || !newTapoDevice.ip || !newTapoDevice.email || !newTapoDevice.password"
+                      color="black" label="Додати новий пристрій" />
+                  </q-card-actions>
+                </q-card>
+              </q-dialog>
             </q-expansion-item>
 
             <div class="column q-mt-md q-mb-md">
@@ -303,6 +334,8 @@ const password = ref<string>('');
 const isPwd = ref<boolean>(true);
 const loadingDevices = ref<boolean>(false);
 const attemptToConnectDevice = ref<string>('');
+const openModalAddTapo = ref<boolean>(false);
+const modalAddTapoDeviceData = ref();
 const notFoundDevices = ref<boolean>(false);
 const alertsModal = ref<boolean>(false);
 const intervalId = ref<NodeJS.Timeout>();
@@ -333,6 +366,12 @@ function filterAlertsByLevel(level?: string): void {
   }
   selectedLevel.value = level;
   alertsMain.value = alerts.value?.filter((a) => a.level === level);
+}
+
+async function openModalAddTapoDevice(device: any) {
+  modalAddTapoDeviceData.value = device;
+  openModalAddTapo.value = true;
+  newTapoDevice.value.ip = device?.ip;
 }
 
 async function cancelSubs() {
