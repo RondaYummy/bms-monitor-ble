@@ -35,6 +35,9 @@ services:
       - DBUS_SESSION_BUS_ADDRESS=unix:path=/var/run/dbus/system_bus_socket
       - TZ=Europe/Kiev
     privileged: true  # Allows access to the Bluetooth adapter
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
     devices:
       - "/dev/ttyUSB0:/dev/ttyUSB0"
     restart: unless-stopped
