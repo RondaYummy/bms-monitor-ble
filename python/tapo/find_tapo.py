@@ -5,6 +5,7 @@ import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from PyP100 import PyP110
 from python.auth.verify_token import verify_token
+import time
 
 MAX_WORKERS = 100
 
@@ -51,12 +52,16 @@ def search_tapo_devices(request: ScanRequest):
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid subnet format")
 
+    time.sleep(1)
+
     ip_list = [str(ip) for ip in network.hosts()]
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         ping_results = list(executor.map(ping, ip_list))
 
     alive_ips = [ip for ip in ping_results if ip]
+
+    time.sleep(1)
 
     found_devices = []
     with ThreadPoolExecutor(max_workers=10) as executor:
