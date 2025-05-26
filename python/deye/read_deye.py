@@ -45,8 +45,8 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         pv2_voltage = modbus.read_holding_registers(280, 1)[0] * 0.1
         pv1_current = modbus.read_holding_registers(281, 1)[0] * 0.01
         pv2_current = modbus.read_holding_registers(282, 1)[0] * 0.01
-        # load_voltage = modbus.read_holding_registers(258, 1)[0] * 0.1
-        # load_frequency = modbus.read_holding_registers(259, 1)[0] * 0.01
+        load_voltage = modbus.read_holding_registers(258, 1)[0] * 0.1
+        load_frequency = modbus.read_holding_registers(259, 1)[0] * 0.01
         # bat_current = modbus.read_holding_registers(191, 1)[0] * 0.01
         # grid_voltage = modbus.read_holding_registers(173, 1)[0] * 0.1
         # grid_frequency = modbus.read_holding_registers(174, 1)[0] * 0.01
@@ -61,8 +61,8 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             "pv2_voltage": pv2_voltage,
             "pv1_current": pv1_current,
             "pv2_current": pv2_current,
-            # "load_voltage": load_voltage,
-            # "load_frequency": load_frequency,
+            "load_voltage": load_voltage,
+            "load_frequency": load_frequency,
             # "bat_current": bat_current,
             # "grid_voltage": grid_voltage,
             # "grid_frequency": grid_frequency,
