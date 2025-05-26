@@ -43,33 +43,33 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         # Additional data
         pv1_voltage = modbus.read_holding_registers(279, 1)[0] * 0.1
         pv2_voltage = modbus.read_holding_registers(280, 1)[0] * 0.1
-        pv1_current = modbus.read_holding_registers(281, 1)[0] * 0.01
-        pv2_current = modbus.read_holding_registers(282, 1)[0] * 0.01
-        load_voltage = modbus.read_holding_registers(258, 1)[0] * 0.1
-        load_frequency = modbus.read_holding_registers(259, 1)[0] * 0.01
-        bat_current = modbus.read_holding_registers(191, 1)[0] * 0.01
-        grid_voltage = modbus.read_holding_registers(173, 1)[0] * 0.1
-        grid_frequency = modbus.read_holding_registers(174, 1)[0] * 0.01
+        # pv1_current = modbus.read_holding_registers(281, 1)[0] * 0.01
+        # pv2_current = modbus.read_holding_registers(282, 1)[0] * 0.01
+        # load_voltage = modbus.read_holding_registers(258, 1)[0] * 0.1
+        # load_frequency = modbus.read_holding_registers(259, 1)[0] * 0.01
+        # bat_current = modbus.read_holding_registers(191, 1)[0] * 0.01
+        # grid_voltage = modbus.read_holding_registers(173, 1)[0] * 0.1
+        # grid_frequency = modbus.read_holding_registers(174, 1)[0] * 0.01
 
 
-        total_generated_kwh = ((modbus.read_holding_registers(5001, 2)[0] << 16) + modbus.read_holding_registers(5001, 2)[1]) / 10
-        total_load_kwh = ((modbus.read_holding_registers(5003, 2)[0] << 16) + modbus.read_holding_registers(5003, 2)[1]) / 10
-        total_bat_charge_kwh = ((modbus.read_holding_registers(5007, 2)[0] << 16) + modbus.read_holding_registers(5007, 2)[1]) / 10
-        total_bat_discharge_kwh = ((modbus.read_holding_registers(5009, 2)[0] << 16) + modbus.read_holding_registers(5009, 2)[1]) / 10
+        # total_generated_kwh = ((modbus.read_holding_registers(5001, 2)[0] << 16) + modbus.read_holding_registers(5001, 2)[1]) / 10
+        # total_load_kwh = ((modbus.read_holding_registers(5003, 2)[0] << 16) + modbus.read_holding_registers(5003, 2)[1]) / 10
+        # total_bat_charge_kwh = ((modbus.read_holding_registers(5007, 2)[0] << 16) + modbus.read_holding_registers(5007, 2)[1]) / 10
+        # total_bat_discharge_kwh = ((modbus.read_holding_registers(5009, 2)[0] << 16) + modbus.read_holding_registers(5009, 2)[1]) / 10
         additional = {
             "pv1_voltage": pv1_voltage,
             "pv2_voltage": pv2_voltage,
-            "pv1_current": pv1_current,
-            "pv2_current": pv2_current,
-            "load_voltage": load_voltage,
-            "load_frequency": load_frequency,
-            "bat_current": bat_current,
-            "grid_voltage": grid_voltage,
-            "grid_frequency": grid_frequency,
-            "total_generated_kwh": total_generated_kwh,
-            "total_load_kwh": total_load_kwh,
-            "total_bat_charge_kwh": total_bat_charge_kwh,
-            "total_bat_discharge_kwh": total_bat_discharge_kwh
+            # "pv1_current": pv1_current,
+            # "pv2_current": pv2_current,
+            # "load_voltage": load_voltage,
+            # "load_frequency": load_frequency,
+            # "bat_current": bat_current,
+            # "grid_voltage": grid_voltage,
+            # "grid_frequency": grid_frequency,
+            # "total_generated_kwh": total_generated_kwh,
+            # "total_load_kwh": total_load_kwh,
+            # "total_bat_charge_kwh": total_bat_charge_kwh,
+            # "total_bat_discharge_kwh": total_bat_discharge_kwh
         }
         print("📊 Additional metrics:")
         for key, value in additional.items():
