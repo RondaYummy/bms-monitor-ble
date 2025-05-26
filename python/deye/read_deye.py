@@ -43,8 +43,8 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         # Additional data
         pv1_voltage = modbus.read_holding_registers(279, 1)[0] * 0.1
         pv2_voltage = modbus.read_holding_registers(280, 1)[0] * 0.1
-        # pv1_current = modbus.read_holding_registers(281, 1)[0] * 0.01
-        # pv2_current = modbus.read_holding_registers(282, 1)[0] * 0.01
+        pv1_current = modbus.read_holding_registers(281, 1)[0] * 0.01
+        pv2_current = modbus.read_holding_registers(282, 1)[0] * 0.01
         # load_voltage = modbus.read_holding_registers(258, 1)[0] * 0.1
         # load_frequency = modbus.read_holding_registers(259, 1)[0] * 0.01
         # bat_current = modbus.read_holding_registers(191, 1)[0] * 0.01
@@ -59,8 +59,8 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         additional = {
             "pv1_voltage": pv1_voltage,
             "pv2_voltage": pv2_voltage,
-            # "pv1_current": pv1_current,
-            # "pv2_current": pv2_current,
+            "pv1_current": pv1_current,
+            "pv2_current": pv2_current,
             # "load_voltage": load_voltage,
             # "load_frequency": load_frequency,
             # "bat_current": bat_current,
@@ -89,7 +89,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             "net_balance": net_balance
         }
 
-        await db.update_deye_device_data(ip, data)
+        db.update_deye_device_data(ip, data)
 
     except V5FrameError as err:
         print(f"❌ Modbus error on {ip}: {err}")
