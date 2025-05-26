@@ -51,7 +51,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         grid_voltage = modbus.read_holding_registers(173, 1)[0] * 0.1
         grid_frequency = modbus.read_holding_registers(174, 1)[0] * 0.01
 
-
+        time.sleep(1)
         try:
             regs = modbus.read_holding_registers(5001, 10)  # читає 5001–5010
             total_generated_kwh = ((regs[0] << 16) + regs[1]) / 10
