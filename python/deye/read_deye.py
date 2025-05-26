@@ -52,7 +52,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         grid_frequency = modbus.read_holding_registers(174, 1)[0] * 0.01
 
 
-        # total_generated_kwh = ((modbus.read_holding_registers(5001, 2)[0] << 16) + modbus.read_holding_registers(5001, 2)[1]) / 10
+        total_generated_kwh = ((modbus.read_holding_registers(5001, 2)[0] << 16) + modbus.read_holding_registers(5001, 2)[1]) / 10
         # total_load_kwh = ((modbus.read_holding_registers(5003, 2)[0] << 16) + modbus.read_holding_registers(5003, 2)[1]) / 10
         # total_bat_charge_kwh = ((modbus.read_holding_registers(5007, 2)[0] << 16) + modbus.read_holding_registers(5007, 2)[1]) / 10
         # total_bat_discharge_kwh = ((modbus.read_holding_registers(5009, 2)[0] << 16) + modbus.read_holding_registers(5009, 2)[1]) / 10
@@ -66,7 +66,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             "bat_current": bat_current,
             "grid_voltage": grid_voltage,
             "grid_frequency": grid_frequency,
-            # "total_generated_kwh": total_generated_kwh,
+            "total_generated_kwh": total_generated_kwh,
             # "total_load_kwh": total_load_kwh,
             # "total_bat_charge_kwh": total_bat_charge_kwh,
             # "total_bat_discharge_kwh": total_bat_discharge_kwh
