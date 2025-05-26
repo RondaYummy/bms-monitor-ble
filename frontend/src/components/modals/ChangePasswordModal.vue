@@ -6,9 +6,11 @@
       <q-input :disable="!token"
                v-model="oldPassword"
                label="Введіть пароль"
+               label-color="white"
                filled />
       <q-input :disable="!token"
                label="Повторіть пароль"
+               label-color="white"
                v-model="oldAgainPassword"
                filled />
 
@@ -16,7 +18,8 @@
                    color="white" />
 
       <q-input :disable="!token"
-               label="Ввудіть новий пароль"
+               label="Введіть новий пароль"
+               label-color="white"
                v-model="newPassword"
                filled />
 

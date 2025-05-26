@@ -17,6 +17,7 @@
         </p>
         <q-input :disable="!token"
                  v-model.number="config.n_hours"
+                 label-color="white"
                  type="number"
                  filled />
       </div>
