@@ -9,15 +9,19 @@
         </div>
 
         <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">
-            <span>{{ device?.name }}</span>
             <q-icon @click.prevent="deleteDevice(device?.ip)" class="cursor-pointer q-mr-sm" name="delete"
-                size="1.5em"></q-icon>
+            size="1.5em"></q-icon>
+
+            <span class="q-mr-sm">{{ device?.name }}</span>
+
             <q-icon class="cursor-pointer" name="edit" size="1.5em"></q-icon>
         </h6>
 
         <div class="row justify-between full-width q-mt-md">
             <div class="column">
-                <span class="unique">{{ device?.model }}</span>
+                <span class="unique text-left">
+                    {{ device?.model }}
+                </span>
                 <span @click="copy(device?.ip)" class="unique">{{ device?.ip }}</span>
             </div>
 
@@ -57,6 +61,8 @@
             </span>
         </div>
     </div>
+
+    <q-separator color="orange" inset />
 </template>
 
 <script setup lang="ts">
@@ -94,8 +100,6 @@ async function toggleDevice(state: number) {
 .device-row {
     width: 100%;
     padding: 10px;
-    border: 1px solid white;
-    border-radius: 10px;
     position: relative;
 }
 
