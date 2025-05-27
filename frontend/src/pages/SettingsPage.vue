@@ -57,13 +57,13 @@
 
             <div class='column alerts-box'>
               <q-banner v-for="alert of alertsMain" :key="alert?.id"
-                v-touch-swipe.mouse.right.left="() => token && alertsStore.deleteErrorAlert(alert?.id)" inline-actions
+                v-touch-swipe.mouse.right.left.stop="() => token && alertsStore.deleteErrorAlert(alert?.id)" inline-actions
                 :class="{
                   'bg-negative': alert?.level === 'critical',
                   'bg-red': alert?.level === 'error',
                   'bg-orange': alert?.level === 'warning',
                   'bg-bg-primary': alert?.level === 'info',
-                }" class="text-white q-mt-sm q-mb-sm cursor-pointer">
+                }" class="text-white q-mt-sm q-mb-sm cursor-pointer rounded-borders">
                 <div class="column">
                   <div class='row justify-between'>
                     <q-chip outline color="white" text-color="white" :icon="getAlertIcon(alert?.level)">

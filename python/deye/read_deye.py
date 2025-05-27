@@ -51,16 +51,6 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         grid_voltage = modbus.read_holding_registers(173, 1)[0] * 0.1
         grid_frequency = modbus.read_holding_registers(174, 1)[0] * 0.01
 
-        # time.sleep(1)
-        # try:
-        #     regs = modbus.read_holding_registers(5001, 10)  # читає 5001–5010
-        #     total_generated_kwh = ((regs[0] << 16) + regs[1]) / 10
-        #     total_load_kwh = ((regs[2] << 16) + regs[3]) / 10
-        #     total_bat_charge_kwh = ((regs[6] << 16) + regs[7]) / 10
-        #     total_bat_discharge_kwh = ((regs[8] << 16) + regs[9]) / 10
-        # except Exception as e:
-        #     print(f"❌ Failed to bulk read Deye energy data: {e}")
-
         # total_generated_kwh = ((modbus.read_holding_registers(5001, 2)[0] << 16) + modbus.read_holding_registers(5001, 2)[1]) / 10
         # total_load_kwh = ((modbus.read_holding_registers(5003, 2)[0] << 16) + modbus.read_holding_registers(5003, 2)[1]) / 10
         # total_bat_charge_kwh = ((modbus.read_holding_registers(5007, 2)[0] << 16) + modbus.read_holding_registers(5007, 2)[1]) / 10
