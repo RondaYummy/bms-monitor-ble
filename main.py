@@ -80,7 +80,7 @@ async def startup_event():
                 await check_all_tapo_devices()
             except Exception as e:
                 print(f"❌ Tapo status checker error: {e}")
-            await asyncio.sleep(8)  # чекати 8 сек
+            await asyncio.sleep(5)  # чекати 5 сек
     asyncio.create_task(periodic_tapo_status())
 
     config = db.get_config()

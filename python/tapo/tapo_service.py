@@ -1,6 +1,7 @@
 from PyP100 import PyP110
 from python.db import update_tapo_device_by_ip, get_all_tapo_devices
 import asyncio
+import json
 
 # List of models that support energy monitoring
 SUPPORTED_ENERGY_MONITORING_MODELS = {"P110", "P110M"}
@@ -77,6 +78,8 @@ async def check_and_update_device_status_async(device_row):
                     print(f"⚠️ Could not read power usage from {device_row['ip']}: {energy_err}")
 
             update_tapo_device_by_ip(device_row["ip"], update_data)
+            print(f"✅ Updated {device_row['ip']} with data:")
+            print(json.dumps(update_data, indent=2))
         except Exception as e:
             print(f"❌ Failed to update device {device_row['ip']}: {e}")
     await loop.run_in_executor(None, blocking_check)
