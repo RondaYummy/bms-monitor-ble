@@ -21,7 +21,7 @@
                     <q-icon @click.prevent="openEditModal(device)" class="cursor-pointer" name="edit"
                         size="1.5em"></q-icon>
                 </span>
-                
+
                 <span @click="copy(device?.ip)" class="unique">{{ device?.ip }}</span>
             </div>
 
@@ -37,7 +37,7 @@
                     </span>
 
                     <span class="unique">
-                        {{ device?.power_watt }} Вт
+                        {{ Math.floor(device?.power_watt || 0) }} Вт
                         <q-tooltip>
                             Потужність підключеного приладу через цю розетку у ватах.
                         </q-tooltip>
@@ -73,7 +73,7 @@
 
             <q-card-section class="q-pt-none">
                 <div class="row justify-between items-center">
-                    <q-input label-color="white" label="Device IP Address" :disable="!token"
+                    <q-input label-color="white" color="white" label="Device IP Address" :disable="!token"
                         v-model="editedDeviceData.ip" filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
                     <q-icon class="q-pl-md" name="help" size="2.5em">
                         <q-tooltip>
@@ -89,7 +89,7 @@
                 </div>
 
                 <div class="row justify-between items-center">
-                    <q-input label-color="white" label="Priority" :disable="!token" v-model="editedDeviceData.priority"
+                    <q-input label-color="white" color="white" label="Priority" :disable="!token" v-model="editedDeviceData.priority"
                         filled class="q-mb-sm" style="flex: 1 1 auto" />
                     <q-icon class="q-pl-md" name="help" size="2.5em">
                         <q-tooltip>
@@ -102,7 +102,7 @@
                 </div>
 
                 <div class="row justify-between items-center">
-                    <q-input label-color="white" label="Email to Tapo application" :disable="!token"
+                    <q-input label-color="white" color="white" label="Email to Tapo application" :disable="!token"
                         v-model="editedDeviceData.email" filled class="q-mb-sm" style="flex: 1 1 auto" />
                     <q-icon class="q-pl-md" name="help" size="2.5em">
                         <q-tooltip>
@@ -112,7 +112,7 @@
                 </div>
 
                 <div class="row justify-between items-center">
-                    <q-input label-color="white" label="Password to Tapo application" :disable="!token"
+                    <q-input label-color="white" color="white" label="Password to Tapo application" :disable="!token"
                         v-model="editedDeviceData.password" filled class="q-mb-sm" style="flex: 1 1 auto" />
                     <q-icon class="q-pl-md" name="help" size="2.5em">
                         <q-tooltip>
@@ -122,7 +122,7 @@
                 </div>
 
                 <div class="row justify-between items-center">
-                    <q-input label-color="white" label="Device power ( W )" :disable="!token"
+                    <q-input label-color="white" color="white" label="Device power ( W )" :disable="!token"
                         v-model="editedDeviceData.power_watt" filled class="q-mb-sm" style="flex: 1 1 auto" />
                     <q-icon class="q-pl-md" name="help" size="2.5em">
                         <q-tooltip>
@@ -139,7 +139,7 @@
             <q-card-actions align="right" class="text-primary">
                 <q-btn flat label="Cancel" v-close-popup />
                 <q-btn v-close-popup :loading="loadingEditDevice" @click="editTapoDevice" :disable="!token"
-                    color="black" label="Додати новий пристрій" />
+                    color="black" label="Update" />
             </q-card-actions>
         </q-card>
     </q-dialog>
@@ -160,6 +160,7 @@ const props = defineProps<{ device: TapoDevice }>();
 const device = computed(() => props.device);
 const openModalEdit = ref(false);
 const loadingEditDevice = ref(false);
+const editedTapoIp = ref('');
 const editedDeviceData = ref<TapoDevice & { password?: string }>({
     added_at: '',
     device_id: '',
@@ -182,6 +183,7 @@ async function deleteDevice(ip: string) {
 }
 
 async function openEditModal(device: TapoDevice) {
+    editedTapoIp.value = device.ip;
     editedDeviceData.value = device;
     openModalEdit.value = true;
 }
@@ -198,7 +200,7 @@ async function editTapoDevice() {
             updateData.password = editedDeviceData.value.password
         }
 
-        await tapoStore.updateTapoDeviceConfig(updateData);
+        await tapoStore.updateTapoDeviceConfig(editedTapoIp.value, updateData);
     } catch (error) {
         console.error(error);
     } finally {

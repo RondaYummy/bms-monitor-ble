@@ -103,7 +103,7 @@ async def delete_tapo_device(ip: str = Path(..., example="192.168.31.110")):
     
     return {"message": f"Tapo device with IP {ip} deleted successfully"}
 
-@router.patch("/devices/{ip}", dependencies=[Depends(verify_token)])
+@router.patch("/device/{ip}", dependencies=[Depends(verify_token)])
 def update_tapo_device_config(ip: str, update_data: TapoDeviceUpdateDto):
     device = db.get_tapo_device_by_ip(ip)
     if not device:
