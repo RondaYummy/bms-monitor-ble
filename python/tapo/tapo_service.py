@@ -21,7 +21,7 @@ class TapoDevice:
 
     def getEnergyUsage(self):
         return self.plug.getEnergyUsage()
-        
+
     def get_status(self) -> dict:
         try:
             info = self.plug.getDeviceInfo()
@@ -74,15 +74,24 @@ async def check_and_update_device_status_async(device_row):
             # If the device supports energy monitoring, try to read
             if model in SUPPORTED_ENERGY_MONITORING_MODELS:
                 try:
-                    power_watt = tapo.getEnergyUsage()
-                    update_data["power_watt"] = power_watt
-                    print(f"⚡ Power usage for {device_row['ip']}: {power_watt} W")
+                    energy_data = tapo.getEnergyUsage()
+                    # Responce example:
+                    # {
+                    #     'today_runtime': 206, - Час роботи пристрою сьогодні у хвилинах.
+                    #     'month_runtime': 206, - Загальний час роботи за поточний місяць у хвилинах.
+                    #     'today_energy': 721, - Витрачена енергія сьогодні, у ват-годинах (Wh).
+                    #     'month_energy': 721, - Витрачена енергія за місяць, у ват-годинах (Wh).
+                    #     'local_time': '2025-05-29 22:03:21', - Поточна дата і час за локальним часом пристрою.
+                    #     'electricity_charge': [0, 0, 0], - Масив з 3-х тарифів на електроенергію, якщо задані.
+                    #     'current_power': 0 - Поточне споживання електроенергії в вата́х (W) (реальне).
+                    # }
+
+                    current_power = power_data.get("current_power", 0)
+                    update_data["power_watt"] = current_power
                 except Exception as energy_err:
                     print(f"⚠️ Could not read power usage from {device_row['ip']}: {energy_err}")
 
             update_tapo_device_by_ip(device_row["ip"], update_data)
-            print(f"✅ Updated {device_row['ip']} with data:")
-            print(json.dumps(update_data, indent=2))
         except Exception as e:
             print(f"❌ Failed to update device {device_row['ip']}: {e}")
     await loop.run_in_executor(None, blocking_check)
