@@ -52,10 +52,10 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         net_balance = total_pv + grid_power - load_power - bat_power
 
         # Additional data
-        # pv1_voltage = modbus.read_holding_registers(279, 1)[0] * 0.1
-        # pv2_voltage = modbus.read_holding_registers(280, 1)[0] * 0.1
-        pv1_voltage = safe_read_scaled(modbus, 279, 0.1, "pv1_voltage")
-        pv2_voltage = safe_read_scaled(modbus, 280, 0.1, "pv2_voltage")
+        pv1_voltage = modbus.read_holding_registers(279, 1)[0] * 0.1
+        pv2_voltage = modbus.read_holding_registers(280, 1)[0] * 0.1
+        # pv1_voltage = safe_read_scaled(modbus, 279, 0.1, "pv1_voltage")
+        # pv2_voltage = safe_read_scaled(modbus, 280, 0.1, "pv2_voltage")
         pv1_current = modbus.read_holding_registers(281, 1)[0] * 0.01
         pv2_current = modbus.read_holding_registers(282, 1)[0] * 0.01
         load_voltage = modbus.read_holding_registers(258, 1)[0] * 0.1

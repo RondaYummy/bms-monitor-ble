@@ -14,8 +14,8 @@
 
         <div class="row justify-between full-width q-mt-md">
             <div class="column">
-                <span class="unique text-left">
-                    <span class="q-mr-sm">
+                <span class="text-left">
+                    <span class="unique q-mr-sm">
                         {{ device?.model }}
                     </span>
                     <q-icon @click.prevent="openEditModal(device)" class="cursor-pointer" name="edit"

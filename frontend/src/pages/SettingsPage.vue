@@ -56,9 +56,9 @@
             </div>
 
             <div class='column alerts-box'>
-              <q-banner v-for="alert of alertsMain" :key="alert?.id"
-                v-touch-swipe.mouse.right.left.stop="() => token && alertsStore.deleteErrorAlert(alert?.id)" inline-actions
-                :class="{
+              <q-banner v-for="alert of alertsMain" :key="alert?.id" @touchstart.stop @touchmove.stop
+                v-touch-swipe.mouse.right.left.stop="() => token && alertsStore.deleteErrorAlert(alert?.id)"
+                inline-actions :class="{
                   'bg-negative': alert?.level === 'critical',
                   'bg-red': alert?.level === 'error',
                   'bg-orange': alert?.level === 'warning',
