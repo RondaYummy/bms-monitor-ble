@@ -19,6 +19,9 @@ class TapoDevice:
     def get_name(self):
         return self.plug.getDeviceName()
 
+    def getEnergyUsage(self):
+        return self.plug.getEnergyUsage()
+        
     def get_status(self) -> dict:
         try:
             info = self.plug.getDeviceInfo()
