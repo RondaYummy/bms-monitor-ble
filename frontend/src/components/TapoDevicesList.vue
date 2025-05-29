@@ -21,6 +21,7 @@
                     <q-icon @click.prevent="openEditModal(device)" class="cursor-pointer" name="edit"
                         size="1.5em"></q-icon>
                 </span>
+                
                 <span @click="copy(device?.ip)" class="unique">{{ device?.ip }}</span>
             </div>
 
