@@ -86,7 +86,7 @@ async def check_and_update_device_status_async(device_row):
                     #     'current_power': 0 - Поточне споживання електроенергії в вата́х (W) (реальне).
                     # }
 
-                    current_power = power_data.get("current_power", 0)
+                    current_power = energy_data.get("current_power", 0)
                     update_data["power_watt"] = current_power
                 except Exception as energy_err:
                     print(f"⚠️ Could not read power usage from {device_row['ip']}: {energy_err}")
