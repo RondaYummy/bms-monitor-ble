@@ -83,11 +83,11 @@ async def check_and_update_device_status_async(device_row):
                     #     'month_energy': 721, - Витрачена енергія за місяць, у ват-годинах (Wh).
                     #     'local_time': '2025-05-29 22:03:21', - Поточна дата і час за локальним часом пристрою.
                     #     'electricity_charge': [0, 0, 0], - Масив з 3-х тарифів на електроенергію, якщо задані.
-                    #     'current_power': 0 - Поточне споживання електроенергії в вата́х (W) (реальне).
+                    #     'current_power': 0 - Поточне споживання електроенергії в вата́х (mW) (реальне).
                     # }
 
                     current_power = energy_data.get("current_power", 0)
-                    update_data["power_watt"] = current_power
+                    update_data["power_watt"] = current_power  / 1000
                 except Exception as energy_err:
                     print(f"⚠️ Could not read power usage from {device_row['ip']}: {energy_err}")
 

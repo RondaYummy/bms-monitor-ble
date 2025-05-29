@@ -9,18 +9,17 @@
         </div>
 
         <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">
-            <q-icon @click.prevent="deleteDevice(device?.ip)" class="cursor-pointer q-mr-sm" name="delete"
-            size="1.5em"></q-icon>
-
             <span class="q-mr-sm">{{ device?.name }}</span>
-
-            <q-icon class="cursor-pointer" name="edit" size="1.5em"></q-icon>
         </h6>
 
         <div class="row justify-between full-width q-mt-md">
             <div class="column">
                 <span class="unique text-left">
-                    {{ device?.model }}
+                    <span class="q-mr-sm">
+                        {{ device?.model }}
+                    </span>
+                    <q-icon @click.prevent="openEditModal(device)" class="cursor-pointer" name="edit"
+                        size="1.5em"></q-icon>
                 </span>
                 <span @click="copy(device?.ip)" class="unique">{{ device?.ip }}</span>
             </div>
@@ -45,22 +44,104 @@
                 </div>
             </div>
         </div>
-
-        <div class="row justify-center full-width">
-            <span class="unique q-mr-sm">
-                [ {{ device?.hw_ver }} ]
-                <q-tooltip>
-                    Hardware version.
-                </q-tooltip>
-            </span>
-            <span>
-                {{ device?.fw_ver }}
-                <q-tooltip>
-                    Software version.
-                </q-tooltip>
-            </span>
-        </div>
     </div>
+
+    <q-dialog v-model="openModalEdit" persistent>
+        <q-card dark style="min-width: 350px">
+            <q-card-section>
+                <div class="text-h6">
+                    <q-icon @click.prevent="deleteDevice(device?.ip)" class="cursor-pointer q-mr-sm" name="delete"
+                        size="1.5em"></q-icon>
+                    {{ editedDeviceData?.name }}
+                </div>
+                <div class="row justify-center full-width">
+                    <span class="unique q-mr-sm">
+                        [ {{ device?.hw_ver }} ]
+                        <q-tooltip>
+                            Hardware version.
+                        </q-tooltip>
+                    </span>
+                    <span>
+                        {{ device?.fw_ver }}
+                        <q-tooltip>
+                            Software version.
+                        </q-tooltip>
+                    </span>
+                </div>
+            </q-card-section>
+
+            <q-card-section class="q-pt-none">
+                <div class="row justify-between items-center">
+                    <q-input label-color="white" label="Device IP Address" :disable="!token"
+                        v-model="editedDeviceData.ip" filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
+                    <q-icon class="q-pl-md" name="help" size="2.5em">
+                        <q-tooltip>
+                            Щоб забезпечити стабільну роботу системи, потрібно **призначити статичні IP-адреси** для
+                            інвертора
+                            та
+                            розеток Tapo через налаштування роутера. Це запобігає випадковій зміні IP після
+                            перезавантаження
+                            та
+                            гарантує постійне з'єднання.
+                        </q-tooltip>
+                    </q-icon>
+                </div>
+
+                <div class="row justify-between items-center">
+                    <q-input label-color="white" label="Priority" :disable="!token" v-model="editedDeviceData.priority"
+                        filled class="q-mb-sm" style="flex: 1 1 auto" />
+                    <q-icon class="q-pl-md" name="help" size="2.5em">
+                        <q-tooltip>
+                            Приорітет пристрою, чим вищий приорітет, тим важливіший пристрій. Наприклад автоматична
+                            система
+                            буде
+                            включати прилади з вищим приорітеом в першу чергу.
+                        </q-tooltip>
+                    </q-icon>
+                </div>
+
+                <div class="row justify-between items-center">
+                    <q-input label-color="white" label="Email to Tapo application" :disable="!token"
+                        v-model="editedDeviceData.email" filled class="q-mb-sm" style="flex: 1 1 auto" />
+                    <q-icon class="q-pl-md" name="help" size="2.5em">
+                        <q-tooltip>
+                            Необхідно для підключення до вашого девайсу.
+                        </q-tooltip>
+                    </q-icon>
+                </div>
+
+                <div class="row justify-between items-center">
+                    <q-input label-color="white" label="Password to Tapo application" :disable="!token"
+                        v-model="editedDeviceData.password" filled class="q-mb-sm" style="flex: 1 1 auto" />
+                    <q-icon class="q-pl-md" name="help" size="2.5em">
+                        <q-tooltip>
+                            Необхідно для підключення до вашого девайсу.
+                        </q-tooltip>
+                    </q-icon>
+                </div>
+
+                <div class="row justify-between items-center">
+                    <q-input label-color="white" label="Device power ( W )" :disable="!token"
+                        v-model="editedDeviceData.power_watt" filled class="q-mb-sm" style="flex: 1 1 auto" />
+                    <q-icon class="q-pl-md" name="help" size="2.5em">
+                        <q-tooltip>
+                            Потужність прилада, який вмикається цією розеткою Tapo. Наприклад бойлер, який використовує
+                            2
+                            кВт
+                            -
+                            вказуєте 2000 ват.
+                        </q-tooltip>
+                    </q-icon>
+                </div>
+            </q-card-section>
+
+            <q-card-actions align="right" class="text-primary">
+                <q-btn flat label="Cancel" v-close-popup />
+                <q-btn v-close-popup :loading="loadingEditDevice" @click="editTapoDevice" :disable="!token"
+                    color="black" label="Додати новий пристрій" />
+            </q-card-actions>
+        </q-card>
+    </q-dialog>
 
     <q-separator color="orange" inset />
 </template>
@@ -68,18 +149,60 @@
 <script setup lang="ts">
 import { copy, useSessionStorage } from 'src/helpers/utils';
 import { TapoDevice } from 'src/models';
-import { useTapoStore } from 'src/stores/tapo';
-import { computed } from 'vue';
+import { UpdateTapoDeviceDto, useTapoStore } from 'src/stores/tapo';
+import { computed, ref } from 'vue';
 
 const token = useSessionStorage("access_token");
-const tapoStore = useTapoStore()
+const tapoStore = useTapoStore();
 
-const props = defineProps<{ device: TapoDevice }>()
-const device = computed(() => props.device)
+const props = defineProps<{ device: TapoDevice }>();
+const device = computed(() => props.device);
+const openModalEdit = ref(false);
+const loadingEditDevice = ref(false);
+const editedDeviceData = ref<TapoDevice & { password?: string }>({
+    added_at: '',
+    device_id: '',
+    device_on: 0,
+    email: '',
+    fw_ver: '',
+    password: '',
+    hw_ver: '',
+    id: 0,
+    ip: '',
+    model: '',
+    name: '',
+    power_watt: 0,
+    priority: 0,
+});
 
 async function deleteDevice(ip: string) {
     if (!token) return;
     await tapoStore.removeDevice(ip);
+}
+
+async function openEditModal(device: TapoDevice) {
+    editedDeviceData.value = device;
+    openModalEdit.value = true;
+}
+
+async function editTapoDevice() {
+    loadingEditDevice.value = true;
+    try {
+        const updateData: UpdateTapoDeviceDto = {
+            email: editedDeviceData.value.email,
+            power_watt: editedDeviceData.value.power_watt,
+            priority: editedDeviceData.value.priority,
+        };
+        if (editedDeviceData.value.password) {
+            updateData.password = editedDeviceData.value.password
+        }
+
+        await tapoStore.updateTapoDeviceConfig(updateData);
+    } catch (error) {
+        console.error(error);
+    } finally {
+        loadingEditDevice.value = false;
+    }
 }
 
 async function toggleDevice(state: number) {

@@ -780,6 +780,42 @@ def update_tapo_device_by_ip(ip, info: dict):
         print(f"❌ Error updating the Tapo device: {e}")
         raise
 
+def update_tapo_device_config_by_ip(ip: str, updates: dict):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            fields = []
+            values = []
+
+            if "email" in updates:
+                fields.append("email = ?")
+                values.append(updates["email"])
+            if "password" in updates:
+                fields.append("password = ?")
+                values.append(updates["password"])
+            if "power_watt" in updates:
+                fields.append("power_watt = ?")
+                values.append(updates["power_watt"])
+            if "priority" in updates:
+                fields.append("priority = ?")
+                values.append(updates["priority"])
+
+            if not fields:
+                return False  # Nothing is updated
+
+            values.append(ip)
+            sql = f'''
+                UPDATE tapo_devices
+                SET {", ".join(fields)}
+                WHERE ip = ?
+            '''
+            cursor.execute(sql, values)
+            conn.commit()
+            return get_tapo_device_by_ip(ip)
+    except sqlite3.Error as e:
+        print(f"❌ DB update config error: {e}")
+        raise
+
 def get_all_tapo_devices():
     with get_connection() as conn:
         cursor = conn.cursor()

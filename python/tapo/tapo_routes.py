@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Path, Depends
-from python.tapo.dto import TapoDeviceCreateDto
+from python.tapo.dto import TapoDeviceCreateDto, TapoDeviceUpdateDto
 import python.db as db
 from python.auth.verify_token import verify_token
 from python.tapo.tapo_service import TapoDevice
@@ -102,3 +102,18 @@ async def delete_tapo_device(ip: str = Path(..., example="192.168.31.110")):
         raise HTTPException(status_code=500, detail="Failed to delete the Tapo device")
     
     return {"message": f"Tapo device with IP {ip} deleted successfully"}
+
+@router.patch("/devices/{ip}", dependencies=[Depends(verify_token)])
+def update_tapo_device_config(ip: str, update_data: TapoDeviceUpdateDto):
+    device = db.get_tapo_device_by_ip(ip)
+    if not device:
+        raise HTTPException(status_code=404, detail="Tapo device not found")
+    
+    try:
+        updated_device = db.update_tapo_device_config_by_ip(ip, update_data.dict(exclude_unset=True))
+        return {
+            "message": f"Device {ip} updated successfully",
+            "device": {k: v for k, v in updated_device.items() if k != "password"}
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"❌ Failed to update device: {e}")

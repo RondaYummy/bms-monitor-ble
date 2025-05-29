@@ -1,8 +1,15 @@
-import { defineStore } from 'pinia'
-import { Notify } from 'quasar'
-import { api } from 'src/boot/axios'
-import { TapoDevice } from 'src/models'
-import { readonly, ref } from 'vue'
+import { defineStore } from 'pinia';
+import { Notify } from 'quasar';
+import { api } from 'src/boot/axios';
+import { TapoDevice } from 'src/models';
+import { readonly, ref } from 'vue';
+
+export interface UpdateTapoDeviceDto {
+  email?: string;
+  password?: string;
+  power_watt?: number;
+  priority?: number;
+}
 
 export const useTapoStore = defineStore('tapo', () => {
   // ==============
@@ -145,6 +152,21 @@ export const useTapoStore = defineStore('tapo', () => {
     }
   }
 
+  async function updateTapoDeviceConfig(data: UpdateTapoDeviceDto) {
+    try {
+        await api.patch(`/api/tapo/devices`, data);
+    } catch (error) {
+      console.error('Error update tapo device: ', error)
+      Notify.create({
+        message: 'Error update tapo device.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      })
+    }
+  }
+
   return {
     // ==============
     //   STATE
@@ -169,6 +191,7 @@ export const useTapoStore = defineStore('tapo', () => {
     //   ACTIONS
     // ==============
     searchTapoDevices,
+    updateTapoDeviceConfig,
     fetchDevices,
     addDevice,
     enableDevice,
