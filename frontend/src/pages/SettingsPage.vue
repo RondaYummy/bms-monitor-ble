@@ -32,132 +32,13 @@
       <div class="q-gutter-y-sm">
         <q-tab-panels swipeable infinite v-model="tab" animated transition-prev="scale" transition-next="scale"
           class="text-white text-center transparent">
+
           <q-tab-panel name="Alerts">
-            <div class="text-h6">Alerts</div>
-
-            <div class='column items-center justify-center'>
-              <p>
-                Тут ви можете переглянути всі важливі сповіщення про роботу системи.
-                Щоб видалити сповіщення, натисніть і утримуйте його.
-              </p>
-
-              <div class='row justify-center'>
-                <q-chip @click="filterAlertsByLevel()" outline clickable color="white" icon="apps">
-                  All
-                </q-chip>
-                <q-chip @click="filterAlertsByLevel('info')" outline clickable color="primary" icon="priority_high">
-                  Info
-                </q-chip>
-                <q-chip @click="filterAlertsByLevel('warning')" outline clickable color="orange" icon="warning">
-                  Warning
-                </q-chip>
-                <q-chip @click="filterAlertsByLevel('error')" outline clickable color="deep-orange" icon="error">
-                  Error
-                </q-chip>
-                <q-chip @click="filterAlertsByLevel('critical')" outline clickable color="red" icon="flash_on">
-                  Critical
-                </q-chip>
-              </div>
-            </div>
-
-            <div class='column alerts-box'>
-              <q-banner v-for="alert of alertsMain" :key="alert?.id"
-                v-touch-hold.mouse.stop="() => token && alertsStore.deleteErrorAlert(alert?.id)" inline-actions :class="{
-                  'bg-negative': alert?.level === 'critical',
-                  'bg-red': alert?.level === 'error',
-                  'bg-orange': alert?.level === 'warning',
-                  'bg-bg-primary': alert?.level === 'info',
-                }" class="text-white q-mt-sm q-mb-sm cursor-pointer rounded-borders">
-                <div class="column">
-                  <div class='row justify-between'>
-                    <q-chip outline color="white" text-color="white" :icon="getAlertIcon(alert?.level)">
-                      {{ alert?.device_name }}
-                    </q-chip>
-
-                    <div class="row items-center">
-                      <q-badge outline color="white" :label="alert?.error_code" />
-                    </div>
-
-                    <span class='row items-center'>
-                      {{ formatTimestamp(alert?.timestamp) }}
-                    </span>
-                  </div>
-
-                  <p v-if="alert?.id" class='q-mt-md text-left'>
-                    {{ alert?.message }}
-                  </p>
-                </div>
-
-              </q-banner>
-
-              <p v-if="!alerts?.length" class="level q-mt-md">
-                {{ selectedLevel ? `"${selectedLevel}" повідомлення не
-                знайдено.` : `Повідомлень не знайдено.` }}
-              </p>
-            </div>
+            <AlertsTab />
           </q-tab-panel>
 
           <q-tab-panel name="Settings">
-            <p class='text-caption'>Цей пароль, для доступу до налаштувань вашого додатку.</p>
-
-            <q-btn class="q-mt-sm" @click="changePasswordModal = true" color="black" :disable="!token"
-              label="Змінити пароль" />
-            <ChangePasswordModal @update:show="(value) => changePasswordModal = value" :show="changePasswordModal" />
-
-            <q-separator class="q-mt-md" color="orange" inset />
-
-            <p class='text-caption'>PUSH сповіщення - це спливаюче повідомлення на екрані смартфона.</p>
-
-            <q-btn class="q-mt-sm" @click="subscribePush" color="black" :disable="!token || !!pushSubscription"
-              label="Підписатись на PUSH" />
-            <q-btn class="q-mt-sm" @click="cancelSubs" color="black" :disable="!token || !pushSubscription"
-              label="Скасувати підписки" />
-
-            <q-separator class="q-mt-md" color="orange" inset />
-
-            <p class='text-caption'>Налаштування ваших сповіщень</p>
-            <q-btn class="q-mt-sm" @click="alertsModal = true" color="black" :disable="!token"
-              label="Налаштування Alerts" />
-            <AlertsSettingsModal v-if="config" :config="config" :show="alertsModal"
-              @update:show="(value) => alertsModal = value" />
-
-            <q-separator class="q-mt-md" color="orange" inset />
-
-            <p class='text-caption'>
-              Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.
-            </p>
-
-            <q-btn-dropdown :disable="!settings?.length" class="q-mt-sm" auto-close stretch flat style='flex: 1 1 50%;'
-              label="Оберіть пристрій">
-
-              <q-list v-if="settings?.length">
-                <q-item clickable v-for="setting of sortDevices(settings)" class="text-black" :key="setting?.address"
-                  :name="setting?.name" :label="setting?.name" @click="currentSetting = setting">
-                  <q-item-section>{{ setting?.name }}</q-item-section>
-                </q-item>
-              </q-list>
-            </q-btn-dropdown>
-
-            <template v-if="currentSetting">
-              <ToggleButton :value="currentSetting?.charge_switch" title="Charge" />
-              <ToggleButton :value="currentSetting?.discharge_switch" title="Discharge" />
-              <ToggleButton :value="currentSetting?.balancer_switch" title="Balance" />
-              <!-- <ToggleButton :value="currentSetting?."
-                            title="Emergency" /> -->
-              <ToggleButton :value="currentSetting?.heating_enabled" title="Heating" />
-              <ToggleButton :value="currentSetting?.disable_temperature_sensors" title="Disable Temp. Sensor" />
-              <ToggleButton :value="currentSetting?.display_always_on" title="Display Always On" />
-              <ToggleButton :value="currentSetting?.special_charger" title="Special Charger On" />
-              <ToggleButton :value="currentSetting?.smart_sleep" title="Smart Sleep On" />
-              <ToggleButton :value="currentSetting?.timed_stored_data" title="Timed Stored Data" />
-              <ToggleButton :value="currentSetting?.charging_float_mode" title="Charging Float Mode" />
-              <ToggleButton :value="currentSetting?.gps_heartbeat" title="GPS Heartbeat" />
-              <ToggleButton :value="currentSetting?.disable_pcl_module" title="Disable PCL Module" />
-
-              <SettingsList :settings="currentSetting" />
-            </template>
-
-            <q-separator class="q-mt-md" color="orange" inset />
+            <SettingsTab />
           </q-tab-panel>
 
           <q-tab-panel name="bms">
@@ -178,72 +59,23 @@
 </template>
 
 <script setup lang='ts'>
-import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
-import { formatTimestamp, getAlertIcon, sortDevices, useSessionStorage } from '../helpers/utils';
-import type { Alert, Config, SettingInfo } from '../models';
-import ToggleButton from '../components/ToggleButton.vue';
-import SettingsList from '../components/SettingsList.vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useSessionStorage } from '../helpers/utils';
 import DeyeTab from 'src/components/tabs/DeyeTab.vue';
-import ChangePasswordModal from 'src/components/modals/ChangePasswordModal.vue';
-import { cancelAllSubscriptions, checkPushSubscription, usePush } from 'src/composables/usePush';
-import AlertsSettingsModal from 'src/components/modals/AlertsSettingsModal.vue';
 import { useConfigStore } from 'src/stores/config';
-import { useAlertsStore } from 'src/stores/alerts';
-import { useBmsStore } from 'src/stores/bms';
 import BmsTab from 'src/components//tabs/BmsTab.vue';
 import TapoTab from 'src/components/tabs/TapoTab.vue';
+import SettingsTab from 'src/components/tabs/SettingsTab.vue';
+import AlertsTab from 'src/components/tabs/AlertsTab.vue';
 
 const configStore = useConfigStore();
-const alertsStore = useAlertsStore();
-const bmsStore = useBmsStore();
 
 const token = useSessionStorage("access_token");
 
 const tab = ref<string>('Alerts');
 const password = ref<string>('');
 const isPwd = ref<boolean>(true);
-const alertsModal = ref<boolean>(false);
 const intervalId = ref<NodeJS.Timeout>();
-
-const pushSubscription = ref<PushSubscription | null>(null);
-const changePasswordModal = ref(false);
-const selectedLevel = ref<string>();
-const alertsMain = ref<Alert[]>();
-const config = computed<Config>(configStore.getConfig);
-const alerts = computed<Alert[]>(alertsStore.getAlerts);
-const settings = computed<SettingInfo[]>(bmsStore.getSettingInfo);
-const currentSetting = ref<SettingInfo>();
-
-watch(alerts, () => {
-  alertsMain.value = alerts.value;
-});
-
-function filterAlertsByLevel(level?: string): void {
-  if (!alerts.value) {
-    return;
-  }
-  if (!level) {
-    alertsMain.value = alerts.value;
-    return;
-  }
-  selectedLevel.value = level;
-  alertsMain.value = alerts.value?.filter((a) => a.level === level);
-}
-
-async function cancelSubs() {
-  await cancelAllSubscriptions(true);
-  setTimeout(async () => {
-    pushSubscription.value = await checkPushSubscription();
-  }, 1000);
-}
-
-async function subscribePush() {
-  const { subscribeToPush } = usePush();
-  await subscribeToPush();
-  setTimeout(async () => {
-    pushSubscription.value = await checkPushSubscription();
-  }, 1000);
-}
 
 const login = async (pwd: string) => {
   const response = await fetch("/api/login", {
@@ -261,11 +93,6 @@ const login = async (pwd: string) => {
 };
 
 onMounted(async () => {
-  pushSubscription.value = await checkPushSubscription();
-  setTimeout(async () => {
-    pushSubscription.value = await checkPushSubscription();
-  }, 2000);
-
   intervalId.value = setInterval(async () => {
     await Promise.allSettled([configStore.fetchConfigs()]);
   }, 8000);
@@ -275,7 +102,7 @@ onBeforeUnmount(() => {
   clearInterval(intervalId.value);
 });
 
-Promise.allSettled([alertsStore.fetchErrorAlerts(), configStore.fetchConfigs()]);
+configStore.fetchConfigs();
 </script>
 
 <style scoped lang='scss'>

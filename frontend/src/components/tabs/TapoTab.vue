@@ -144,7 +144,7 @@ async function addTapoDevice() {
 onMounted(async () => {
     intervalId.value = setInterval(async () => {
         await tapoStore.fetchDevices();
-    });
+    }, 5000);
 });
 
 onBeforeUnmount(() => {

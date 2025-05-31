@@ -80,7 +80,7 @@ async function connectToDevice(address: string, name: string) {
 onMounted(async () => {
   intervalId.value = setInterval(async () => {
     await Promise.allSettled([bmsStore.fetchSettings()]);
-  }, 8000);
+  }, 5000);
 });
 
 onBeforeUnmount(() => {

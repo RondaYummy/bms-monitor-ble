@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { useSessionStorage } from 'src/helpers/utils';
 import { useDeyeStore } from 'src/stores/deye';
 
@@ -29,6 +29,7 @@ const deyeStore = useDeyeStore();
 const token = useSessionStorage("access_token");
 
 const expandAddDeyeDevice = ref(false);
+const intervalId = ref();
 const loading = ref(false);
 const createDeye = ref({ ip: '', serial_number: '' })
 
@@ -46,6 +47,16 @@ async function createDeyeDevice() {
         loading.value = false;
     }
 }
+
+onMounted(async () => {
+    intervalId.value = setInterval(async () => {
+        await Promise.allSettled([deyeStore.fetchDeyeDevices()]);
+    }, 5000);
+});
+
+onBeforeUnmount(() => {
+    clearInterval(intervalId.value);
+});
 
 deyeStore.fetchDeyeDevices();
 </script>
