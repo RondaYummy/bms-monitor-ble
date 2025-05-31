@@ -17,12 +17,16 @@
     </q-expansion-item>
 
     <div v-for="item of deyeStore?.deyeData" :key="item?.serial_number">
-        <p>
-            {{ item?.id }} | {{ item?.ip }}
-        </p>
-        <p>
-            {{ item?.serial_number }} | {{ item?.device_on == 0 ? 'Disabled' : 'Enabled' }}
-        </p>
+        <div class="column q-mt-sm q-mb-sm">
+            <div class="row justify-between">
+                <span>{{ item?.id }}</span>
+                <span>{{ item?.ip }}</span>
+            </div>
+            <div class="row justify-between">
+                <span>{{ item?.serial_number }}</span>
+                <span>{{ item?.device_on == 0 ? 'Disabled' : 'Enabled' }}</span>
+            </div>
+        </div>
     </div>
 </template>
 
