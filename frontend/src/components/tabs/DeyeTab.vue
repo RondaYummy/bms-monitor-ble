@@ -16,7 +16,14 @@
             label="Додати новий Deye пристрій" />
     </q-expansion-item>
 
-    {{ deyeStore?.deyeData }}
+    <div v-for="item of deyeStore?.deyeData" :key="item?.serial_number">
+        <p>
+            {{ item?.id }} | {{ item?.ip }}
+        </p>
+        <p>
+            {{ item?.serial_number }} | {{ item?.device_on == 0 ? 'Disabled' : 'Enabled' }}
+        </p>
+    </div>
 </template>
 
 <script setup lang="ts">

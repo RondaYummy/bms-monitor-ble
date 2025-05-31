@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { Notify } from 'quasar';
 import { api } from 'src/boot/axios';
 import { Alert } from 'src/models';
 import { readonly, ref } from 'vue';
@@ -45,7 +46,13 @@ export const useAlertsStore = defineStore('alerts', () => {
 
   async function deleteErrorAlert(id: number) {
     try {
-      await api.post('/api/error-alerts', { id });
+      const res = await api.post('/api/error-alerts', { id });
+      if (res.data?.message) {
+        Notify.create({
+          message: res.data?.message,
+          color: 'secondary',
+        });
+      }
       fetchErrorAlerts();
     } catch (error) {
       console.error('Error remove error alerts:', error);

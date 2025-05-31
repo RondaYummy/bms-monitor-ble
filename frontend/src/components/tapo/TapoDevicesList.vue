@@ -1,12 +1,10 @@
 <template>
-    <template>
-        <h6 class="q-mt-md" v-if="tapoDevices?.length">Ваші пристрої TP-Link Tapo:</h6>
+    <h6 class="q-mt-md" v-if="tapoDevices?.length">Ваші пристрої TP-Link Tapo:</h6>
 
-        <div class="column q-mt-md q-mb-md" v-if="tapoDevices?.length">
-            <q-separator color="orange" inset />
-            <TapoDeviceItem :device="device" v-for="device of tapoDevices" :key="device.id" />
-        </div>
-    </template>
+    <div class="column q-mt-md q-mb-md" v-if="tapoDevices?.length">
+        <q-separator color="orange" inset />
+        <TapoDeviceItem :device="device" v-for="device of tapoDevices" :key="device.id" />
+    </div>
 </template>
 
 <script setup lang="ts">
