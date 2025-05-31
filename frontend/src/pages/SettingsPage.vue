@@ -3,7 +3,9 @@
     <p class='unique text-center full-width' v-if='!token'>
       Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
     </p>
-    <p class='charge text-center full-width' v-if='token'>Ви успішно авторизовані та можете змінювати налаштування.</p>
+    <p class='charge text-center full-width' v-if='token'>
+      Ви успішно авторизовані та можете змінювати налаштування.
+    </p>
 
     <div class='row justify-center no-wrap q-gutter-sm q-mb-md' v-if='!token'>
       <q-input v-model="password" dense outlined label="Введіть пароль" label-color="white" color="white"
@@ -60,8 +62,7 @@
 
             <div class='column alerts-box'>
               <q-banner v-for="alert of alertsMain" :key="alert?.id"
-                v-touch-hold.mouse.stop="() => token && alertsStore.deleteErrorAlert(alert?.id)"
-                inline-actions :class="{
+                v-touch-hold.mouse.stop="() => token && alertsStore.deleteErrorAlert(alert?.id)" inline-actions :class="{
                   'bg-negative': alert?.level === 'critical',
                   'bg-red': alert?.level === 'error',
                   'bg-orange': alert?.level === 'warning',
@@ -122,7 +123,9 @@
 
             <q-separator class="q-mt-md" color="orange" inset />
 
-            <p class='text-caption'>Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.</p>
+            <p class='text-caption'>
+              Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.
+            </p>
 
             <q-btn-dropdown :disable="!settings?.length" class="q-mt-sm" auto-close stretch flat style='flex: 1 1 50%;'
               label="Оберіть пристрій">
@@ -158,148 +161,11 @@
           </q-tab-panel>
 
           <q-tab-panel name="bms">
-            <div class="text-h6">BMS Devices</div>
-            <p>Тут ви можете керувати своїми пристроями JK-BMS.</p>
-
-            <q-btn :loading="loadingDevices" @click="fetchDevices" :disable="!token" color="black"
-              label="Пошук нових пристроїв" />
-
-
-            <template v-if='devices.length'>
-              <h6 class="q-mt-md">Знайдені пристрої:</h6>
-              <p>
-                Щоб приєднатися до пристрою, просто натисніть на нього.
-                Доданий
-                вами девайс, буде підключений приблизно за 10 секунд і ви
-                зможете побачити його на головному екрані.
-              </p>
-              <q-list bordered separator>
-                <q-item v-for="device of devices" :key="device.address" clickable :disable="!!attemptToConnectDevice"
-                  :active="attemptToConnectDevice === device.address"
-                  @click="token && connectToDevice(device.address, device.name)" v-ripple>
-                  <q-item-section>{{ attemptToConnectDevice === device.address ? `Підключення до ${device?.name}` :
-                    device?.name }}</q-item-section>
-                </q-item>
-              </q-list>
-            </template>
-            <template v-if="notFoundDevices">
-              <h6 class="q-mt-md">Нових пристроїв JK-BMS не знайдено.</h6>
-            </template>
-
-            <q-separator class="q-mt-md" color="white" />
-
-            <div>
-              <div class="text-h6 q-mt-md">Ваші пристрої:</div>
-              <DevicesList :disconnect-btn="true" />
-            </div>
+            <BmsTab />
           </q-tab-panel>
 
           <q-tab-panel name="tapo">
-            <div class="text-h6 q-mb-sm full-width">TP-LINK Tapo Devices</div>
-
-            <q-expansion-item :disable="!token" v-model="expandAddTapoDevice" icon="add" label="Add new device" dark
-              dense-toggle>
-              <p>
-                Перш ніж додати новий пристрій TP-Link Tapo, переконайтесь, що він уже доданий в офіційний застосунок
-                Tapo.
-                Після цього введіть у поля нижче ваші облікові дані (email та пароль) — це необхідно для авторизації та
-                доступу до ваших пристроїв.
-              </p>
-
-              <q-input label-color="white" label="Email from Tapo App" :disable="!token" v-model="newTapoDevice.email"
-                filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
-              <q-input label-color="white" label="Password from Tapo App" :disable="!token"
-                v-model="newTapoDevice.password" filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
-
-              <q-btn :loading="loadingTapoDevices" @click="searchTapoDevices"
-                :disable="!token || !newTapoDevice.email || !newTapoDevice.password" color="black"
-                label="Шукати пристрої Tapo" />
-
-              <q-separator v-if="!tapoStore.foundDevices?.length" class="q-mt-md q-mb-md" color="white" />
-
-              <template v-if="!tapoStore.foundDevices?.length">
-                <h6 class="q-mt-md">Нових пристроїв TP-Link Tapo не знайдено.</h6>
-              </template>
-
-              <h6 v-if="tapoStore.foundDevices?.length" class="q-mt-md">Знайдено нові пристрої TP-Link Tapo:</h6>
-              <q-list v-if="tapoStore.foundDevices?.length" bordered separator>
-                <q-item v-for="device of tapoStore.foundDevices" :key="device?.ip" clickable :disable="openModalAddTapo"
-                  @click="token && openModalAddTapoDevice(device)" v-ripple class="justify-between items-center">
-                  <div class="text-h6">
-                    {{ device?.name }}
-                  </div>
-                  {{ device?.ip }} | {{ device?.model }}
-                </q-item>
-              </q-list>
-
-              <q-dialog v-model="openModalAddTapo" persistent>
-                <q-card dark style="min-width: 350px">
-                  <q-card-section>
-                    <div class="text-h6">{{ modalAddTapoDeviceData?.nmae }}</div>
-                  </q-card-section>
-
-                  <q-card-section class="q-pt-none">
-                    <div class="row justify-between items-center">
-                      <q-input label-color="white" label="Device IP Address" :disable="!token"
-                        v-model="newTapoDevice.ip" filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
-                      <q-icon class="q-pl-md" name="help" size="2.5em">
-                        <q-tooltip>
-                          Щоб забезпечити стабільну роботу системи, потрібно **призначити статичні IP-адреси** для
-                          інвертора
-                          та
-                          розеток Tapo через налаштування роутера. Це запобігає випадковій зміні IP після
-                          перезавантаження
-                          та
-                          гарантує постійне з'єднання.
-                        </q-tooltip>
-                      </q-icon>
-                    </div>
-
-                    <div class="row justify-between items-center">
-                      <q-input label-color="white" label="Priority" :disable="!token" v-model="newTapoDevice.priority"
-                        filled class="q-mb-sm" style="flex: 1 1 auto" />
-                      <q-icon class="q-pl-md" name="help" size="2.5em">
-                        <q-tooltip>
-                          Приорітет пристрою, чим вищий приорітет, тим важливіший пристрій. Наприклад автоматична
-                          система
-                          буде
-                          включати прилади з вищим приорітеом в першу чергу.
-                        </q-tooltip>
-                      </q-icon>
-                    </div>
-
-                    <div class="row justify-between items-center">
-                      <q-input label-color="white" label="Device power ( W )" :disable="!token"
-                        v-model="newTapoDevice.power_watt" filled class="q-mb-sm" style="flex: 1 1 auto" />
-                      <q-icon class="q-pl-md" name="help" size="2.5em">
-                        <q-tooltip>
-                          Потужність прилада, який вмикається цією розеткою Tapo. Наприклад бойлер, який використовує 2
-                          кВт
-                          -
-                          вказуєте 2000 ват.
-                        </q-tooltip>
-                      </q-icon>
-                    </div>
-                  </q-card-section>
-
-                  <q-card-actions align="right" class="text-primary">
-                    <q-btn flat label="Cancel" v-close-popup />
-                    <q-btn v-close-popup :loading="loadingDevices" @click="addTapoDevice"
-                      :disable="!token || !newTapoDevice.ip || !newTapoDevice.email || !newTapoDevice.password"
-                      color="black" label="Додати новий пристрій" />
-                  </q-card-actions>
-                </q-card>
-              </q-dialog>
-            </q-expansion-item>
-
-            <q-separator class="q-mt-md q-mb-md" color="white" />
-
-            <h6 class="q-mt-md" v-if="tapoDevices?.length">Ваші пристрої TP-Link Tapo:</h6>
-
-            <div class="column q-mt-md q-mb-md" v-if="tapoDevices?.length">
-              <q-separator color="orange" inset />
-              <TapoDevicesList :device="device" v-for="device of tapoDevices" :key="device.id" />
-            </div>
+            <TapoTab />
           </q-tab-panel>
 
           <q-tab-panel name="deye">
@@ -314,11 +180,9 @@
 <script setup lang='ts'>
 import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue';
 import { formatTimestamp, getAlertIcon, sortDevices, useSessionStorage } from '../helpers/utils';
-import type { Alert, Device, Config, SettingInfo, TapoDevice } from '../models';
-import DevicesList from '../components/DevicesList.vue';
+import type { Alert, Config, SettingInfo } from '../models';
 import ToggleButton from '../components/ToggleButton.vue';
 import SettingsList from '../components/SettingsList.vue';
-import TapoDevicesList from '../components/TapoDevicesList.vue';
 import DeyeTab from 'src/components/tabs/DeyeTab.vue';
 import ChangePasswordModal from 'src/components/modals/ChangePasswordModal.vue';
 import { cancelAllSubscriptions, checkPushSubscription, usePush } from 'src/composables/usePush';
@@ -326,28 +190,20 @@ import AlertsSettingsModal from 'src/components/modals/AlertsSettingsModal.vue';
 import { useConfigStore } from 'src/stores/config';
 import { useAlertsStore } from 'src/stores/alerts';
 import { useBmsStore } from 'src/stores/bms';
-import { useTapoStore } from 'src/stores/tapo';
+import BmsTab from 'src/components//tabs/BmsTab.vue';
+import TapoTab from 'src/components/tabs/TapoTab.vue';
 
 const configStore = useConfigStore();
 const alertsStore = useAlertsStore();
 const bmsStore = useBmsStore();
-const tapoStore = useTapoStore();
 
 const token = useSessionStorage("access_token");
 
-const expandAddTapoDevice = ref(false);
 const tab = ref<string>('Alerts');
 const password = ref<string>('');
 const isPwd = ref<boolean>(true);
-const loadingDevices = ref<boolean>(false);
-const loadingTapoDevices = ref<boolean>(false);
-const attemptToConnectDevice = ref<string>('');
-const openModalAddTapo = ref<boolean>(false);
-const modalAddTapoDeviceData = ref();
-const notFoundDevices = ref<boolean>(false);
 const alertsModal = ref<boolean>(false);
 const intervalId = ref<NodeJS.Timeout>();
-const newTapoDevice = ref({ ip: '', email: '', password: '', power_watt: 0, priority: 1 });
 
 const pushSubscription = ref<PushSubscription | null>(null);
 const changePasswordModal = ref(false);
@@ -356,8 +212,6 @@ const alertsMain = ref<Alert[]>();
 const config = computed<Config>(configStore.getConfig);
 const alerts = computed<Alert[]>(alertsStore.getAlerts);
 const settings = computed<SettingInfo[]>(bmsStore.getSettingInfo);
-const devices = computed<Device[]>(bmsStore.getDevices);
-const tapoDevices = computed<TapoDevice[]>(tapoStore.getDevices);
 const currentSetting = ref<SettingInfo>();
 
 watch(alerts, () => {
@@ -374,23 +228,6 @@ function filterAlertsByLevel(level?: string): void {
   }
   selectedLevel.value = level;
   alertsMain.value = alerts.value?.filter((a) => a.level === level);
-}
-
-async function openModalAddTapoDevice(device: any) {
-  modalAddTapoDeviceData.value = device;
-  openModalAddTapo.value = true;
-  newTapoDevice.value.ip = device?.ip;
-}
-
-async function searchTapoDevices() {
-  loadingTapoDevices.value = true;
-  try {
-    await tapoStore.searchTapoDevices({ email: newTapoDevice.value.email, password: newTapoDevice.value.password });
-  } catch (error) {
-    console.error(error);
-  } finally {
-    loadingTapoDevices.value = false;
-  }
 }
 
 async function cancelSubs() {
@@ -423,39 +260,6 @@ const login = async (pwd: string) => {
   return true;
 };
 
-async function fetchDevices() {
-  try {
-    loadingDevices.value = true;
-    notFoundDevices.value = false;
-    const response = await bmsStore.fetchDevices();
-    if (!response) {
-      notFoundDevices.value = true;
-    }
-  } catch (error) {
-    console.error(error);
-  } finally {
-    loadingDevices.value = false;
-  }
-}
-
-async function connectToDevice(address: string, name: string) {
-  attemptToConnectDevice.value = address;
-  await bmsStore.connectToDevice(address, name);
-  bmsStore.updateDevices(devices.value.filter((d) => d.address !== address));
-  attemptToConnectDevice.value = '';
-}
-
-async function addTapoDevice() {
-  await tapoStore.addDevice({
-    ip: newTapoDevice.value.ip,
-    email: newTapoDevice.value.email,
-    password: newTapoDevice.value.password,
-    power_watt: newTapoDevice.value?.power_watt,
-    priority: newTapoDevice.value?.priority,
-  });
-  newTapoDevice.value.ip = '';
-}
-
 onMounted(async () => {
   pushSubscription.value = await checkPushSubscription();
   setTimeout(async () => {
@@ -463,7 +267,7 @@ onMounted(async () => {
   }, 2000);
 
   intervalId.value = setInterval(async () => {
-    await Promise.allSettled([bmsStore.fetchSettings(), configStore.fetchConfigs(), tapoStore.fetchDevices()]);
+    await Promise.allSettled([configStore.fetchConfigs()]);
   }, 8000);
 });
 
@@ -471,7 +275,7 @@ onBeforeUnmount(() => {
   clearInterval(intervalId.value);
 });
 
-Promise.allSettled([alertsStore.fetchErrorAlerts(), configStore.fetchConfigs(), bmsStore.fetchSettings(), tapoStore.fetchDevices()]);
+Promise.allSettled([alertsStore.fetchErrorAlerts(), configStore.fetchConfigs()]);
 </script>
 
 <style scoped lang='scss'>
