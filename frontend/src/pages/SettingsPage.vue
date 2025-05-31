@@ -34,7 +34,10 @@
             <div class="text-h6">Alerts</div>
 
             <div class='column items-center justify-center'>
-              <p>Тут ви можете переглянути всі важливі сповіщення про роботу системи.</p>
+              <p>
+                Тут ви можете переглянути всі важливі сповіщення про роботу системи.
+                Щоб видалити сповіщення, натисніть і утримуйте його.
+              </p>
 
               <div class='row justify-center'>
                 <q-chip @click="filterAlertsByLevel()" outline clickable color="white" icon="apps">
@@ -56,8 +59,8 @@
             </div>
 
             <div class='column alerts-box'>
-              <q-banner v-for="alert of alertsMain" :key="alert?.id" @touchstart.stop @touchmove.stop
-                v-touch-swipe.mouse.right.left.stop="() => token && alertsStore.deleteErrorAlert(alert?.id)"
+              <q-banner v-for="alert of alertsMain" :key="alert?.id"
+                v-touch-hold.mouse.stop="() => token && alertsStore.deleteErrorAlert(alert?.id)"
                 inline-actions :class="{
                   'bg-negative': alert?.level === 'critical',
                   'bg-red': alert?.level === 'error',

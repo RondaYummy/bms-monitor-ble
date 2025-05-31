@@ -73,36 +73,31 @@
 
             <q-card-section class="q-pt-none">
                 <div class="row justify-between items-center">
-                    <q-input label-color="white" color="white" label="Device IP Address" :disable="!token"
+                    <q-input label-color="white" dark label="Device IP Address" :disable="!token"
                         v-model="editedDeviceData.ip" filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
                     <q-icon class="q-pl-md" name="help" size="2.5em">
                         <q-tooltip>
                             Щоб забезпечити стабільну роботу системи, потрібно **призначити статичні IP-адреси** для
-                            інвертора
-                            та
+                            інвертора та
                             розеток Tapo через налаштування роутера. Це запобігає випадковій зміні IP після
-                            перезавантаження
-                            та
-                            гарантує постійне з'єднання.
+                            перезавантаження та гарантує постійне з'єднання.
                         </q-tooltip>
                     </q-icon>
                 </div>
 
                 <div class="row justify-between items-center">
-                    <q-input label-color="white" color="white" label="Priority" :disable="!token" v-model="editedDeviceData.priority"
+                    <q-input label-color="white" dark label="Priority" :disable="!token" v-model="editedDeviceData.priority"
                         filled class="q-mb-sm" style="flex: 1 1 auto" />
                     <q-icon class="q-pl-md" name="help" size="2.5em">
                         <q-tooltip>
                             Приорітет пристрою, чим вищий приорітет, тим важливіший пристрій. Наприклад автоматична
-                            система
-                            буде
-                            включати прилади з вищим приорітеом в першу чергу.
+                            система буде включати прилади з вищим приорітеом в першу чергу.
                         </q-tooltip>
                     </q-icon>
                 </div>
 
                 <div class="row justify-between items-center">
-                    <q-input label-color="white" color="white" label="Email to Tapo application" :disable="!token"
+                    <q-input label-color="white" dark label="Email to Tapo application" :disable="!token"
                         v-model="editedDeviceData.email" filled class="q-mb-sm" style="flex: 1 1 auto" />
                     <q-icon class="q-pl-md" name="help" size="2.5em">
                         <q-tooltip>
@@ -112,7 +107,7 @@
                 </div>
 
                 <div class="row justify-between items-center">
-                    <q-input label-color="white" color="white" label="Password to Tapo application" :disable="!token"
+                    <q-input label-color="white" dark label="Password to Tapo application" :disable="!token"
                         v-model="editedDeviceData.password" filled class="q-mb-sm" style="flex: 1 1 auto" />
                     <q-icon class="q-pl-md" name="help" size="2.5em">
                         <q-tooltip>
@@ -122,15 +117,12 @@
                 </div>
 
                 <div class="row justify-between items-center">
-                    <q-input label-color="white" color="white" label="Device power ( W )" :disable="!token"
+                    <q-input label-color="white" dark label="Device power ( W )" :disable="!token"
                         v-model="editedDeviceData.power_watt" filled class="q-mb-sm" style="flex: 1 1 auto" />
                     <q-icon class="q-pl-md" name="help" size="2.5em">
                         <q-tooltip>
                             Потужність прилада, який вмикається цією розеткою Tapo. Наприклад бойлер, який використовує
-                            2
-                            кВт
-                            -
-                            вказуєте 2000 ват.
+                            2 кВт - вказуєте 2000 ват.
                         </q-tooltip>
                     </q-icon>
                 </div>
