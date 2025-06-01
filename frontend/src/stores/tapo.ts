@@ -155,6 +155,7 @@ export const useTapoStore = defineStore('tapo', () => {
   async function updateTapoDeviceConfig(ip: string, data: UpdateTapoDeviceDto) {
     try {
         await api.patch(`/api/tapo/device/${ip}`, data);
+        await fetchDevices()
     } catch (error) {
       console.error('Error update tapo device: ', error)
       Notify.create({

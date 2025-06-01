@@ -17,14 +17,14 @@
     </q-expansion-item>
 
     <div v-for="item of deyeStore?.deyeData" :key="item?.serial_number">
-        <div class="column q-mt-sm q-mb-sm rounded-borders q-pa-sm">
+        <div class="deye-item column q-mt-sm q-mb-sm rounded-borders q-pa-sm">
             <div class="row justify-between">
-                <span>{{ item?.id }}</span>
-                <span>{{ item?.ip }}</span>
+                <span>ID: {{ item?.id }}</span>
+                <span>IP: {{ item?.ip }}</span>
             </div>
             <div class="row justify-between">
-                <span>{{ item?.serial_number }}</span>
-                <span>{{ item?.device_on == 0 ? 'Disabled' : 'Enabled' }}</span>
+                <span>Serial Number: {{ item?.serial_number }}</span>
+                <span :class="item?.device_on == 0 ? 'text-red' : 'text-green'">Device State: {{ item?.device_on == 0 ? 'Disabled' : 'Enabled' }}</span>
             </div>
         </div>
     </div>
@@ -71,3 +71,9 @@ onBeforeUnmount(() => {
 
 deyeStore.fetchDeyeDevices();
 </script>
+
+<style scoped lang="scss">
+.deye-item {
+    border: 1px solid white;
+}
+</style>
