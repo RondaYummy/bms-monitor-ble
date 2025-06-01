@@ -17,7 +17,7 @@
     </q-expansion-item>
 
     <div v-for="item of deyeStore?.deyeData" :key="item?.serial_number">
-        <div class="column q-mt-sm q-mb-sm">
+        <div class="column q-mt-sm q-mb-sm rounded-borders q-pa-sm">
             <div class="row justify-between">
                 <span>{{ item?.id }}</span>
                 <span>{{ item?.ip }}</span>
