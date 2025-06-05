@@ -85,7 +85,7 @@ const login = async (pwd: string) => {
   });
 
   const data = await response.json();
-  sessionStorage.setItem("access_token", data.access_token);
+  localStorage.setItem("access_token", data.access_token);
   token.value = data?.access_token;
   password.value = '';
   console.info("---Successful---");

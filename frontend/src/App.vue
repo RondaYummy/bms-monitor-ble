@@ -12,13 +12,13 @@ if (!requestedSubscription) {
   localStorage.setItem('sub-req', 'requested');
 }
 
-// const tokenTimestamp = Number(sessionStorage.getItem(`access_token_timestamp`));
+// const tokenTimestamp = Number(localStorage.getItem(`access_token_timestamp`));
 // const currentTime = new Date().getTime();
 // const elapsedTime = (currentTime - tokenTimestamp) / 1000;
 // if (elapsedTime >= 3600) {
 //   console.info('Time expired!');
-//   sessionStorage.removeItem(`access_token`);
-//   sessionStorage.removeItem(`access_token_timestamp`);
+//   localStorage.removeItem(`access_token`);
+//   localStorage.removeItem(`access_token_timestamp`);
 // }
 
 console.warn(

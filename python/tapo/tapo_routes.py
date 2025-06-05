@@ -118,7 +118,7 @@ def update_tapo_device_config(ip: str, update_data: TapoDeviceUpdateDto):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"❌ Failed to update device: {e}")
 
-@router.get("/devices/top", dependencies=[Depends(verify_token)])
+@router.get("/devices/top")
 def get_top_priority_devices():
     try:
         devices = db.get_top_priority_tapo_devices()

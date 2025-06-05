@@ -4,15 +4,15 @@ import { eventBus } from "../eventBus";
 import { copyToClipboard, Notify } from 'quasar';
 
 export const useSessionStorage = (key: string) => {
-  const value = ref(sessionStorage.getItem(key));
+  const value = ref(localStorage.getItem(key));
 
   watch(value, (newValue) => {
     if (newValue === null || newValue === undefined) {
-      sessionStorage.removeItem(key);
-      sessionStorage.removeItem(`${key}_timestamp`);
+      localStorage.removeItem(key);
+      localStorage.removeItem(`${key}_timestamp`);
     } else {
-      sessionStorage.setItem(key, newValue);
-      sessionStorage.setItem(`${key}_timestamp`, new Date().getTime().toString());
+      localStorage.setItem(key, newValue);
+      localStorage.setItem(`${key}_timestamp`, new Date().getTime().toString());
     }
   });
 
