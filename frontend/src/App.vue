@@ -12,6 +12,7 @@ if (!requestedSubscription) {
   localStorage.setItem('sub-req', 'requested');
 }
 
+// TODO: Remove if add refresh token
 // const tokenTimestamp = Number(localStorage.getItem(`access_token_timestamp`));
 // const currentTime = new Date().getTime();
 // const elapsedTime = (currentTime - tokenTimestamp) / 1000;
