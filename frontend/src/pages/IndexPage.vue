@@ -37,8 +37,8 @@
         </q-tooltip>
       </h6>
 
-      <div class="row">
-        <div class="column" v-for="item of topTapoDevices" :key="item?.ip">
+      <div class="row justify-between full-width">
+        <div class="column items-center" v-for="item of topTapoDevices" :key="item?.ip">
           <span>{{ item?.name }}</span>
           <q-icon @click="toggleDevice(item?.device_on, item?.device_id)" name="power_settings_new"
             class="cursor-pointer toggle-device"
