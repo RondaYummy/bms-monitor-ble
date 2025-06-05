@@ -511,12 +511,21 @@ function selectSingleDevice(tab: string) {
 if (!isInstalled()) {
   installAppDialog.value = true
 }
+
+let isFetching = false
 const intervalId = setInterval(async () => {
-  await Promise.allSettled([
-    bmsStore.fetchCellInfo(),
-    deyeStore.fetchDeyeDevices(),
-    tapoStore.getTopDevices()
-  ])
+  if (isFetching) return
+
+  isFetching = true
+  try {
+    await Promise.allSettled([
+      bmsStore.fetchCellInfo(),
+      deyeStore.fetchDeyeDevices(),
+      tapoStore.getTopDevices()
+    ])
+  } finally {
+    isFetching = false
+  }
 }, 3000)
 
 onBeforeUnmount(() => {
