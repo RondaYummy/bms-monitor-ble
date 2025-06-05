@@ -819,6 +819,7 @@ def update_tapo_device_config_by_ip(ip: str, updates: dict):
 def get_top_priority_tapo_devices(limit: int = 2):
     try:
         with get_connection() as conn:
+            conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute('''
                 SELECT * FROM tapo_devices
