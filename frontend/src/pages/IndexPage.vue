@@ -30,6 +30,23 @@
       </div>
     </template>
 
+    <template v-if="topTapoDevices?.length">
+      <h6>TP-Link Tapo
+        <q-tooltip>
+          Блок останніх двох приорітетних пристроїв TP-Link Tapo.
+        </q-tooltip>
+      </h6>
+
+      <div class="row">
+        <div class="column" v-for="item of topTapoDevices" :key="item?.ip">
+          <span>{{ item?.name }}</span>
+          <q-icon @click="toggleDevice(item?.device_on, item?.device_id)" name="power_settings_new"
+            class="cursor-pointer toggle-device"
+            :class="{ 'text-white': item?.device_on == 0, 'text-red': item?.device_on == 1 }" size="3em" />
+        </div>
+      </div>
+    </template>
+
     <template v-if="devicesList">
       <h6>JK-BMS
         <q-tooltip>
@@ -294,7 +311,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -312,7 +329,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -343,17 +360,23 @@ import {
   calculateAverage,
   calculateAveragePerIndex,
   isInstalled,
+  useSessionStorage,
 } from '../helpers/utils'
 import { ref, watch, onBeforeUnmount, computed } from 'vue'
 import type { BeforeInstallPromptEvent, CellInfo, DeyeSafeValues } from '../models'
 import { useBmsStore } from 'src/stores/bms'
 import { useDeyeStore } from 'src/stores/deye'
 import SemiCircleGauge from 'src/components/SemiCircleGauge.vue'
+import { useTapoStore } from 'src/stores/tapo'
+
+const token = useSessionStorage("access_token");
 
 const bmsStore = useBmsStore()
 const deyeStore = useDeyeStore()
+const tapoStore = useTapoStore()
 
 const devicesList = computed<Record<string, CellInfo>>(bmsStore.getCellInfo)
+const topTapoDevices = computed(() => tapoStore.topDevices)
 const deyeData = computed<DeyeSafeValues>(() => {
   const data = deyeStore.getDeyeData();
   const initial: DeyeSafeValues = {
@@ -399,6 +422,19 @@ window.addEventListener('beforeinstallprompt', (event: Event) => {
 watch(devicesList, () => {
   selectSingleDevice(tab.value)
 })
+
+async function toggleDevice(state: number, deviceIp: string) {
+  if (!token) return;
+  try {
+    if (state == 1) {
+      await tapoStore.disableDevice(deviceIp);
+    } else {
+      await tapoStore.enableDevice(deviceIp);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
 
 function calculateData() {
   const values = Object.values(devicesList.value)
@@ -476,8 +512,11 @@ if (!isInstalled()) {
   installAppDialog.value = true
 }
 const intervalId = setInterval(async () => {
-  await bmsStore.fetchCellInfo()
-  await deyeStore.fetchDeyeDevices()
+  await Promise.allSettled([
+    bmsStore.fetchCellInfo(),
+    deyeStore.fetchDeyeDevices(),
+    tapoStore.getTopDevices()
+  ])
 }, 3000)
 
 onBeforeUnmount(() => {
@@ -486,6 +525,7 @@ onBeforeUnmount(() => {
 
 bmsStore.fetchCellInfo()
 deyeStore.fetchDeyeDevices()
+tapoStore.getTopDevices()
 </script>
 
 <style scoped lang="scss">

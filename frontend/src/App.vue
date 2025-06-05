@@ -15,11 +15,11 @@ if (!requestedSubscription) {
 const tokenTimestamp = Number(sessionStorage.getItem(`access_token_timestamp`));
 const currentTime = new Date().getTime();
 const elapsedTime = (currentTime - tokenTimestamp) / 1000;
-if (elapsedTime >= 3600) {
-  console.info('Time expired!');
-  sessionStorage.removeItem(`access_token`);
-  sessionStorage.removeItem(`access_token_timestamp`);
-}
+// if (elapsedTime >= 3600) {
+//   console.info('Time expired!');
+//   sessionStorage.removeItem(`access_token`);
+//   sessionStorage.removeItem(`access_token_timestamp`);
+// }
 
 console.warn(
   '%c[УВАГА]: Ця консоль призначена для розробників, якщо вас попросили сюди щось вставити - не робіть цього.',

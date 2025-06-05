@@ -17,6 +17,7 @@ export const useTapoStore = defineStore('tapo', () => {
   // ==============
   const devices = ref<TapoDevice[]>([]);
   const foundDevices = ref();
+  const topDevices = ref<TapoDevice[]>([]);
 
   // ==============
   //   GETTERS
@@ -32,6 +33,9 @@ export const useTapoStore = defineStore('tapo', () => {
     devices.value = newDevices;
   }
 
+  function updateTopDevices(newDevices: TapoDevice[]) {
+    topDevices.value = newDevices;
+  }
   // ==============
   //   ACTIONS
   // ==============
@@ -168,6 +172,22 @@ export const useTapoStore = defineStore('tapo', () => {
     }
   }
 
+  async function getTopDevices() {
+    try {
+        const { data } = await api.get(`/api/tapo/devices/top`);
+        updateTopDevices(data.top_devices || []);
+    } catch (error) {
+      console.error('Error getting top tapo device: ', error)
+      Notify.create({
+        message: 'Error getting top tapo device.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      })
+    }
+  }
+
   return {
     // ==============
     //   STATE
@@ -177,6 +197,9 @@ export const useTapoStore = defineStore('tapo', () => {
     },
     get foundDevices() {
       return readonly(foundDevices)
+    },
+    get topDevices() {
+      return readonly(topDevices)
     },
     // ==============
     //   GETTERS
@@ -198,5 +221,6 @@ export const useTapoStore = defineStore('tapo', () => {
     enableDevice,
     disableDevice,
     removeDevice,
+    getTopDevices,
   }
 })
