@@ -40,7 +40,7 @@
       <div class="row justify-between full-width">
         <div class="column items-center" v-for="item of topTapoDevices" :key="item?.ip">
           <span>{{ item?.name }}</span>
-          <q-icon @click="toggleDevice(item?.device_on, item?.device_id)" name="power_settings_new"
+          <q-icon @click="toggleDevice(item?.device_on, item?.ip)" name="power_settings_new"
             class="cursor-pointer toggle-device"
             :class="{ 'text-white': item?.device_on == 0, 'text-red': item?.device_on == 1 }" size="3em" />
         </div>
