@@ -38,7 +38,7 @@
       </h6>
 
       <div class="row justify-between full-width q-pt-sm q-mb-sm">
-        <div style="border: 1px solid white; min-width: 200px;" class="column items-center q-pa-md rounded-borders" v-for="item of topTapoDevices" :key="item?.ip">
+        <div style="border: 1px solid white; max-width: 200px; width: 100%;" class="column items-center q-pa-md rounded-borders" v-for="item of topTapoDevices" :key="item?.ip">
           <span>{{ item?.name }}</span>
           <q-icon @click="toggleDevice(item?.device_on, item?.ip)" name="power_settings_new"
             class="cursor-pointer toggle-device"
