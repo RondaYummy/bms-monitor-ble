@@ -38,7 +38,8 @@
       </h6>
 
       <div class="row justify-between full-width q-pt-sm q-mb-sm">
-        <div style="border: 1px solid white; max-width: 200px; width: 100%;" class="column items-center q-pa-md rounded-borders" v-for="item of topTapoDevices" :key="item?.ip">
+        <div style="border: 1px solid white; max-width: 200px; width: 100%;"
+          class="column items-center q-pa-md rounded-borders" v-for="item of topTapoDevices" :key="item?.ip">
           <span>{{ item?.name }}</span>
           <q-icon @click="toggleDevice(item?.device_on, item?.ip)" name="power_settings_new"
             class="cursor-pointer toggle-device"
@@ -311,7 +312,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -329,7 +330,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -424,7 +425,7 @@ watch(devicesList, () => {
 })
 
 async function toggleDevice(state: number, deviceIp: string) {
-  if (!token) return;
+  if (!token.value) return;
   try {
     if (state == 1) {
       await tapoStore.disableDevice(deviceIp);
@@ -521,7 +522,10 @@ const intervalId = setInterval(async () => {
     await Promise.allSettled([
       bmsStore.fetchCellInfo(),
       deyeStore.fetchDeyeDevices(),
-      tapoStore.getTopDevices()
+      async () => {
+        if (!token.value) return;
+        await tapoStore.getTopDevices()
+      }
     ])
   } finally {
     isFetching = false
@@ -534,7 +538,9 @@ onBeforeUnmount(() => {
 
 bmsStore.fetchCellInfo()
 deyeStore.fetchDeyeDevices()
-tapoStore.getTopDevices()
+if (token.value) {
+  tapoStore.getTopDevices()
+}
 </script>
 
 <style scoped lang="scss">

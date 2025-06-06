@@ -171,7 +171,7 @@ const editedDeviceData = ref<TapoDevice & { password?: string }>({
 });
 
 async function deleteDevice(ip: string) {
-    if (!token) return;
+    if (!token.value) return;
     await tapoStore.removeDevice(ip);
 }
 
@@ -202,7 +202,7 @@ async function editTapoDevice() {
 }
 
 async function toggleDevice(state: number) {
-    if (!token) return;
+    if (!token.value) return;
     try {
         if (state == 1) {
             await tapoStore.disableDevice(props.device?.ip);
