@@ -15,7 +15,17 @@ function deploy() {
   echo "✅ Код успішно оновлено з Git"
 
   echo "====> Ребілдимо паралельно Докер-образи через Docker Compose"
-  docker compose -f $COMPOSE_FILE -p $PROJECT_NAME build --parallel
+  # On weak Raspberry Pi it is: Heavily loads the CPU, Uses all RAM + disk I/O
+  # - Because of this, the Pi can:
+  # - shut down
+  # - freeze
+  # - lose SSH
+# - call OOM killer (kills one of the processes)
+  # docker compose -f $COMPOSE_FILE -p $PROJECT_NAME build --parallel
+
+  # Solution: build sequentially, not in parallel
+  docker compose -f $COMPOSE_FILE -p $PROJECT_NAME build frontend
+  docker compose -f $COMPOSE_FILE -p $PROJECT_NAME build python-app
 
   echo "====> Перезапускаємо Докер-контейнери"
   docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down
