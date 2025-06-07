@@ -2,102 +2,108 @@
   <div class="chart-container q-mt-md">
     <div class="row">
       <div class="chart-actions">
-        <q-btn id="one_day"
-               label="Day"
-               :disable="selectedRange === '1d'"
-               :loading="loadingRangeData === '1d'"
-               :color="selectedRange === '1d' ? 'bg-positive' : ''"
-               size="xs"
-               flat
-               @click="zoomRange('1d')" />
-        <q-btn id="one_week"
-               label="Week"
-               :disable="selectedRange === '1w'"
-               :loading="loadingRangeData === '1w'"
-               :color="selectedRange === '1w' ? 'bg-positive' : ''"
-               size="xs"
-               flat
-               @click="zoomRange('1w')" />
-        <q-btn id="one_month"
-               label="Month"
-               :disable="selectedRange === '1m'"
-               :loading="loadingRangeData === '1m'"
-               :color="selectedRange === '1m' ? 'bg-positive' : ''"
-               size="xs"
-               flat
-               @click="zoomRange('1m')" />
-        <q-btn id="one_year"
-               label="Year"
-               :disable="selectedRange === '1y'"
-               :loading="loadingRangeData === '1y'"
-               :color="selectedRange === '1y' ? 'bg-positive' : ''"
-               size="xs"
-               flat
-               @click="zoomRange('1y')" />
-        <q-btn id="custom"
-               label="Custom"
-               size="xs"
-               :color="selectedRange === 'custom' ? 'bg-positive' : ''"
-               :loading="loadingRangeData === 'custom'"
-               flat
-               @click="rangeDialog = true" />
+        <q-btn
+          id="one_day"
+          label="Day"
+          :disable="selectedRange === '1d'"
+          :loading="loadingRangeData === '1d'"
+          :color="selectedRange === '1d' ? 'bg-positive' : ''"
+          size="xs"
+          flat
+          @click="zoomRange('1d')"
+        />
+        <q-btn
+          id="one_week"
+          label="Week"
+          :disable="selectedRange === '1w'"
+          :loading="loadingRangeData === '1w'"
+          :color="selectedRange === '1w' ? 'bg-positive' : ''"
+          size="xs"
+          flat
+          @click="zoomRange('1w')"
+        />
+        <q-btn
+          id="one_month"
+          label="Month"
+          :disable="selectedRange === '1m'"
+          :loading="loadingRangeData === '1m'"
+          :color="selectedRange === '1m' ? 'bg-positive' : ''"
+          size="xs"
+          flat
+          @click="zoomRange('1m')"
+        />
+        <q-btn
+          id="one_year"
+          label="Year"
+          :disable="selectedRange === '1y'"
+          :loading="loadingRangeData === '1y'"
+          :color="selectedRange === '1y' ? 'bg-positive' : ''"
+          size="xs"
+          flat
+          @click="zoomRange('1y')"
+        />
+        <q-btn
+          id="custom"
+          label="Custom"
+          size="xs"
+          :color="selectedRange === 'custom' ? 'bg-positive' : ''"
+          :loading="loadingRangeData === 'custom'"
+          flat
+          @click="rangeDialog = true"
+        />
 
         <q-dialog v-model="rangeDialog">
           <div class="column q-gutter-sm">
             <div class="date-box">
-              <q-date v-model="range"
-                      @update:model-value="zoomRange('custom')"
-                      range />
-              <q-btn label="OK"
-                     color="secondary"
-                     @click="rangeDialog = false" />
+              <q-date v-model="range" @update:model-value="zoomRange('custom')" range />
+              <q-btn label="OK" color="secondary" @click="rangeDialog = false" />
             </div>
           </div>
         </q-dialog>
       </div>
       <div class="chart-actions">
-        <q-btn id="power"
-               label="Power"
-               :disable="selectedTypeChart === 'power'"
-               :color="selectedTypeChart === 'power' ? 'bg-positive' : ''"
-               size="xs"
-               flat
-               @click="selectTypeChart('power')">
+        <q-btn
+          id="power"
+          label="Power"
+          :disable="selectedTypeChart === 'power'"
+          :color="selectedTypeChart === 'power' ? 'bg-positive' : ''"
+          size="xs"
+          flat
+          @click="selectTypeChart('power')"
+        >
           <q-tooltip :delay="200">
-            Battery Power — Це потужність, яку батарея видає в даний момент.
-            Обчислюється як добуток напруги та струму (W).
+            Battery Power — Це потужність, яку батарея видає в даний момент. Обчислюється як добуток
+            напруги та струму (W).
           </q-tooltip>
         </q-btn>
-        <q-btn label="Current"
-               :disable="selectedTypeChart === 'current'"
-               :color="selectedTypeChart === 'current' ? 'bg-positive' : ''"
-               size="xs"
-               flat
-               @click="selectTypeChart('current')">
+        <q-btn
+          label="Current"
+          :disable="selectedTypeChart === 'current'"
+          :color="selectedTypeChart === 'current' ? 'bg-positive' : ''"
+          size="xs"
+          flat
+          @click="selectTypeChart('current')"
+        >
           <q-tooltip :delay="200">
-            Струм заряду, якщо число додатнє, йде заряджання а якщо
-            відємне
-            -
-            розряжання.
+            Струм заряду, якщо число додатнє, йде заряджання а якщо відємне - розряжання.
           </q-tooltip>
         </q-btn>
-        <q-btn label="Capacity"
-               :disable="selectedTypeChart === 'remainingCapacity'"
-               :color="selectedTypeChart === 'remainingCapacity' ? 'bg-positive' : ''"
-               size="xs"
-               flat
-               @click="selectTypeChart('remainingCapacity')">
+        <q-btn
+          label="Capacity"
+          :disable="selectedTypeChart === 'remainingCapacity'"
+          :color="selectedTypeChart === 'remainingCapacity' ? 'bg-positive' : ''"
+          size="xs"
+          flat
+          @click="selectTypeChart('remainingCapacity')"
+        >
           <q-tooltip :delay="200">
-            Це значення вказує на залишкову ємність батареї. Зазвичай воно
-            обчислюється у міліампер-годинах (mAh) або ампер-годинах (Ah).
+            Це значення вказує на залишкову ємність батареї. Зазвичай воно обчислюється у
+            міліампер-годинах (mAh) або ампер-годинах (Ah).
           </q-tooltip>
         </q-btn>
       </div>
     </div>
-    <apex-chart ref="chartRef"
-                type="line"
-                :options="chartOptions"
-                :series="series"></apex-chart>
+    <apex-chart ref="chartRef" type="line" :options="chartOptions" :series="series"></apex-chart>
   </div>
 </template>
 
@@ -112,12 +118,12 @@ interface SeriesData {
   data: any[];
   yaxis?: number;
 }
-const chartRef = ref<{ chart: ApexCharts; } | null>(null);
+const chartRef = ref<{ chart: ApexCharts } | null>(null);
 const selectedRange = ref('1d');
 const loadingRangeData = ref('');
 const rangeDialog = ref(false);
 const range = ref();
-const selectedTypeChart = ref<"power" | "current" | "remainingCapacity">('power');
+const selectedTypeChart = ref<'power' | 'current' | 'remainingCapacity'>('power');
 
 const chartOptions = ref({
   chart: {
@@ -182,9 +188,9 @@ const chartOptions = ref({
         const date = new Date(value);
         return date.toLocaleTimeString('uk-UA', {
           hour: '2-digit',
-          minute: '2-digit'
+          minute: '2-digit',
         });
-      }
+      },
     },
   },
   title: {
@@ -224,7 +230,7 @@ const chartOptions = ref({
         return `${date.toLocaleDateString('uk-UA', {
           day: '2-digit',
           month: 'short',
-          year: '2-digit'
+          year: '2-digit',
         })} ${date.toLocaleTimeString('uk-UA', {
           hour: '2-digit',
           minute: '2-digit',
@@ -306,7 +312,7 @@ async function fetchAggregatedData(
   range?: {
     from: string;
     to: string;
-  },
+  }
 ): Promise<any[]> {
   try {
     let url = `/api/aggregated-data?days=${days}`;
@@ -327,7 +333,10 @@ async function fetchAggregatedData(
 
 function processAggregatedData(data: any[], tab: string) {
   if (tab === 'All') {
-    const groupedData: Record<string, { currentSum: number; count: number; powerSum: number; remainingCapacitySum: number; }> = {};
+    const groupedData: Record<
+      string,
+      { currentSum: number; count: number; powerSum: number; remainingCapacitySum: number }
+    > = {};
 
     data.forEach((item: any) => {
       const date = new Date(item[0]);
@@ -402,7 +411,7 @@ async function fetchDataAndProcess(
   range?: {
     from: string;
     to: string;
-  },
+  }
 ) {
   try {
     data.value = await fetchAggregatedData(days, range);
@@ -420,11 +429,16 @@ async function fetchDataAndProcess(
 
 function selectTypeChart(type: 'power' | 'current' | 'remainingCapacity') {
   selectedTypeChart.value = type;
-  const { currentSeries, powerSeries, remainingCapacitySeries } = processAggregatedData(data.value, props.tab);
+  const { currentSeries, powerSeries, remainingCapacitySeries } = processAggregatedData(
+    data.value,
+    props.tab
+  );
   if (type === 'power') {
-    chartOptions.value.tooltip.y = [{
-      formatter: (val: number) => `${val?.toFixed(2)} W`,
-    }];
+    chartOptions.value.tooltip.y = [
+      {
+        formatter: (val: number) => `${val?.toFixed(2)} W`,
+      },
+    ];
     series.value = [
       {
         name: 'Battery Power',
@@ -433,9 +447,11 @@ function selectTypeChart(type: 'power' | 'current' | 'remainingCapacity') {
     ];
   }
   if (type === 'current') {
-    chartOptions.value.tooltip.y = [{
-      formatter: (val: number) => `${val?.toFixed(2)} A`,
-    }];
+    chartOptions.value.tooltip.y = [
+      {
+        formatter: (val: number) => `${val?.toFixed(2)} A`,
+      },
+    ];
     series.value = [
       {
         name: 'Current',
@@ -444,9 +460,11 @@ function selectTypeChart(type: 'power' | 'current' | 'remainingCapacity') {
     ];
   }
   if (type === 'remainingCapacity') {
-    chartOptions.value.tooltip.y = [{
-      formatter: (val: number) => `${val?.toFixed(2)} Ah`,
-    }];
+    chartOptions.value.tooltip.y = [
+      {
+        formatter: (val: number) => `${val?.toFixed(2)} Ah`,
+      },
+    ];
     series.value = [
       {
         name: 'Capacity',
@@ -478,7 +496,7 @@ watch(
     } catch (error) {
       console.error('Error processing data:', error);
     }
-  },
+  }
 );
 </script>
 

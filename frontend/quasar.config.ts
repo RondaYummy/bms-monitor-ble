@@ -2,7 +2,7 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app/wrappers';
-import manifest from "./src-pwa/manifest.json";
+import manifest from './src-pwa/manifest.json';
 
 export default defineConfig(() => {
   return {
@@ -12,16 +12,10 @@ export default defineConfig(() => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: [
-      'apexcharts',
-      'pinia',
-      'axios',
-    ],
+    boot: ['apexcharts', 'pinia', 'axios'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
-    css: [
-      'app.scss'
-    ],
+    css: ['app.scss'],
 
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
@@ -43,12 +37,12 @@ export default defineConfig(() => {
 
       target: {
         browser: ['es2022', 'firefox115', 'chrome115', 'safari14'],
-        node: 'node20'
+        node: 'node20',
       },
 
       typescript: {
         strict: true,
-        vueShim: true
+        vueShim: true,
         // extendTsConfig (tsConfig) {}
       },
 
@@ -72,14 +66,18 @@ export default defineConfig(() => {
       // viteVuePluginOptions: {},
 
       vitePlugins: [
-        ['vite-plugin-checker', {
-          vueTsc: true,
-          eslint: {
-            lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{ts,js,mjs,cjs,vue}"',
-            useFlatConfig: true
-          }
-        }, { server: false }]
-      ]
+        [
+          'vite-plugin-checker',
+          {
+            vueTsc: true,
+            eslint: {
+              lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{ts,js,mjs,cjs,vue}"',
+              useFlatConfig: true,
+            },
+          },
+          { server: false },
+        ],
+      ],
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#devserver
@@ -104,9 +102,7 @@ export default defineConfig(() => {
       // directives: [],
 
       // Quasar plugins
-      plugins: [
-        'Notify',
-      ]
+      plugins: ['Notify'],
     },
 
     // animations: 'all', // --- includes all animations
@@ -132,7 +128,7 @@ export default defineConfig(() => {
       // (gets superseded if process.env.PORT is specified at runtime)
 
       middlewares: [
-        'render' // keep this as last one
+        'render', // keep this as last one
       ],
 
       // extendPackageJson (json) {},
@@ -143,7 +139,7 @@ export default defineConfig(() => {
       // manualStoreHydration: true,
       // manualPostHydrationTrigger: true,
 
-      pwa: false
+      pwa: false,
       // pwaOfflineHtmlFilename: 'offline.html', // do NOT use index.html as name!
 
       // pwaExtendGenerateSWOptions (cfg) {},
@@ -163,11 +159,11 @@ export default defineConfig(() => {
     // extendInjectManifestOptions (cfg) {}
     // },
     pwa: {
-      workboxMode: "InjectManifest",
+      workboxMode: 'InjectManifest',
       injectPwaMetaTags: true,
       manifest,
       workboxOptions: {
-        swSrc: "src-pwa/custom-service-worker.ts",
+        swSrc: 'src-pwa/custom-service-worker.ts',
       },
     },
 
@@ -198,13 +194,11 @@ export default defineConfig(() => {
 
       packager: {
         // https://github.com/electron-userland/electron-packager/blob/master/docs/api.md#options
-
         // OS X / Mac App Store
         // appBundleId: '',
         // appCategoryType: '',
         // osxSign: '',
         // protocol: 'myapp://path',
-
         // Windows only
         // win32metadata: { ... }
       },
@@ -213,7 +207,7 @@ export default defineConfig(() => {
         // https://www.electron.build/configuration/configuration
 
         appId: 'frontend',
-      }
+      },
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-browser-extensions/configuring-bex
@@ -230,6 +224,6 @@ export default defineConfig(() => {
        * @example [ 'my-script.ts', 'sub-folder/my-other-script.js' ]
        */
       extraScripts: [],
-    }
+    },
   };
 });

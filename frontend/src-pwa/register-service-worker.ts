@@ -8,7 +8,10 @@ import packageJson from '../package.json';
 
 // const randomVersion = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
 const appVersion = packageJson.version;
-console.log('%c[APP-VERSION]: ' + appVersion, 'color: #654ef2; font-weight: bold; font-size: 16px;');
+console.log(
+  '%c[APP-VERSION]: ' + appVersion,
+  'color: #654ef2; font-weight: bold; font-size: 16px;'
+);
 
 register(process.env.SERVICE_WORKER_FILE, {
   // The registrationOptions object will be passed as the second argument
@@ -17,8 +20,7 @@ register(process.env.SERVICE_WORKER_FILE, {
 
   // registrationOptions: { scope: './' },
 
-  ready(/* registration*/) {
-  },
+  ready(/* registration*/) {},
 
   registered(/* registration */) {
     // console.log('Service worker has been registered.')
@@ -28,7 +30,7 @@ register(process.env.SERVICE_WORKER_FILE, {
     // console.log('Content has been cached for offline use.');
   },
 
-  updatefound(/* registration */) { },
+  updatefound(/* registration */) {},
 
   updated(/* registration */) {
     // console.log('New content is available; please refresh.');
@@ -36,21 +38,28 @@ register(process.env.SERVICE_WORKER_FILE, {
     Notify.create({
       type: 'warning',
       progress: true,
-      message: 'New content is available. Please click on \'Ok\' to apply changes, or \'Cancel\' and refresh the page yourself later.',
+      message:
+        "New content is available. Please click on 'Ok' to apply changes, or 'Cancel' and refresh the page yourself later.",
       position: 'bottom',
       multiLine: true,
       actions: [
-        { label: 'Cancel', color: 'white', handler: () => { /**/ } },
+        {
+          label: 'Cancel',
+          color: 'white',
+          handler: () => {
+            /**/
+          },
+        },
         {
           label: 'Ok',
           color: 'white',
           handler: () => {
             // localStorage.clear()
             (location as unknown as any)?.reload();
-          }
-        }
+          },
+        },
       ],
-      timeout: 0
+      timeout: 0,
     });
   },
 

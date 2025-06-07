@@ -1,7 +1,7 @@
-import mitt from "mitt";
+import mitt from 'mitt';
 
 type Events = {
-  "session:remove": string;
+  'session:remove': string;
 };
 
 export const eventBus = mitt<Events>();

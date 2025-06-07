@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia'
-import { api } from 'src/boot/axios'
-import { DeyeRealtimeData } from 'src/models'
-import { readonly, ref } from 'vue'
+import { defineStore } from 'pinia';
+import { api } from 'src/boot/axios';
+import { DeyeRealtimeData } from 'src/models';
+import { readonly, ref } from 'vue';
 
 export const useDeyeStore = defineStore('deye', () => {
   // ==============
@@ -37,7 +37,11 @@ export const useDeyeStore = defineStore('deye', () => {
     }
   }
 
-  async function createDeyeDevice(data: {ip: string, serial_number: string, slave_id?: number }): Promise<DeyeRealtimeData[] | undefined> {
+  async function createDeyeDevice(data: {
+    ip: string;
+    serial_number: string;
+    slave_id?: number;
+  }): Promise<DeyeRealtimeData[] | undefined> {
     try {
       const response = await api.post('/api/deye/device', data);
       const devices = await response.data;
@@ -62,7 +66,7 @@ export const useDeyeStore = defineStore('deye', () => {
     //   STATE
     // ==============
     get deyeData() {
-      return readonly(deyeData)
+      return readonly(deyeData);
     },
 
     // ==============
@@ -81,5 +85,5 @@ export const useDeyeStore = defineStore('deye', () => {
     fetchDeyeDevices,
     createDeyeDevice,
     deleteDeyeDevice,
-  }
-})
+  };
+});

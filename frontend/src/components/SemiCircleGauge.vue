@@ -6,7 +6,10 @@
       <div class="value-text2" v-if="additionalValue">
         {{ additionalValue }}
       </div>
-      <div class="value-text" :class="{ green: Number(kilowatts) > 0, unique: Number(kilowatts) < 0 }">
+      <div
+        class="value-text"
+        :class="{ green: Number(kilowatts) > 0, unique: Number(kilowatts) < 0 }"
+      >
         {{ kilowatts }} kW
       </div>
       <q-tooltip v-if="tooltip">
@@ -16,47 +19,49 @@
     <div class="labels">
       <span class="left-label">
         0
-        <q-tooltip>
-          Мінімальне значення
-        </q-tooltip>
+        <q-tooltip> Мінімальне значення </q-tooltip>
       </span>
       <span class="right-label">
         7
-        <q-tooltip>
-          Максимальне значення
-        </q-tooltip>
+        <q-tooltip> Максимальне значення </q-tooltip>
       </span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from 'vue';
 
-const props = defineProps<{ value: number; image: string; tooltip?: string; additionalValue?: string; max?: number }>()
-const max = props.max ?? 7000
+const props = defineProps<{
+  value: number;
+  image: string;
+  tooltip?: string;
+  additionalValue?: string;
+  max?: number;
+}>();
+const max = props.max ?? 7000;
 
-const kilowatts = computed(() => (props.value / 1000).toFixed(2) || 0)
-const percentage = computed(() => (Math.abs(props.value) / max * 100))
+const kilowatts = computed(() => (props.value / 1000).toFixed(2) || 0);
+const percentage = computed(() => (Math.abs(props.value) / max) * 100);
 
 const getColor = (val: number) => {
-  if (val < 85) return '#B6FF00'       // до 85% — зелений
+  if (val < 85) return '#B6FF00'; // до 85% — зелений
   // if (val < 90) return '#FF00D7'       // до 90% — фіолетовий
-  return '#FF0004'                     // вище — червоний
-}
+  return '#FF0004'; // вище — червоний
+};
 
 const chartOptions = computed(() => ({
   chart: {
     type: 'radialBar',
     offsetY: -20,
-    sparkline: { enabled: true }
+    sparkline: { enabled: true },
   },
   plotOptions: {
     radialBar: {
       startAngle: -90,
       endAngle: 90,
       track: {
-        background: "#e7e7e7",
+        background: '#e7e7e7',
         strokeWidth: '97%',
         margin: 5,
         dropShadow: {
@@ -65,24 +70,24 @@ const chartOptions = computed(() => ({
           left: 0,
           color: '#444',
           opacity: 1,
-          blur: 2
-        }
+          blur: 2,
+        },
       },
       dataLabels: {
         name: { show: false },
-        value: { show: false }
-      }
-    }
+        value: { show: false },
+      },
+    },
   },
   fill: {
     type: 'solid',
-    colors: [getColor(percentage.value)]
+    colors: [getColor(percentage.value)],
   },
   stroke: {
-    lineCap: 'butt'
+    lineCap: 'butt',
   },
-  labels: ['Power']
-}))
+  labels: ['Power'],
+}));
 </script>
 
 <style scoped lang="scss">
@@ -136,7 +141,7 @@ const chartOptions = computed(() => ({
 }
 
 .green {
-  color: #B6FF00;
+  color: #b6ff00;
 }
 
 .labels {

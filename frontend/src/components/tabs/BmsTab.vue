@@ -1,29 +1,36 @@
 <template>
-  <div class="text-h6">
-    BMS Devices
-  </div>
-  <p>
-    Тут ви можете керувати своїми пристроями JK-BMS.
-  </p>
+  <div class="text-h6">BMS Devices</div>
+  <p>Тут ви можете керувати своїми пристроями JK-BMS.</p>
 
-  <q-btn :loading="loadingDevices" @click="fetchDevices" :disable="!token" color="black"
-    label="Пошук нових пристроїв" />
+  <q-btn
+    :loading="loadingDevices"
+    @click="fetchDevices"
+    :disable="!token"
+    color="black"
+    label="Пошук нових пристроїв"
+  />
 
-  <template v-if='devices.length'>
-    <h6 class="q-mt-md">
-      Знайдені пристрої:
-    </h6>
+  <template v-if="devices.length">
+    <h6 class="q-mt-md">Знайдені пристрої:</h6>
     <p>
-      Щоб приєднатися до пристрою, просто натисніть на нього.
-      Доданий вами девайс, буде підключений приблизно за 10 секунд і ви
-      зможете побачити його на головному екрані.
+      Щоб приєднатися до пристрою, просто натисніть на нього. Доданий вами девайс, буде підключений
+      приблизно за 10 секунд і ви зможете побачити його на головному екрані.
     </p>
     <q-list bordered separator>
-      <q-item v-for="device of devices" :key="device.address" clickable :disable="!!attemptToConnectDevice"
+      <q-item
+        v-for="device of devices"
+        :key="device.address"
+        clickable
+        :disable="!!attemptToConnectDevice"
         :active="attemptToConnectDevice === device.address"
-        @click="token && connectToDevice(device.address, device.name)" v-ripple>
-        <q-item-section>{{ attemptToConnectDevice === device.address ? `Підключення до ${device?.name}` :
-          device?.name }}</q-item-section>
+        @click="token && connectToDevice(device.address, device.name)"
+        v-ripple
+      >
+        <q-item-section>{{
+          attemptToConnectDevice === device.address
+            ? `Підключення до ${device?.name}`
+            : device?.name
+        }}</q-item-section>
       </q-item>
     </q-list>
   </template>
@@ -48,7 +55,7 @@ import { useBmsStore } from 'src/stores/bms';
 
 const bmsStore = useBmsStore();
 
-const token = useSessionStorage("access_token");
+const token = useSessionStorage('access_token');
 const devices = computed<Device[]>(bmsStore.getDevices);
 const notFoundDevices = ref<boolean>(false);
 const loadingDevices = ref<boolean>(false);
@@ -88,5 +95,4 @@ onBeforeUnmount(() => {
 });
 
 Promise.allSettled([bmsStore.fetchSettings()]);
-
 </script>

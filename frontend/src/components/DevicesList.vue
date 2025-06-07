@@ -1,17 +1,18 @@
 <template>
   <ul>
-    <li v-for="device of devicesList"
-        :key="`sr_${device?.serial_number}`">
+    <li v-for="device of devicesList" :key="`sr_${device?.serial_number}`">
       <div class="column">
         <div class="row justify-between q-mb-10">
           <div class="column">
-            <q-badge :class="{
-              'connected-device': device?.connected,
-              'disconnected-device': !device?.connected,
-            }"
-                     class="q-pa-xs cursor-pointer text-weight-bold q-mt-sm q-mb-10 text-center cursor-pointer"
-                     color="cyan"
-                     @click="copy(device.address)">
+            <q-badge
+              :class="{
+                'connected-device': device?.connected,
+                'disconnected-device': !device?.connected,
+              }"
+              class="q-pa-xs cursor-pointer text-weight-bold q-mt-sm q-mb-10 text-center cursor-pointer"
+              color="cyan"
+              @click="copy(device.address)"
+            >
               {{ device.name }} [{{ device.address?.toUpperCase() }}]
             </q-badge>
             <div class="text-left">{{ device.vendor_id }}</div>
@@ -36,25 +37,27 @@
         </span>
       </div>
 
-      <div v-if="disconnectBtn"
-           class="row justify-around q-pa-sm">
-        <q-btn v-if="device.connected"
-               color="black"
-               :disable="!token || !!disconnectDeviceState"
-               :loading="disconnectDeviceState === device.address"
-               dense
-               @click="disconnectDevice(device.address, device.name)"
-               label="Від’єднатися" />
-        <q-btn v-if="!device.connected"
-               color="black"
-               dense
-               :loading="attemptToConnectDevice === device.address"
-               @click="connectToDevice(device.address, device.name)"
-               :disable="!token || !!attemptToConnectDevice"
-               label="Приєднатися" />
+      <div v-if="disconnectBtn" class="row justify-around q-pa-sm">
+        <q-btn
+          v-if="device.connected"
+          color="black"
+          :disable="!token || !!disconnectDeviceState"
+          :loading="disconnectDeviceState === device.address"
+          dense
+          @click="disconnectDevice(device.address, device.name)"
+          label="Від’єднатися"
+        />
+        <q-btn
+          v-if="!device.connected"
+          color="black"
+          dense
+          :loading="attemptToConnectDevice === device.address"
+          @click="connectToDevice(device.address, device.name)"
+          :disable="!token || !!attemptToConnectDevice"
+          label="Приєднатися"
+        />
       </div>
-      <q-separator color="orange"
-                   inset />
+      <q-separator color="orange" inset />
     </li>
   </ul>
 </template>
@@ -66,7 +69,7 @@ import type { DeviceInfo } from '../models';
 import { useBmsStore } from 'src/stores/bms';
 
 const bmsStore = useBmsStore();
-const token = useSessionStorage("access_token");
+const token = useSessionStorage('access_token');
 
 const devicesList = computed<DeviceInfo[]>(bmsStore.getDeviceInfo);
 const attemptToConnectDevice = ref<string>('');

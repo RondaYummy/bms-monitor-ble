@@ -1,7 +1,5 @@
 <template>
-  <div class="text">
-    Отримання даних...
-  </div>
+  <div class="text">Отримання даних...</div>
   <div class="box">
     <div class="comp"></div>
     <div class="loader"></div>
@@ -11,10 +9,9 @@
   </div>
 </template>
 
-<script setup lang='ts'>
-</script>
+<script setup lang="ts"></script>
 
-<style scoped lang='scss'>
+<style scoped lang="scss">
 .box {
   width: 240px;
   height: 150px;
@@ -111,7 +108,7 @@
   height: 35px;
   z-index: 1;
   border: 3px solid #fff;
-  background: #459BF9;
+  background: #459bf9;
   border-radius: 360px;
   -webkit-transform: rotateX(58deg);
   -moz-transform: rotateX(58deg);
@@ -128,7 +125,7 @@
   height: 35px;
   z-index: 20;
   border: 3px solid #fff;
-  background: #459BF9;
+  background: #459bf9;
   border-radius: 360px;
 }
 
@@ -141,7 +138,7 @@
   width: 35px;
   height: 40px;
   z-index: 17;
-  background: #459BF9;
+  background: #459bf9;
   content: '';
 }
 
@@ -318,7 +315,6 @@
     width: 63px;
   }
 }
-
 
 /*FADE IN-OUT*/
 @-webkit-keyframes fade-in-out {

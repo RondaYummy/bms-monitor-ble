@@ -9,11 +9,11 @@
   </q-page>
 </template>
 
-<script setup lang='ts'>
+<script setup lang="ts">
 import DevicesList from '../components/DevicesList.vue';
 </script>
 
-<style scoped lang='scss'>
+<style scoped lang="scss">
 h2,
 p {
   margin: 0;

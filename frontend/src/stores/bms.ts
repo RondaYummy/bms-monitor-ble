@@ -38,7 +38,7 @@ export const useBmsStore = defineStore('bms', () => {
   // ==============
   function updateCellInfo(newInfo: Record<string, CellInfo>): void {
     cellInfo.value = newInfo;
-  };
+  }
 
   function updateDeviceInfo(newInfo: DeviceInfo[]): void {
     deviceInfo.value = newInfo;

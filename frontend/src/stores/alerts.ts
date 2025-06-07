@@ -30,7 +30,7 @@ export const useAlertsStore = defineStore('alerts', () => {
   async function fetchErrorAlerts() {
     try {
       const response = await api.get('/api/error-alerts', {
-        validateStatus: (status) => status < 500
+        validateStatus: (status) => status < 500,
       });
 
       if (response.status === 404) {

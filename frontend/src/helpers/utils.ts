@@ -1,6 +1,5 @@
-
-import { onBeforeUnmount, ref, watch } from "vue";
-import { eventBus } from "../eventBus";
+import { onBeforeUnmount, ref, watch } from 'vue';
+import { eventBus } from '../eventBus';
 import { copyToClipboard, Notify } from 'quasar';
 
 export const useSessionStorage = (key: string) => {
@@ -22,17 +21,17 @@ export const useSessionStorage = (key: string) => {
     }
   };
 
-  window.addEventListener("storage", syncWithStorage);
+  window.addEventListener('storage', syncWithStorage);
 
-  eventBus.on("session:remove", (removedKey) => {
+  eventBus.on('session:remove', (removedKey) => {
     if (removedKey === key) {
       value.value = null;
     }
   });
 
   onBeforeUnmount(() => {
-    window.removeEventListener("storage", syncWithStorage);
-    eventBus.off("session:remove");
+    window.removeEventListener('storage', syncWithStorage);
+    eventBus.off('session:remove');
   });
 
   return value;
@@ -93,7 +92,11 @@ export function calculateAverage(array: any[], field: string) {
  * @param {number} inverterEfficiency - Inverter efficiency (default 0.95).
  * @returns {number|string} - Battery life in hours or '∞' if consumption is 0.
  */
-export function calculateAutonomyTime(remainingCapacity: number, charge_current: number, inverterEfficiency = 0.95) {
+export function calculateAutonomyTime(
+  remainingCapacity: number,
+  charge_current: number,
+  inverterEfficiency = 0.95
+) {
   if (charge_current >= 0) {
     return '∞';
   }
@@ -113,85 +116,85 @@ export function parseManufacturingDate(dateStr: string): string {
   return `${day}-${month}-${year}`;
 }
 
-export function sortDevices<T extends { name: string; }>(arr: T[]): T[] {
+export function sortDevices<T extends { name: string }>(arr: T[]): T[] {
   return arr?.sort((a, b) => b.name.localeCompare(a.name));
 }
 
 const UNIT_MAP = {
-  cell_count: { value: "", title: "Cell Count" },
-  nominal_battery_capacity: { value: "Ah", title: "Battery Capacity" },
-  balance_trigger_voltage: { value: "V", title: "Balance Trig. Volt." },
-  start_balance_voltage: { value: "V", title: "Start Balance Volt." },
-  max_balance_current: { value: "A", title: "Max Balance Current" },
-  cell_ovp: { value: "V", title: "Cell OVP" },
-  cell_request_charge_voltage: { value: "V", title: "Vol. Cell RCV" },
-  soc_100_voltage: { value: "V", title: "SOC-100% Volt." },
-  cell_ovpr: { value: "V", title: "Cell OVPR" },
-  cell_uvpr: { value: "V", title: "Cell UVPR" },
-  soc_0_voltage: { value: "V", title: "SOC-0% Volt." },
-  cell_uvp: { value: "V", title: "Cell UVP" },
-  power_off_voltage: { value: "V", title: "Power Off Voltage" },
-  cell_request_float_voltage: { value: "V", title: "Vol. Cell RFV" },
-  smart_sleep_voltage: { value: "V", title: "Vol. Smart Sleep" },
-  smart_sleep: { value: "h", title: "Time Smart Sleep" },
-  max_charge_current: { value: "A", title: "Continued Charge Current" },
-  charge_ocp_delay: { value: "s", title: "Charge OCP Delay" },
-  charge_ocp_recovery: { value: "s", title: "Charge OCPR Time" },
-  max_discharge_current: { value: "A", title: "Continued Discharge Current" },
-  discharge_ocp_delay: { value: "s", title: "Discharge OCP Delay" },
-  discharge_ocp_recovery: { value: "s", title: "Discharge OCPR Time" },
-  charge_otp: { value: "°C", title: "Charge OTP" },
-  charge_otp_recovery: { value: "°C", title: "Charge OTPR" },
-  discharge_otp: { value: "°C", title: "Discharge OTP" },
-  discharge_otp_recovery: { value: "°C", title: "Discharge OTPR" },
-  charge_utpr: { value: "°C", title: "Charge UTPR" },
-  charge_utp: { value: "°C", title: "Charge UTP" },
-  mos_otp: { value: "°C", title: "MOS OTP" },
-  mos_otp_recovery: { value: "°C", title: "MOS OTPR" },
-  short_circuit_protection_delay: { value: "μs", title: "SCP Delay (Мікроs)" },
-  short_circuit_protection_recovery: { value: "s", title: "SCPR Time (s)" },
-  device_address: { value: "", title: "Device Address" },
-  connection_wire_resistances: { value: "mΩ", title: "Con. Wire Res." },
-  charge_switch: { value: "", title: "Charge (switch, no unit of measurement)" },
-  discharge_switch: { value: "", title: "Discharge (switch, no unit of measurement)" },
-  balancer_switch: { value: "", title: "Balance (switch, no unit of measurement)" },
-  heating_enabled: { value: "", title: "Heating (switch, no unit of measurement)" },
-  disable_temperature_sensors: { value: "", title: "Disable Temp. Sensor (switch)" },
-  display_always_on: { value: "", title: "Display Always On (switch)" },
-  special_charger: { value: "", title: "Special Charger On (switch)" },
-  timed_stored_data: { value: "", title: "Timed Stored Data (switch)" },
-  charging_float_mode: { value: "", title: "Charging Float Mode (switch)" },
-  gps_heartbeat: { value: "", title: "GPS Heartbeat (switch)" },
-  disable_pcl_module: { value: "", title: "Disable PCL Module (switch)" },
-  port_switch: { value: "", title: "Port Switch" },
-  precharge_time: { value: "s", title: "Precharge Time (s)" },
-  data_field_enable_control: { value: "", title: "Data Field Enable Control" },
-  controls_bitmask: { value: "", title: "Controls Bitmask" },
+  cell_count: { value: '', title: 'Cell Count' },
+  nominal_battery_capacity: { value: 'Ah', title: 'Battery Capacity' },
+  balance_trigger_voltage: { value: 'V', title: 'Balance Trig. Volt.' },
+  start_balance_voltage: { value: 'V', title: 'Start Balance Volt.' },
+  max_balance_current: { value: 'A', title: 'Max Balance Current' },
+  cell_ovp: { value: 'V', title: 'Cell OVP' },
+  cell_request_charge_voltage: { value: 'V', title: 'Vol. Cell RCV' },
+  soc_100_voltage: { value: 'V', title: 'SOC-100% Volt.' },
+  cell_ovpr: { value: 'V', title: 'Cell OVPR' },
+  cell_uvpr: { value: 'V', title: 'Cell UVPR' },
+  soc_0_voltage: { value: 'V', title: 'SOC-0% Volt.' },
+  cell_uvp: { value: 'V', title: 'Cell UVP' },
+  power_off_voltage: { value: 'V', title: 'Power Off Voltage' },
+  cell_request_float_voltage: { value: 'V', title: 'Vol. Cell RFV' },
+  smart_sleep_voltage: { value: 'V', title: 'Vol. Smart Sleep' },
+  smart_sleep: { value: 'h', title: 'Time Smart Sleep' },
+  max_charge_current: { value: 'A', title: 'Continued Charge Current' },
+  charge_ocp_delay: { value: 's', title: 'Charge OCP Delay' },
+  charge_ocp_recovery: { value: 's', title: 'Charge OCPR Time' },
+  max_discharge_current: { value: 'A', title: 'Continued Discharge Current' },
+  discharge_ocp_delay: { value: 's', title: 'Discharge OCP Delay' },
+  discharge_ocp_recovery: { value: 's', title: 'Discharge OCPR Time' },
+  charge_otp: { value: '°C', title: 'Charge OTP' },
+  charge_otp_recovery: { value: '°C', title: 'Charge OTPR' },
+  discharge_otp: { value: '°C', title: 'Discharge OTP' },
+  discharge_otp_recovery: { value: '°C', title: 'Discharge OTPR' },
+  charge_utpr: { value: '°C', title: 'Charge UTPR' },
+  charge_utp: { value: '°C', title: 'Charge UTP' },
+  mos_otp: { value: '°C', title: 'MOS OTP' },
+  mos_otp_recovery: { value: '°C', title: 'MOS OTPR' },
+  short_circuit_protection_delay: { value: 'μs', title: 'SCP Delay (Мікроs)' },
+  short_circuit_protection_recovery: { value: 's', title: 'SCPR Time (s)' },
+  device_address: { value: '', title: 'Device Address' },
+  connection_wire_resistances: { value: 'mΩ', title: 'Con. Wire Res.' },
+  charge_switch: { value: '', title: 'Charge (switch, no unit of measurement)' },
+  discharge_switch: { value: '', title: 'Discharge (switch, no unit of measurement)' },
+  balancer_switch: { value: '', title: 'Balance (switch, no unit of measurement)' },
+  heating_enabled: { value: '', title: 'Heating (switch, no unit of measurement)' },
+  disable_temperature_sensors: { value: '', title: 'Disable Temp. Sensor (switch)' },
+  display_always_on: { value: '', title: 'Display Always On (switch)' },
+  special_charger: { value: '', title: 'Special Charger On (switch)' },
+  timed_stored_data: { value: '', title: 'Timed Stored Data (switch)' },
+  charging_float_mode: { value: '', title: 'Charging Float Mode (switch)' },
+  gps_heartbeat: { value: '', title: 'GPS Heartbeat (switch)' },
+  disable_pcl_module: { value: '', title: 'Disable PCL Module (switch)' },
+  port_switch: { value: '', title: 'Port Switch' },
+  precharge_time: { value: 's', title: 'Precharge Time (s)' },
+  data_field_enable_control: { value: '', title: 'Data Field Enable Control' },
+  controls_bitmask: { value: '', title: 'Controls Bitmask' },
 
   // Cell info
-  charging_status: { value: "", title: "Charging Status" },
-  discharging_status: { value: "", title: "Discharging Status" },
-  precharging_status: { value: "", title: "Precharging Status" },
-  voltage_difference: { value: "V", title: "Voltage Difference" },
-  average_voltage: { value: "V", title: "Average Voltage" },
-  cell_voltages: { value: "V", title: "Cell Voltages" },
-  cell_resistances: { value: "Ω", title: "Cell Resistances (Ом)" },
-  power_tube_temperature: { value: "°C", title: "Power Tube Temperature" },
-  battery_voltage: { value: "V", title: "Battery Voltage" },
-  battery_power: { value: "W", title: "Battery Power" },
-  charge_current: { value: "A", title: "Charge Current" },
-  temperature_sensor_1: { value: "°C", title: "Temperature Sensor 1" },
-  temperature_sensor_2: { value: "°C", title: "Temperature Sensor 2" },
-  temperature_sensor_3: { value: "°C", title: "Temperature Sensor 3" },
-  temperature_sensor_4: { value: "°C", title: "Temperature Sensor 4" },
-  temperature_sensor_5: { value: "°C", title: "Temperature Sensor 5" },
-  state_of_charge: { value: "%", title: "State of Charge" },
-  remaining_capacity: { value: "Ah", title: "Remaining Capacity" },
-  nominal_capacity: { value: "Ah", title: "Nominal Capacity" },
-  cycle_count: { value: "", title: "Cycle Count" },
-  total_cycle_capacity: { value: "Ah", title: "Total Cycle Capacity" },
-  state_of_health: { value: "%", title: "State of Health" },
-  emergency_time_countdown: { value: "s", title: "Emergency Time Countdown (s)" }
+  charging_status: { value: '', title: 'Charging Status' },
+  discharging_status: { value: '', title: 'Discharging Status' },
+  precharging_status: { value: '', title: 'Precharging Status' },
+  voltage_difference: { value: 'V', title: 'Voltage Difference' },
+  average_voltage: { value: 'V', title: 'Average Voltage' },
+  cell_voltages: { value: 'V', title: 'Cell Voltages' },
+  cell_resistances: { value: 'Ω', title: 'Cell Resistances (Ом)' },
+  power_tube_temperature: { value: '°C', title: 'Power Tube Temperature' },
+  battery_voltage: { value: 'V', title: 'Battery Voltage' },
+  battery_power: { value: 'W', title: 'Battery Power' },
+  charge_current: { value: 'A', title: 'Charge Current' },
+  temperature_sensor_1: { value: '°C', title: 'Temperature Sensor 1' },
+  temperature_sensor_2: { value: '°C', title: 'Temperature Sensor 2' },
+  temperature_sensor_3: { value: '°C', title: 'Temperature Sensor 3' },
+  temperature_sensor_4: { value: '°C', title: 'Temperature Sensor 4' },
+  temperature_sensor_5: { value: '°C', title: 'Temperature Sensor 5' },
+  state_of_charge: { value: '%', title: 'State of Charge' },
+  remaining_capacity: { value: 'Ah', title: 'Remaining Capacity' },
+  nominal_capacity: { value: 'Ah', title: 'Nominal Capacity' },
+  cycle_count: { value: '', title: 'Cycle Count' },
+  total_cycle_capacity: { value: 'Ah', title: 'Total Cycle Capacity' },
+  state_of_health: { value: '%', title: 'State of Health' },
+  emergency_time_countdown: { value: 's', title: 'Emergency Time Countdown (s)' },
 };
 
 /**

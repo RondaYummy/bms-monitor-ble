@@ -1,14 +1,9 @@
 <template>
   <div class="toggle-wrapper">
-    <span :class="{ disabled: disabled }"
-          class="name">{{ title }}</span>
+    <span :class="{ disabled: disabled }" class="name">{{ title }}</span>
     <div class="toggle transparent">
-      <input :disabled="disabled"
-             :checked="checked"
-             id="transparent"
-             type="checkbox" />
-      <label class="toggle-item"
-             for="transparent"></label>
+      <input :disabled="disabled" :checked="checked" id="transparent" type="checkbox" />
+      <label class="toggle-item" for="transparent"></label>
     </div>
   </div>
 </template>
@@ -23,9 +18,12 @@ const props = defineProps({
 const checked = ref(props.value);
 const disabled = ref(true);
 
-watch(() => props.value, (newValue) => {
-  checked.value = newValue;
-});
+watch(
+  () => props.value,
+  (newValue) => {
+    checked.value = newValue;
+  }
+);
 </script>
 
 <style scoped lang="scss">
@@ -74,20 +72,20 @@ label.toggle-item {
   border-radius: 50px;
   margin: 5px;
   position: relative;
-  transition: all .3s ease;
+  transition: all 0.3s ease;
   transform-origin: 20% center;
   cursor: pointer;
 
   &:before {
     display: block;
-    transition: all .2s ease;
+    transition: all 0.2s ease;
     width: 2.3em;
     height: 2.3em;
-    top: .25em;
-    left: .25em;
+    top: 0.25em;
+    left: 0.25em;
     border-radius: 2em;
     border: 2px solid #88cf8f;
-    transition: .3s ease;
+    transition: 0.3s ease;
   }
 }
 
@@ -107,13 +105,13 @@ label.toggle-item {
   }
 }
 
-#transparent:checked+label {
+#transparent:checked + label {
   &:before {
     transform: translateX(59px);
   }
 }
 
-input:disabled+.toggle-item {
+input:disabled + .toggle-item {
   border: 3px solid #808080 !important;
   color: #808080 !important;
 }
@@ -122,7 +120,7 @@ input:disabled+.toggle-item {
   color: #808080 !important;
 }
 
-input:disabled+.toggle-item::before {
+input:disabled + .toggle-item::before {
   background-color: #808080 !important;
   border: 3px solid #808080 !important;
 }
