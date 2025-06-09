@@ -555,7 +555,6 @@ tapoStore.getTopDevices();
 
 .top-tapo {
   border: 1px solid white;
-  max-width: 150px;
   flex: 1 1 45%;
 }
 </style>
