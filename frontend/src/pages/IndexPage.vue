@@ -32,7 +32,7 @@
     <template v-if="topTapoDevices?.length">
       <h6>
         TP-Link Tapo
-        <q-tooltip> Блок останніх двох приорітетних пристроїв TP-Link Tapo. </q-tooltip>
+        <q-tooltip> Блок пристроїв з найбільшим приоритетом TP-Link Tapo. </q-tooltip>
       </h6>
 
       <div class="row justify-between full-width q-pt-sm q-mb-sm top-tapo-row">
