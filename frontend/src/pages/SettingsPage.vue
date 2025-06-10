@@ -122,11 +122,6 @@ configStore.fetchConfigs();
 </script>
 
 <style scoped lang="scss">
-.level {
-  text-transform: capitalize;
-  font-weight: 600;
-}
-
 :deep(.q-field__native) {
   color: white !important;
 }

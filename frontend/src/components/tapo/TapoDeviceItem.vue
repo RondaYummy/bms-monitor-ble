@@ -69,12 +69,12 @@
           {{ editedDeviceData?.name }}
         </div>
         <div class="row justify-center full-width">
-          <span class="unique q-mr-sm">
-            [ {{ copy(device?.hw_ver) }} ]
+          <span @click="copy(device?.hw_ver)" class="unique q-mr-sm">
+            [ {{ device?.hw_ver }} ]
             <q-tooltip> Hardware version. </q-tooltip>
           </span>
-          <span>
-            {{ copy(device?.fw_ver) }}
+          <span @click="copy(device?.fw_ver)">
+            {{ device?.fw_ver }}
             <q-tooltip> Software version. </q-tooltip>
           </span>
         </div>
@@ -268,18 +268,18 @@ async function toggleDevice(state: number) {
 <style scoped lang="scss">
 .device-row {
   width: 100%;
-  padding: 10px;
+  padding: 15px;
   position: relative;
 }
 
 .toggle-device {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 10px;
+  right: 10px;
 }
 
 .badge:before {
   top: -9px;
-  left: 0px;
+  left: 2px;
 }
 </style>
