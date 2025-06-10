@@ -327,6 +327,7 @@
             встановити його як додаток на свій смартфон чи комп’ютер.
           </p>
           <q-btn class="q-mt-sm" @click="installApp" color="black" label="Встановити як додаток" />
+          <q-btn class="q-mt-sm" @click="skipInstallApp" color="black" label="Не встановлювати" />
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -423,7 +424,7 @@ import {
   isInstalled,
   useSessionStorage,
 } from '../helpers/utils';
-import { ref, watch, onBeforeUnmount, computed } from 'vue';
+import { ref, watch, onBeforeUnmount, computed, onMounted } from 'vue';
 import type { BeforeInstallPromptEvent, CellInfo, DeyeSafeValues } from '../models';
 import { useBmsStore } from 'src/stores/bms';
 import { useDeyeStore } from 'src/stores/deye';
@@ -438,6 +439,8 @@ const tapoStore = useTapoStore();
 
 const devicesList = computed<Record<string, CellInfo>>(bmsStore.getCellInfo);
 const topTapoDevices = computed(() => tapoStore.topDevices);
+const intervalId = ref();
+const isFetching = ref(false);
 const deyeData = computed<DeyeSafeValues>(() => {
   const data = deyeStore.getDeyeData();
   const initial: DeyeSafeValues = {
@@ -468,6 +471,7 @@ const deyeData = computed<DeyeSafeValues>(() => {
 });
 
 const installAppDialog = ref<boolean>(false);
+const skipInstall = localStorage.getItem('skip-install');
 const calculatedList = ref<any>();
 const showInfo = ref(false);
 const tab = ref<string>('All');
@@ -561,6 +565,10 @@ function installApp() {
   deferredPrompt.prompt();
 }
 
+function skipInstallApp() {
+  localStorage.setItem('skip-install', 'true');
+}
+
 function selectSingleDevice(tab: string) {
   if (tab === 'All') {
     calculateData();
@@ -569,15 +577,13 @@ function selectSingleDevice(tab: string) {
   }
 }
 
-if (!isInstalled()) {
+if (!isInstalled() && skipInstall !== 'true') {
   installAppDialog.value = true;
 }
 
-let isFetching = false;
-const intervalId = setInterval(async () => {
-  if (isFetching) return;
-
-  isFetching = true;
+const intervalFunction = async () => {
+  if (isFetching.value) return;
+  isFetching.value = true;
   try {
     await Promise.allSettled([
       bmsStore.fetchCellInfo(),
@@ -585,17 +591,19 @@ const intervalId = setInterval(async () => {
       tapoStore.getTopDevices(),
     ]);
   } finally {
-    isFetching = false;
+    isFetching.value = false;
   }
-}, 3000);
+};
 
-onBeforeUnmount(() => {
-  clearInterval(intervalId);
+onMounted(() => {
+  intervalId.value = setInterval(intervalFunction, 3000);
 });
 
-bmsStore.fetchCellInfo();
-deyeStore.fetchDeyeDevices();
-tapoStore.getTopDevices();
+onBeforeUnmount(() => {
+  clearInterval(intervalId.value);
+});
+
+intervalFunction();
 </script>
 
 <style scoped lang="scss">
