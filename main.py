@@ -170,7 +170,15 @@ async def delete_error_alert(request: DeleteAlertRequest, token: str = Depends(v
         return {"message": f"Alert with ID {request.id} has been deleted successfully."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting alert: {str(e)}")
-    
+
+@app.delete("/api/error-alerts/all", dependencies=[Depends(verify_token)])
+async def delete_all_error_alerts():
+    try:
+        db.delete_all_alerts()
+        return {"message": "All alerts have been deleted successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting all alerts: {str(e)}")
+        
 @app.get("/api/error-alerts")
 async def get_device_info():
     data = db.fetch_all_notifications()
@@ -193,6 +201,8 @@ async def get_device_info():
         level = error_codes.get(error_code, {}).get('level', 'Level not found')
         enriched_alert = {**alert, "message": message, "level": level}
         enriched_data.append(enriched_alert)
+        # 🔽 Sort by timestamp (newest to oldest)
+        enriched_data.sort(key=lambda x: x["timestamp"], reverse=True)
     return enriched_data
 
 async def disconnect_if_needed(device_address):

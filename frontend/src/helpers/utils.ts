@@ -242,11 +242,11 @@ export function isInstalled() {
   return window?.matchMedia('(display-mode: standalone)')?.matches;
 }
 
-export async function copy(value: string) {
-  copyToClipboard(value)
+export async function copy(value: string | number) {
+  copyToClipboard(String(value))
     .then(() => {
       Notify.create({
-        message: 'Адресу пристрою успішно скопійовано.',
+        message: 'Успішно скопійовано.',
         color: 'green',
         position: 'top',
         timeout: 1000,
@@ -254,7 +254,7 @@ export async function copy(value: string) {
     })
     .catch(() => {
       Notify.create({
-        message: 'Сталася помилка під час копіювання адреси пристрою.',
+        message: 'Сталася помилка під час копіювання.',
         color: 'red',
         icon: 'warning',
         position: 'top',

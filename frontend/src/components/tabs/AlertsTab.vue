@@ -11,59 +11,31 @@
       <q-chip @click="filterAlertsByLevel()" outline clickable color="white" icon="apps">
         All
       </q-chip>
-      <q-chip
-        @click="filterAlertsByLevel('info')"
-        outline
-        clickable
-        color="primary"
-        icon="priority_high"
-      >
+      <q-chip @click="filterAlertsByLevel('info')" outline clickable color="primary" icon="priority_high">
         Info
       </q-chip>
-      <q-chip
-        @click="filterAlertsByLevel('warning')"
-        outline
-        clickable
-        color="orange"
-        icon="warning"
-      >
+      <q-chip @click="filterAlertsByLevel('warning')" outline clickable color="orange" icon="warning">
         Warning
       </q-chip>
-      <q-chip
-        @click="filterAlertsByLevel('error')"
-        outline
-        clickable
-        color="deep-orange"
-        icon="error"
-      >
+      <q-chip @click="filterAlertsByLevel('error')" outline clickable color="deep-orange" icon="error">
         Error
       </q-chip>
-      <q-chip
-        @click="filterAlertsByLevel('critical')"
-        outline
-        clickable
-        color="red"
-        icon="flash_on"
-      >
+      <q-chip @click="filterAlertsByLevel('critical')" outline clickable color="red" icon="flash_on">
         Critical
       </q-chip>
     </div>
   </div>
 
+  <span class="text-right full-width" v-if="alerts?.length" @click="alertsStore.deleteAllAlerts">Clear alerts</span>
+
   <div class="column alerts-box">
-    <q-banner
-      v-for="alert of alertsMain"
-      :key="alert?.id"
-      v-touch-hold.mouse="() => token && alertsStore.deleteErrorAlert(alert?.id)"
-      inline-actions
-      :class="{
+    <q-banner v-for="alert of alertsMain" :key="alert?.id"
+      v-touch-hold.mouse="() => token && alertsStore.deleteErrorAlert(alert?.id)" inline-actions :class="{
         'bg-negative': alert?.level === 'critical',
         'bg-red': alert?.level === 'error',
         'bg-orange': alert?.level === 'warning',
         'bg-bg-primary': alert?.level === 'info',
-      }"
-      class="text-white q-mt-sm q-mb-sm cursor-pointer rounded-borders"
-    >
+      }" class="text-white q-mt-sm q-mb-sm cursor-pointer rounded-borders">
       <div class="column">
         <div class="row justify-between">
           <q-chip outline color="white" text-color="white" :icon="getAlertIcon(alert?.level)">
@@ -89,7 +61,7 @@
       {{
         selectedLevel
           ? `"${selectedLevel}" повідомлення не
-            знайдено.`
+      знайдено.`
           : `Повідомлень не знайдено.`
       }}
     </p>

@@ -122,10 +122,6 @@ configStore.fetchConfigs();
 </script>
 
 <style scoped lang="scss">
-.alerts-box {
-  gap: 10px;
-}
-
 .level {
   text-transform: capitalize;
   font-weight: 600;

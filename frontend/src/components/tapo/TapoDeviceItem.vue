@@ -70,11 +70,11 @@
         </div>
         <div class="row justify-center full-width">
           <span class="unique q-mr-sm">
-            [ {{ device?.hw_ver }} ]
+            [ {{ copy(device?.hw_ver) }} ]
             <q-tooltip> Hardware version. </q-tooltip>
           </span>
           <span>
-            {{ device?.fw_ver }}
+            {{ copy(device?.fw_ver) }}
             <q-tooltip> Software version. </q-tooltip>
           </span>
         </div>

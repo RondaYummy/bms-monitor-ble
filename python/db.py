@@ -296,6 +296,19 @@ def delete_alert_by_id(alert_id):
         print(f"Error deleting alert data: {e}")
         raise
 
+def delete_all_alerts():
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute('DELETE FROM error_notifications')
+            conn.commit()
+
+            print("✅ All notifications have been deleted successfully.")
+    except sqlite3.Error as e:
+        print(f"❌ Error deleting all alerts: {e}")
+        raise
+        
 def set_all_devices_disconnected():
     try:
         with get_connection() as conn:

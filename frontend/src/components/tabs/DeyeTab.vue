@@ -20,13 +20,13 @@
         <span>
           <q-icon @click.prevent="deleteDevice(item?.ip)" class="cursor-pointer q-mr-sm" name="delete"
             size="1.5em"></q-icon>
-          ID: {{ item?.id }}
+          ID: {{ copy(item?.id) }}
         </span>
-        <span>IP: {{ item?.ip }}</span>
+        <span>IP: {{ copy(item?.ip) }}</span>
       </div>
       <div class="row justify-between">
         <span>SN:
-          {{ item?.serial_number }}
+          {{ copy(item?.serial_number) }}
           <q-tooltip>
             Серійний номер пристрою.
           </q-tooltip>
@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { useSessionStorage } from 'src/helpers/utils';
+import { copy, useSessionStorage } from 'src/helpers/utils';
 import { useDeyeStore } from 'src/stores/deye';
 import { Notify } from 'quasar';
 

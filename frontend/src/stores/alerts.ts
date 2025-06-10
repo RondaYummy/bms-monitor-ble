@@ -59,6 +59,21 @@ export const useAlertsStore = defineStore('alerts', () => {
     }
   }
 
+  async function deleteAllAlerts() {
+    try {
+      const res = await api.delete('/api/error-alerts/all');
+      if (res.data?.message) {
+        Notify.create({
+          message: res.data?.message,
+          color: 'secondary',
+        });
+      }
+      fetchErrorAlerts();
+    } catch (error) {
+      console.error('Error remove error alerts:', error);
+    }
+  }
+
   return {
     // ==============
     //   STATE
@@ -82,5 +97,6 @@ export const useAlertsStore = defineStore('alerts', () => {
     // ==============
     fetchErrorAlerts,
     deleteErrorAlert,
+    deleteAllAlerts,
   };
 });
