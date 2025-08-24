@@ -742,7 +742,7 @@ async def connect_and_run(device):
                             setting_info_command = create_command(CMD_TYPE_SETTINGS)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, setting_info_command)
                             log(device.name, f"⚙️ Setting Info command sent: {setting_info_command.hex()}", force=True)
-                            await asyncio.sleep(10)
+                            await asyncio.sleep(8)
 
                         # Checking whether to send cell_info_command
                         last_update = await data_store.get_last_cell_info_update(device.name)
@@ -758,13 +758,13 @@ async def connect_and_run(device):
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
                             await asyncio.sleep(2)
                             
-                        await asyncio.sleep(10)
+                        await asyncio.sleep(8)
 
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
             finally:
-                log(device.name, "🔄 Retrying connection in 10 seconds...", force=True)
-                await asyncio.sleep(10)
+                log(device.name, "🔄 Retrying connection in 8 seconds...", force=True)
+                await asyncio.sleep(8)
 
 async def filter_devices(devices):
     allowed_devices = db.get_all_devices()
@@ -824,7 +824,7 @@ async def ble_main():
                     active_connections[device_address] = task  # Add to active
                     tasks.append(task)
 
-                    await asyncio.sleep(5)  # Delay between connections
+                    await asyncio.sleep(3)  # Delay between connections
 
                 if tasks:
                     await asyncio.gather(*tasks)  # We are waiting for all connections to be made
@@ -839,7 +839,7 @@ async def ble_main():
                         task.cancel()
                         del active_connections[device_address]
                 
-                await asyncio.sleep(20) # Waiting before the next scan
+                await asyncio.sleep(15) # Waiting before the next scan
 
         except Exception as e:
             log("ble_main", f"❌ BLE scan error: {str(e)}", force=True)

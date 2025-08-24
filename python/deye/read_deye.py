@@ -21,7 +21,7 @@ import python.db as db
 def safe_read_scaled(modbus, register: int, scale: float, name: str = ""):
     try:
         raw = modbus.read_holding_registers(register, 1)[0]
-        if raw in (0, 65535):  # частий маркер "немає даних"
+        if raw in (0, 65535): # frequent “no data” marker
             print(f"⚠️ {name} = {raw} (possibly invalid)")
             return None
         return round(raw * scale, 2)
@@ -125,4 +125,4 @@ async def run_deye_loop():
             await asyncio.gather(*tasks)
         except Exception as e:
             print(f"❌ Error in Deye loop: {e}")
-        await asyncio.sleep(5)
+        await asyncio.sleep(3)
