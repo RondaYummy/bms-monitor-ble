@@ -128,7 +128,6 @@ export function calculateChargeTime(
   if (missingCapacityAh <= 0) {
     return '0 h (already full)';
   }
-
   // Number of kilowatt-hours missing
   const missingEnergyKWh = (batteryVoltage * missingCapacityAh) / 1000;
   // Effective charging power taking into account efficiency (in kW)
