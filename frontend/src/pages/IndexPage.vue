@@ -166,7 +166,7 @@
             coral:
               calculatedList?.voltage_difference >= 20 && calculatedList?.voltage_difference < 40,
           }">
-            ⚖️ Cell delta: {{ calculatedList?.voltage_difference?.toFixed(3) }}
+            ⚖️ C-Delta: {{ calculatedList?.voltage_difference?.toFixed(3) }}
             <sup>V</sup>
 
             <q-tooltip>
@@ -176,7 +176,7 @@
             </q-tooltip>
           </span>
           <span>
-            📊 Cell average: {{ calculatedList?.average_voltage?.toFixed(2) }}
+            📊 C-avg: {{ calculatedList?.average_voltage?.toFixed(2) }}
             <sup>V</sup>
 
             <q-tooltip>
@@ -202,7 +202,7 @@
 
         <div class="row justify-between">
           <span>
-            📦 Capacity:
+            📦 Cap.:
             {{
               (
                 (calculatedList?.battery_voltage * calculatedList?.nominal_capacity) /
@@ -215,7 +215,7 @@
           </span>
 
           <span>
-            🪫 Capacity left:
+            🪫 Cap. left:
             {{
               (
                 (calculatedList?.battery_voltage * calculatedList?.remaining_capacity) /
@@ -279,7 +279,7 @@
           </span>
 
           <span v-else>
-            ⏱ Charging time lef:
+            ⏱ Time left:
             {{
               calculateChargeTime(
                 calculatedList?.battery_voltage,
@@ -290,7 +290,7 @@
             }}
 
             <q-tooltip>
-              Charging time le - Час, який необхідний до повної зарядки акумуляторів.
+              Charging time left - Час, який необхідний до повної зарядки акумуляторів.
             </q-tooltip>
           </span>
         </div>
