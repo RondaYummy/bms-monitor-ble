@@ -123,25 +123,22 @@ export function calculateChargeTime(
   chargePower: number,
   chargerEfficiency = 0.95
 ): string {
-  // Скільки Ah ще треба дозарядити
+  // How many Ah still need to be recharged
   const missingCapacityAh = nominalCapacity - remainingCapacity;
   if (missingCapacityAh <= 0) {
     return '0 h (already full)';
   }
 
-  // Скільки кВт·год не вистачає
+  // Number of kilowatt-hours missing
   const missingEnergyKWh = (batteryVoltage * missingCapacityAh) / 1000;
-
-  // Ефективна потужність заряду з урахуванням ККД (в кВт)
+  // Effective charging power taking into account efficiency (in kW)
   const effectiveChargePower = (chargePower * chargerEfficiency) / 1000;
   if (effectiveChargePower <= 0) {
     return '∞ (no charging)';
   }
-
-  // Час у годинах
+   // Time in hours
   const chargingTimeHours = missingEnergyKWh / effectiveChargePower;
-
-  // Форматування у години + хвилини
+  // Formatting in hours + minutes
   const hours = Math.floor(chargingTimeHours);
   const minutes = Math.round((chargingTimeHours - hours) * 60);
 
