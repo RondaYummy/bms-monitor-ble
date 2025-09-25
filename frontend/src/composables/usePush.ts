@@ -46,7 +46,7 @@ export function usePush() {
       if (!configStore.config) throw new Error('Config not found');
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(configStore.config?.VAPID_PUBLIC_KEY),
+        applicationServerKey: urlBase64ToUint8Array(configStore.config?.VAPID_PUBLIC_KEY) as BufferSource,
       });
 
       pushSubscription.value = subscription;
