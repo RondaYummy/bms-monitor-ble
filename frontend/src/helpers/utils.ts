@@ -126,7 +126,7 @@ export function calculateChargeTime(
   // Скільки Ah ще треба дозарядити
   const missingCapacityAh = nominalCapacity - remainingCapacity;
   if (missingCapacityAh <= 0) {
-    return '0 hrs (already full)';
+    return '0 h (already full)';
   }
 
   // Скільки кВт·год не вистачає
@@ -146,10 +146,10 @@ export function calculateChargeTime(
   const minutes = Math.round((chargingTimeHours - hours) * 60);
 
   if (hours === 0 && minutes === 0) return 'менше хвилини';
-  if (hours === 0) return `${minutes} mins`;
-  if (minutes === 0) return `${hours} hrs`;
+  if (hours === 0) return `${minutes} m`;
+  if (minutes === 0) return `${hours} h`;
 
-  return `${hours} hrs ${minutes} mins`;
+  return `${hours} hrs ${minutes} m`;
 }
 
 export function parseManufacturingDate(dateStr: string): string {
