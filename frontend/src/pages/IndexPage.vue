@@ -1,8 +1,6 @@
 <template>
-  <q-page
-    class="column items-center justify-evenly q-pt-lg q-pr-lg q-pl-lg"
-    v-if="!calculatedList && !deyeData && !devicesList?.length"
-  >
+  <q-page class="column items-center justify-evenly q-pt-lg q-pr-lg q-pl-lg"
+    v-if="!calculatedList && !deyeData && !devicesList?.length">
     <LoaderComponent />
   </q-page>
   <q-page v-else class="column items-center justify-evenly q-pa-lg">
@@ -13,32 +11,20 @@
       </h6>
       <div class="row justify-between full-width">
         <div class="column">
-          <SemiCircleGauge
-            :value="deyeData?.total_pv || 0"
-            :image="'/inverter/solar_panel_yellow_200x200.png'"
-            :tooltip="`Потужність, яку генерують сонячні панелі ( разом ) | 1 MPPT вхід (PV): ${deyeData?.pv1_power} | 2 MPPT вхід (PV): ${deyeData?.pv2_power}`"
-          />
+          <SemiCircleGauge :value="deyeData?.total_pv || 0" :image="'/inverter/solar_panel_yellow_200x200.png'"
+            :tooltip="`Потужність, яку генерують сонячні панелі ( разом ) | 1 MPPT вхід (PV): ${deyeData?.pv1_power} | 2 MPPT вхід (PV): ${deyeData?.pv2_power}`" />
 
-          <SemiCircleGauge
-            :value="-(deyeData?.battery_power || 0)"
-            :image="'/inverter/battery_yellow_200x200.png'"
-            :tooltip="'Потужність заряду/розряду акумулятора'"
-            :additional-value="`${deyeData?.battery_soc || 0}%`"
-          />
+          <SemiCircleGauge :value="-(deyeData?.battery_power || 0)" :image="'/inverter/battery_yellow_200x200.png'"
+            :tooltip="'Потужність заряду/розряду акумулятора'" :additional-value="`${deyeData?.battery_soc || 0}%`" />
         </div>
 
         <div class="column">
-          <SemiCircleGauge
-            :value="-(deyeData?.grid_power || 0)"
+          <SemiCircleGauge :value="-(deyeData?.grid_power || 0)"
             :image="'/inverter/transmission_tower_yellow_200x200.png'"
-            :tooltip="'Потужність, яка надходить з/до мережі'"
-          />
+            :tooltip="'Потужність, яка надходить з/до мережі'" />
 
-          <SemiCircleGauge
-            :value="deyeData?.load_power || 0"
-            :image="'/inverter/house_yellow_200x200.png'"
-            :tooltip="'Cпоживання електроенергії твоїм будинком або підключеними пристроями.'"
-          />
+          <SemiCircleGauge :value="deyeData?.load_power || 0" :image="'/inverter/house_yellow_200x200.png'"
+            :tooltip="'Cпоживання електроенергії твоїм будинком або підключеними пристроями.'" />
         </div>
       </div>
     </template>
@@ -50,19 +36,12 @@
       </h6>
 
       <div class="row justify-between full-width q-pt-sm q-mb-sm top-tapo-row">
-        <div
-          class="column items-center q-pa-md rounded-borders top-tapo"
-          v-for="item of topTapoDevices"
-          :key="item?.ip"
-        >
+        <div class="column items-center q-pa-md rounded-borders top-tapo" v-for="item of topTapoDevices"
+          :key="item?.ip">
           <span class="text-center">{{ item?.name }}</span>
-          <q-icon
-            @click="toggleDevice(item?.device_on, item?.ip)"
-            name="power_settings_new"
+          <q-icon @click="toggleDevice(item?.device_on, item?.ip)" name="power_settings_new"
             class="cursor-pointer toggle-device"
-            :class="{ 'text-white': item?.device_on == 0, 'text-red': item?.device_on == 1 }"
-            size="3em"
-          />
+            :class="{ 'text-white': item?.device_on == 0, 'text-red': item?.device_on == 1 }" size="3em" />
         </div>
       </div>
     </template>
@@ -74,23 +53,17 @@
       </h6>
 
       <div class="column gap-10 full-width q-mt-sm">
-        <div
-          class="indicate indicate-charge"
-          :class="{
-            green: deyeData?.total_pv > deyeData?.load_power,
-            white: deyeData?.total_pv === deyeData?.load_power,
-            red: deyeData?.load_power > deyeData?.total_pv,
-          }"
-        >
+        <div class="indicate indicate-charge" :class="{
+          green: deyeData?.total_pv > deyeData?.load_power,
+          white: deyeData?.total_pv === deyeData?.load_power,
+          red: deyeData?.load_power > deyeData?.total_pv,
+        }">
           <q-tooltip> Індикатор зарядки/розрядки відносно споживання </q-tooltip>
         </div>
-        <div
-          class="indicate indicate-grid"
-          :class="{
-            orange: deyeData?.grid_power > 0,
-            white: deyeData?.grid_power <= 0,
-          }"
-        >
+        <div class="indicate indicate-grid" :class="{
+          orange: deyeData?.grid_power > 0,
+          white: deyeData?.grid_power <= 0,
+        }">
           <q-tooltip> Індикатор використання потужностей з мережі </q-tooltip>
         </div>
 
@@ -128,18 +101,14 @@
                   🚀 Працює автономно на <strong>Raspberry Pi 5</strong>, без хмарних залежностей.
                 </p>
                 <p>
-                  <em
-                    >Набагато зручніше, ніж офіційні додатки: усі дані — в одному місці, з
-                    будь-якого пристрою.</em
-                  >
+                  <em>Набагато зручніше, ніж офіційні додатки: усі дані — в одному місці, з
+                    будь-якого пристрою.</em>
                 </p>
               </div>
 
               <p>
                 GitHub:
-                <a href="https://github.com/RondaYummy/bms-monitor-ble" target="_blank"
-                  >bms-monitor-ble</a
-                >
+                <a href="https://github.com/RondaYummy/bms-monitor-ble" target="_blank">bms-monitor-ble</a>
               </p>
             </q-card-section>
 
@@ -159,12 +128,10 @@
               з'єднаних послідовно.
             </q-tooltip>
           </h3>
-          <h3
-            :class="{
-              unique: calculatedList?.charge_current < 0,
-              charge: calculatedList?.charge_current > 0,
-            }"
-          >
+          <h3 :class="{
+            unique: calculatedList?.charge_current < 0,
+            charge: calculatedList?.charge_current > 0,
+          }">
             {{ calculatedList?.charge_current?.toFixed(2) }}
             <sup>A</sup>
 
@@ -194,14 +161,12 @@
         </div>
 
         <div class="row justify-between">
-          <span
-            :class="{
-              unique: calculatedList?.voltage_difference >= 40,
-              coral:
-                calculatedList?.voltage_difference >= 20 && calculatedList?.voltage_difference < 40,
-            }"
-          >
-            Cell delta: {{ calculatedList?.voltage_difference?.toFixed(3) }}
+          <span :class="{
+            unique: calculatedList?.voltage_difference >= 40,
+            coral:
+              calculatedList?.voltage_difference >= 20 && calculatedList?.voltage_difference < 40,
+          }">
+            ⚖️ Cell delta: {{ calculatedList?.voltage_difference?.toFixed(3) }}
             <sup>V</sup>
 
             <q-tooltip>
@@ -211,7 +176,7 @@
             </q-tooltip>
           </span>
           <span>
-            Cell average: {{ calculatedList?.average_voltage?.toFixed(2) }}
+            📊 Cell average: {{ calculatedList?.average_voltage?.toFixed(2) }}
             <sup>V</sup>
 
             <q-tooltip>
@@ -223,7 +188,7 @@
 
         <div class="row justify-between">
           <span :class="{ unique: calculatedList?.battery_power > 6000 }">
-            Power: {{ calculatedList?.battery_power?.toFixed(2) }}
+            ⚡ Power: {{ calculatedList?.battery_power?.toFixed(2) }}
             <sup>W</sup>
 
             <q-tooltip>
@@ -232,12 +197,12 @@
             </q-tooltip>
           </span>
 
-          <span>Balance: {{ calculatedList?.state_of_charge?.toFixed(1) }}%</span>
+          <span>🔄 Balance: {{ calculatedList?.state_of_charge?.toFixed(1) }}%</span>
         </div>
 
         <div class="row justify-between">
           <span>
-            Capacity:
+            📦 Capacity:
             {{
               (
                 (calculatedList?.battery_voltage * calculatedList?.nominal_capacity) /
@@ -250,7 +215,7 @@
           </span>
 
           <span>
-            Capacity left:
+            🪫 Capacity left:
             {{
               (
                 (calculatedList?.battery_voltage * calculatedList?.remaining_capacity) /
@@ -265,12 +230,12 @@
 
         <div class="row justify-between">
           <span>
-            Total C. C.:
+            🔁 Total C. C.:
             {{ calculatedList?.total_cycle_capacity?.toFixed(2) }}
             <sup>Ah</sup>
 
             <q-tooltip>
-              CTotal Cycle Capacity - Це загальний обсяг енергії, яку батарея віддала протягом всіх
+              Total Cycle Capacity - Це загальний обсяг енергії, яку батарея віддала протягом всіх
               циклів свого використання. Зниження цього показника (відносно номінальної ємності)
               може свідчити про деградацію батареї.
             </q-tooltip>
@@ -280,7 +245,7 @@
             Cycle count: {{ calculatedList?.cycle_count }}
 
             <q-tooltip>
-              Cycle count - Один цикл визначається як повний процес розряджання батареї (до певного
+              🔂 Cycle count - Один цикл визначається як повний процес розряджання батареї (до певного
               рівня) і заряджання до повного заряду.
             </q-tooltip>
           </span>
@@ -288,7 +253,7 @@
 
         <div class="row justify-between">
           <span :class="{ unique: calculatedList?.state_of_health < 30 }">
-            SOH: {{ calculatedList?.state_of_health }}%
+            ❤️‍🩹 SOH: {{ calculatedList?.state_of_health }}%
 
             <q-tooltip>
               State of Health (SOH) — це показник загального стану батареї, який використовується
@@ -297,8 +262,8 @@
             </q-tooltip>
           </span>
 
-          <span>
-            Autonomy:
+          <span v-if="calculatedList?.charge_current < 0">
+            ⏳ Autonomy:
             {{
               calculateAutonomyTime(
                 calculatedList?.remaining_capacity,
@@ -310,6 +275,22 @@
             <q-tooltip>
               Autonomy - Час автономної роботи при поточних навантаженнях. Також враховується
               ефективність інвертора в коефіцієнті 0.95. Показується в годинах.
+            </q-tooltip>
+          </span>
+
+          <span v-else>
+            ⏱ Charging time lef:
+            {{
+              calculateChargeTime(
+                calculatedList?.battery_voltage,
+                calculatedList?.nominal_capacity,
+                calculatedList?.remaining_capacity,
+                calculatedList?.battery_power,
+              )
+            }}
+
+            <q-tooltip>
+              Charging time le - Час, який необхідний до повної зарядки акумуляторів.
             </q-tooltip>
           </span>
         </div>
@@ -336,16 +317,12 @@
 
     <q-expansion-item switch-toggle-side expand-separator label="Cell Voltages">
       <template v-slot:header>
-        <h6>Cell Voltages</h6>
+        <h6>🔋 Cell Voltages</h6>
       </template>
 
       <div class="column items-center q-mt-md">
         <div class="row justify-between">
-          <div
-            class="row items-center"
-            v-for="(d, idx) of calculatedList?.cell_voltages"
-            :key="`cv_${idx}`"
-          >
+          <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
             }}</q-chip>
@@ -355,24 +332,15 @@
       </div>
     </q-expansion-item>
 
-    <q-expansion-item
-      switch-toggle-side
-      expand-separator
-      class="fullwidth"
-      icon="electrical_services"
-      label="Cell Wire Resistance"
-    >
+    <q-expansion-item switch-toggle-side expand-separator class="fullwidth" icon="electrical_services"
+      label="Cell Wire Resistance">
       <template v-slot:header>
-        <h6>Cell Wire Resistance</h6>
+        <h6>🧵 Cell Wire Resistance</h6>
       </template>
 
       <div class="column items-center q-mt-md">
         <div class="row justify-between">
-          <div
-            class="row items-center"
-            v-for="(d, idx) of calculatedList?.cell_resistances"
-            :key="`cr_${idx}`"
-          >
+          <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
             }}</q-chip>
@@ -382,30 +350,14 @@
       </div>
     </q-expansion-item>
 
-    <q-tabs
-      v-model="tab"
-      @update:model-value="selectSingleDevice"
-      dense
-      inline-label
-      outside-arrows
-      mobile-arrows
-      align="justify"
-      class="q-mt-sm text-white shadow-2 bg-dark full-width"
-      v-if="devicesList"
-    >
+    <q-tabs v-model="tab" @update:model-value="selectSingleDevice" dense inline-label outside-arrows mobile-arrows
+      align="justify" class="q-mt-sm text-white shadow-2 bg-dark full-width" v-if="devicesList">
       <q-tab name="All" style="flex: 1 1 50%" label="All" />
 
       <q-btn-dropdown auto-close stretch flat style="flex: 1 1 50%" label="Devices">
         <q-list>
-          <q-item
-            clickable
-            v-for="device of Object.keys(devicesList)?.sort()?.reverse()"
-            class="text-black"
-            :key="device"
-            :name="device"
-            :label="device"
-            @click="tab = device"
-          >
+          <q-item clickable v-for="device of Object.keys(devicesList)?.sort()?.reverse()" class="text-black"
+            :key="device" :name="device" :label="device" @click="tab = device">
             <q-item-section>{{ device }}</q-item-section>
           </q-item>
         </q-list>
@@ -421,6 +373,7 @@ import {
   calculateAutonomyTime,
   calculateAverage,
   calculateAveragePerIndex,
+  calculateChargeTime,
   isInstalled,
   useSessionStorage,
 } from '../helpers/utils';

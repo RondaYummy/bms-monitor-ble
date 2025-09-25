@@ -100,12 +100,44 @@ export function calculateAutonomyTime(
   if (charge_current >= 0) {
     return '∞';
   }
-
   // Consideration of inverter efficiency
   const effectiveCurrent = Math.abs(charge_current) / inverterEfficiency;
-
   const autonomyTime = remainingCapacity / effectiveCurrent;
   return `${autonomyTime.toFixed(2)} hrs`;
+}
+
+/**
+ * Calculates the estimated time to fully charge the battery.
+ *
+ * @param {number} batteryVoltage - Battery voltage in V.
+ * @param {number} nominalCapacity - Total (nominal) capacity of the battery in Ah.
+ * @param {number} remainingCapacity - Current remaining capacity of the battery in Ah.
+ * @param {number} chargePower - Charging power in W (positive value).
+ * @param {number} chargerEfficiency - Charger/inverter efficiency (default 0.95).
+ * @returns {string} - Estimated charging time in hours (e.g. "3.25 hrs") or "0 hrs" if battery is already full.
+ */
+export function calculateChargeTime(
+  batteryVoltage: number,
+  nominalCapacity: number,
+  remainingCapacity: number,
+  chargePower: number,
+  chargerEfficiency = 0.95
+): string {
+  // Скільки Ah ще треба дозарядити
+  const missingCapacityAh = nominalCapacity - remainingCapacity;
+  if (missingCapacityAh <= 0) {
+    return '0 hrs (already full)';
+  }
+  // Скільки Wh не вистачає
+  const missingEnergyWh = batteryVoltage * missingCapacityAh;
+  // Ефективна потужність заряду з урахуванням ККД
+  const effectiveChargePower = chargePower * chargerEfficiency;
+  if (effectiveChargePower <= 0) {
+    return '∞ (no charging)';
+  }
+
+  const chargingTime = missingEnergyWh / effectiveChargePower;
+  return `${chargingTime.toFixed(2)} hrs`;
 }
 
 export function parseManufacturingDate(dateStr: string): string {
@@ -227,7 +259,7 @@ export function formatTimestamp(timestamp?: any): string {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
 
-  return `${month}.${day}.${year} ${hours}.${minutes}`;
+  return `${day}.${month}.${year} ${hours}.${minutes}`;
 }
 
 export function getAlertIcon(level: string | undefined): string {
