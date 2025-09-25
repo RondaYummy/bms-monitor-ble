@@ -230,8 +230,8 @@
 
         <div class="row justify-between">
           <span>
-            🔁 Total C. C.:
-            {{ calculatedList?.total_cycle_capacity?.toFixed(2) }}
+            🔁 Cycle Cap.:
+            {{ Math.round(calculatedList?.total_cycle_capacity) }}
             <sup>Ah</sup>
 
             <q-tooltip>
@@ -242,7 +242,7 @@
           </span>
 
           <span>
-            🔂 Cycle count: {{ calculatedList?.cycle_count }}
+            🔂 Cycle C: {{ calculatedList?.cycle_count }}
 
             <q-tooltip>
               Cycle count - Один цикл визначається як повний процес розряджання батареї (до певного
