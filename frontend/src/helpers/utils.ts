@@ -107,14 +107,14 @@ export function calculateAutonomyTime(
 }
 
 /**
- * Calculates the estimated time to fully charge the battery.
+ * Calculates the estimated time to fully charge the battery (formatted as H hrs M mins).
  *
  * @param {number} batteryVoltage - Battery voltage in V.
  * @param {number} nominalCapacity - Total (nominal) capacity of the battery in Ah.
  * @param {number} remainingCapacity - Current remaining capacity of the battery in Ah.
  * @param {number} chargePower - Charging power in W (positive value).
  * @param {number} chargerEfficiency - Charger/inverter efficiency (default 0.95).
- * @returns {string} - Estimated charging time in hours (e.g. "3.25 hrs") or "0 hrs" if battery is already full.
+ * @returns {string} - Estimated charging time (e.g. "2 hrs 30 mins") or "0 hrs" if battery is already full.
  */
 export function calculateChargeTime(
   batteryVoltage: number,
@@ -128,16 +128,28 @@ export function calculateChargeTime(
   if (missingCapacityAh <= 0) {
     return '0 hrs (already full)';
   }
-  // Скільки Wh не вистачає
-  const missingEnergyWh = batteryVoltage * missingCapacityAh;
-  // Ефективна потужність заряду з урахуванням ККД
-  const effectiveChargePower = chargePower * chargerEfficiency;
+
+  // Скільки кВт·год не вистачає
+  const missingEnergyKWh = (batteryVoltage * missingCapacityAh) / 1000;
+
+  // Ефективна потужність заряду з урахуванням ККД (в кВт)
+  const effectiveChargePower = (chargePower * chargerEfficiency) / 1000;
   if (effectiveChargePower <= 0) {
     return '∞ (no charging)';
   }
 
-  const chargingTime = missingEnergyWh / effectiveChargePower;
-  return `${chargingTime.toFixed(2)} hrs`;
+  // Час у годинах
+  const chargingTimeHours = missingEnergyKWh / effectiveChargePower;
+
+  // Форматування у години + хвилини
+  const hours = Math.floor(chargingTimeHours);
+  const minutes = Math.round((chargingTimeHours - hours) * 60);
+
+  if (hours === 0 && minutes === 0) return 'менше хвилини';
+  if (hours === 0) return `${minutes} mins`;
+  if (minutes === 0) return `${hours} hrs`;
+
+  return `${hours} hrs ${minutes} mins`;
 }
 
 export function parseManufacturingDate(dateStr: string): string {
