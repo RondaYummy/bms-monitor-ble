@@ -119,6 +119,7 @@ export function calculateChargeTime(
   capacityLeft: number,
   batteryPower: number
 ): string {
+  console.log(`Values: \nCapacity: ${capacity}\nCapacity Left: ${capacityLeft}\nBattery power: ${batteryPower}`, )
   // 1. Check for incorrect data
   if (batteryPower <= 0) {
     return '0m'; // Cannot charge with zero or negative power
