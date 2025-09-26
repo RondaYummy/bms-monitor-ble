@@ -282,10 +282,10 @@
             ⏱ Time left:
             {{
               calculateChargeTime(
-                calculatedList?.battery_voltage,
-                calculatedList?.nominal_capacity,
-                calculatedList?.remaining_capacity,
-                calculatedList?.battery_power,
+                (calculatedList?.battery_voltage * calculatedList?.nominal_capacity) /
+                1000,
+                (calculatedList?.battery_voltage * calculatedList?.remaining_capacity) / 1000,
+                -(deyeData?.battery_power || 0),
               )
             }}
 
@@ -325,7 +325,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -343,7 +343,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>

@@ -107,45 +107,57 @@ export function calculateAutonomyTime(
 }
 
 /**
- * Calculates the estimated time to fully charge the battery (formatted as H hrs M mins).
+ * Calculates the time required to fully charge the battery.
  *
- * @param {number} batteryVoltage - Battery voltage in V.
- * @param {number} nominalCapacity - Total (nominal) capacity of the battery in Ah.
- * @param {number} remainingCapacity - Current remaining capacity of the battery in Ah.
- * @param {number} chargePower - Charging power in W (positive value).
- * @param {number} chargerEfficiency - Charger/inverter efficiency (default 0.95).
- * @returns {string} - Estimated charging time (e.g. "2 hrs 30 mins") or "0 hrs" if battery is already full.
+ * @param capacity Total battery capacity (kWh).
+ * @param capacityLeft Remaining battery capacity (kWh).
+ * @param batteryPower Charging power (kW).
+ * @returns Charging time in the format “1h 24m” or “30m”.
  */
 export function calculateChargeTime(
-  batteryVoltage: number,
-  nominalCapacity: number,
-  remainingCapacity: number,
-  chargePower: number,
-  chargerEfficiency = 0.95
+  capacity: number,
+  capacityLeft: number,
+  batteryPower: number
 ): string {
-  // How many Ah still need to be recharged
-  const missingCapacityAh = nominalCapacity - remainingCapacity;
-  if (missingCapacityAh <= 0) {
-    return '0 h (already full)';
+  // 1. Check for incorrect data
+  if (batteryPower <= 0) {
+    return '0m'; // Cannot charge with zero or negative power
   }
-  // Number of kilowatt-hours missing
-  const missingEnergyKWh = (batteryVoltage * missingCapacityAh) / 1000;
-  // Effective charging power taking into account efficiency (in kW)
-  const effectiveChargePower = (chargePower * chargerEfficiency) / 1000;
-  if (effectiveChargePower <= 0) {
-    return '∞ (no charging)';
+  if (capacity <= capacityLeft) {
+    return '0m'; // Battery is already full or data error
   }
-   // Time in hours
-  const chargingTimeHours = missingEnergyKWh / effectiveChargePower;
-  // Formatting in hours + minutes
-  const hours = Math.floor(chargingTimeHours);
-  const minutes = Math.round((chargingTimeHours - hours) * 60);
 
-  if (hours === 0 && minutes === 0) return 'менше хвилини';
-  if (hours === 0) return `${minutes} m`;
-  if (minutes === 0) return `${hours} h`;
+  // 2. Calculate the required energy (kWh)
+  const energyNeeded = capacity - capacityLeft;
 
-  return `${hours} hrs ${minutes} m`;
+  // 3. Calculate time in hours
+  // Time (hours) = Energy (kWh) / Power (kW)
+  const totalHours = energyNeeded / batteryPower;
+
+  // 4. Convert time
+  const hours = Math.floor(totalHours);
+
+  // Calculate the remainder in minutes:
+  // (Total time in hours - Whole hours) * 60 minutes
+  const minutes = Math.round((totalHours - hours) * 60);
+
+  // 5. Formatting the output string
+  let result = '';
+
+  if (hours > 0) {
+    result += `${hours}h`;
+    // If there are both hours and minutes, add a space
+    if (minutes > 0) {
+      result += ' ';
+    }
+  }
+
+  if (minutes > 0 || result === '') {
+    // Add minutes if they are present OR if the time is less than 1 hour (then result is still empty)
+    result += `${minutes}m`;
+  }
+
+  return result;
 }
 
 export function parseManufacturingDate(dateStr: string): string {
