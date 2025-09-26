@@ -209,9 +209,9 @@
                 1000
               )?.toFixed(2)
             }}
-            <sup>kW</sup>
+            <sup>kWh</sup>
 
-            <q-tooltip> Capacity - Це загальний обсяг ємності батареї в кВт. </q-tooltip>
+            <q-tooltip> Capacity - Це загальний обсяг ємності батареї в кВт⋅год. </q-tooltip>
           </span>
 
           <span>
@@ -222,9 +222,9 @@
                 1000
               )?.toFixed(2)
             }}
-            <sup>kW</sup>
+            <sup>kWh</sup>
 
-            <q-tooltip> Capacity left - Це обсяг ємності батареї який залишився в кВт. </q-tooltip>
+            <q-tooltip> Capacity left - Це обсяг ємності батареї який залишився в кВт⋅год. </q-tooltip>
           </span>
         </div>
 
@@ -279,7 +279,7 @@
           </span>
 
           <span v-else>
-            ⏱ Time left {{ -(deyeData?.battery_power || 0) }}:
+            ⏱ Time left:
             {{
               calculateChargeTime(
                 (calculatedList?.battery_voltage * calculatedList?.nominal_capacity) /

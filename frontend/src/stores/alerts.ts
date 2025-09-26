@@ -64,6 +64,7 @@ export const useAlertsStore = defineStore('alerts', () => {
       const res = await api.delete('/api/error-alerts/all');
       if (res.data?.message) {
         Notify.create({
+          position: 'top',
           message: res.data?.message,
           color: 'secondary',
         });

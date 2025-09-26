@@ -119,7 +119,7 @@ export function calculateChargeTime(
   capacityLeft: number,
   batteryPower: number
 ): string {
-  console.log(`Values: \nCapacity: ${capacity}\nCapacity Left: ${capacityLeft}\nBattery power: ${batteryPower}`, )
+  console.debug(`Values: \nCapacity: ${capacity}\nCapacity Left: ${capacityLeft}\nBattery power: ${batteryPower}`, );
   // 1. Check for incorrect data
   if (batteryPower <= 0) {
     return '0m'; // Cannot charge with zero or negative power
@@ -127,24 +127,18 @@ export function calculateChargeTime(
   if (capacity <= capacityLeft) {
     return '0m'; // Battery is already full or data error
   }
-
   // 2. Calculate the required energy (kWh)
   const energyNeeded = capacity - capacityLeft;
-
   // 3. Calculate time in hours
   // Time (hours) = Energy (kWh) / Power (kW)
   const totalHours = energyNeeded / batteryPower;
-
   // 4. Convert time
   const hours = Math.floor(totalHours);
-
   // Calculate the remainder in minutes:
   // (Total time in hours - Whole hours) * 60 minutes
   const minutes = Math.round((totalHours - hours) * 60);
-
   // 5. Formatting the output string
   let result = '';
-
   if (hours > 0) {
     result += `${hours}h`;
     // If there are both hours and minutes, add a space
@@ -152,12 +146,10 @@ export function calculateChargeTime(
       result += ' ';
     }
   }
-
   if (minutes > 0 || result === '') {
     // Add minutes if they are present OR if the time is less than 1 hour (then result is still empty)
     result += `${minutes}m`;
   }
-
   return result;
 }
 
