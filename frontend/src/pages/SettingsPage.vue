@@ -104,7 +104,7 @@ const login = async (pwd: string) => {
   localStorage.setItem('access_token', data.access_token);
   token.value = data?.access_token;
   password.value = '';
-  console.info('---Successful---');
+  console.info('---Successful login---');
   return true;
 };
 

@@ -15,6 +15,7 @@
           :disable="!token"
           v-model.number="config.n_hours"
           label-color="white"
+          color="white"
           type="number"
           filled
         />

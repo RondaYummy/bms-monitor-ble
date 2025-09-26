@@ -75,7 +75,7 @@
           <q-card dark>
             <q-card-section>
               <div class="tooltip-content">
-                <strong>🔋 Система моніторингу JK-BMS та інвертора Deye</strong>
+                <strong>🔋 Система моніторингу JK-BMS, інвертора Deye та розумних розеток Tapo</strong>
                 <p>
                   Додаток дозволяє моніторити усю енергосистему в реальному часі. Він підключається
                   до:
@@ -83,6 +83,7 @@
                 <ul>
                   <li><strong>JK-BMS</strong> — через Bluetooth (<code>bleak</code>)</li>
                   <li><strong>Deye</strong> — через WiFi-стік (<code>pysolarmanv5</code>)</li>
+                  <li><strong>TP-Link Tapo</strong> — через WiFi-стік (<code>PyP110</code>)</li>
                 </ul>
                 <p>
                   <strong>Зчитуються ключові параметри:</strong><br />
@@ -94,7 +95,7 @@
                   надсилаються як <strong>Web Push-сповіщення</strong> у PWA-додаток.
                 </p>
                 <p>
-                  📱 Фронтенд — <strong>PWA-додаток</strong>, який працює офлайн, підтримує мобільні
+                  📱 Фронтенд — <strong>PWA-додаток</strong>, підтримує мобільні
                   пристрої та браузерні повідомлення.
                 </p>
                 <p>
@@ -325,7 +326,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -343,7 +344,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>

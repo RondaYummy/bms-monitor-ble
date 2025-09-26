@@ -21,7 +21,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const { response } = error;
-    if ((response && response.status === 401) || response.status === 403) {
+    if ((response && (response?.status === 401) || response?.status === 403)) {
       localStorage.removeItem('access_token');
       localStorage.removeItem('access_token_timestamp');
       eventBus.emit('session:remove', 'access_token');
