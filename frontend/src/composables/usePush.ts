@@ -50,7 +50,7 @@ export function usePush() {
       });
 
       pushSubscription.value = subscription;
-      console.info('✅ Нова Push Subscription отримана:', subscription);
+      console.info('✅ Нова Push Subscription отримано:', subscription);
 
       await fetch('/api/save-subscription', {
         method: 'POST',
