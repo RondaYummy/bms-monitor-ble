@@ -14,7 +14,7 @@ function deploy() {
   fi
   echo "✅ Код успішно оновлено з Git"
 
-  echo "====> Ребілдимо паралельно Докер-образи через Docker Compose"
+  echo "====> Ребілдимо Докер-образи через Docker Compose"
   # On weak Raspberry Pi it is: Heavily loads the CPU, Uses all RAM + disk I/O
   # - Because of this, the Pi can:
   # - shut down

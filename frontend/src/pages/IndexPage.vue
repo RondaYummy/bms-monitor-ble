@@ -279,13 +279,13 @@
           </span>
 
           <span v-else>
-            ⏱ Time left:
+            ⏱ Time left {{ deyeData?.battery_power }}:
             {{
               calculateChargeTime(
                 (calculatedList?.battery_voltage * calculatedList?.nominal_capacity) /
                 1000,
                 (calculatedList?.battery_voltage * calculatedList?.remaining_capacity) / 1000,
-                -(deyeData?.battery_power || 0),
+                deyeData?.battery_power || 0,
               )
             }}
 
