@@ -487,40 +487,61 @@ async function calculateData() {
     cycle_count: 0,
   };
 
-  if (values?.length) {
-    const numbers: number[] = [];
-    const cell_voltages: number[][] = [];
-    const cell_resistances: number[][] = [];
+  if (!values?.length) return;
 
-    values.forEach((v) => {
-      numbers.push(v.average_voltage || 0);
-      calculatedList.value.remaining_capacity += v.remaining_capacity || 0;
-      calculatedList.value.nominal_capacity += v.nominal_capacity || 0;
-      cell_voltages.push(v.cell_voltages);
-      cell_resistances.push(v.cell_resistances);
-    });
+  let sumBatteryVoltage = 0;
+  let sumAverageVoltage = 0;
+  let sumStateOfCharge = 0;
+  let sumStateOfHealth = 0;
+  let sumVoltageDifference = 0;
 
-    calculatedList.value.charge_current = values.reduce((sum, obj) => sum + (obj.charge_current || 0), 0);
-    calculatedList.value.battery_power = values.reduce((sum, obj) => sum + (obj.battery_power || 0), 0);
-    calculatedList.value.total_cycle_capacity = values.reduce((sum, obj) => sum + (obj.total_cycle_capacity || 0), 0);
-    calculatedList.value.cycle_count = values.reduce((sum, obj) => sum + (obj.cycle_count || 0), 0);
+  let hasCharging = false;
+  let hasDischarging = false;
 
+  const allCellVoltages = [];
+  const allCellResistances = [];
+
+  const valuesLength = values.length;
+
+  for (let i = 0; i < valuesLength; i++) {
+    const v = values[i];
+    if (!v) {
+      continue;
+    }
+
+    calculatedList.value.remaining_capacity += v.remaining_capacity || 0;
+    calculatedList.value.nominal_capacity += v.nominal_capacity || 0;
+    calculatedList.value.charge_current += v.charge_current || 0;
+    calculatedList.value.battery_power += v.battery_power || 0;
+    calculatedList.value.total_cycle_capacity += v.total_cycle_capacity || 0;
+    calculatedList.value.cycle_count += v.cycle_count || 0;
+
+    sumBatteryVoltage += v.battery_voltage || 0;
+    sumAverageVoltage += v.average_voltage || 0;
+    sumStateOfCharge += v.state_of_charge || 0;
+    sumStateOfHealth += v.state_of_health || 0;
+    sumVoltageDifference += v.voltage_difference || 0;
+
+    if (!hasCharging && v.charging_status === 1) hasCharging = true;
+    if (!hasDischarging && v.discharging_status === 1) hasDischarging = true;
+
+    if (v.cell_voltages) allCellVoltages.push(v.cell_voltages);
+    if (v.cell_resistances) allCellResistances.push(v.cell_resistances);
+  }
+
+  calculatedList.value.battery_voltage = sumBatteryVoltage / valuesLength;
+  calculatedList.value.average_voltage = sumAverageVoltage / valuesLength;
+  calculatedList.value.state_of_charge = sumStateOfCharge / valuesLength;
+  calculatedList.value.state_of_health = sumStateOfHealth / valuesLength;
+  calculatedList.value.voltage_difference = sumVoltageDifference / valuesLength;
+
+  calculatedList.value.charging_status = hasCharging ? 1 : 0;
+  calculatedList.value.discharging_status = hasDischarging ? 1 : 0;
+
+  if (allCellVoltages.length > 0) {
     await yieldToBrowser();
-    // charge_current
-    // remaining_capacity
-    calculatedList.value.battery_voltage = calculateAverage(values, 'battery_voltage');
-    calculatedList.value.average_voltage = calculateAverage(values, 'average_voltage');
-    calculatedList.value.state_of_charge = calculateAverage(values, 'state_of_charge');
-    calculatedList.value.state_of_health = calculateAverage(values, 'state_of_health');
-    calculatedList.value.voltage_difference = calculateAverage(values, 'voltage_difference');
-
-    await yieldToBrowser();
-
-    calculatedList.value.cell_voltages = calculateAveragePerIndex(cell_voltages);
-    calculatedList.value.cell_resistances = calculateAveragePerIndex(cell_resistances);
-
-    calculatedList.value.discharging_status = values.some((obj) => obj.discharging_status === 1) ? 1 : 0;
-    calculatedList.value.charging_status = values.some((obj) => obj.charging_status === 1) ? 1 : 0;
+    calculatedList.value.cell_voltages = calculateAveragePerIndex(allCellVoltages);
+    calculatedList.value.cell_resistances = calculateAveragePerIndex(allCellResistances);
   }
 }
 
