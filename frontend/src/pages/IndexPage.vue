@@ -40,7 +40,7 @@
         <div class="column items-center q-pa-md rounded-borders top-tapo" v-for="item of topTapoDevices"
           :key="item?.ip">
           <span class="text-light-green-12">
-            {{ item?.power_watt > 0 ? (item?.power_watt / 1000)?.toFixed(2) : '&nbsp;' }}
+            {{ item?.power_watt > 0 ? (item?.power_watt / 1000)?.toFixed(2) : '0' }}
             <sup>kW</sup>
           </span>
 
@@ -322,35 +322,35 @@
 
     <BMSChart :tab="tab" />
 
-    <q-expansion-item switch-toggle-side expand-separator label="Cell Voltages">
+    <q-expansion-item v-model="isCellVoltagesOpen" switch-toggle-side expand-separator label="Cell Voltages">
       <template v-slot:header>
         <h6>🔋 Cell Voltages</h6>
       </template>
 
-      <div class="column items-center q-mt-md">
+      <div v-if="isCellVoltagesOpen" class="column items-center q-mt-md">
         <div class="row justify-between">
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
       </div>
     </q-expansion-item>
 
-    <q-expansion-item switch-toggle-side expand-separator class="fullwidth" icon="electrical_services"
-      label="Cell Wire Resistance">
+    <q-expansion-item v-model="isCellResistancesOpen" switch-toggle-side expand-separator class="fullwidth"
+      icon="electrical_services" label="Cell Wire Resistance">
       <template v-slot:header>
         <h6>🧵 Cell Wire Resistance</h6>
       </template>
 
-      <div class="column items-center q-mt-md">
+      <div v-if="isCellResistancesOpen" class="column items-center q-mt-md">
         <div class="row justify-between">
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -437,6 +437,8 @@ const installAppDialog = ref<boolean>(false);
 const calculatedList = ref<any>();
 const showInfo = ref(false);
 const tab = ref<string>('All');
+const isCellVoltagesOpen = ref(false);
+const isCellResistancesOpen = ref(false);
 
 let deferredPrompt: BeforeInstallPromptEvent;
 
