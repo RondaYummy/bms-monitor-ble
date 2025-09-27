@@ -111,45 +111,59 @@ export function calculateAutonomyTime(
  *
  * @param capacity Total battery capacity (kWh).
  * @param capacityLeft Remaining battery capacity (kWh).
- * @param batteryPower Charging power (kW).
+ * @param batteryPower Charging power in Watts (W).
  * @returns Charging time in the format “1h 24m” or “30m”.
  */
 export function calculateChargeTime(
   capacity: number,
   capacityLeft: number,
-  batteryPower: number
+  batteryPower: number // Expected in Watts (W)
 ): string {
-  console.debug(`Values: \nCapacity: ${capacity}\nCapacity Left: ${capacityLeft}\nBattery power: ${batteryPower}`, );
-  // 1. Check for incorrect data
-  if (batteryPower <= 0) {
-    return '0m'; // Cannot charge with zero or negative power
+  // 1. CONVERSION: Convert Watts (W) to Kilowatts (kW)
+  const powerInKW = batteryPower / 1000;
+
+  // Debug output (optional, can be removed in production)
+  console.debug(`Values: \nCapacity: ${capacity} kWh\nCapacity Left: ${capacityLeft} kWh\nPower (input): ${batteryPower} W\nPower (used): ${powerInKW} kW`);
+
+  // 2. Check for incorrect data or if the battery is full
+  // We use powerInKW for the check as it's the actual charging rate
+  if (powerInKW <= 0 || capacity <= capacityLeft) {
+    return '0m';
   }
-  if (capacity <= capacityLeft) {
-    return '0m'; // Battery is already full or data error
-  }
-  // 2. Calculate the required energy (kWh)
+
+  // 3. Calculate the required energy (kWh)
   const energyNeeded = capacity - capacityLeft;
-  // 3. Calculate time in hours
-  // Time (hours) = Energy (kWh) / Power (kW)
-  const totalHours = energyNeeded / batteryPower;
-  // 4. Convert time
+
+  // 4. Calculate time in hours: Time (hours) = Energy (kWh) / Power (kW)
+  const totalHours = energyNeeded / powerInKW;
+
+  // 5. Apply minimum time display logic: if total time is between 0 and 1 minute, display '1m'
+  if (totalHours > 0 && totalHours * 60 < 1) {
+    return '1m';
+  }
+
+  // 6. Convert time to Hours and Minutes
   const hours = Math.floor(totalHours);
-  // Calculate the remainder in minutes:
-  // (Total time in hours - Whole hours) * 60 minutes
+
+  // Calculate the remaining minutes, rounded to the nearest whole number
   const minutes = Math.round((totalHours - hours) * 60);
-  // 5. Formatting the output string
+
+  // 7. Format the output string
   let result = '';
+
   if (hours > 0) {
     result += `${hours}h`;
-    // If there are both hours and minutes, add a space
+    // Add a space if both hours and minutes are present
     if (minutes > 0) {
       result += ' ';
     }
   }
+
+  // Add minutes if they are present OR if the time is less than 1 hour (when result is still empty)
   if (minutes > 0 || result === '') {
-    // Add minutes if they are present OR if the time is less than 1 hour (then result is still empty)
     result += `${minutes}m`;
   }
+
   return result;
 }
 
