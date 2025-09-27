@@ -43,7 +43,7 @@
             {{ (item?.power_watt / 1000)?.toFixed(2) }}
             <sup>kW</sup>
           </span>
-          <span v-else></span>
+          <span v-else>&nbsp;</span>
 
           <span class="text-center">{{ item?.name }}</span>
           <q-icon @click="toggleDevice(item?.device_on, item?.ip)" name="power_settings_new"
