@@ -8,7 +8,7 @@
       </div>
       <div
         class="value-text"
-        :class="{ green: Number(kilowatts) > 0, unique: Number(kilowatts) < 0 }"
+        :class="{ 'text-light-green-12': Number(kilowatts) > 0, unique: Number(kilowatts) < 0 }"
       >
         {{ kilowatts }} kW
       </div>
@@ -45,9 +45,9 @@ const kilowatts = computed(() => (props.value / 1000).toFixed(2) || 0);
 const percentage = computed(() => (Math.abs(props.value) / max) * 100);
 
 const getColor = (val: number) => {
-  if (val < 85) return '#B6FF00'; // до 85% — зелений
-  // if (val < 90) return '#FF00D7'       // до 90% — фіолетовий
-  return '#FF0004'; // вище — червоний
+  if (val < 85) return '#b2ff59';   // < 85% — green
+  // if (val < 90) return '#FF00D7' // < до 90% — purpl
+  return '#FF0004'; // red
 };
 
 const chartOptions = computed(() => ({
@@ -138,10 +138,6 @@ const chartOptions = computed(() => ({
   font-size: 16px;
   font-weight: 600;
   margin-top: -24px;
-}
-
-.green {
-  color: #b6ff00;
 }
 
 .labels {
