@@ -39,11 +39,10 @@
         class="row justify-between full-width q-pt-sm q-mb-sm top-tapo-row no-wrap">
         <div class="column items-center q-pa-md rounded-borders top-tapo" v-for="item of topTapoDevices"
           :key="item?.ip">
-          <span v-if="item?.power_watt > 0" class="text-light-green-12">
-            {{ (item?.power_watt / 1000)?.toFixed(2) }}
+          <span class="text-light-green-12">
+            {{ item?.power_watt > 0 ? (item?.power_watt / 1000)?.toFixed(2) : '&nbsp;' }}
             <sup>kW</sup>
           </span>
-          <span v-else>&nbsp;</span>
 
           <span class="text-center">{{ item?.name }}</span>
           <q-icon @click="toggleDevice(item?.device_on, item?.ip)" name="power_settings_new"
@@ -398,10 +397,10 @@ const bmsStore = useBmsStore();
 const deyeStore = useDeyeStore();
 const tapoStore = useTapoStore();
 
+const skipInstall = localStorage.getItem('skip-install');
+
 const devicesList = computed<Record<string, CellInfo>>(bmsStore.getCellInfo);
 const topTapoDevices = computed(() => tapoStore.topDevices);
-const intervalId = ref();
-const isFetching = ref(false);
 const deyeData = computed<DeyeSafeValues>(() => {
   const data = deyeStore.getDeyeData();
   const initial: DeyeSafeValues = {
@@ -418,22 +417,23 @@ const deyeData = computed<DeyeSafeValues>(() => {
 
   if (!Array.isArray(data)) return initial;
   return data.reduce((acc, curr) => {
+    acc.battery_voltage += Number(curr.battery_voltage) || 0;
     acc.pv1_power += Number(curr.pv1_power) || 0;
     acc.pv2_power += Number(curr.pv2_power) || 0;
     acc.total_pv += Number(curr.total_pv) || 0;
     acc.load_power += Number(curr.load_power) || 0;
     acc.grid_power += Number(curr.grid_power) || 0;
     acc.battery_power += Number(curr.battery_power) || 0;
-    acc.battery_voltage += Number(curr.battery_voltage) || 0;
     acc.battery_soc += Number(curr.battery_soc) || 0;
     acc.net_balance += Number(curr.net_balance) || 0;
     return acc;
   }, initial);
 });
 
+const intervalId = ref();
+const isFetching = ref(false);
 const scrollContainer = ref<HTMLElement | null>(null);
 const installAppDialog = ref<boolean>(false);
-const skipInstall = localStorage.getItem('skip-install');
 const calculatedList = ref<any>();
 const showInfo = ref(false);
 const tab = ref<string>('All');
@@ -441,8 +441,7 @@ const tab = ref<string>('All');
 let deferredPrompt: BeforeInstallPromptEvent;
 
 window.addEventListener('beforeinstallprompt', (event: Event) => {
-  // Prevent the dialog from showing automatically
-  // event.preventDefault();
+  // event.preventDefault(); // Prevent the dialog from showing automatically
   deferredPrompt = event as BeforeInstallPromptEvent;
 });
 
@@ -496,6 +495,15 @@ function calculateData() {
       cell_resistances.push(v.cell_resistances);
     });
 
+    calculatedList.value.battery_voltage = calculateAverage(values, 'battery_voltage');
+    calculatedList.value.cycle_count = values.reduce((sum, obj) => sum + (obj.cycle_count || 0), 0);
+    calculatedList.value.average_voltage = calculateAverage(values, 'average_voltage');
+    calculatedList.value.state_of_charge = calculateAverage(values, 'state_of_charge');
+    calculatedList.value.state_of_health = calculateAverage(values, 'state_of_health');
+    calculatedList.value.voltage_difference = calculateAverage(values, 'voltage_difference');
+    calculatedList.value.cell_voltages = calculateAveragePerIndex(cell_voltages);
+    calculatedList.value.cell_resistances = calculateAveragePerIndex(cell_resistances);
+
     calculatedList.value.discharging_status = values.some((obj) => obj.discharging_status === 1)
       ? 1
       : 0;
@@ -512,14 +520,7 @@ function calculateData() {
       (sum, obj) => sum + (obj.total_cycle_capacity || 0),
       0
     );
-    calculatedList.value.cycle_count = values.reduce((sum, obj) => sum + (obj.cycle_count || 0), 0);
-    calculatedList.value.average_voltage = calculateAverage(values, 'average_voltage');
-    calculatedList.value.battery_voltage = calculateAverage(values, 'battery_voltage');
-    calculatedList.value.state_of_charge = calculateAverage(values, 'state_of_charge');
-    calculatedList.value.state_of_health = calculateAverage(values, 'state_of_health');
-    calculatedList.value.voltage_difference = calculateAverage(values, 'voltage_difference');
-    calculatedList.value.cell_voltages = calculateAveragePerIndex(cell_voltages);
-    calculatedList.value.cell_resistances = calculateAveragePerIndex(cell_resistances);
+
   }
 }
 
