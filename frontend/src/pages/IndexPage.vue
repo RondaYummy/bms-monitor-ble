@@ -332,7 +332,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -350,7 +350,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) }} v. </span>
           </div>
         </div>
@@ -462,7 +462,9 @@ async function toggleDevice(state: number, deviceIp: string) {
   }
 }
 
-function calculateData() {
+const yieldToBrowser = () => new Promise(resolve => setTimeout(resolve, 0));
+
+async function calculateData() {
   const values = Object.values(devicesList.value);
   calculatedList.value = {
     average_voltage: 0,
@@ -495,12 +497,17 @@ function calculateData() {
       cell_resistances.push(v.cell_resistances);
     });
 
+    await yieldToBrowser();
+
     calculatedList.value.battery_voltage = calculateAverage(values, 'battery_voltage');
     calculatedList.value.cycle_count = values.reduce((sum, obj) => sum + (obj.cycle_count || 0), 0);
     calculatedList.value.average_voltage = calculateAverage(values, 'average_voltage');
     calculatedList.value.state_of_charge = calculateAverage(values, 'state_of_charge');
     calculatedList.value.state_of_health = calculateAverage(values, 'state_of_health');
     calculatedList.value.voltage_difference = calculateAverage(values, 'voltage_difference');
+
+    await yieldToBrowser();
+
     calculatedList.value.cell_voltages = calculateAveragePerIndex(cell_voltages);
     calculatedList.value.cell_resistances = calculateAveragePerIndex(cell_resistances);
 
