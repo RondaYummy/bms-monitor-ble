@@ -127,7 +127,7 @@
 
         <div class="row justify-between">
           <h3>
-            {{ calculatedList?.battery_voltage?.toFixed(2) }}
+            {{ calculatedList?.battery_voltage?.toFixed(2) || 0.00 }}
             <sup>V</sup>
 
             <q-tooltip>
@@ -135,11 +135,12 @@
               з'єднаних послідовно.
             </q-tooltip>
           </h3>
+
           <h3 :class="{
             unique: calculatedList?.charge_current < 0,
             charge: calculatedList?.charge_current > 0,
           }">
-            {{ calculatedList?.charge_current?.toFixed(2) }}
+            {{ calculatedList?.charge_current?.toFixed(2) || 0.00 }}
             <sup>A</sup>
 
             <q-tooltip>
@@ -150,14 +151,14 @@
 
         <div class="row justify-between">
           <h4 class="text-white">
-            {{ calculatedList?.nominal_capacity?.toFixed(2) }}
+            {{ calculatedList?.nominal_capacity?.toFixed(2) || 0.00 }}
             <sup>Ah</sup>
 
             <q-tooltip> Загальна ємність батареї. Виміряється в Ah. </q-tooltip>
           </h4>
 
           <h4 class="unique">
-            {{ calculatedList?.remaining_capacity?.toFixed(2) }}
+            {{ calculatedList?.remaining_capacity?.toFixed(2) || 0.00 }}
             <sup>Ah</sup>
 
             <q-tooltip>
@@ -173,7 +174,7 @@
             coral:
               calculatedList?.voltage_difference >= 20 && calculatedList?.voltage_difference < 40,
           }">
-            ⚖️ C-Delta: {{ calculatedList?.voltage_difference?.toFixed(3) }}
+            ⚖️ C-Delta: {{ calculatedList?.voltage_difference?.toFixed(3) || 0.000 }}
             <sup>V</sup>
 
             <q-tooltip>
@@ -183,7 +184,7 @@
             </q-tooltip>
           </span>
           <span>
-            📊 C-avg: {{ calculatedList?.average_voltage?.toFixed(2) }}
+            📊 C-avg: {{ calculatedList?.average_voltage?.toFixed(2) || 0.00 }}
             <sup>V</sup>
 
             <q-tooltip>
@@ -195,7 +196,7 @@
 
         <div class="row justify-between">
           <span :class="{ unique: calculatedList?.battery_power > 6000 }">
-            ⚡ Power: {{ calculatedList?.battery_power?.toFixed(2) }}
+            ⚡ Power: {{ calculatedList?.battery_power?.toFixed(2) || 0.00 }}
             <sup>W</sup>
 
             <q-tooltip>
@@ -204,7 +205,7 @@
             </q-tooltip>
           </span>
 
-          <span>🔄 Balance: {{ calculatedList?.state_of_charge?.toFixed(1) }}%</span>
+          <span>🔄 Balance: {{ calculatedList?.state_of_charge?.toFixed(1) || 0.0 }}%</span>
         </div>
 
         <div class="row justify-between">
@@ -214,7 +215,7 @@
               (
                 (calculatedList?.battery_voltage * calculatedList?.nominal_capacity) /
                 1000
-              )?.toFixed(2)
+              )?.toFixed(2) || 0.00
             }}
             <sup>kWh</sup>
 
@@ -227,7 +228,7 @@
               (
                 (calculatedList?.battery_voltage * calculatedList?.remaining_capacity) /
                 1000
-              )?.toFixed(2)
+              )?.toFixed(2) || 0.00
             }}
             <sup>kWh</sup>
 
@@ -238,7 +239,7 @@
         <div class="row justify-between">
           <span>
             🔁 Cycle Cap.:
-            {{ Math.round(calculatedList?.total_cycle_capacity) }}
+            {{ Math.round(calculatedList?.total_cycle_capacity) || 0 }}
             <sup>Ah</sup>
 
             <q-tooltip>
@@ -249,7 +250,7 @@
           </span>
 
           <span>
-            🔂 Cycle C: {{ calculatedList?.cycle_count }}
+            🔂 Cycle C: {{ calculatedList?.cycle_count || 0 }}
 
             <q-tooltip>
               Cycle count - Один цикл визначається як повний процес розряджання батареї (до певного
@@ -260,7 +261,7 @@
 
         <div class="row justify-between">
           <span :class="{ unique: calculatedList?.state_of_health < 30 }">
-            ❤️‍🩹 SOH: {{ calculatedList?.state_of_health }}%
+            ❤️‍🩹 SOH: {{ calculatedList?.state_of_health || 100 }}%
 
             <q-tooltip>
               State of Health (SOH) — це показник загального стану батареї, який використовується
@@ -276,7 +277,7 @@
                 calculatedList?.remaining_capacity,
                 calculatedList?.charge_current,
                 0.95
-              )
+              ) || 0.00
             }}
 
             <q-tooltip>
@@ -293,7 +294,7 @@
                 1000,
                 (calculatedList?.battery_voltage * calculatedList?.remaining_capacity) / 1000,
                 -(deyeData?.battery_power || 0),
-              )
+              ) || 0.00
             }}
 
             <q-tooltip>
@@ -332,8 +333,8 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
-            <span> - {{ d?.toFixed(2) }} v. </span>
+              }}</q-chip>
+            <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
       </div>
@@ -350,8 +351,8 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
-            <span> - {{ d?.toFixed(2) }} v. </span>
+              }}</q-chip>
+            <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
       </div>
@@ -499,10 +500,15 @@ async function calculateData() {
       cell_resistances.push(v.cell_resistances);
     });
 
-    await yieldToBrowser();
-
-    calculatedList.value.battery_voltage = calculateAverage(values, 'battery_voltage');
+    calculatedList.value.charge_current = values.reduce((sum, obj) => sum + (obj.charge_current || 0), 0);
+    calculatedList.value.battery_power = values.reduce((sum, obj) => sum + (obj.battery_power || 0), 0);
+    calculatedList.value.total_cycle_capacity = values.reduce((sum, obj) => sum + (obj.total_cycle_capacity || 0), 0);
     calculatedList.value.cycle_count = values.reduce((sum, obj) => sum + (obj.cycle_count || 0), 0);
+
+    await yieldToBrowser();
+    // charge_current
+    // remaining_capacity
+    calculatedList.value.battery_voltage = calculateAverage(values, 'battery_voltage');
     calculatedList.value.average_voltage = calculateAverage(values, 'average_voltage');
     calculatedList.value.state_of_charge = calculateAverage(values, 'state_of_charge');
     calculatedList.value.state_of_health = calculateAverage(values, 'state_of_health');
@@ -513,23 +519,8 @@ async function calculateData() {
     calculatedList.value.cell_voltages = calculateAveragePerIndex(cell_voltages);
     calculatedList.value.cell_resistances = calculateAveragePerIndex(cell_resistances);
 
-    calculatedList.value.discharging_status = values.some((obj) => obj.discharging_status === 1)
-      ? 1
-      : 0;
+    calculatedList.value.discharging_status = values.some((obj) => obj.discharging_status === 1) ? 1 : 0;
     calculatedList.value.charging_status = values.some((obj) => obj.charging_status === 1) ? 1 : 0;
-    calculatedList.value.charge_current = values.reduce(
-      (sum, obj) => sum + (obj.charge_current || 0),
-      0
-    );
-    calculatedList.value.battery_power = values.reduce(
-      (sum, obj) => sum + (obj.battery_power || 0),
-      0
-    );
-    calculatedList.value.total_cycle_capacity = values.reduce(
-      (sum, obj) => sum + (obj.total_cycle_capacity || 0),
-      0
-    );
-
   }
 }
 

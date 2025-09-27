@@ -6,11 +6,8 @@
       <div class="value-text2" v-if="additionalValue">
         {{ additionalValue }}
       </div>
-      <div
-        class="value-text"
-        :class="{ 'text-light-green-12': Number(kilowatts) > 0, unique: Number(kilowatts) < 0 }"
-      >
-        {{ kilowatts }} kW
+      <div class="value-text" :class="{ 'text-light-green-12': Number(kilowatts) > 0, unique: Number(kilowatts) < 0 }">
+        {{ kilowatts || 0.00 }} kW
       </div>
       <q-tooltip v-if="tooltip">
         {{ tooltip }}
