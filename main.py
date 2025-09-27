@@ -125,6 +125,11 @@ async def login(request: Request):
 
     return {"access_token": token}
 
+@app.post("/api/logout")
+async def logout(token: str = Depends(verify_token)):
+    await data_store.remove_token(token)
+    return {"logount": True}
+
 class ConfigUpdateRequest(BaseModel):
     password: Optional[str] = None
     VAPID_PUBLIC_KEY: Optional[str] = None

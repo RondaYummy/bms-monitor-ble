@@ -121,12 +121,17 @@ export function calculateChargeTime(
 ): string {
   // 1. CONVERSION: Convert Watts (W) to Kilowatts (kW)
   const powerInKW = batteryPower / 1000;
-  console.debug(`Values: \nCapacity: ${capacity} kWh\nCapacity Left: ${capacityLeft} kWh\nPower (input kW): ${powerInKW} W\nPower (used): ${powerInKW} kW`);
+  console.debug(
+    `Values: \nCapacity: ${capacity} kWh\nCapacity Left: ${capacityLeft} kWh\nPower (input kW): ${powerInKW} W\nPower (used): ${powerInKW} kW`
+  );
 
   // 2. Check for incorrect data or if the battery is full
   // We use powerInKW for the check as it's the actual charging rate
-  if (powerInKW <= 0 || capacity <= capacityLeft) {
+  if (powerInKW <= 0) {
     return '0m';
+  }
+  if (capacity <= capacityLeft) {
+    return 'Full';
   }
 
   // 3. Calculate the required energy (kWh)
@@ -138,7 +143,7 @@ export function calculateChargeTime(
   console.debug(`Energy needed: ${energyNeeded} kWh\nTotal Hours: ${totalHours}`);
   // 5. Apply minimum time display logic: if total time is between 0 and 1 minute, display '1m'
   if (totalHours > 0 && totalHours * 60 < 1) {
-    return '1m';
+    return '< 1m';
   }
 
   // 6. Convert time to Hours and Minutes

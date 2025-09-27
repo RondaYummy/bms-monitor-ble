@@ -38,7 +38,11 @@
       <div class="row justify-between full-width q-pt-sm q-mb-sm top-tapo-row">
         <div class="column items-center q-pa-md rounded-borders top-tapo" v-for="item of topTapoDevices"
           :key="item?.ip">
-          <span class="text-light-green-12">{{ item?.power_watt > 0 ? Math.round(item?.power_watt / 1000) : '' }} kW</span>
+          <span v-if="item?.power_watt > 0" class="text-light-green-12">
+            {{ (item?.power_watt / 1000)?.toFixed(2) }}
+            <sup>kW</sup>
+          </span>
+
           <span>{{ item?.name }}</span>
           <q-icon @click="toggleDevice(item?.device_on, item?.ip)" name="power_settings_new"
             class="cursor-pointer toggle-device"

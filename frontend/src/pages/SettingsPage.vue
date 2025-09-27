@@ -3,26 +3,20 @@
     <p class="unique text-center full-width" v-if="!token">
       Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
     </p>
-    <p class="charge text-center full-width" v-if="token">
-      Ви успішно авторизовані та можете змінювати налаштування.
-    </p>
+    <template v-if="token">
+      <p class="charge text-center full-width">
+        Ви успішно авторизовані та можете змінювати налаштування.
+      </p>
+      <q-btn class="q-mt-sm" @click="logout" color="black" :disable="!token"
+        label="Logout" />
+    </template>
 
     <div class="row justify-center no-wrap q-gutter-sm q-mb-md" v-if="!token">
-      <q-input
-        v-model="password"
-        dense
-        outlined
-        label="Введіть пароль"
-        label-color="white"
-        color="white"
-        :type="isPwd ? 'password' : 'text'"
-      >
+      <q-input v-model="password" dense outlined label="Введіть пароль" label-color="white" color="white"
+        :type="isPwd ? 'password' : 'text'">
         <template v-slot:append>
-          <q-icon
-            :name="isPwd ? 'visibility_off' : 'visibility'"
-            class="cursor-pointer text-white"
-            @click="isPwd = !isPwd"
-          />
+          <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer text-white"
+            @click="isPwd = !isPwd" />
         </template>
       </q-input>
       <q-btn @click="login(password)" color="black" label="Підтвердити" />
@@ -40,15 +34,8 @@
       </q-tabs>
 
       <div class="q-gutter-y-sm">
-        <q-tab-panels
-          swipeable
-          infinite
-          v-model="tab"
-          animated
-          transition-prev="scale"
-          transition-next="scale"
-          class="text-white text-center transparent"
-        >
+        <q-tab-panels swipeable infinite v-model="tab" animated transition-prev="scale" transition-next="scale"
+          class="text-white text-center transparent">
           <q-tab-panel name="Alerts">
             <AlertsTab />
           </q-tab-panel>
@@ -105,6 +92,18 @@ const login = async (pwd: string) => {
   token.value = data?.access_token;
   password.value = '';
   console.info('---Successful login---');
+  return true;
+};
+
+const logout = async () => {
+  await fetch('/api/logout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  localStorage.removeItem('access_token');
+  token.value = '';
+  password.value = '';
+  console.info('---Successful logout---');
   return true;
 };
 
