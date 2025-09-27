@@ -829,16 +829,23 @@ def update_tapo_device_config_by_ip(ip: str, updates: dict):
         print(f"❌ DB update config error: {e}")
         raise
 
-def get_top_priority_tapo_devices(limit: int = 2):
+def get_top_priority_tapo_devices(limit: int | None = None):
     try:
         with get_connection() as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            cursor.execute('''
+
+            sql_query = """
                 SELECT * FROM tapo_devices
                 ORDER BY priority DESC, ip ASC
-                LIMIT ?
-            ''', (limit,))
+            """
+            params = ()
+
+            if limit is not None:
+                sql_query += " LIMIT ?"
+                params = (limit,)
+
+            cursor.execute(sql_query, params)
             devices = [dict(row) for row in cursor.fetchall()]
             return devices
     except sqlite3.Error as e:

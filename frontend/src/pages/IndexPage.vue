@@ -35,7 +35,8 @@
         <q-tooltip> Блок пристроїв з найбільшим приоритетом TP-Link Tapo. </q-tooltip>
       </h6>
 
-      <div class="row justify-between full-width q-pt-sm q-mb-sm top-tapo-row">
+      <div ref="scrollContainer" @wheel.prevent="handleScroll"
+        class="row justify-between full-width q-pt-sm q-mb-sm top-tapo-row no-wrap">
         <div class="column items-center q-pa-md rounded-borders top-tapo" v-for="item of topTapoDevices"
           :key="item?.ip">
           <span v-if="item?.power_watt > 0" class="text-light-green-12">
@@ -43,7 +44,7 @@
             <sup>kW</sup>
           </span>
 
-          <span>{{ item?.name }}</span>
+          <span class="text-center">{{ item?.name }}</span>
           <q-icon @click="toggleDevice(item?.device_on, item?.ip)" name="power_settings_new"
             class="cursor-pointer toggle-device"
             :class="{ 'text-white': item?.device_on == 0, 'text-red': item?.device_on == 1 }" size="3em" />
@@ -429,6 +430,7 @@ const deyeData = computed<DeyeSafeValues>(() => {
   }, initial);
 });
 
+const scrollContainer = ref<HTMLElement | null>(null);
 const installAppDialog = ref<boolean>(false);
 const skipInstall = localStorage.getItem('skip-install');
 const calculatedList = ref<any>();
@@ -520,6 +522,11 @@ function calculateData() {
   }
 }
 
+function handleScroll(e: WheelEvent) {
+  if (!scrollContainer.value) return;
+  scrollContainer.value.scrollLeft += e.deltaY;
+};
+
 function installApp() {
   deferredPrompt.prompt();
 }
@@ -582,10 +589,14 @@ intervalFunction();
 
 .top-tapo-row {
   gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .top-tapo {
   border: 1px solid white;
-  flex: 1 1 45%;
+  flex: 1 1 48%;
+  min-width: 48%;
 }
 </style>
