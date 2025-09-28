@@ -47,6 +47,8 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         load_power = to_signed(modbus.read_holding_registers(178, 1)[0])
 
 
+        grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
+        
         # TEST START
         print(f"ONE")
         try:
@@ -72,7 +74,6 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             print("🔌 Grid Side Total Active Power (625+626):", reg_625_626, "Вт")
         except Exception as e:
             print(f"Failed to read 3090: {e}")
-
         # TEST END
 
 
