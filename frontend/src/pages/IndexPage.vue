@@ -379,7 +379,7 @@ import LoaderComponent from '../components/LoaderComponent.vue';
 import BMSChart from '../components/BMSChart.vue';
 import {
   calculateAutonomyTime,
-  calculateAverage,
+  // calculateAverage,
   calculateAveragePerIndex,
   calculateChargeTime,
   isInstalled,

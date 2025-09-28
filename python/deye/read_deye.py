@@ -45,7 +45,27 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         pv2_power = modbus.read_holding_registers(187, 1)[0]
         total_pv = pv1_power + pv2_power
         load_power = to_signed(modbus.read_holding_registers(178, 1)[0])
-        grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
+
+
+        # grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
+        try:
+            registers = modbus.read_holding_registers(5003, 2)
+            # Значення у 0.1 кВт·год, тому ділимо на 10
+            total_grid_import_kwh = to_signed_32bit(registers[0], registers[1]) / 10
+            print(f"Total Grid Import Energy: {total_grid_import_kwh} kWh")
+        except Exception as e:
+            print(f"Failed to read 5003/5004: {e}")
+        grid_power_raw = modbus.read_holding_registers(172, 1)[0]
+        grid_power_signed = to_signed(grid_power_raw)
+        print(f"Reg 172: RAW={grid_power_raw}, SIGNED={grid_power_signed}")
+        # Поточний Grid Power (регістр 172)
+        grid_power_172 = to_signed(modbus.read_holding_registers(172, 1)[0])
+        # Альтернативний Grid Power (регістр 170)
+        grid_power_170 = to_signed(modbus.read_holding_registers(170, 1)[0])
+        print(f"Grid Power (Reg 172): {grid_power_172} W")
+        print(f"Grid Power (Reg 170): {grid_power_170} W")
+
+
         bat_power = to_signed(modbus.read_holding_registers(190, 1)[0])
         bat_voltage = modbus.read_holding_registers(183, 1)[0] * 0.01
         bat_soc = modbus.read_holding_registers(184, 1)[0]
