@@ -50,6 +50,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
 
         # TEST START
+        print(f"TEST START")
         # Регістр 170: миттєва потужність з/до мережі
         reg_170 = modbus.read_holding_registers(170, 1)[0]
         if reg_170 >= 0x8000:  # робимо signed
@@ -64,12 +65,9 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             print("⏸️ Немає обміну з мережею")
         # Регістр 170: миттєва потужність з/до мережі
 
-        print(f"ONE")
         try:
             reg_618 = modbus.read_holding_registers(618, 1)[0]  # Grid External Total Active Power (S16)
-            print(f"TWO")
             reg_622 = modbus.read_holding_registers(622, 1)[0]  # Grid Side A-phase Power (S16)
-            print(f"THREE")
             # Читаємо 32-бітне значення (625 і 626)
             regs_625_626 = modbus.read_holding_registers(625, 2)
             reg_625_626 = (regs_625_626[1] << 16) | regs_625_626[0]
@@ -88,6 +86,18 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             print("🔌 Grid Side Total Active Power (625+626):", reg_625_626, "Вт")
         except Exception as e:
             print(f"Failed to read 3090: {e}")
+
+        try:
+            regs_378_379 = modbus.read_holding_registers(378, 2)
+            grid_import_wh = (regs_378_379[1] << 16) | regs_378_379[0]
+
+            regs_380_381 = modbus.read_holding_registers(380, 2)
+            grid_export_wh = (regs_380_381[1] << 16) | regs_380_381[0]
+
+            print("📥 Grid Import Energy:", grid_import_wh / 1000.0, "kWh")
+            print("📤 Grid Export Energy:", grid_export_wh / 1000.0, "kWh")
+        except Exception as e:
+            print(f"❌ Failed to read Grid Energy Counters: {e}")
         # TEST END
         # НОВИЙ ТЕСТОВИЙ БЛОК: Фокусуємося на 16-бітних регістрах Grid Power
         print(f"--- Modbus Test Registers Start ---")
