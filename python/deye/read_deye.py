@@ -126,14 +126,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         # Встановіть grid_power = grid_power_625, якщо цей регістр буде працювати.
         # Наразі залишаємо 172, як було у вашій початковій логіці перед тестовим блоком.
         # grid_power = grid_power_625 if 'grid_power_625' in locals() and grid_power_625 is not None else grid_power
-
-        delta_t = 3  # інтервал між зчитуваннями у секундах
-        delta_import_wh = grid_import_wh_now - grid_import_wh_prev
-        grid_power_w = delta_import_wh * 3600 / delta_t  # приблизно в ватах
-        print(f"grid_power_w: {grid_power_w}")
-
         print("=== DEYE MODBUS TEST BLOCK START ===")
-
         # --- 1. Миттєва потужність ---
         try:
             reg_170 = modbus.read_holding_registers(170, 1)[0]
