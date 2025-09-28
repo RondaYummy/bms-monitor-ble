@@ -92,25 +92,21 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         # НОВИЙ ТЕСТОВИЙ БЛОК: Фокусуємося на 16-бітних регістрах Grid Power
         print(f"--- Modbus Test Registers Start ---")
         try:
-        # 1. Регістр 625: Основний регістр сумарної активної потужності (16-біт, 1W)
-        # Це має бути негативне значення, якщо йде зарядка від мережі.
-            reg_625_raw = modbus.read_holding_registers(625, 1)
+            reg_625_raw = modbus.read_holding_registers(625, 1)[0]
             grid_power_625 = to_signed(reg_625_raw)
             print("🔌 Grid Total Active Power (Reg 625, S16):", grid_power_625, "Вт")
         except Exception as e:
             print(f"❌ Failed to read Reg 625 (16-bit): {e}")
 
         try:
-            # 2. Регістр 622: Потужність Фази А (для однофазного інвертора має бути схоже на 625)
-            reg_622_raw = modbus.read_holding_registers(622, 1)
+            reg_622_raw = modbus.read_holding_registers(622, 1)[0]
             grid_power_622 = to_signed(reg_622_raw)
             print("🔌 Grid Side A-phase Power (Reg 622, S16):", grid_power_622, "Вт")
         except Exception as e:
             print(f"❌ Failed to read Reg 622 (16-bit): {e}")
-            
+                    
         try:
-            # 3. Регістр 172: Зовнішній сумарний CT/Лічильник (як альтернатива)
-            grid_power_172 = to_signed(modbus.read_holding_registers(172, 1))
+            grid_power_172 = to_signed(modbus.read_holding_registers(172, 1)[0])
             print("🔌 Grid External Total Power (Reg 172, S16):", grid_power_172, "Вт")
         except Exception as e:
             print(f"❌ Failed to read Reg 172 (16-bit): {e}")
