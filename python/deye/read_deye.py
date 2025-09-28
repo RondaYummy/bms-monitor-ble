@@ -49,76 +49,30 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
 
         # TEST START
         print(f"ONE")
-        grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
-        print(f"TWO")
-
         try:
-            power_3090_raw = modbus.read_holding_registers(3090, 1)[0]
-            power_3090 = to_signed(power_3090_raw) 
-            power_3090_scaled = power_3090 * 0.1 
-            print(f"Grid Power (Reg 3090): {round(power_3090_scaled, 2)} W")
+            reg_618 = modbus.read_holding_registers(618, 1)[0]  # Grid External Total Active Power (S16)
+            print(f"TWO")
+            reg_622 = modbus.read_holding_registers(622, 1)[0]  # Grid Side A-phase Power (S16)
+            print(f"THREE")
+            # Читаємо 32-бітне значення (625 і 626)
+            regs_625_626 = modbus.read_holding_registers(625, 2)
+            reg_625_626 = (regs_625_626[1] << 16) | regs_625_626[0]
+            # Робимо його signed (32-біт)
+            if reg_625_626 & 0x80000000:
+                reg_625_626 -= 0x100000000
+
+            # Робимо signed для 16-бітних регістрів
+            if reg_618 >= 0x8000:
+                reg_618 -= 0x10000
+            if reg_622 >= 0x8000:
+                reg_622 -= 0x10000
+
+            print("🔌 Grid External Total Active Power (618):", reg_618, "Вт")
+            print("🔌 Grid Side A-phase Power (622):", reg_622, "Вт")
+            print("🔌 Grid Side Total Active Power (625+626):", reg_625_626, "Вт")
         except Exception as e:
             print(f"Failed to read 3090: {e}")
 
-        try:
-            registers_5003 = modbus.read_holding_registers(5003, 2) 
-            total_grid_import_kwh = to_signed_32bit(registers_5003[0], registers_5003[1]) / 10
-            print(f"Total Grid Import Energy (Reg 5003/5004): {total_grid_import_kwh} kWh")
-        except Exception as e:
-            print(f"Failed to read 5003/5004: {e}")
-
-        try:
-            # 3090 (HI) та 3091 (LO) можуть утворювати 32-бітне значення
-            registers_3090 = modbus.read_holding_registers(3090, 2)
-            power_3090_32bit = to_signed_32bit(registers_3090[0], registers_3090[1])
-            power_3090_32bit_scaled = power_3090_32bit * 0.1 # Або 0.01, спробуйте обидва
-            print(f"Grid Power (Reg 3090/3091 - 32-bit, 0.1): {round(power_3090_32bit_scaled, 2)} W")
-        except Exception as e:
-            print(f"Failed to read 3090/3091: {e}")
-
-        # Перевірка 3093 (як альтернатива)
-        try:
-            power_3093_raw = modbus.read_holding_registers(3093, 1)[0]
-            power_3093 = to_signed(power_3093_raw)
-            power_3093_scaled = power_3093 * 0.1
-            print(f"Grid Power (Reg 3093 - 0.1): {round(power_3093_scaled, 2)} W")
-        except Exception as e:
-            print(f"Failed to read 3093: {e}")
-
-        # Grid Power (регістр 508)
-        try:
-            grid_power_508_raw = modbus.read_holding_registers(508, 1)[0]
-            grid_power_508 = to_signed(grid_power_508_raw)
-            print(f"Grid Power (Reg 508): {grid_power_508} W") # Масштаб зазвичай 1.0
-        except Exception as e:
-            print(f"Failed to read 508: {e}")
-
-        # Grid Power (регістр 511)
-        try:
-            grid_power_511_raw = modbus.read_holding_registers(511, 1)[0]
-            grid_power_511 = to_signed(grid_power_511_raw)
-            print(f"Grid Power (Reg 511): {grid_power_511} W") # Масштаб зазвичай 1.0
-        except Exception as e:
-            print(f"Failed to read 511: {e}")
-
-        # Grid Power (регістр 4102)
-        try:
-            grid_power_4102_raw = modbus.read_holding_registers(4102, 1)[0]
-            grid_power_4102 = to_signed(grid_power_4102_raw)
-            print(f"Grid Power (Reg 4102): {grid_power_4102} W") # Масштаб зазвичай 1.0
-        except Exception as e:
-            print(f"Failed to read 4102: {e}")
-
-        print(f"THREE")
-        grid_power_raw = modbus.read_holding_registers(172, 1)[0]
-        grid_power_signed = to_signed(grid_power_raw)
-        print(f"Reg 172: RAW={grid_power_raw}, SIGNED={grid_power_signed}")
-        # Поточний Grid Power (регістр 172)
-        grid_power_172 = to_signed(modbus.read_holding_registers(172, 1)[0])
-        # Альтернативний Grid Power (регістр 170)
-        grid_power_170 = to_signed(modbus.read_holding_registers(170, 1)[0])
-        print(f"Grid Power (Reg 172): {grid_power_172} W")
-        print(f"Grid Power (Reg 170): {grid_power_170} W")
         # TEST END
 
 
