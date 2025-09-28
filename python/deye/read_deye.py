@@ -98,7 +98,6 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             print("📤 Grid Export Energy:", grid_export_wh / 1000.0, "kWh")
         except Exception as e:
             print(f"❌ Failed to read Grid Energy Counters: {e}")
-        # TEST END
         # НОВИЙ ТЕСТОВИЙ БЛОК: Фокусуємося на 16-бітних регістрах Grid Power
         print(f"--- Modbus Test Registers Start ---")
         try:
@@ -127,6 +126,79 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         # Встановіть grid_power = grid_power_625, якщо цей регістр буде працювати.
         # Наразі залишаємо 172, як було у вашій початковій логіці перед тестовим блоком.
         # grid_power = grid_power_625 if 'grid_power_625' in locals() and grid_power_625 is not None else grid_power
+
+        delta_t = 3  # інтервал між зчитуваннями у секундах
+        delta_import_wh = grid_import_wh_now - grid_import_wh_prev
+        grid_power_w = delta_import_wh * 3600 / delta_t  # приблизно в ватах
+        print(f"grid_power_w: {grid_power_w}")
+
+        print("=== DEYE MODBUS TEST BLOCK START ===")
+
+        # --- 1. Миттєва потужність ---
+        try:
+            reg_170 = modbus.read_holding_registers(170, 1)[0]
+            reg_170 = reg_170 - 0x10000 if reg_170 >= 0x8000 else reg_170
+            print("⚡ Grid Power (170):", reg_170, "Вт")
+            if reg_170 > 0:
+                print("➡️ Імпорт з мережі:", reg_170, "Вт")
+            elif reg_170 < 0:
+                print("⬅️ Експорт у мережу:", abs(reg_170), "Вт")
+            else:
+                print("⏸️ Немає обміну з мережею")
+        except Exception as e:
+            print("❌ Failed to read Reg 170:", e)
+
+        # --- 2. Grid Side та External Power ---
+        for reg, name in [(618, "Grid External Total Active Power"),
+                        (622, "Grid Side A-phase Power"),
+                        (625, "Grid Side Total Active Power (S16)"),
+                        (626, "Grid Side Total Active Power High Word"),
+                        (172, "Grid External Total Power")]:
+            try:
+                val = modbus.read_holding_registers(reg, 1)[0]
+                val = val - 0x10000 if val >= 0x8000 else val
+                print(f"🔌 {name} (Reg {reg}): {val} Вт")
+            except Exception as e:
+                print(f"❌ Failed to read Reg {reg} ({name}): {e}")
+
+        # --- 3. Лічильники енергії ---
+        for reg_start, label in [(378, "Grid Import Total (Wh)"),
+                                (380, "Grid Export Total (Wh)"),
+                                (182, "Grid Import Today (Wh)"),
+                                (184, "Grid Export Today (Wh)")]:
+            try:
+                regs = modbus.read_holding_registers(reg_start, 2)
+                val = (regs[1] << 16) | regs[0]
+                print(f"📊 {label} (Reg {reg_start}+1): {val/1000:.3f} kWh")
+            except Exception as e:
+                print(f"❌ Failed to read Reg {reg_start} ({label}): {e}")
+
+        # --- 4. Напруга та струм мережі (для приблизного P=U*I) ---
+        for reg, label, scale in [(150, "Grid Voltage Phase A", 0.1),
+                                (151, "Grid Voltage Phase B", 0.1),
+                                (152, "Grid Voltage Phase C", 0.1),
+                                (154, "Grid Current Phase A", 0.01),
+                                (155, "Grid Current Phase B", 0.01),
+                                (156, "Grid Current Phase C", 0.01)]:
+            try:
+                val = modbus.read_holding_registers(reg, 1)[0] * scale
+                print(f"🔌 {label} (Reg {reg}): {val}")
+            except Exception as e:
+                print(f"❌ Failed to read Reg {reg} ({label}): {e}")
+
+        # --- 5. Додатково: Grid Power Phase (для перевірки) ---
+        for reg, label in [(158, "Grid Power Phase A"),
+                        (159, "Grid Power Phase B"),
+                        (160, "Grid Power Phase C")]:
+            try:
+                val = modbus.read_holding_registers(reg, 1)[0]
+                val = val - 0x10000 if val >= 0x8000 else val
+                print(f"🔌 {label} (Reg {reg}): {val} Вт")
+            except Exception as e:
+                print(f"❌ Failed to read Reg {reg} ({label}): {e}")
+
+        print("=== DEYE MODBUS TEST BLOCK END ===")
+        # TEST END
 
 
         bat_power = to_signed(modbus.read_holding_registers(190, 1)[0])
