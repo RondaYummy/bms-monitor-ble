@@ -97,10 +97,10 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             reg_625_raw = modbus.read_holding_registers(625, 1)
             grid_power_625 = to_signed(reg_625_raw)
             print("🔌 Grid Total Active Power (Reg 625, S16):", grid_power_625, "Вт")
-         except Exception as e:
+        except Exception as e:
             print(f"❌ Failed to read Reg 625 (16-bit): {e}")
 
-         try:
+        try:
             # 2. Регістр 622: Потужність Фази А (для однофазного інвертора має бути схоже на 625)
             reg_622_raw = modbus.read_holding_registers(622, 1)
             grid_power_622 = to_signed(reg_622_raw)
@@ -108,7 +108,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         except Exception as e:
             print(f"❌ Failed to read Reg 622 (16-bit): {e}")
             
-         try:
+        try:
             # 3. Регістр 172: Зовнішній сумарний CT/Лічильник (як альтернатива)
             grid_power_172 = to_signed(modbus.read_holding_registers(172, 1))
             print("🔌 Grid External Total Power (Reg 172, S16):", grid_power_172, "Вт")
