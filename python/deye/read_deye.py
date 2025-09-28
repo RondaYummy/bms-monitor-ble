@@ -50,8 +50,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         print(f"ONE")
         grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
         print(f"TWO")
-        power_3090 = to_signed(modbus.read_holding_registers(3090, 1)[0]) 
-        # Спробуйте застосувати масштабування 0.1 або 1.0
+        # power_3090 = to_signed(modbus.read_holding_registers(3090, 1)[0]) 
         print(f"THREE")
         power_3090_scaled = power_3090 * 0.1
         print(f"Grid Power (Reg 3090): {power_3090_scaled}")
