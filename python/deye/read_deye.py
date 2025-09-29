@@ -190,7 +190,57 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             except Exception as e:
                 print(f"❌ Failed to read Reg {reg} ({label}): {e}")
 
+        grid_power_real = 0
+        for ph, reg_power in [("A", 158), ("B", 159), ("C", 160)]:
+            try:
+                p = modbus.read_holding_registers(reg_power, 1)[0]
+                grid_power_real += to_signed(p)
+            except:
+                pass
+        print("⚡ Real Grid Power:", grid_power_real, "Вт")
         print("=== DEYE MODBUS TEST BLOCK END ===")
+        print("=== FINAL POWER TEST: REG 160/161 START ===")
+
+        # 1. Спроба: Регістри 160/161 (Total Grid Power, 32-біт)
+        try:
+            regs_160_161 = modbus.read_holding_registers(160, 2)
+            # Звичайний Deye порядок: regs[0]=HI, regs[1]=LO
+            grid_power_32bit = to_signed_32bit(regs_160_161[0], regs_160_161[1])
+            print(f"⚡ Grid Power (Reg 160/161, S32, H, L): {grid_power_32bit} Вт")
+            
+            if abs(grid_power_32bit) > 100:
+                print(f"✅ ЗНАЙДЕНО! Використовуйте Reg 160/161 (H, L). Потужність: {grid_power_32bit} Вт")
+                grid_power = grid_power_32bit # Оновлюємо основну змінну
+            
+        except Exception as e:
+            print(f"❌ Failed to read Reg 160/161 (H, L): {e}")
+
+        # 2. Спроба: Зворотний порядок (L, H)
+        if 'grid_power' in locals() and grid_power == to_signed(modbus.read_holding_registers(172, 1)[0]): # Якщо ще не знайдено
+            try:
+                regs_160_161 = modbus.read_holding_registers(160, 2)
+                # Зворотний порядок: regs[1]=HI, regs[0]=LO
+                grid_power_32bit_lh = to_signed_32bit(regs_160_161[1], regs_160_161[0])
+                print(f"⚡ Grid Power (Reg 160/161, S32, L, H): {grid_power_32bit_lh} Вт")
+                
+                if abs(grid_power_32bit_lh) > 100:
+                    print(f"✅ ЗНАЙДЕНО! Використовуйте Reg 160/161 (L, H). Потужність: {grid_power_32bit_lh} Вт")
+                    grid_power = grid_power_32bit_lh # Оновлюємо основну змінну
+                    
+            except Exception as e:
+                print(f"❌ Failed to read Reg 160/161 (L, H): {e}")
+                
+        # 3. Підсумок фаз (як ви вже робили, але це менш надійно)
+        grid_power_sum = 0
+        for reg_power in [158, 159, 160]:
+            try:
+                p = modbus.read_holding_registers(reg_power, 1)[0]
+                grid_power_sum += to_signed(p)
+            except:
+                pass
+        print(f"⚡ Сума фаз (Reg 158-160, S16): {grid_power_sum} Вт")
+
+        print("=== FINAL POWER TEST: REG 160/161 END ===")
         # TEST END
 
 
