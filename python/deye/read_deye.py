@@ -332,6 +332,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
 
         # print("=== FINAL POWER TEST: REG 160/161 END ===")
             # 1. Пробуємо 32-бітне значення з 160/161
+        test_registers(modbus)
         regs = modbus.read_holding_registers(160, 2)
 
         # варіант 1: [0]=HI, [1]=LO
@@ -356,6 +357,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         # --- Grid Power (миттєва почтужність) ---
         try:
             reg_169_raw = modbus.read_holding_registers(169, 1)[0]
+            print(f"⚡ Grid Power (Reg 169 RAW): {reg_169_raw} W")
             grid_power_169 = reg_169_raw - 0x10000 if reg_169_raw >= 0x8000 else reg_169_raw
 
             print(f"⚡ Grid Power (Reg 169): {grid_power_169} W")
