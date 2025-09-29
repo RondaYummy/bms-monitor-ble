@@ -225,3 +225,20 @@ sup {
   box-shadow: 0 0 5px #ff026780;
   animation: pulse 1.5s infinite;
 }
+
+.blink-attention {
+  animation: blink 3s ease-in-out infinite;
+  color: #ff0266 !important;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}

@@ -19,7 +19,7 @@
         </div>
 
         <div class="column">
-          <SemiCircleGauge :value="deyeData?.grid_power || 0"
+          <SemiCircleGauge :value="-(deyeData?.grid_power || 0)"
             :image="'/inverter/transmission_tower_yellow_200x200.png'"
             :tooltip="'Потужність, яка надходить з/до мережі'" />
 
@@ -126,7 +126,7 @@
         </q-dialog>
 
         <div class="row justify-between">
-          <h3>
+          <h3 :class="{ 'blink-attention': calculatedList?.battery_voltage < 44 }">
             {{ calculatedList?.battery_voltage?.toFixed(2) || 0.00 }}
             <sup>V</sup>
 
@@ -170,9 +170,9 @@
 
         <div class="row justify-between">
           <span :class="{
-            unique: calculatedList?.voltage_difference >= 40,
+            'blink-attention': calculatedList?.voltage_difference >= 0.1,
             coral:
-              calculatedList?.voltage_difference >= 20 && calculatedList?.voltage_difference < 40,
+              calculatedList?.voltage_difference >= 0.05 && calculatedList?.voltage_difference < 40,
           }">
             ⚖️ C-Delta: {{ calculatedList?.voltage_difference?.toFixed(3) || 0.000 }}
             <sup>V</sup>
@@ -183,7 +183,8 @@
               забезпечити вирівнювання напруги між комірками.
             </q-tooltip>
           </span>
-          <span>
+
+          <span :class="{ 'blink-attention': calculatedList?.average_voltage < 3.0 }">
             📊 C-avg: {{ calculatedList?.average_voltage?.toFixed(2) || 0.00 }}
             <sup>V</sup>
 
@@ -205,7 +206,9 @@
             </q-tooltip>
           </span>
 
-          <span>🔄 Balance: {{ calculatedList?.state_of_charge?.toFixed(1) || 0.0 }}%</span>
+          <span :class="{ 'blink-attention': calculatedList?.state_of_charge < 20 }">
+            🔄 Balance: {{ calculatedList?.state_of_charge?.toFixed(1) || 0.0 }}%
+          </span>
         </div>
 
         <div class="row justify-between">
@@ -260,8 +263,8 @@
         </div>
 
         <div class="row justify-between">
-          <span :class="{ unique: calculatedList?.state_of_health < 30 }">
-            ❤️‍🩹 SOH: {{ calculatedList?.state_of_health || 100 }}%
+          <span :class="{ 'blink-attention': calculatedList?.state_of_health < 50 }">
+            ❤️‍🩹 SOH: {{ calculatedList?.state_of_health || 0 }}%
 
             <q-tooltip>
               State of Health (SOH) — це показник загального стану батареї, який використовується
