@@ -36,6 +36,98 @@ def to_signed_32bit(hi: int, lo: int) -> int:
     value = (hi << 16) + lo
     return value if value < 0x80000000 else value - 0x100000000
 
+def test_registers(modbus):
+    topics = {
+        "186": "dc/pv1/power",
+        "187": "dc/pv2/power",
+        "109": "dc/pv1/voltage",
+        "111": "dc/pv2/voltage",
+        "110": "dc/pv1/current",
+        "112": "dc/pv2/current",
+        "108": "day_energy",
+        "96": "total_energy",
+        "166": "micro_inverter_power",
+        "70": "battery/daily_charge",
+        "71": "battery/daily_discharge",
+        "72": "battery/total_charge",
+        "74": "battery/total_discharge",
+        "189": "battery/status",
+        "190": "battery/power",
+        "183": "battery/voltage",
+        "184": "battery/soc",
+        "191": "battery/current",
+        "182": "battery/temperature",
+        "169": "ac/total_grid_power",
+        "175": "ac/total_power",
+        "150": "ac/l1/voltage",
+        "151": "ac/l2/voltage",
+        "164": "ac/l1/current",
+        "165": "ac/l2/current",
+        "173": "ac/l1/power",
+        "174": "ac/l2/power",
+        "76": "ac/daily_energy_bought",
+        "77": "ac/daily_energy_sold",
+        "78": "ac/total_energy_bought",
+        "81": "ac/total_energy_sold",
+        "192": "ac/frequency",
+        "90": "radiator_temp",
+        "91": "ac/temperature",
+        "170": "ac/l1/ct/external",
+        "167": "ac/l1/ct/internal",
+        "171": "ac/l2/ct/external",
+        "168": "ac/l2/ct/internal",
+        "248": "timeofuse/enabled",
+        "250": "timeofuse/time/1",
+        "251": "timeofuse/time/2",
+        "252": "timeofuse/time/3",
+        "253": "timeofuse/time/4",
+        "254": "timeofuse/time/5",
+        "255": "timeofuse/time/6",
+        "256": "timeofuse/power/1",
+        "257": "timeofuse/power/2",
+        "258": "timeofuse/power/3",
+        "259": "timeofuse/power/4",
+        "260": "timeofuse/power/5",
+        "261": "timeofuse/power/6",
+        "262": "timeofuse/voltage/1",
+        "263": "timeofuse/voltage/2",
+        "264": "timeofuse/voltage/3",
+        "265": "timeofuse/voltage/4",
+        "266": "timeofuse/voltage/5",
+        "267": "timeofuse/voltage/6",
+        "268": "timeofuse/soc/1",
+        "269": "timeofuse/soc/2",
+        "270": "timeofuse/soc/3",
+        "271": "timeofuse/soc/4",
+        "272": "timeofuse/soc/5",
+        "273": "timeofuse/soc/6",
+        "274": "timeofuse/enabled/1",
+        "275": "timeofuse/enabled/2",
+        "276": "timeofuse/enabled/3",
+        "277": "timeofuse/enabled/4",
+        "278": "timeofuse/enabled/5",
+        "279": "timeofuse/enabled/6",
+        "312": "bms/1/charging_voltage",
+        "313": "bms/1/discharge_voltage",
+        "314": "bms/1/charge_current_limit",
+        "315": "bms/1/discharge_current_limit",
+        "316": "bms/1/soc",
+        "317": "bms/1/voltage",
+        "318": "bms/1/current",
+        "319": "bms/1/temp"
+    }
+    print("=== 🔍 Start register scan ===")
+    for reg, name in topics.items():
+        try:
+            val = modbus.read_holding_registers(reg, 1)[0]
+            # робимо signed для int16
+            if val >= 0x8000:
+                val -= 0x10000
+            print(f"Reg {reg:3d} ({name}): {val}")
+        except Exception as e:
+            print(f"❌ Failed to read Reg {reg} ({name}): {e}")
+    print("=== ✅ End register scan ===")
+
 async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
     print(f"📡 Connecting to Deye inverter at {ip}...")
     modbus = PySolarmanV5(ip, serial_number, port=8899, mb_slave_id=slave_id)
@@ -249,8 +341,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
 
         # вибираємо той, де значення виглядає адекватно (в межах ±20кВт)
         for val, label in [(grid_power_hl, "HI,LO"), (grid_power_lh, "LO,HI")]:
-            if abs(val) < 20000:
-                print(f"✅ Grid Power (160/161 {label}): {val} Вт")
+            print(f"✅ Grid Power (160/161 {label}): {val} Вт")
 
         # 2. Якщо обидва варіанти не ок — fallback: сума фаз
         total = 0
