@@ -251,7 +251,6 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         for val, label in [(grid_power_hl, "HI,LO"), (grid_power_lh, "LO,HI")]:
             if abs(val) < 20000:
                 print(f"✅ Grid Power (160/161 {label}): {val} Вт")
-                return val
 
         # 2. Якщо обидва варіанти не ок — fallback: сума фаз
         total = 0
@@ -263,7 +262,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
                 pass
         print(f"⚡ Grid Power fallback (158+159+160): {total} Вт")
 
-        # --- Grid Power (миттєва потужність) ---
+        # --- Grid Power (миттєва почтужність) ---
         try:
             reg_169_raw = modbus.read_holding_registers(169, 1)[0]
             grid_power_169 = reg_169_raw - 0x10000 if reg_169_raw >= 0x8000 else reg_169_raw
