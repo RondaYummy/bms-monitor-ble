@@ -19,7 +19,7 @@
         </div>
 
         <div class="column">
-          <SemiCircleGauge :value="-(deyeData?.grid_power || 0)"
+          <SemiCircleGauge :value="deyeData?.grid_power || 0"
             :image="'/inverter/transmission_tower_yellow_200x200.png'"
             :tooltip="'Потужність, яка надходить з/до мережі'" />
 

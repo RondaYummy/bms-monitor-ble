@@ -1,5 +1,4 @@
 import asyncio
-import time
 from datetime import datetime
 from pysolarmanv5 import PySolarmanV5, V5FrameError
 from python.data_store import data_store
@@ -46,26 +45,38 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         total_pv = pv1_power + pv2_power
         load_power = to_signed(modbus.read_holding_registers(178, 1)[0])
 
+        # --- Grid Power (instant power) ---
         # grid_power = to_signed(modbus.read_holding_registers(172, 1)[0])
-        # --- Grid Power (миттєва почтужність) ---
         try:
             reg_169_raw = modbus.read_holding_registers(169, 1)[0]
             grid_power = reg_169_raw - 0x10000 if reg_169_raw >= 0x8000 else reg_169_raw
-            print(f"⚡ Grid Power (Reg 169): {grid_power} W")
             if grid_power > 0:
                 print(f"➡️ Імпорт з мережі: {grid_power} W")
             elif grid_power < 0:
                 print(f"⬅️ Експорт у мережу: {abs(grid_power)} W")
             else:
                 print("⏸️ Немає обміну з мережею")
-
         except Exception as e:
             print(f"❌ Failed to read Grid Power (Reg 169): {e}")
+
+        # --- Grid Energy Counters ---
+        for reg, label in [
+            (76, "Grid Import Today (Reg 76)"),
+            (77, "Grid Export Today (Reg 77)"),
+            (78, "Grid Import Total (Reg 78)"),
+            (81, "Grid Export Total (Reg 81)")
+        ]:
+            try:
+                val = modbus.read_holding_registers(reg, 1)[0]
+                print(f"📊 {label}: {val} kWh")
+            except Exception as e:
+                print(f"❌ Failed to read {label}: {e}")
 
         bat_power = to_signed(modbus.read_holding_registers(190, 1)[0])
         bat_voltage = modbus.read_holding_registers(183, 1)[0] * 0.01
         bat_soc = modbus.read_holding_registers(184, 1)[0]
         net_balance = total_pv + grid_power - load_power - bat_power
+        # --- Grid Power (instant power) ---
 
         # Additional data
         pv1_voltage = modbus.read_holding_registers(279, 1)[0] * 0.1

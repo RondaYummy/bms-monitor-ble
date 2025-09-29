@@ -80,7 +80,7 @@ async def startup_event():
                 await check_all_tapo_devices()
             except Exception as e:
                 print(f"❌ Tapo status checker error: {e}")
-            await asyncio.sleep(5)  # чекати 5 сек
+            await asyncio.sleep(5)
     asyncio.create_task(periodic_tapo_status())
 
     config = db.get_config()
@@ -347,8 +347,7 @@ async def get_aggregated_data(
 ):
     if from_date and to_date:
         try:
-            # YYYY/MM/DD
-            from_dt = datetime.strptime(from_date, "%Y/%m/%d")
+            from_dt = datetime.strptime(from_date, "%Y/%m/%d") # YYYY/MM/DD
             to_dt = datetime.strptime(to_date, "%Y/%m/%d") + timedelta(hours=23, minutes=59, seconds=59)
         except ValueError as e:
             return JSONResponse(content={"message": f"Invalid date format: {e}"}, status_code=400)
