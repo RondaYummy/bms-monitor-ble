@@ -262,6 +262,36 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             except:
                 pass
         print(f"⚡ Grid Power fallback (158+159+160): {total} Вт")
+
+        # --- Grid Power (миттєва потужність) ---
+        try:
+            reg_169_raw = modbus.read_holding_registers(169, 1)[0]
+            grid_power_169 = reg_169_raw - 0x10000 if reg_169_raw >= 0x8000 else reg_169_raw
+
+            print(f"⚡ Grid Power (Reg 169): {grid_power_169} W")
+            if grid_power_169 > 0:
+                print(f"➡️ Імпорт з мережі: {grid_power_169} W")
+            elif grid_power_169 < 0:
+                print(f"⬅️ Експорт у мережу: {abs(grid_power_169)} W")
+            else:
+                print("⏸️ Немає обміну з мережею")
+
+        except Exception as e:
+            print(f"❌ Failed to read Grid Power (Reg 169): {e}")
+
+
+        # --- Grid Energy Counters ---
+        for reg, label in [
+            (76, "Grid Import Today (Reg 76)"),
+            (77, "Grid Export Today (Reg 77)"),
+            (78, "Grid Import Total (Reg 78)"),
+            (81, "Grid Export Total (Reg 81)")
+        ]:
+            try:
+                val = modbus.read_holding_registers(reg, 1)[0]
+                print(f"📊 {label}: {val} kWh")
+            except Exception as e:
+                print(f"❌ Failed to read {label}: {e}")
         # TEST END
 
 
