@@ -74,8 +74,8 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         print(f"✅ Денна генерація PV: {daily_pv:.2f} кВт·год")
 
         raw_total_pv = read_u32(modbus, 0x0060)
-        total_pv = raw_total_pv * 0.1
-        print(f"Загальна генерація PV: {total_pv:.2f} кВт·год")
+        total_pv_new = raw_total_pv * 0.1
+        print(f"Загальна генерація PV: {total_pv_new:.2f} кВт·год")
 
         # --- Акумулятор ---
         daily_bat_charge = modbus.read_holding_registers(70, 1)[0] * 0.1
