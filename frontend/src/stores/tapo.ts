@@ -36,6 +36,17 @@ export const useTapoStore = defineStore('tapo', () => {
   function updateTopDevices(newDevices: TapoDevice[]) {
     topDevices.value = newDevices;
   }
+
+  function changeDevicesState(ip: string, state: 1 | 0) {
+    const device = devices.value.find((d) => d.ip === ip);
+    const topDevice = devices.value.find((d) => d.ip === ip);
+    if (topDevice?.device_on) {
+      topDevice.device_on = state;
+    }
+    if (device?.device_on) {
+      device.device_on = state;
+    }
+  }
   // ==============
   //   ACTIONS
   // ==============
@@ -88,6 +99,7 @@ export const useTapoStore = defineStore('tapo', () => {
   async function enableDevice(ip: string): Promise<void> {
     try {
       await api.post(`/api/tapo/devices/${ip}/on`);
+      changeDevicesState(ip, 1);
       await fetchDevices();
     } catch (error) {
       console.error('Error enable tapo device: ', error);
@@ -104,6 +116,7 @@ export const useTapoStore = defineStore('tapo', () => {
   async function disableDevice(ip: string): Promise<void> {
     try {
       await api.post(`/api/tapo/devices/${ip}/off`);
+      changeDevicesState(ip, 0);
       await fetchDevices();
     } catch (error) {
       console.error('Error disable tapo device: ', error);

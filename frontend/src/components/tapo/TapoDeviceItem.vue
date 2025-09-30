@@ -1,12 +1,14 @@
 <template>
   <div class="row device-row">
     <q-icon
+    v-if="!loadding"
       @click="toggleDevice(device?.device_on)"
       name="power_settings_new"
       class="cursor-pointer toggle-device"
       :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }"
       size="3em"
     />
+    <div v-else class="loader"></div>
     <div
       :class="{
         'connected-device': device?.device_on == 1,
@@ -204,6 +206,7 @@ const device = computed(() => props.device);
 const openModalEdit = ref(false);
 const loadingEditDevice = ref(false);
 const editedTapoIp = ref('');
+const loadding = ref(false);
 const editedDeviceData = ref<TapoDevice & { password?: string }>({
   added_at: '',
   device_id: '',
@@ -253,6 +256,7 @@ async function editTapoDevice() {
 
 async function toggleDevice(state: number) {
   if (!token.value) return;
+  loadding.value = true;
   try {
     if (state == 1) {
       await tapoStore.disableDevice(props.device?.ip);
@@ -261,6 +265,8 @@ async function toggleDevice(state: number) {
     }
   } catch (err) {
     console.error(err);
+  } finally {
+    loadding.value = false;
   }
 }
 </script>
