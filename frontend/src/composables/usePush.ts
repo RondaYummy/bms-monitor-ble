@@ -61,6 +61,7 @@ export function usePush() {
           Notify.create({
             message: 'Ви успішно підписались на сповіщення',
             color: 'secondary',
+            position: 'top',
           });
         })
         .catch(async () => {
@@ -103,6 +104,7 @@ export async function cancelAllSubscriptions(showNotify: boolean = true) {
               Notify.create({
                 message: 'Ви успішно скасували підписку на сповіщення',
                 color: 'secondary',
+                position: 'top',
               });
             }
           })

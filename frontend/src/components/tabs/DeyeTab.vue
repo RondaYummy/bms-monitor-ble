@@ -102,6 +102,7 @@ async function deleteDevice(ip: string) {
     Notify.create({
       message: 'Ви успішно видалили пристрій',
       color: 'secondary',
+      position: 'top',
     });
   } catch (error) {
     console.error(error);

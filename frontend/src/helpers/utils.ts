@@ -77,13 +77,6 @@ export function calculateAveragePerIndex(arrays: Array<any>) {
   return averages;
 }
 
-export function calculateAverage(array: any[], field: string) {
-  if (array.length === 0) return 0;
-
-  const total = array.reduce((sum, item) => sum + item[field], 0);
-  return total / array.length;
-}
-
 /**
  * Calculates the battery life of the system.
  *
@@ -96,14 +89,14 @@ export function calculateAutonomyTime(
   remainingCapacity: number,
   charge_current: number,
   inverterEfficiency = 0.95
-) {
+): number {
   if (charge_current >= 0) {
-    return '∞';
+    return Infinity;
   }
   // Consideration of inverter efficiency
   const effectiveCurrent = Math.abs(charge_current) / inverterEfficiency;
   const autonomyTime = remainingCapacity / effectiveCurrent;
-  return `${autonomyTime.toFixed(2)} hrs`;
+  return Number(autonomyTime.toFixed(2));
 }
 
 /**

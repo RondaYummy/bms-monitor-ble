@@ -275,15 +275,9 @@
             </q-tooltip>
           </span>
 
-          <span v-if="calculatedList?.charge_current < 0">
+          <span v-if="calculatedList?.charge_current < 0" :class="{ 'blink-attention': autonomyTime <= 2 }">
             ⏳ Autonomy:
-            {{
-              calculateAutonomyTime(
-                calculatedList?.remaining_capacity,
-                calculatedList?.charge_current,
-                0.95
-              ) || 0.00
-            }}
+            {{ autonomyTime }} hrs
 
             <q-tooltip>
               Autonomy - Час автономної роботи при поточних навантаженнях. Також враховується
@@ -384,7 +378,6 @@ import LoaderComponent from '../components/LoaderComponent.vue';
 import BMSChart from '../components/BMSChart.vue';
 import {
   calculateAutonomyTime,
-  // calculateAverage,
   calculateAveragePerIndex,
   calculateChargeTime,
   isInstalled,
@@ -446,6 +439,12 @@ const tab = ref<string>('All');
 const isCellVoltagesOpen = ref(false);
 const isCellResistancesOpen = ref(false);
 const changeStateTapoDevices = ref<Array<string>>([]);
+
+const autonomyTime = computed(() => calculateAutonomyTime(
+  calculatedList.value?.remaining_capacity,
+  calculatedList.value?.charge_current,
+  0.95
+) || 0.00);
 
 let deferredPrompt: BeforeInstallPromptEvent;
 
