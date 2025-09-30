@@ -93,6 +93,13 @@ export function calculateAutonomyTime(
   if (charge_current >= 0) {
     return Infinity;
   }
+
+  const MIN_DISCHARGE_AMPS = -19; // -19A because we still calculate “Inverter efficiency” and 19 / 0.96 will be 20.
+  if (charge_current >= MIN_DISCHARGE_AMPS) {
+    // Setting the minimum discharge current (20A), if there is a discharge, this is approximately calculated as 49V * 20A = 980 kW.
+    charge_current = MIN_DISCHARGE_AMPS;
+  }
+
   // Consideration of inverter efficiency
   const effectiveCurrent = Math.abs(charge_current) / inverterEfficiency;
   const autonomyTime = remainingCapacity / effectiveCurrent;
