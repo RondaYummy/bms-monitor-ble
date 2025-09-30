@@ -42,10 +42,10 @@ export const useTapoStore = defineStore('tapo', () => {
     const topDevice = devices.value.find((d) => d.ip === ip);
     console.debug('Device: ', device);
     console.debug('TOP Device: ', topDevice);
-    if (topDevice?.device_on) {
+    if (topDevice) {
       topDevice.device_on = state;
     }
-    if (device?.device_on) {
+    if (device) {
       device.device_on = state;
     }
   }
