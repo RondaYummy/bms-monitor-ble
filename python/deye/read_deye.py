@@ -59,19 +59,6 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         except Exception as e:
             print(f"❌ Failed to read Grid Power (Reg 169): {e}")
 
-        # --- Grid Energy Counters ---
-        for reg, label in [
-            (76, "Grid Import Today (Reg 76)"),
-            (77, "Grid Export Today (Reg 77)"),
-            (78, "Grid Import Total (Reg 78)"),
-            (81, "Grid Export Total (Reg 81)")
-        ]:
-            try:
-                val = modbus.read_holding_registers(reg, 1)[0]
-                print(f"📊 {label}: {val} kWh")
-            except Exception as e:
-                print(f"❌ Failed to read {label}: {e}")
-
         bat_power = to_signed(modbus.read_holding_registers(190, 1)[0])
         bat_voltage = modbus.read_holding_registers(183, 1)[0] * 0.01
         bat_soc = modbus.read_holding_registers(184, 1)[0]
