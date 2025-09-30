@@ -1,13 +1,13 @@
 <template>
   <q-page class="column items-center q-pa-lg">
-    <p class="unique text-center full-width" v-if="!token">
+    <p class="unique text-center full-width q-mb-sm" v-if="!token">
       Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
     </p>
     <template v-if="token">
-      <p class="charge text-center full-width">
+      <p class="charge text-center full-width q-mb-sm">
         Ви успішно авторизовані та можете змінювати налаштування.
       </p>
-      <q-btn class="q-mt-sm" @click="logout" color="black" :disable="!token"
+      <q-btn class="q-mb-sm" @click="logout" color="black" :disable="!token"
         label="Logout" />
     </template>
 

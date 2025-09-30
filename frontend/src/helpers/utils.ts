@@ -131,7 +131,7 @@ export function calculateChargeTime(
     return '0m';
   }
   if (capacity <= capacityLeft) {
-    return 'Full';
+    return 'Fully charged';
   }
 
   // 3. Calculate the required energy (kWh)

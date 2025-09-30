@@ -8,7 +8,7 @@
       :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }"
       size="3em"
     />
-    <div v-else class="loader"></div>
+    <div v-else class="loader toggle-device"></div>
     <div
       :class="{
         'connected-device': device?.device_on == 1,

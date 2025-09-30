@@ -1,8 +1,9 @@
 <template>
-  <p class="text-caption">Цей пароль, для доступу до налаштувань вашого додатку.</p>
+  <p class="text-caption q-mb-sm">
+    Цей пароль, для доступу до налаштувань вашого додатку.
+  </p>
 
   <q-btn
-    class="q-mt-sm"
     @click="changePasswordModal = true"
     color="black"
     :disable="!token"
@@ -13,30 +14,34 @@
     :show="changePasswordModal"
   />
 
-  <q-separator class="q-mt-md" color="orange" inset />
+  <q-separator class="q-mt-sm" color="orange" inset />
 
-  <p class="text-caption">PUSH сповіщення - це спливаюче повідомлення на екрані смартфона.</p>
+  <p class="text-caption q-mb-sm">
+    PUSH сповіщення - це спливаюче повідомлення на екрані смартфона.
+  </p>
 
   <q-btn
-    class="q-mt-sm"
+    class="q-mb-sm"
     @click="subscribePush"
     color="black"
     :disable="!token || !!pushSubscription"
     label="Підписатись на PUSH"
   />
   <q-btn
-    class="q-mt-sm"
+    class="q-mb-sm"
     @click="cancelSubs"
     color="black"
     :disable="!token || !pushSubscription"
     label="Скасувати підписки"
   />
 
-  <q-separator class="q-mt-md" color="orange" inset />
+  <q-separator class="q-mb-sm" color="orange" inset />
 
-  <p class="text-caption">Налаштування ваших сповіщень</p>
+  <p class="text-caption q-mb-sm">
+    Налаштування ваших сповіщень
+  </p>
   <q-btn
-    class="q-mt-sm"
+    class="q-mb-sm"
     @click="alertsModal = true"
     color="black"
     :disable="!token"
@@ -49,13 +54,15 @@
     @update:show="(value) => (alertsModal = value)"
   />
 
-  <q-separator class="q-mt-md" color="orange" inset />
+  <q-separator class="q-mb-sm" color="orange" inset />
 
-  <p class="text-caption">Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.</p>
+  <p class="text-caption q-mb-sm">
+    Щоб переглянути налаштування вашого JK-BMS, оберіть пристрій.
+  </p>
 
   <q-btn-dropdown
     :disable="!settings?.length"
-    class="q-mt-sm"
+    class="q-mb-sm"
     auto-close
     stretch
     flat
