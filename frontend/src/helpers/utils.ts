@@ -101,7 +101,7 @@ export function calculateAutonomyTime(
   }
 
   console.debug('Remaining Capacity: ', remainingCapacity);
-  console.debug('Charge Current: ', remainingCapacity);
+  console.debug('Charge Current: ', charge_current);
   // Consideration of inverter efficiency
   const effectiveCurrent = Math.abs(charge_current) / inverterEfficiency;
   const autonomyTime = remainingCapacity / effectiveCurrent;

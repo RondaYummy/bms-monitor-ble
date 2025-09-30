@@ -35,6 +35,10 @@ def to_signed_32bit(hi: int, lo: int) -> int:
     value = (hi << 16) + lo
     return value if value < 0x80000000 else value - 0x100000000
 
+def read_u32(modbus, start_reg):
+    regs = modbus.read_holding_registers(start_reg, 2)
+    return (regs[0] << 16) + regs[1]
+
 async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
     print(f"📡 Connecting to Deye inverter at {ip}...")
     modbus = PySolarmanV5(ip, serial_number, port=8899, mb_slave_id=slave_id)
@@ -67,10 +71,10 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         # --- Accumulative (daily/total) ---
         # --- Енергія сонця ---
         daily_pv = modbus.read_holding_registers(108, 1)[0] * 0.1
-        print(f"Денна генерація PV: {daily_pv:.2f} кВт·год")
+        print(f"✅ Денна генерація PV: {daily_pv:.2f} кВт·год")
 
-        total_pv_raw = modbus.read_holding_registers(96, 2)
-        total_pv = (total_pv_raw[0] << 16 | total_pv_raw[1]) * 0.1
+        raw_total_pv = read_u32(modbus, 0x0060)
+        total_pv = raw_total_pv * 0.1
         print(f"Загальна генерація PV: {total_pv:.2f} кВт·год")
 
         # --- Акумулятор ---
@@ -80,8 +84,8 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         daily_bat_discharge = modbus.read_holding_registers(71, 1)[0] * 0.1
         print(f"Денний розряд АКБ: {daily_bat_discharge:.2f} кВт·год")
 
-        total_bat_charge_raw = modbus.read_holding_registers(72, 2)
-        total_bat_charge = (total_bat_charge_raw[0] << 16 | total_bat_charge_raw[1]) * 0.1
+        raw_bat_charge = read_u32(modbus, 0x0048)
+        total_bat_charge = raw_bat_charge * 0.1
         print(f"Загальний заряд АКБ: {total_bat_charge:.2f} кВт·год")
 
         total_bat_discharge_raw = modbus.read_holding_registers(74, 2)
@@ -95,9 +99,9 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         daily_grid_out = modbus.read_holding_registers(77, 1)[0] * 0.1
         print(f"Денна енергія в мережу: {daily_grid_out:.2f} кВт·год")
 
-        total_grid_in_raw = modbus.read_holding_registers(78, 2)
-        total_grid_in = (total_grid_in_raw[0] << 16 | total_grid_in_raw[1]) * 0.1
-        print(f"Загальна енергія з мережі: {total_grid_in:.2f} кВт·год")
+        raw_grid_in = read_u32(modbus, 0x004E)
+        grid_in = raw_grid_in * 0.1
+        print(f"Загальна енергія з мережі: {grid_in:.2f} кВт·год")
 
         total_grid_out_raw = modbus.read_holding_registers(81, 2)
         total_grid_out = (total_grid_out_raw[0] << 16 | total_grid_out_raw[1]) * 0.1

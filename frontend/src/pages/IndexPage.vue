@@ -209,7 +209,8 @@
           </span>
 
           <span :class="{ 'blink-attention': calculatedList?.state_of_charge < 20 }">
-            🔄 Balance: {{ calculatedList?.state_of_charge?.toFixed(1) || 0.0 }}%
+            🔄 Balance: {{ calculatedList?.state_of_charge?.toFixed(1) || 0.0 }}
+            <sup>%</sup>
           </span>
         </div>
 
@@ -266,7 +267,8 @@
 
         <div class="row justify-between">
           <span :class="{ 'blink-attention': calculatedList?.state_of_health < 50 }">
-            ❤️‍🩹 SOH: {{ calculatedList?.state_of_health || 0 }}%
+            ❤️‍🩹 SOH: {{ calculatedList?.state_of_health || 0 }}
+            <sup>%</sup>
 
             <q-tooltip>
               State of Health (SOH) — це показник загального стану батареї, який використовується
@@ -277,7 +279,8 @@
 
           <span v-if="calculatedList?.charge_current < 0" :class="{ 'blink-attention': autonomyTime <= 2 }">
             ⏳ Autonomy:
-            {{ autonomyTime }} hrs
+            {{ autonomyTime }}
+            <sup>h</sup>
 
             <q-tooltip>
               Autonomy - Час автономної роботи при поточних навантаженнях. Також враховується
@@ -332,7 +335,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -350,7 +353,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
