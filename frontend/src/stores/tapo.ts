@@ -101,8 +101,8 @@ export const useTapoStore = defineStore('tapo', () => {
   async function enableDevice(ip: string): Promise<void> {
     try {
       await api.post(`/api/tapo/devices/${ip}/on`);
+      await fetchDevices();
       changeDevicesState(ip, 1);
-      fetchDevices();
     } catch (error) {
       console.error('Error enable tapo device: ', error);
       Notify.create({
@@ -118,8 +118,8 @@ export const useTapoStore = defineStore('tapo', () => {
   async function disableDevice(ip: string): Promise<void> {
     try {
       await api.post(`/api/tapo/devices/${ip}/off`);
+      await fetchDevices();
       changeDevicesState(ip, 0);
-      fetchDevices();
     } catch (error) {
       console.error('Error disable tapo device: ', error);
       Notify.create({
