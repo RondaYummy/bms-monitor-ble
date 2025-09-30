@@ -40,13 +40,13 @@ export const useTapoStore = defineStore('tapo', () => {
   function changeDevicesState(ip: string, state: 1 | 0) {
     const device = devices.value.find((d) => d.ip === ip);
     const topDevice = topDevices.value.find((d) => d.ip === ip);
-    console.debug('Device: ', device);
-    console.debug('TOP Device: ', topDevice);
     if (topDevice) {
       topDevice.device_on = state;
+      console.debug('TOP Device: ', topDevice);
     }
     if (device) {
       device.device_on = state;
+      console.debug('Device: ', device);
     }
   }
   // ==============
