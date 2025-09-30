@@ -45,9 +45,11 @@
           </span>
 
           <span class="text-center">{{ item?.name }}</span>
-          <q-icon @click="toggleDevice(item?.device_on, item?.ip)" name="power_settings_new"
+          <q-icon v-if="!changeStateTapoDevices.find((d) => d === item?.ip)"
+            @click="toggleDevice(item?.device_on, item?.ip)" name="power_settings_new"
             class="cursor-pointer toggle-device"
             :class="{ 'text-white': item?.device_on == 0, 'text-red': item?.device_on == 1 }" size="3em" />
+          <div v-else class="loader"></div>
         </div>
       </div>
     </template>
@@ -336,7 +338,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -354,7 +356,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -443,6 +445,7 @@ const showInfo = ref(false);
 const tab = ref<string>('All');
 const isCellVoltagesOpen = ref(false);
 const isCellResistancesOpen = ref(false);
+const changeStateTapoDevices = ref<Array<string>>([]);
 
 let deferredPrompt: BeforeInstallPromptEvent;
 
@@ -457,6 +460,7 @@ watch(devicesList, () => {
 
 async function toggleDevice(state: number, deviceIp: string) {
   if (!token.value) return;
+  changeStateTapoDevices.value.push(deviceIp);
   try {
     if (state == 1) {
       await tapoStore.disableDevice(deviceIp);
@@ -465,6 +469,10 @@ async function toggleDevice(state: number, deviceIp: string) {
     }
   } catch (err) {
     console.error(err);
+  } finally {
+    changeStateTapoDevices.value = changeStateTapoDevices.value.filter(
+      (ip: string) => ip !== deviceIp
+    );
   }
 }
 
