@@ -15,7 +15,8 @@
             :tooltip="`Потужність, яку генерують сонячні панелі ( разом ) | 1 MPPT вхід (PV): ${deyeData?.pv1_power} | 2 MPPT вхід (PV): ${deyeData?.pv2_power}`" />
 
           <SemiCircleGauge :value="-(deyeData?.battery_power || 0)" :image="'/inverter/battery_yellow_200x200.png'"
-            :tooltip="'Потужність заряду/розряду акумулятора'" :additional-value="`${deyeData?.battery_soc || 0}%`" />
+            :tooltip="'Потужність заряду/розряду акумулятора'"
+            :additional-value="deyeData?.battery_soc > 0 ? `${deyeData?.battery_soc}%` : ''" />
         </div>
 
         <div class="column">
@@ -335,7 +336,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -353,7 +354,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>

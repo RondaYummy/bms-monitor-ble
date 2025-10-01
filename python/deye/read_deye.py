@@ -17,6 +17,13 @@ import python.db as db
 # For Deye inverters via WiFi stick, it is always 1 (unless you connect directly via RS485 with a different ID).
 # SLAVE_ID = 1
 
+# --- КОНСТАНТИ ВАШОЇ БАТАРЕЇ ---
+# Максимальна напруга (50В = 100% SOC)
+BAT_VOLTAGE_MAX = 50.0 
+# Мінімальна напруга (43В = 0% SOC)
+BAT_VOLTAGE_MIN = 43.0 
+# ---------------------------------
+
 def safe_read_scaled(modbus, register: int, scale: float, name: str = ""):
     try:
         raw = modbus.read_holding_registers(register, 1)[0]
@@ -37,7 +44,7 @@ def to_signed_32bit(hi: int, lo: int) -> int:
 
 def read_u32(modbus, start_reg):
     regs = modbus.read_holding_registers(start_reg, 2)
-    return (regs[1] << 16) + regs[0] 
+    return (regs[1] << 16) + regs[0]
 
 async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
     print(f"📡 Connecting to Deye inverter at {ip}...")
@@ -101,7 +108,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         print(f"[Battery] Загальний заряд: {total_bat_charge:.2f} кВт·год")
 
         total_bat_discharge_raw = modbus.read_holding_registers(74, 2)
-        total_bat_discharge = (total_bat_discharge_raw[0] << 16 | total_bat_discharge_raw[1]) * 0.1
+        total_bat_discharge = (total_bat_discharge_raw[1] << 16 | total_bat_discharge_raw[0]) * 0.1 # <<< ВИПРАВЛЕНО
         print(f"[Battery] Загальний розряд: {total_bat_discharge:.2f} кВт·год")
 
         raw_grid_in = read_u32(modbus, 0x004E)
