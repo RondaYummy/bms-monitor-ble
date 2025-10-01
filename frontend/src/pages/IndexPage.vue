@@ -277,9 +277,9 @@
             </q-tooltip>
           </span>
 
-          <span v-if="calculatedList?.charge_current < 0" :class="{ 'blink-attention': autonomyTime <= 2 }">
+          <span v-if="calculatedList?.charge_current < 0" :class="{ 'blink-attention': autonomyTime <= 120 }">
             ⏳ Autonomy:
-            {{ autonomyTime }}
+            {{ formatMinutes(autonomyTime) }}
             <sup>h</sup>
 
             <q-tooltip>
@@ -335,7 +335,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -353,7 +353,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -383,6 +383,7 @@ import {
   calculateAutonomyTime,
   calculateAveragePerIndex,
   calculateChargeTime,
+  formatMinutes,
   isInstalled,
   useSessionStorage,
 } from '../helpers/utils';

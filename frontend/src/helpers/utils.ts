@@ -107,7 +107,19 @@ export function calculateAutonomyTime(
   const autonomyTime = remainingCapacity / effectiveCurrent;
   console.debug('Effective Current: ', effectiveCurrent);
   console.debug('Autonomy Time: ', autonomyTime);
-  return Number(autonomyTime.toFixed(2));
+
+  const totalMinutes = autonomyTime * 60;
+  return Math.round(totalMinutes);
+}
+
+export function formatMinutes(totalMinutes: number): string {
+  if (isFinite(totalMinutes)) {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+
+    return `${hours}h ${minutes}m`; // Example: 8h 52m
+  }
+  return '';
 }
 
 /**
