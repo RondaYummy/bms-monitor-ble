@@ -37,8 +37,6 @@ def to_signed_32bit(hi: int, lo: int) -> int:
 
 def read_u32(modbus, start_reg):
     regs = modbus.read_holding_registers(start_reg, 2)
-    # CORRECT ORDER (LO-HI): (Older word << 16) + Younger word
-    # If Deye returns LO in regs[0] and HI in regs[1]:
     return (regs[1] << 16) + regs[0] 
 
 async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
@@ -73,7 +71,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         # --- Accumulative (daily/total) ---
         # --- Енергія сонця ---
         daily_pv = modbus.read_holding_registers(108, 1)[0] * 0.1
-        print(f"✅[ PV ] Денна генерація: {daily_pv:.2f} кВт·год")
+        print(f"✅[ PV ] Виробництво соянчної енергії в день: {daily_pv:.2f} кВт·год")
 
         raw_total_pv = read_u32(modbus, 0x0060)
         total_pv_new = raw_total_pv * 0.1
@@ -98,10 +96,10 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
 
         # --- Мережа ---
         daily_grid_in = modbus.read_holding_registers(76, 1)[0] * 0.1
-        print(f"✅[ Grid ] Денна енергія з мережі: {daily_grid_in:.2f} кВт·год")
+        print(f"✅[ Grid ] Кількість придбаної електроенергії в день: {daily_grid_in:.2f} кВт·год")
 
         daily_grid_out = modbus.read_holding_registers(77, 1)[0] * 0.1
-        print(f"✅[ Grid ] Денна енергія в мережу: {daily_grid_out:.2f} кВт·год")
+        print(f"✅[ Grid ] Кількість проданої електроенергії в день: {daily_grid_out:.2f} кВт·год")
 
         raw_grid_in = read_u32(modbus, 0x004E)
         print(f"[ Grid ] RAW Загальна енергія з мережі: {raw_grid_in}")
