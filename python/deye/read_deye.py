@@ -73,53 +73,53 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         # --- Accumulative (daily/total) ---
         # --- Енергія сонця ---
         daily_pv = modbus.read_holding_registers(108, 1)[0] * 0.1
-        print(f"✅ Денна генерація [ PV ]: {daily_pv:.2f} кВт·год")
+        print(f"✅[ PV ] Денна генерація: {daily_pv:.2f} кВт·год")
 
         raw_total_pv = read_u32(modbus, 0x0060)
         total_pv_new = raw_total_pv * 0.1
-        print(f"✅ Загальна генерація [ PV ]: {total_pv_new:.2f} кВт·год")
+        print(f"✅[ PV ] Загальна генерація: {total_pv_new:.2f} кВт·год")
 
         # --- Акумулятор ---
         daily_bat_charge = modbus.read_holding_registers(70, 1)[0] * 0.1
-        print(f"Денний заряд АКБ: {daily_bat_charge:.2f} кВт·год")
+        print(f"[Battery] Денний заряд: {daily_bat_charge:.2f} кВт·год")
 
         daily_bat_discharge = modbus.read_holding_registers(71, 1)[0] * 0.1
-        print(f"✅ Денний розряд АКБ: {daily_bat_discharge:.2f} кВт·год")
+        print(f"✅[Battery] Денний розряд: {daily_bat_discharge:.2f} кВт·год")
 
         raw_bat_charge = read_u32(modbus, 0x0048)
-        print(f"RAW Загальний заряд АКБ: {raw_bat_charge}")
+        print(f"[Battery] RAW Загальний заряд: {raw_bat_charge}")
         total_bat_charge = raw_bat_charge * 0.1
-        print(f"Загальний заряд АКБ: {total_bat_charge:.2f} кВт·год")
+        print(f"[Battery] Загальний заряд: {total_bat_charge:.2f} кВт·год")
 
         total_bat_discharge_raw = modbus.read_holding_registers(74, 2)
-        print(f"RAW Загальний розряд АКБ: {total_bat_discharge_raw}")
+        print(f"[Battery] RAW Загальний розряд: {total_bat_discharge_raw}")
         total_bat_discharge = (total_bat_discharge_raw[0] << 16 | total_bat_discharge_raw[1]) * 0.1
-        print(f"Загальний розряд АКБ: {total_bat_discharge:.2f} кВт·год")
+        print(f"[Battery] Загальний розряд: {total_bat_discharge:.2f} кВт·год")
 
         # --- Мережа ---
         daily_grid_in = modbus.read_holding_registers(76, 1)[0] * 0.1
-        print(f"✅ Денна енергія з мережі: {daily_grid_in:.2f} кВт·год")
+        print(f"✅[ Grid ] Денна енергія з мережі: {daily_grid_in:.2f} кВт·год")
 
         daily_grid_out = modbus.read_holding_registers(77, 1)[0] * 0.1
-        print(f"✅ Денна енергія в мережу: {daily_grid_out:.2f} кВт·год")
+        print(f"✅[ Grid ] Денна енергія в мережу: {daily_grid_out:.2f} кВт·год")
 
         raw_grid_in = read_u32(modbus, 0x004E)
-        print(f"RAW Загальна енергія з мережі: {raw_grid_in}")
+        print(f"[ Grid ] RAW Загальна енергія з мережі: {raw_grid_in}")
         grid_in = raw_grid_in * 0.1
-        print(f"Загальна енергія з мережі: {grid_in:.2f} кВт·год")
+        print(f"[ Grid ] Загальна енергія з мережі: {grid_in:.2f} кВт·год")
 
         total_grid_out_raw = modbus.read_holding_registers(81, 2)
         total_grid_out = (total_grid_out_raw[1] << 16 | total_grid_out_raw[0]) * 0.1 # <<< ВИПРАВЛЕНО
-        print(f"✅ Загальний вивід до мережі: {total_grid_out:.2f} кВт·год")
+        print(f"✅[ Grid ] Загальний вивід до мережі: {total_grid_out:.2f} кВт·год")
 
         # --- Навантаження ---
         daily_load = modbus.read_holding_registers(84, 1)[0] * 0.1
-        print(f"✅ Денне споживання навантаження [ Grid ]: {daily_load:.2f} кВт·год")
+        print(f"✅[ Grid ] Денне споживання навантаження: {daily_load:.2f} кВт·год")
 
         total_load_raw = modbus.read_holding_registers(85, 2)
         total_load = (total_load_raw[1] << 16 | total_load_raw[0]) * 0.1
-        print(f"✅ Загальне споживання навантаження [ PV + Grid ]: {total_load:.2f} кВт·год")
-        print(f"✅ Денне споживання енергії [ PV + Grid ]: {daily_load:.2f} + {daily_pv:.2f} = {daily_load + daily_pv:.2f} кВт·год")
+        print(f"✅[ PV + Grid ] Загальне споживання навантаження: {total_load:.2f} кВт·год")
+        print(f"✅[ PV + Grid ] Денне споживання енергії: {daily_load:.2f} + {daily_pv:.2f} = {daily_load + daily_pv:.2f} кВт·год")
         # --- Accumulative (daily/total) ---
 
         # Additional data
