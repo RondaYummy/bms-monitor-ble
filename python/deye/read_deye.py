@@ -37,7 +37,9 @@ def to_signed_32bit(hi: int, lo: int) -> int:
 
 def read_u32(modbus, start_reg):
     regs = modbus.read_holding_registers(start_reg, 2)
-    return (regs[0] << 16) + regs[1]
+    # CORRECT ORDER (LO-HI): (Older word << 16) + Younger word
+    # If Deye returns LO in regs[0] and HI in regs[1]:
+    return (regs[1] << 16) + regs[0] 
 
 async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
     print(f"📡 Connecting to Deye inverter at {ip}...")
@@ -109,7 +111,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
 
         total_grid_out_raw = modbus.read_holding_registers(81, 2)
         print(f"RAW Загальна енергія в мережу: {total_grid_out_raw}")
-        total_grid_out = (total_grid_out_raw[0] << 16 | total_grid_out_raw[1]) * 0.1
+        total_grid_out = (total_grid_out_raw[1] << 16 | total_grid_out_raw[0]) * 0.1 # <<< ВИПРАВЛЕНО
         print(f"Загальна енергія в мережу: {total_grid_out:.2f} кВт·год")
 
         # --- Навантаження ---
@@ -118,7 +120,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
 
         total_load_raw = modbus.read_holding_registers(85, 2)
         print(f"RAW Загальне споживання навантаження: {total_load_raw}")
-        total_load = (total_load_raw[0] << 16 | total_load_raw[1]) * 0.1
+        total_load = (total_load_raw[1] << 16 | total_load_raw[0]) * 0.1
         print(f"Загальне споживання навантаження: {total_load:.2f} кВт·год")
         # --- Accumulative (daily/total) ---
 
