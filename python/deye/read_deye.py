@@ -76,9 +76,6 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         total_pv_new = raw_total_pv * 0.1
         print(f"✅[ PV ] [ Статистика роботи ] Загальне викробництво: {total_pv_new:.2f} кВт·год")
 
-        daily_bat_charge = modbus.read_holding_registers(70, 1)[0] * 0.1
-        print(f"[Battery] Денний заряд: {daily_bat_charge:.2f} кВт·год")
-
         daily_bat_discharge = modbus.read_holding_registers(71, 1)[0] * 0.1
         print(f"✅[Battery] Щоденне споживання ( Від мережі ): {daily_bat_discharge:.2f} кВт·год")
 
@@ -96,24 +93,24 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         total_load = (total_load_raw[1] << 16 | total_load_raw[0]) * 0.1
         print(f"✅[ PV + Grid ] Загальне споживання: {total_load:.2f} кВт·год")
 
+        daily_bat_charge = modbus.read_holding_registers(70, 1)[0] * 0.1
+        print(f"[Battery] Денний заряд: {daily_bat_charge:.2f} кВт·год")
+
         raw_bat_charge = read_u32(modbus, 0x0048)
-        print(f"[Battery] RAW Загальний заряд: {raw_bat_charge}")
         total_bat_charge = raw_bat_charge * 0.1
         print(f"[Battery] Загальний заряд: {total_bat_charge:.2f} кВт·год")
 
         total_bat_discharge_raw = modbus.read_holding_registers(74, 2)
-        print(f"[Battery] RAW Загальний розряд: {total_bat_discharge_raw}")
         total_bat_discharge = (total_bat_discharge_raw[0] << 16 | total_bat_discharge_raw[1]) * 0.1
         print(f"[Battery] Загальний розряд: {total_bat_discharge:.2f} кВт·год")
 
         raw_grid_in = read_u32(modbus, 0x004E)
-        print(f"[ Grid ] RAW Загальна енергія з мережі: {raw_grid_in}")
         grid_in = raw_grid_in * 0.1
         print(f"[ Grid ] Загальна енергія з мережі: {grid_in:.2f} кВт·год")
 
         daily_load = modbus.read_holding_registers(84, 1)[0] * 0.1
-        print(f"✅[ Grid ] Денне споживання навантаження: {daily_load:.2f} кВт·год")
-        print(f"✅[ PV + Grid ] Денне споживання енергії: {daily_load:.2f} + {daily_pv:.2f} = {daily_load + daily_pv:.2f} кВт·год")
+        print(f"[ Grid ] Денне споживання навантаження: {daily_load:.2f} кВт·год")
+        print(f"[ PV + Grid ] Денне споживання енергії: {daily_load:.2f} + {daily_pv:.2f} = {daily_load + daily_pv:.2f} кВт·год")
         # --- Accumulative (daily/total) ---
 
         # Additional data
