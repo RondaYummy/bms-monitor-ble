@@ -118,6 +118,17 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         daily_load = modbus.read_holding_registers(84, 1)[0] * 0.1
         print(f"[ Grid ] Денне споживання навантаження: {daily_load:.2f} кВт·год")
         print(f"[ PV + Grid ] Денне споживання енергії: {daily_load:.2f} + {daily_pv:.2f} = {daily_load + daily_pv:.2f} кВт·год")
+
+        # 1. Читаємо регістри, які вказані у вашій мапі (0x004E та 0x0050)
+        raw_grid_in_regs = modbus.read_holding_registers(0x004E, 3) # Читаємо 3 регістри: 4E, 4F, 50
+        # 2. Беремо потрібні регістри: 0x004E (LO) та 0x0050 (HI).
+        # Зверніть увагу, що 0x004F ігнорується.
+        reg_lo = raw_grid_in_regs[0] # 0x004E
+        reg_hi = raw_grid_in_regs[2] # 0x0050
+        # 3. Об'єднуємо у порядку LO-HI (якщо читання з мережі виявиться HI-LO, змініть порядок)
+        raw_grid_in = (reg_hi << 16) | reg_lo 
+        grid_in = raw_grid_in * 0.1
+        print(f"[ Grid ] Загальна енергія з мережі: {grid_in:.2f} кВт·год") 
         # --- Accumulative (daily/total) ---
 
         # Additional data
