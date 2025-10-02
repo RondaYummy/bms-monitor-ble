@@ -8,24 +8,28 @@
     </h6>
 
     <div class="row justify-between full-width">
-      <div class="column text-center">
-        <span>Зменшення викидів CO2</span>
-        <span>{{ (props.data.stat_total_pv * 0.000793)?.toFixed(2) }} тонн</span>
+      <div class="column text-center items-center justify-between cell-item">
+        <img src="../../../public/images/carbon.png" alt="CO2">
+        <span class="text-subtitle1">Зменшення викидів CO2</span>
+        <span class="text-h6 text-weight-bold">{{ (props.data.stat_total_pv * 0.000793)?.toFixed(2) }} тонн</span>
       </div>
 
-      <div class="column text-center">
-        <span>Еквівалентна кількість посаджених дерев</span>
-        <span>{{ Math.trunc(props.data.stat_total_pv * 0.997 / 18.3) }} дерев</span>
+      <div class="column text-center items-center justify-between cell-item">
+        <img src="../../../public/images/pine-tree.png" alt="pine-tree">
+        <span class="text-subtitle1">Еквівалентна к-ть посаджених дерев</span>
+        <span class="text-h6 text-weight-bold">{{ Math.trunc(props.data.stat_total_pv * 0.997 / 18.3) }} дерев</span>
       </div>
 
-      <div class="column text-center">
-        <span>Оцінка прибутку</span>
-        <span>{{ Math.trunc(props.data.stat_total_pv * 4.32) }} грн.</span>
+      <div class="column text-center items-center justify-between cell-item">
+        <img src="../../../public/images/profit.png" alt="pine-tree">
+        <span class="text-subtitle1">Оцінка прибутку</span>
+        <span class="text-h6 text-weight-bold">{{ Math.trunc(props.data.stat_total_pv * 4.32) }} грн.</span>
       </div>
 
-      <div class="column text-center">
-        <span>Загальне виробництво електроенергії</span>
-        <span>{{ props.data.stat_total_pv?.toFixed() }} кВт·год</span>
+      <div class="column text-center items-center justify-between cell-item">
+        <img src="../../../public/images/solar-cell.png" alt="pine-tree">
+        <span class="text-subtitle1">Загальне виробництво</span>
+        <span class="text-h6 text-weight-bold">{{ props.data.stat_total_pv?.toFixed() }} кВт·год</span>
       </div>
     </div>
 
@@ -81,14 +85,6 @@ const props = defineProps<{
 console.log(props.data);
 
 const showInfo = ref(false);
-
-// const blocks = [
-//   {
-//     title: 'Daily PV',
-//     value: '',
-//     symbol: 'kWh',
-//   }
-// ]
 </script>
 
 <style scoped lang="scss">
@@ -104,5 +100,18 @@ ul {
   li {
     padding: 5px 0px;
   }
+}
+
+img {
+  max-width: 70px;
+}
+
+.cell-item {
+  min-height: 135px;
+  width: calc(50% - 10px);
+  border: 1px solid white;
+  margin: 5px;
+  padding: 5px;
+  border-radius: 15px;
 }
 </style>

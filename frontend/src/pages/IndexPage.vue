@@ -135,7 +135,7 @@
         </q-dialog>
 
         <div class="row justify-between">
-          <h3 :class="{ 'blink-attention': calculatedList?.battery_voltage < 44 }">
+          <h3 :class="{ 'blink-attention': calculatedList?.battery_voltage < 42 }">
             {{ calculatedList?.battery_voltage?.toFixed(2) || 0.00 }}
             <sup>V</sup>
 
