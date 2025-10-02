@@ -28,6 +28,12 @@
             :tooltip="'Cпоживання електроенергії твоїм будинком або підключеними пристроями.'" />
         </div>
       </div>
+
+      <q-btn @click="showMoreDeye = !showMoreDeye" label="Show more ⤵️" class="q-mb-sm" size="sm" flat />
+
+      <template v-if="showMoreDeye">
+        <AddtionalInfo :data="deyeData" />
+      </template>
     </template>
 
     <template v-if="topTapoDevices?.length">
@@ -336,7 +342,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -354,7 +360,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -394,6 +400,7 @@ import { useBmsStore } from 'src/stores/bms';
 import { useDeyeStore } from 'src/stores/deye';
 import SemiCircleGauge from 'src/components/SemiCircleGauge.vue';
 import { useTapoStore } from 'src/stores/tapo';
+import AddtionalInfo from 'src/components/deye/AddtionalInfo.vue';
 
 const token = useSessionStorage('access_token');
 
@@ -417,6 +424,13 @@ const deyeData = computed<DeyeSafeValues>(() => {
     battery_voltage: 0,
     battery_soc: 0,
     net_balance: 0,
+    stat_daily_pv: 0,
+    stat_total_pv: 0,
+    stat_daily_bat_discharge: 0,
+    stat_daily_grid_in: 0,
+    stat_daily_grid_out: 0,
+    stat_total_grid_out: 0,
+    stat_total_load: 0,
   };
 
   if (!Array.isArray(data)) return initial;
@@ -430,6 +444,13 @@ const deyeData = computed<DeyeSafeValues>(() => {
     acc.battery_power += Number(curr.battery_power) || 0;
     acc.battery_soc += Number(curr.battery_soc) || 0;
     acc.net_balance += Number(curr.net_balance) || 0;
+    acc.stat_daily_pv += Number(curr.stat_daily_pv) || 0;
+    acc.stat_total_pv += Number(curr.stat_total_pv) || 0;
+    acc.stat_daily_bat_discharge += Number(curr.stat_daily_bat_discharge) || 0;
+    acc.stat_daily_grid_in += Number(curr.stat_daily_grid_in) || 0;
+    acc.stat_daily_grid_out += Number(curr.stat_daily_grid_out) || 0;
+    acc.stat_total_grid_out += Number(curr.stat_total_grid_out) || 0;
+    acc.stat_total_load += Number(curr.stat_total_load) || 0;
     return acc;
   }, initial);
 });
@@ -444,6 +465,7 @@ const tab = ref<string>('All');
 const isCellVoltagesOpen = ref(false);
 const isCellResistancesOpen = ref(false);
 const changeStateTapoDevices = ref<Array<string>>([]);
+const showMoreDeye = ref(false);
 
 const autonomyTime = computed(() => calculateAutonomyTime(
   calculatedList.value?.remaining_capacity,

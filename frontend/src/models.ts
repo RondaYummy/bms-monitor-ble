@@ -162,6 +162,13 @@ export interface DeyeRealtimeData {
   battery_soc: number; // Battery state of charge (%)
   net_balance: number; // Net power balance (W)
   device_on: number; // Device power state; 1 = on, 0 = off
+  stat_daily_pv: number;
+  stat_total_pv: number;
+  stat_daily_bat_discharge: number;
+  stat_daily_grid_in: number;
+  stat_daily_grid_out: number;
+  stat_total_grid_out: number;
+  stat_total_load: number;
 }
 
 export interface DeyeSafeValues {
@@ -174,6 +181,13 @@ export interface DeyeSafeValues {
   battery_voltage: number;
   battery_soc: number;
   net_balance: number;
+  stat_daily_pv: number;
+  stat_total_pv: number;
+  stat_daily_bat_discharge: number;
+  stat_daily_grid_in: number;
+  stat_daily_grid_out: number;
+  stat_total_grid_out: number;
+  stat_total_load: number;
 }
 
 export interface TapoDevice {
