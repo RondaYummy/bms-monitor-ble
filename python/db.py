@@ -262,17 +262,16 @@ def create_table():
                 battery_voltage REAL,
                 battery_soc REAL,
                 net_balance REAL,
-                device_on INTEGER DEFAULT 1
+                device_on INTEGER DEFAULT 1,
+                stat_daily_pv REAL,
+                stat_total_pv REAL,
+                stat_daily_bat_discharge REAL,
+                stat_daily_grid_in REAL,
+                stat_daily_grid_out REAL,
+                stat_total_grid_out REAL,
+                stat_total_load REAL
             )
             ''')
-
-            cursor.execute("ALTER TABLE deye_devices ADD COLUMN stat_daily_pv REAL")
-            cursor.execute("ALTER TABLE deye_devices ADD COLUMN stat_total_pv REAL")
-            cursor.execute("ALTER TABLE deye_devices ADD COLUMN stat_daily_bat_discharge REAL")
-            cursor.execute("ALTER TABLE deye_devices ADD COLUMN stat_daily_grid_in REAL")
-            cursor.execute("ALTER TABLE deye_devices ADD COLUMN stat_daily_grid_out REAL")
-            cursor.execute("ALTER TABLE deye_devices ADD COLUMN stat_total_grid_out REAL")
-            cursor.execute("ALTER TABLE deye_devices ADD COLUMN stat_total_load REAL")
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
