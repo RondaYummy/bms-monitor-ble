@@ -265,6 +265,7 @@ def create_table():
                 device_on INTEGER DEFAULT 1
             )
             ''')
+
             cursor.execute("ALTER TABLE deye_devices ADD COLUMN stat_daily_pv REAL")
             cursor.execute("ALTER TABLE deye_devices ADD COLUMN stat_total_pv REAL")
             cursor.execute("ALTER TABLE deye_devices ADD COLUMN stat_daily_bat_discharge REAL")
