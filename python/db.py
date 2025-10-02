@@ -262,7 +262,7 @@ def create_table():
                 battery_voltage REAL,
                 battery_soc REAL,
                 net_balance REAL,
-                device_on INTEGER DEFAULT 1,
+                device_on INTEGER DEFAULT 1
             )
             ''')
             cursor.execute("ALTER TABLE deye_devices ADD COLUMN stat_daily_pv REAL")

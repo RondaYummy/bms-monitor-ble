@@ -1,11 +1,37 @@
 <template>
-  <div>
-    <h6 class="relative-position">
+  <div class="column justify-center items-center">
+    <h6 class="relative-position inline">
       Статистика роботи
       <div class="indicate indicate-info">
         <q-icon @click="showInfo = true" name="info" size="24px" color="white" />
       </div>
     </h6>
+
+    <div class="row justify-between full-width">
+      <div class="column text-center">
+        <span>Зменшення викидів CO2</span>
+        <span>{{ props.data.stat_total_pv * 0.000793 }} тонн</span>
+      </div>
+
+      <div class="column text-center">
+        <span>Еквівалентна кількість посаджених дерев</span>
+        <span>{{ props.data.stat_total_pv * 0.997 / 18.3 }} дерев</span>
+      </div>
+
+      <div class="column text-center">
+        <span>Оцінка прибутку</span>
+        <span>{{ props.data.stat_total_load * 4.32 }} грн.</span>
+      </div>
+
+      <div class="column text-center">
+        <span>Загальне виробництво електроенергії</span>
+        <span>{{ props.data.stat_total_pv }} кВт·год</span>
+      </div>
+    </div>
+
+    <div>
+
+    </div>
   </div>
 
   <q-dialog v-model="showInfo">
