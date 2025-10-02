@@ -23,13 +23,13 @@
       <div class="column text-center items-center justify-between cell-item">
         <img src="../../../public/images/profit.png" alt="pine-tree">
         <span class="text-subtitle1">Оцінка прибутку</span>
-        <span class="text-h6 text-weight-bold">{{ Math.trunc(props.data.stat_total_pv * 4.32) }} грн.</span>
+        <span class="text-h6 text-weight-bold">{{ formatterUAH.format(props.data.stat_total_pv * 4.32) }} грн.</span>
       </div>
 
       <div class="column text-center items-center justify-between cell-item">
         <img src="../../../public/images/solar-cell.png" alt="pine-tree">
         <span class="text-subtitle1">Загальне виробництво</span>
-        <span class="text-h6 text-weight-bold">{{ props.data.stat_total_pv?.toFixed() }} кВт·год</span>
+        <span class="text-h6 text-weight-bold">{{ (props.data.stat_total_pv / 1000)?.toFixed() }} кВт·год</span>
       </div>
     </div>
 
@@ -85,6 +85,11 @@ const props = defineProps<{
 console.log(props.data);
 
 const showInfo = ref(false);
+
+const formatterUAH = new Intl.NumberFormat('uk-UA', {
+    style: 'currency',
+    currency: 'UAH',
+});
 </script>
 
 <style scoped lang="scss">
