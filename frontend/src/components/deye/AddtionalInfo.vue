@@ -10,22 +10,22 @@
     <div class="row justify-between full-width">
       <div class="column text-center">
         <span>Зменшення викидів CO2</span>
-        <span>{{ props.data.stat_total_pv * 0.000793 }} тонн</span>
+        <span>{{ (props.data.stat_total_pv * 0.000793)?.toFixed(2) }} тонн</span>
       </div>
 
       <div class="column text-center">
         <span>Еквівалентна кількість посаджених дерев</span>
-        <span>{{ props.data.stat_total_pv * 0.997 / 18.3 }} дерев</span>
+        <span>{{ Math.trunc(props.data.stat_total_pv * 0.997 / 18.3) }} дерев</span>
       </div>
 
       <div class="column text-center">
         <span>Оцінка прибутку</span>
-        <span>{{ props.data.stat_total_load * 4.32 }} грн.</span>
+        <span>{{ Math.trunc(props.data.stat_total_pv * 4.32) }} грн.</span>
       </div>
 
       <div class="column text-center">
         <span>Загальне виробництво електроенергії</span>
-        <span>{{ props.data.stat_total_pv }} кВт·год</span>
+        <span>{{ props.data.stat_total_pv?.toFixed() }} кВт·год</span>
       </div>
     </div>
 
