@@ -29,7 +29,7 @@
       <div class="column text-center items-center justify-between cell-item">
         <img src="../../../public/images/solar-cell.png" alt="pine-tree">
         <span class="text-subtitle1">Загальне виробництво</span>
-        <span class="text-h6 text-weight-bold">{{ (props.data.stat_total_pv / 1000)?.toFixed() }} кВт·год</span>
+        <span class="text-h6 text-weight-bold">{{ (props.data.stat_total_pv / 1000)?.toFixed(2) }} кВт·год</span>
       </div>
     </div>
 
