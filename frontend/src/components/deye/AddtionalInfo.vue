@@ -23,7 +23,7 @@
       <div class="column text-center items-center justify-between cell-item">
         <img src="../../../public/images/profit.png" alt="pine-tree">
         <span class="text-subtitle1">Оцінка прибутку</span>
-        <span class="text-h6 text-weight-bold">{{ formatterUAH.format(props.data.stat_total_pv * 4.32) }} грн.</span>
+        <span class="text-h6 text-weight-bold">{{ formatterUAH.format(props.data.stat_total_pv * 4.32) }}</span>
       </div>
 
       <div class="column text-center items-center justify-between cell-item">
