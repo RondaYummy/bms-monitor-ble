@@ -262,7 +262,14 @@ def create_table():
                 battery_voltage REAL,
                 battery_soc REAL,
                 net_balance REAL,
-                device_on INTEGER DEFAULT 1
+                device_on INTEGER DEFAULT 1,
+                stat_daily_pv REAL,
+                stat_total_pv REAL,
+                stat_daily_bat_discharge REAL,
+                stat_daily_grid_in REAL,
+                stat_daily_grid_out REAL,
+                stat_total_grid_out REAL,
+                stat_total_load REAL
             )
             ''')
             conn.commit()
@@ -909,7 +916,7 @@ def update_deye_device_data(ip, data: dict):
 
             for key in [
                 "pv1_power", "pv2_power", "total_pv", "load_power", "grid_power",
-                "battery_power", "battery_voltage", "battery_soc", "net_balance", "timestamp"
+                "battery_power", "battery_voltage", "battery_soc", "net_balance", "timestamp", "stat_daily_pv", "stat_total_pv", "stat_daily_bat_discharge", "stat_daily_grid_in", "stat_daily_grid_out", "stat_total_grid_out", "stat_total_load"
             ]:
                 if key in data:
                     fields.append(f"{key} = ?")
@@ -963,7 +970,7 @@ def delete_deye_device_by_ip(ip: str):
             cursor = conn.cursor()
             cursor.execute("DELETE FROM deye_devices WHERE ip = ?", (ip,))
             conn.commit()
-            return cursor.rowcount > 0  # True якщо щось видалилось
+            return cursor.rowcount > 0
     except sqlite3.Error as e:
         print(f"❌ Error deleting Deye device with IP {ip}: {e}")
         raise

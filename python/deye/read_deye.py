@@ -76,29 +76,29 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         # --- Grid Power (instant power) ---
 
         # --- Accumulative (daily/total) ---
-        daily_pv = modbus.read_holding_registers(108, 1)[0] * 0.1
-        print(f"✅[ PV ] Виробництво соянчної енергії в день: {daily_pv:.2f} кВт·год")
+        stat_daily_pv = modbus.read_holding_registers(108, 1)[0] * 0.1
+        print(f"✅[ PV ] Виробництво соянчної енергії в день: {stat_daily_pv:.2f} кВт·год")
 
         raw_total_pv = read_u32(modbus, 0x0060)
-        total_pv_new = raw_total_pv * 0.1
-        print(f"✅[ PV ] [ Статистика роботи ] Загальне викробництво: {total_pv_new:.2f} кВт·год")
+        stat_total_pv = raw_total_pv * 0.1
+        print(f"✅[ PV ] [ Статистика роботи ] Загальне викробництво: {stat_total_pv:.2f} кВт·год")
 
-        daily_bat_discharge = modbus.read_holding_registers(71, 1)[0] * 0.1
-        print(f"✅[Battery] Щоденне споживання ( Від мережі ): {daily_bat_discharge:.2f} кВт·год")
+        stat_daily_bat_discharge = modbus.read_holding_registers(71, 1)[0] * 0.1
+        print(f"✅[Battery] Щоденне споживання ( Від мережі ): {stat_daily_bat_discharge:.2f} кВт·год")
 
-        daily_grid_in = modbus.read_holding_registers(76, 1)[0] * 0.1
-        print(f"✅[ Grid ] Кількість придбаної електроенергії в день: {daily_grid_in:.2f} кВт·год")
+        stat_daily_grid_in = modbus.read_holding_registers(76, 1)[0] * 0.1
+        print(f"✅[ Grid ] Кількість придбаної електроенергії в день: {stat_daily_grid_in:.2f} кВт·год")
 
-        daily_grid_out = modbus.read_holding_registers(77, 1)[0] * 0.1
-        print(f"✅[ Grid ] Кількість проданої електроенергії в день: {daily_grid_out:.2f} кВт·год")
+        stat_daily_grid_out = modbus.read_holding_registers(77, 1)[0] * 0.1
+        print(f"✅[ Grid ] Кількість проданої електроенергії в день: {stat_daily_grid_out:.2f} кВт·год")
 
         total_grid_out_raw = modbus.read_holding_registers(81, 2)
-        total_grid_out = (total_grid_out_raw[1] << 16 | total_grid_out_raw[0]) * 0.1 # <<< ВИПРАВЛЕНО
-        print(f"✅[ Grid ] [ Статистика роботи ] Загальний вивід до мережі: {total_grid_out:.2f} кВт·год")
+        stat_total_grid_out = (total_grid_out_raw[1] << 16 | total_grid_out_raw[0]) * 0.1
+        print(f"✅[ Grid ] [ Статистика роботи ] Загальний вивід до мережі: {stat_total_grid_out:.2f} кВт·год")
 
         total_load_raw = modbus.read_holding_registers(85, 2)
-        total_load = (total_load_raw[1] << 16 | total_load_raw[0]) * 0.1
-        print(f"✅[ PV + Grid ] Загальне споживання: {total_load:.2f} кВт·год")
+        stat_total_load = (total_load_raw[1] << 16 | total_load_raw[0]) * 0.1
+        print(f"✅[ PV + Grid ] Загальне споживання: {stat_total_load:.2f} кВт·год")
 
         daily_bat_charge = modbus.read_holding_registers(70, 1)[0] * 0.1
         print(f"[Battery] Денний заряд: {daily_bat_charge:.2f} кВт·год")
@@ -165,10 +165,13 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             "bat_current": bat_current,
             "grid_voltage": grid_voltage,
             "grid_frequency": grid_frequency,
-            # "total_generated_kwh": total_generated_kwh,
-            # "total_load_kwh": total_load_kwh,
-            # "total_bat_charge_kwh": total_bat_charge_kwh,
-            # "total_bat_discharge_kwh": total_bat_discharge_kwh
+            "stat_daily_pv": stat_daily_pv,
+            "stat_total_pv": stat_total_pv,
+            "stat_daily_bat_discharge": stat_daily_bat_discharge,
+            "stat_daily_grid_in": stat_daily_grid_in,
+            "stat_daily_grid_out": stat_daily_grid_out,
+            "stat_total_grid_out": stat_total_grid_out,
+            "stat_total_load": stat_total_load,
         }
         print("📊 Additional metrics:")
         for key, value in additional.items():
@@ -185,7 +188,15 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             "battery_power": bat_power,
             "battery_voltage": bat_voltage,
             "battery_soc": bat_soc,
-            "net_balance": net_balance
+            "net_balance": net_balance,
+            
+            "stat_daily_pv": stat_daily_pv,
+            "stat_total_pv": stat_total_pv,
+            "stat_daily_bat_discharge": stat_daily_bat_discharge,
+            "stat_daily_grid_in": stat_daily_grid_in,
+            "stat_daily_grid_out": stat_daily_grid_out,
+            "stat_total_grid_out": stat_total_grid_out,
+            "stat_total_load": stat_total_load,
         }
 
         db.update_deye_device_data(ip, data)
