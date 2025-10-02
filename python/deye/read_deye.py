@@ -111,13 +111,20 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         total_bat_discharge = (total_bat_discharge_raw[1] << 16 | total_bat_discharge_raw[0]) * 0.1 # <<< ВИПРАВЛЕНО
         print(f"[Battery] Загальний розряд: {total_bat_discharge:.2f} кВт·год")
 
-        raw_grid_in = read_u32(modbus, 0x004E)
+        # raw_grid_in = read_u32(modbus, 0x004E)
+        # grid_in = raw_grid_in * 0.1
+        # print(f"[ Grid ] Загальна енергія з мережі: {grid_in:.2f} кВт·год")
+        grid_in_regs = modbus.read_holding_registers(0x004E, 3) 
+        reg_lo = grid_in_regs[0] # 0x004E (Молодше слово, або LO)
+        reg_hi = grid_in_regs[2] # 0x0050 (Старше слово, або HI)
+        # Об'єднуємо у порядку LO-HI (Старше слово << 16 | Молодше слово)
+        raw_grid_in = (reg_hi << 16) | reg_lo 
         grid_in = raw_grid_in * 0.1
-        print(f"[ Grid ] Загальна енергія з мережі: {grid_in:.2f} кВт·год")
+        print(f"✅[ Grid ] Загальна енергія з мережі: {grid_in:.2f} кВт·год")
 
         daily_load = modbus.read_holding_registers(84, 1)[0] * 0.1
         print(f"[ Grid ] Денне споживання навантаження: {daily_load:.2f} кВт·год")
-        print(f"[ PV + Grid ] Денне споживання енергії: {daily_load:.2f} + {daily_pv:.2f} = {daily_load + daily_pv:.2f} кВт·год")
+        # print(f"[ Load ] Денне споживання енергії: {daily_load:.2f} + {daily_pv:.2f} = {daily_load + daily_pv:.2f} кВт·год")
 
         # 1. Читаємо регістри, які вказані у вашій мапі (0x004E та 0x0050)
         raw_grid_in_regs = modbus.read_holding_registers(0x004E, 3) # Читаємо 3 регістри: 4E, 4F, 50
