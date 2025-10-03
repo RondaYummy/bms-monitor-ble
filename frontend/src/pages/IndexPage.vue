@@ -431,6 +431,11 @@ const deyeData = computed<DeyeSafeValues>(() => {
     stat_daily_grid_out: 0,
     stat_total_grid_out: 0,
     stat_total_load: 0,
+    daily_bat_charge: 0,
+    daily_load: 0,
+    grid_in: 0,
+    total_bat_charge: 0,
+    total_bat_discharge: 0,
   };
 
   if (!Array.isArray(data)) return initial;

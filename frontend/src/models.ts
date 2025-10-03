@@ -188,6 +188,11 @@ export interface DeyeSafeValues {
   stat_daily_grid_out: number;
   stat_total_grid_out: number;
   stat_total_load: number;
+  daily_bat_charge: number;
+  total_bat_charge: number;
+  total_bat_discharge: number;
+  grid_in: number;
+  daily_load: number;
 }
 
 export interface TapoDevice {

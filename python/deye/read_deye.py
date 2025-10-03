@@ -197,6 +197,12 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
             "stat_daily_grid_out": stat_daily_grid_out,
             "stat_total_grid_out": stat_total_grid_out,
             "stat_total_load": stat_total_load,
+
+            "daily_bat_charge": daily_bat_charge,
+            "total_bat_charge": total_bat_charge,
+            "total_bat_discharge": total_bat_discharge,
+            "grid_in": grid_in,
+            "daily_load": daily_load,
         }
 
         db.update_deye_device_data(ip, data)

@@ -29,12 +29,64 @@
       <div class="column text-center items-center justify-between cell-item">
         <img src="../../../public/images/solar-cell.png" alt="pine-tree">
         <span class="text-subtitle1">Загальне виробництво</span>
-        <span class="text-h6 text-weight-bold">{{ (props.data.stat_total_pv / 1000)?.toFixed(2) }} кВт·год</span>
+        <span class="text-h6 text-weight-bold">{{ (props.data.stat_total_pv / 1000)?.toFixed(2) }} МВт·год</span>
       </div>
     </div>
 
     <div>
+      <ul>
+        <li>
+          ✅[ PV ] Виробництво соянчної енергії в день: {{ props.data?.stat_daily_pv }} кВт·год
+        </li>
 
+        <li>
+          ✅[ PV ] [ Статистика роботи ] Загальне викробництво: {{ props.data?.stat_total_pv }} кВт·год
+        </li>
+
+        <li>
+          ✅[Battery] Щоденне споживання ( Від мережі ): {{ props.data?.stat_daily_bat_discharge }} кВт·год
+        </li>
+
+        <li>
+          ✅[ Grid ] Кількість придбаної електроенергії в день: {{ props.data?.stat_daily_grid_in }} кВт·год
+        </li>
+
+        <li>
+          ✅[ Grid ] Кількість проданої електроенергії в день: {{ props.data?.stat_daily_grid_out }} кВт·год
+        </li>
+
+        <li>
+          ✅[ Grid ] [ Статистика роботи ] Загальний вивід до мережі: {{ props.data?.stat_total_grid_out }} кВт·год
+        </li>
+
+        <li>
+          ✅[ PV + Grid ] Загальне споживання: {{ props.data?.stat_total_load }} кВт·год
+        </li>
+      </ul>
+
+      <h6>Потребують перевірки показники:</h6>
+
+      <ul>
+        <li>
+          [Battery] Денний заряд: {{ props.data?.daily_bat_charge }} кВт·год
+        </li>
+
+        <li>
+          [Battery] Загальний заряд: {{ props.data?.total_bat_charge }} кВт·год
+        </li>
+
+        <li>
+          [Battery] Загальний розряд: {{ props.data?.total_bat_discharge }} кВт·год
+        </li>
+
+        <li>
+          ✅[ Grid ] Загальна енергія з мережі: {{ props.data?.grid_in }} кВт·год
+        </li>
+
+        <li>
+          [ Grid ] Денне споживання навантаження: {{ props.data?.daily_load }} кВт·год
+        </li>
+      </ul>
     </div>
   </div>
 
@@ -87,8 +139,8 @@ console.log(props.data);
 const showInfo = ref(false);
 
 const formatterUAH = new Intl.NumberFormat('uk-UA', {
-    style: 'currency',
-    currency: 'UAH',
+  style: 'currency',
+  currency: 'UAH',
 });
 </script>
 
