@@ -9,85 +9,115 @@
 
     <div class="row justify-between full-width">
       <div class="column text-center items-center justify-between cell-item">
-        <img src="../../../public/images/carbon.png" alt="CO2">
+        <img src="/public/images/carbon.png" alt="CO2" />
         <span class="text-subtitle1">Зменшення викидів CO2</span>
         <span class="text-h6 text-weight-bold">{{ (props.data.stat_total_pv * 0.000793)?.toFixed(2) }} тонн</span>
       </div>
 
       <div class="column text-center items-center justify-between cell-item">
-        <img src="../../../public/images/pine-tree.png" alt="pine-tree">
+        <img src="/public/images/pine-tree.png" alt="pine-tree" />
         <span class="text-subtitle1">Еквівалентна к-ть посаджених дерев</span>
         <span class="text-h6 text-weight-bold">{{ Math.trunc(props.data.stat_total_pv * 0.997 / 18.3) }} дерев</span>
       </div>
 
       <div class="column text-center items-center justify-between cell-item">
-        <img src="../../../public/images/profit.png" alt="pine-tree">
+        <img src="/public/images/profit.png" alt="profit" />
         <span class="text-subtitle1">Оцінка прибутку</span>
         <span class="text-h6 text-weight-bold">{{ formatterUAH.format(props.data.stat_total_pv * 4.32) }}</span>
       </div>
 
       <div class="column text-center items-center justify-between cell-item">
-        <img src="../../../public/images/solar-cell.png" alt="pine-tree">
+        <img src="/public/images/solar-cell.png" alt="solar-cell" />
         <span class="text-subtitle1">Загальне виробництво</span>
         <span class="text-h6 text-weight-bold">{{ (props.data.stat_total_pv / 1000)?.toFixed(2) }} МВт·год</span>
+
+        <q-tooltip>
+          [ PV ]
+        </q-tooltip>
+      </div>
+
+      <div class="column text-center items-center justify-between cell-item">
+        <img src="/public/images/total-used.png" alt="total-used" />
+        <span class="text-subtitle1">Загальне споживання</span>
+        <span class="text-h6 text-weight-bold">{{ (props.data.stat_total_load / 1000)?.toFixed(2) }} МВт·год</span>
+
+        <q-tooltip>
+          [ PV + Grid ]
+        </q-tooltip>
+      </div>
+
+      <div class="column text-center items-center justify-between cell-item">
+        <img src="/public/images/total-grid-used.png" alt="total-grid-used" />
+        <span class="text-subtitle1">Загальний вивід до мережі</span>
+        <span class="text-h6 text-weight-bold">{{ props.data.stat_total_grid_out?.toFixed(2) }} МВт·год</span>
+
+        <q-tooltip>
+          [ Grid ] [ Статистика роботи ]
+        </q-tooltip>
+      </div>
+
+      <div class="column text-center items-center justify-between cell-item">
+        <img src="/public/images/grid-buy.png" alt="grid-buy" />
+        <span class="text-subtitle1">Кількість придбаної електроенергії в день</span>
+        <span class="text-h6 text-weight-bold">{{ props.data.stat_daily_grid_in }} кВт·год</span>
+
+        <q-tooltip>
+          [ Grid ]
+        </q-tooltip>
+      </div>
+
+      <div class="column text-center items-center justify-between cell-item">
+        <img src="/public/images/grid-sell.png" alt="grid-sell" />
+        <span class="text-subtitle1">Кількість проданої електроенергії в день</span>
+        <span class="text-h6 text-weight-bold">{{ props.data.stat_daily_grid_out }} кВт·год</span>
+
+        <q-tooltip>
+          [ Grid ]
+        </q-tooltip>
+      </div>
+
+      <div class="column text-center items-center justify-between cell-item">
+        <img src="/public/images/pv-dailly.png" alt="pv-dailly" />
+        <span class="text-subtitle1"> Виробництво соянчної енергії в день</span>
+        <span class="text-h6 text-weight-bold">{{ props.data.stat_daily_pv }} кВт·год</span>
+
+        <q-tooltip>
+          [ PV ]
+        </q-tooltip>
+      </div>
+
+      <div class="column text-center items-center justify-between cell-item">
+        <img src="/public/images/grid-total-used-dailly.png" alt="grid-total-used-dailly" />
+        <span class="text-subtitle1">Щоденне споживання ( Від мережі )</span>
+        <span class="text-h6 text-weight-bold">{{ props.data.stat_daily_bat_discharge }} кВт·год</span>
+
+        <q-tooltip>
+          [ Battery ]
+        </q-tooltip>
       </div>
     </div>
 
-    <div>
-      <ul>
-        <li>
-          ✅[ PV ] Виробництво соянчної енергії в день: {{ props.data?.stat_daily_pv }} кВт·год
-        </li>
+    <!-- <ul>
+      <li>
+        [Battery] Денний заряд: {{ props.data?.daily_bat_charge }} кВт·год
+      </li>
 
-        <li>
-          ✅[ PV ] [ Статистика роботи ] Загальне викробництво: {{ props.data?.stat_total_pv }} кВт·год
-        </li>
+      <li>
+        [Battery] Загальний заряд: {{ props.data?.total_bat_charge }} кВт·год
+      </li>
 
-        <li>
-          ✅[Battery] Щоденне споживання ( Від мережі ): {{ props.data?.stat_daily_bat_discharge }} кВт·год
-        </li>
+      <li>
+        [Battery] Загальний розряд: {{ props.data?.total_bat_discharge }} кВт·год
+      </li>
 
-        <li>
-          ✅[ Grid ] Кількість придбаної електроенергії в день: {{ props.data?.stat_daily_grid_in }} кВт·год
-        </li>
+      <li>
+        ✅[ Grid ] Загальна енергія з мережі: {{ props.data?.grid_in }} кВт·год
+      </li>
 
-        <li>
-          ✅[ Grid ] Кількість проданої електроенергії в день: {{ props.data?.stat_daily_grid_out }} кВт·год
-        </li>
-
-        <li>
-          ✅[ Grid ] [ Статистика роботи ] Загальний вивід до мережі: {{ props.data?.stat_total_grid_out }} кВт·год
-        </li>
-
-        <li>
-          ✅[ PV + Grid ] Загальне споживання: {{ props.data?.stat_total_load }} кВт·год
-        </li>
-      </ul>
-
-      <h6>Потребують перевірки показники:</h6>
-
-      <ul>
-        <li>
-          [Battery] Денний заряд: {{ props.data?.daily_bat_charge }} кВт·год
-        </li>
-
-        <li>
-          [Battery] Загальний заряд: {{ props.data?.total_bat_charge }} кВт·год
-        </li>
-
-        <li>
-          [Battery] Загальний розряд: {{ props.data?.total_bat_discharge }} кВт·год
-        </li>
-
-        <li>
-          ✅[ Grid ] Загальна енергія з мережі: {{ props.data?.grid_in }} кВт·год
-        </li>
-
-        <li>
-          [ Grid ] Денне споживання навантаження: {{ props.data?.daily_load }} кВт·год
-        </li>
-      </ul>
-    </div>
+      <li>
+        [ Grid ] Денне споживання навантаження: {{ props.data?.daily_load }} кВт·год
+      </li>
+    </ul> -->
   </div>
 
   <q-dialog v-model="showInfo">
