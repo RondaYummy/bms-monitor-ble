@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, Path, Depends
-from pydantic import BaseModel, Field
 from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Path
+from pydantic import BaseModel, Field
+
 import python.db as db
 from python.auth.verify_token import verify_token
 

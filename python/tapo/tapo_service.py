@@ -1,7 +1,9 @@
-from PyP100 import PyP110
-from python.db import update_tapo_device_by_ip, get_all_tapo_devices
 import asyncio
 import json
+
+from PyP100 import PyP110
+
+from python.db import get_all_tapo_devices, update_tapo_device_by_ip
 
 # List of models that support energy monitoring
 SUPPORTED_ENERGY_MONITORING_MODELS = {"P110", "P110M"}

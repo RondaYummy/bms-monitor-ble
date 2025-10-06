@@ -1,5 +1,7 @@
-from pydantic import BaseModel, Field
 from typing import Optional
+
+from pydantic import BaseModel, Field
+
 
 class TapoDeviceCreateDto(BaseModel):
     ip: str = Field(..., example="192.168.31.110")

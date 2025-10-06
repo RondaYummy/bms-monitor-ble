@@ -1,8 +1,10 @@
-from typing import TypedDict, List
+from datetime import datetime
+from typing import List, TypedDict
+
+import yaml
+
 import python.db as db
 from python.push_notifications import send_push_alerts
-from datetime import datetime
-import yaml
 
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)

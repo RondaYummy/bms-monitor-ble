@@ -1,9 +1,7 @@
-from python.data_store import data_store
+from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from fastapi import (
-    HTTPException,
-    Depends,
-)
+
+from python.data_store import data_store
 
 auth_scheme = HTTPBearer()
 

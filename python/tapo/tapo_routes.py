@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Path, Depends
-from python.tapo.dto import TapoDeviceCreateDto, TapoDeviceUpdateDto
+from fastapi import APIRouter, Depends, HTTPException, Path
+
 import python.db as db
 from python.auth.verify_token import verify_token
+from python.tapo.dto import TapoDeviceCreateDto, TapoDeviceUpdateDto
 from python.tapo.tapo_service import TapoDevice
 
 router = APIRouter(prefix="/tapo", tags=["TP-Link Tapo Devices"])

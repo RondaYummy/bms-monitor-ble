@@ -1,12 +1,14 @@
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
 import ipaddress
 import subprocess
-from concurrent.futures import ThreadPoolExecutor
-from PyP100 import PyP110
-from python.auth.verify_token import verify_token
 import time
+from concurrent.futures import ThreadPoolExecutor
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from PyP100 import PyP110
+
 import python.db as db
+from python.auth.verify_token import verify_token
 
 MAX_WORKERS = 100
 

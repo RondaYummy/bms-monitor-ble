@@ -1,39 +1,30 @@
 import asyncio
-from datetime import datetime
-import yaml
-from uuid import uuid4
-from typing import Optional
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
+from typing import Optional
+from uuid import uuid4
 
 import uvicorn
+import yaml
 from bleak import BleakClient, BleakScanner
-from fastapi import (
-    FastAPI,
-    HTTPException,
-    Request,
-    Depends,
-    Query
-)
-from fastapi.responses import JSONResponse
+from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from fastapi import Body
 
-from python.colors import *
-import python.db as db
 import python.battery_alerts as alerts
-from python.push_notifications import send_push_startup
-from python.pwd import verify_password, hash_password
-from python.data_store import data_store
-from python.deye.read_deye import run_deye_loop
-from concurrent.futures import ThreadPoolExecutor
-from python.tapo.tapo_service import check_all_tapo_devices
+import python.db as db
 from python.auth.verify_token import verify_token
-
-from python.push_notifications import router as alerts_router
-from python.tapo.tapo_routes import router as tapo_router
-from python.tapo.find_tapo import router as tapo_find_router
+from python.colors import *
+from python.data_store import data_store
 from python.deye.deye_routes import router as deye_router
+from python.deye.read_deye import run_deye_loop
+from python.push_notifications import router as alerts_router
+from python.push_notifications import send_push_startup
+from python.pwd import hash_password, verify_password
+from python.tapo.find_tapo import router as tapo_find_router
+from python.tapo.tapo_routes import router as tapo_router
+from python.tapo.tapo_service import check_all_tapo_devices
 
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)

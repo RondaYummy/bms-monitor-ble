@@ -1,6 +1,7 @@
 import asyncio
-from datetime import datetime
 from copy import deepcopy
+from datetime import datetime
+
 
 class DataStore:
     def __init__(self):
