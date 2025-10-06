@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, TypedDict
+from datetime import datetime, timedelta, timezone
 
 import yaml
 
@@ -8,6 +9,8 @@ from python.push_notifications import send_push_alerts
 
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
+
+SEND_ALLOWED_AFTER: datetime = datetime.now(timezone.utc) + timedelta(minutes=2)
 
 class CellInfo(TypedDict):
     device_address: str
@@ -43,6 +46,9 @@ def add_alert(alerts, code):
 async def evaluate_alerts(device_address: str, device_name: str, cell_info: CellInfo):
     try:
         alerts = []
+        if datetime.now(timezone.utc) < SEND_ALLOWED_AFTER:
+            print(f"⏰ Затримка: Alerts пригнічено (сервер нещодавно запустився).")
+            return
 
         if cell_info["state_of_charge"] < 10:
             add_alert(alerts, "1001")

@@ -1,14 +1,11 @@
 import base64
 import json
-from datetime import datetime, timedelta, timezone
 
 from cryptography.hazmat.primitives import serialization
 from fastapi import APIRouter, HTTPException
 from pywebpush import WebPushException, webpush
 
 import python.db as db
-
-SEND_ALLOWED_AFTER: datetime = datetime.now(timezone.utc) + timedelta(minutes=2)
 
 router = APIRouter()
 
@@ -39,18 +36,12 @@ def save_subscription(subscription: dict):
 
     existing_subscription = db.get_subscription_by_endpoint(subscription["endpoint"])
     if existing_subscription:
-        # print("⚠️ Subscription already exists.")
         return {"message": "Subscription already exists"}
 
     db.add_subscription(subscription)
-    # print("✅ Subscription saved successfully.")
     return {"message": "Subscription saved"}
 
 async def send_push_alerts(device_name: str, alert, config):
-    if datetime.now(timezone.utc) < SEND_ALLOWED_AFTER:
-        print(f"⏰ Затримка: Push-повідомлення про тривогу '{device_name}' пригнічено (сервер нещодавно запустився).")
-        return
-
     message = f"🚨 {device_name}: {alert['message']} (код: {alert['id']})"
     payload = json.dumps({"title": "🔋 Увага!", "body": message})
     subscriptions = db.get_all_subscriptions()
