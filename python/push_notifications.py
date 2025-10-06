@@ -4,6 +4,9 @@ import python.db as db
 from fastapi import APIRouter, HTTPException
 from cryptography.hazmat.primitives import serialization
 import base64
+from datetime import datetime, timedelta, timezone
+
+SEND_ALLOWED_AFTER: datetime = datetime.now(timezone.utc) + timedelta(minutes=2)
 
 router = APIRouter()
 
@@ -42,6 +45,10 @@ def save_subscription(subscription: dict):
     return {"message": "Subscription saved"}
 
 async def send_push_alerts(device_name: str, alert, config):
+    if datetime.now(timezone.utc) < SEND_ALLOWED_AFTER:
+        print(f"⏰ Затримка: Push-повідомлення про тривогу '{device_name}' пригнічено (сервер нещодавно запустився).")
+        return
+
     message = f"🚨 {device_name}: {alert['message']} (код: {alert['id']})"
     payload = json.dumps({"title": "🔋 Увага!", "body": message})
     subscriptions = db.get_all_subscriptions()
