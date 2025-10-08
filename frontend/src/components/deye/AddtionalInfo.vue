@@ -59,7 +59,7 @@
       <div class="column text-center items-center justify-between cell-item">
         <img src="/images/grid-buy.png" alt="grid-buy" />
         <span class="text-subtitle1">Кількість придбаної електроенергії в день</span>
-        <span class="text-h6 text-weight-bold">{{ props.data.stat_daily_grid_in }} кВт·год</span>
+        <span class="text-h6 text-weight-bold">{{ props.data.stat_daily_grid_in?.toFixed(2) }} кВт·год</span>
 
         <q-tooltip>
           [ Grid ]
@@ -171,6 +171,8 @@ const showInfo = ref(false);
 const formatterUAH = new Intl.NumberFormat('uk-UA', {
   style: 'currency',
   currency: 'UAH',
+  notation: 'compact',
+  maximumFractionDigits: 1,
 });
 </script>
 
