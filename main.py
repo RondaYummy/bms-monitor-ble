@@ -86,10 +86,6 @@ async def change_password(request: Request):
     if not old_password or not new_password:
         raise HTTPException(status_code=400, detail="Both old and new passwords must be provided.")
 
-    config = db.get_config()
-    if not config or not verify_password(old_password, config.get("password", "")):
-        raise HTTPException(status_code=401, detail="Old password is incorrect.")
-
     hashed_new_password = hash_password(new_password)
     updated_config = db.update_config(password=hashed_new_password)
 

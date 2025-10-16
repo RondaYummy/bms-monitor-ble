@@ -10,13 +10,6 @@
         label-color="white"
         filled
       />
-      <q-input
-        :disable="!token"
-        label="Повторіть пароль"
-        label-color="white"
-        v-model="oldAgainPassword"
-        filled
-      />
 
       <q-separator class="q-mt-md" color="white" />
 
@@ -58,7 +51,6 @@ interface Props {
 const props = defineProps<Props>();
 const oldPassword = ref('');
 const newPassword = ref('');
-const oldAgainPassword = ref('');
 
 const emits = defineEmits<{
   (e: 'update:show', value: boolean): void;
@@ -80,7 +72,6 @@ function close() {
   localShow.value = false;
   oldPassword.value = '';
   newPassword.value = '';
-  oldAgainPassword.value = '';
 }
 
 async function updatePassword() {
