@@ -14,7 +14,7 @@ from python.push_notifications import send_push_notification
 router = APIRouter(prefix="/power", tags=["Power managment system"])
 
 # Parameters
-THRESHOLD_W = 3000                # threshold in watts ( 7500 )
+THRESHOLD_W = 7500                # threshold in watts ( 7500 )
 MIN_TOGGLE_INTERVAL_S = 60        # minimum interval between switching of one device
 POLL_INTERVAL_S = 5               # inverter polling
 
