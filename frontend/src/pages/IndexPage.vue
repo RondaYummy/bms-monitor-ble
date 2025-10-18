@@ -84,8 +84,8 @@
         </div>
 
         <div class="indicate indicate-info">
-          <q-icon v-if="powerSystemData?.devices?.length" @click="showPowerSystemDialog = true" name="power_off"
-            size="30px" color="red" />
+          <q-icon @click="showPowerSystemDialog = true" name="power_off"
+            size="30px" :color="powerSystemData?.devices?.length ? 'red' : 'white'" />
           <q-icon @click="showInfo = true" name="info" size="24px" color="white" />
         </div>
 

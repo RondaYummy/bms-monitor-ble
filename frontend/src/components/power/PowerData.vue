@@ -62,11 +62,11 @@
   <div class="stats-header-container">
     <div>
       <p class="text-sm text-grey-7 q-mb-none">Вимкнено пристроїв</p>
-      <p class="blink-attention q-mb-none">{{ props?.data?.devices?.length }}</p>
+      <p class="blink-attention q-mb-none">{{ props?.data?.devices?.length || 0 }}</p>
     </div>
     <div>
       <p class="text-sm text-grey-7 q-mb-none">Загальна потужність вимкнена</p>
-      <p class="blink-attention q-mb-none">{{ Math.floor(totalPower) }} kW</p>
+      <p class="blink-attention q-mb-none">{{ Math.floor(totalPower || 0) }} kW</p>
     </div>
   </div>
 
@@ -74,6 +74,9 @@
     <h3 class="text-lg-semibold">Вимкнені пристрої:</h3>
 
     <div class="devices-grid-container">
+      <p v-if="!props?.data?.devices?.length">
+        Навантаження в нормі, автоматично вимвнених приладів не має
+      </p>
 
       <div class="device-card" v-for="device in props?.data?.devices" :key="device?.ip">
         <div class="flex items-start justify-between q-mb-sm">
