@@ -71,62 +71,6 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         except Exception as e:
             print(f"❌ Failed to read Grid Power (Reg 169): {e}")
 
-        # --- Alerts / Faults (registers 0x0065..0x006A = dec 101..106) ---
-        try:
-            alert_regs = modbus.read_holding_registers(0x0065, 6)  # читаємо 6 регістрів
-            # alert_regs — список з 6 16-бітних чисел (reg0 = 0x0065, reg1 = 0x0066, ...)
-            print("🔔 Raw alert registers (0x0065..0x006A):", alert_regs)
-            # Розкладаємо на біти, припускаючи LSB-first у кожному регістрі
-            active_bits = []
-            for reg_idx, reg_val in enumerate(alert_regs):
-                for bit in range(16):
-                    bit_index = reg_idx * 16 + bit  # 0..95
-                    if reg_val & (1 << bit):
-                        active_bits.append(bit_index)
-            # Приклад невеликої мапи bit_index -> human name
-            # **Розширюйте цю мапу під вашу документацію Deye**
-            ALERT_MAP = {
-                0: "AC_Overload_Fault",
-                1: "AC_UnderVoltage_Fault",
-                2: "AC_OverVoltage_Fault",
-                3: "Grid_Loss_Fault",
-                4: "PV_OverVoltage_Fault",
-                5: "PV_UnderVoltage_Fault",
-                6: "Battery_UnderVoltage_Fault",
-                7: "Battery_OverVoltage_Fault",
-                8: "Battery_Temperature_High",
-                9: "Battery_Temperature_Low",
-                10: "Inverter_Internal_Fault",
-                11: "Fan_Fault",
-                12: "CAN_Comm_Fault",
-                13: "RS485_Comm_Fault",
-                14: "AC_Islanding",
-                15: "PV_String_Fault",
-                # ... додайте інші біти згідно вашого MANUAL
-            }
-
-            active_alerts = []
-            for bit_index in active_bits:
-                name = ALERT_MAP.get(bit_index, f"Unknown_fault_bit_{bit_index}")
-                active_alerts.append((bit_index, name))
-
-            if active_alerts:
-                print("⚠️ Active alerts:")
-                for bit_index, name in active_alerts:
-                    print(f"  - bit {bit_index}: {name}")
-            else:
-                print("✅ No active alerts (all bits zero)")
-
-            # Додати у additional/data
-            additional['alerts_raw'] = alert_regs
-            additional['alerts_active_bits'] = active_bits
-            additional['alerts_active_names'] = [n for (_, n) in active_alerts]
-            # (Опціонально) зберегти у структуру data для БД
-            data['alerts_raw'] = alert_regs
-            data['alerts_active'] = [n for (_, n) in active_alerts]
-        except Exception as e:
-            print(f"❌ Failed to read alert registers 0x0065..0x006A: {e}")
-
         bat_power = to_signed(modbus.read_holding_registers(190, 1)[0])
         bat_voltage = modbus.read_holding_registers(183, 1)[0] * 0.01
         bat_soc = modbus.read_holding_registers(184, 1)[0]
