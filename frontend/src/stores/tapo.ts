@@ -11,6 +11,10 @@ export interface UpdateTapoDeviceDto {
   priority?: number;
 }
 
+const config = {
+  timeout: 5000,
+};
+
 export const useTapoStore = defineStore('tapo', () => {
   // ==============
   //   STATE
@@ -60,7 +64,7 @@ export const useTapoStore = defineStore('tapo', () => {
     priority: number;
   }): Promise<{ status: string; device: TapoDevice } | undefined> {
     try {
-      const res = await api.post('/api/tapo/devices/add', data);
+      const res = await api.post('/api/tapo/devices/add', data, config);
       await fetchDevices();
       if (res.data?.status === 'added') {
         const index = foundDevices.value.findIndex((d: TapoDevice) => d.ip === data.ip);
@@ -89,7 +93,7 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function fetchDevices(): Promise<TapoDevice[] | undefined> {
     try {
-      const response = await api.get('/api/tapo/devices');
+      const response = await api.get('/api/tapo/devices', config);
       const data: { devices: TapoDevice[] } = await response.data;
       updateDevices(data?.devices);
       return devices.value;
@@ -100,7 +104,7 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function enableDevice(ip: string): Promise<void> {
     try {
-      await api.post(`/api/tapo/devices/${ip}/on`);
+      await api.post(`/api/tapo/devices/${ip}/on`, config);
       changeDevicesState(ip, 1);
     } catch (error) {
       console.error('Error enable tapo device: ', error);
@@ -116,7 +120,7 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function disableDevice(ip: string): Promise<void> {
     try {
-      await api.post(`/api/tapo/devices/${ip}/off`);
+      await api.post(`/api/tapo/devices/${ip}/off`, config);
       changeDevicesState(ip, 0);
     } catch (error) {
       console.error('Error disable tapo device: ', error);
@@ -132,7 +136,7 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function removeDevice(ip: string): Promise<void> {
     try {
-      const res = await api.delete(`/api/tapo/device/${ip}`);
+      const res = await api.delete(`/api/tapo/device/${ip}`, config);
       fetchDevices();
       Notify.create({
         message: res.data?.message,
@@ -154,7 +158,7 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function searchTapoDevices(data: { email: string; password: string }) {
     try {
-      const res = await api.post(`/api/tapo/devices/search`, data);
+      const res = await api.post(`/api/tapo/devices/search`, data, config);
       foundDevices.value = res.data?.devices;
       return foundDevices.value;
     } catch (error) {
@@ -171,7 +175,7 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function updateTapoDeviceConfig(ip: string, data: UpdateTapoDeviceDto) {
     try {
-      await api.patch(`/api/tapo/device/${ip}`, data);
+      await api.patch(`/api/tapo/device/${ip}`, data, config);
       await fetchDevices();
     } catch (error) {
       console.error('Error update tapo device: ', error);
@@ -187,7 +191,7 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function getTopDevices() {
     try {
-      const { data } = await api.get(`/api/tapo/devices/top`);
+      const { data } = await api.get(`/api/tapo/devices/top`, config);
       updateTopDevices(data.top_devices || []);
     } catch (error) {
       console.error('Error getting top tapo device: ', error);

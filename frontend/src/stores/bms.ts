@@ -5,6 +5,10 @@ import { sortDevices } from 'src/helpers/utils';
 import { CellInfo, Device, DeviceInfo, SettingInfo } from 'src/models';
 import { readonly, ref } from 'vue';
 
+const config = {
+  timeout: 5000,
+};
+
 export const useBmsStore = defineStore('bms', () => {
   // ==============
   //   STATE
@@ -57,7 +61,7 @@ export const useBmsStore = defineStore('bms', () => {
   // ==============
   async function fetchSettings(): Promise<void> {
     try {
-      const response = await api.get('/api/device-settings');
+      const response = await api.get('/api/device-settings', config);
       const data: SettingInfo[] = response.data;
       settingInfo.value = data;
     } catch (error) {
@@ -67,7 +71,7 @@ export const useBmsStore = defineStore('bms', () => {
 
   async function fetchCellInfo(): Promise<void> {
     try {
-      const response = await api.get('/api/cell-info');
+      const response = await api.get('/api/cell-info', config);
       const data = response.data;
       cellInfo.value = data;
     } catch (error) {
@@ -77,7 +81,7 @@ export const useBmsStore = defineStore('bms', () => {
 
   async function fetchDeviceInfo(connected: boolean): Promise<void> {
     try {
-      const response = await api.get('/api/device-info');
+      const response = await api.get('/api/device-info', config);
       const data: DeviceInfo[] = await response.data;
       if (connected) {
         deviceInfo.value = sortDevices(data.filter((d: any) => d.connected));
@@ -91,7 +95,7 @@ export const useBmsStore = defineStore('bms', () => {
 
   async function connectToDevice(address: string, name: string): Promise<void> {
     try {
-      const res = await api.post('/api/connect-device', { address, name });
+      const res = await api.post('/api/connect-device', { address, name }, config);
       if (res?.data?.error) {
         Notify.create({
           message: res?.data?.error,
@@ -115,7 +119,7 @@ export const useBmsStore = defineStore('bms', () => {
 
   async function disconnectDevice(address: string, name: string): Promise<void> {
     try {
-      await api.post('/api/disconnect-device', { address, name });
+      await api.post('/api/disconnect-device', { address, name }, config);
     } catch (error: any) {
       console.error('Error disconnect device info: ', error);
       Notify.create({
@@ -130,7 +134,7 @@ export const useBmsStore = defineStore('bms', () => {
 
   async function fetchDevices(): Promise<Device[] | undefined> {
     try {
-      const response = await api.get('/api/devices');
+      const response = await api.get('/api/devices', config);
       const data = await response.data;
       updateDevices(data?.devices);
       return devices.value;

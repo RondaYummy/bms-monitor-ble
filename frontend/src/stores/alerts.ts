@@ -4,6 +4,10 @@ import { api } from 'src/boot/axios';
 import { Alert } from 'src/models';
 import { readonly, ref } from 'vue';
 
+const config = {
+  timeout: 5000,
+};
+
 export const useAlertsStore = defineStore('alerts', () => {
   // ==============
   //   STATE
@@ -31,6 +35,7 @@ export const useAlertsStore = defineStore('alerts', () => {
     try {
       const response = await api.get('/api/error-alerts', {
         validateStatus: (status) => status < 500,
+        ...config,
       });
 
       if (response.status === 404) {
@@ -46,7 +51,7 @@ export const useAlertsStore = defineStore('alerts', () => {
 
   async function deleteErrorAlert(id: number) {
     try {
-      const res = await api.post('/api/error-alerts', { id });
+      const res = await api.post('/api/error-alerts', { id }, config);
       if (res.data?.message) {
         Notify.create({
           message: res.data?.message,
@@ -61,7 +66,7 @@ export const useAlertsStore = defineStore('alerts', () => {
 
   async function deleteAllAlerts() {
     try {
-      const res = await api.delete('/api/error-alerts/all');
+      const res = await api.delete('/api/error-alerts/all', config);
       if (res.data?.message) {
         Notify.create({
           position: 'top',

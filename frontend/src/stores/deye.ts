@@ -3,6 +3,10 @@ import { api } from 'src/boot/axios';
 import { DeyeRealtimeData } from 'src/models';
 import { readonly, ref } from 'vue';
 
+const config = {
+  timeout: 5000,
+};
+
 export const useDeyeStore = defineStore('deye', () => {
   // ==============
   //   STATE
@@ -28,7 +32,7 @@ export const useDeyeStore = defineStore('deye', () => {
   // ==============
   async function fetchDeyeDevices(): Promise<DeyeRealtimeData[] | undefined> {
     try {
-      const response = await api.get('/api/deye/devices');
+      const response = await api.get('/api/deye/devices', config);
       const data = await response.data;
       updateDeyeData(data);
       return deyeData.value;
@@ -43,7 +47,7 @@ export const useDeyeStore = defineStore('deye', () => {
     slave_id?: number;
   }): Promise<DeyeRealtimeData[] | undefined> {
     try {
-      const response = await api.post('/api/deye/device', data);
+      const response = await api.post('/api/deye/device', data, config);
       const devices = await response.data;
       updateDeyeData(devices);
       return deyeData.value;
@@ -54,7 +58,7 @@ export const useDeyeStore = defineStore('deye', () => {
 
   async function deleteDeyeDevice(ip: string): Promise<void> {
     try {
-      await api.delete(`/api/deye/device?ip=${ip}`);
+      await api.delete(`/api/deye/device?ip=${ip}`, config);
       await fetchDeyeDevices();
     } catch (error) {
       console.error('Error delete Deye: ', error);

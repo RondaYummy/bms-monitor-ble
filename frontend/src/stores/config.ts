@@ -3,6 +3,10 @@ import { api } from 'src/boot/axios';
 import { Config } from 'src/models';
 import { ref, readonly } from 'vue';
 
+const configs = {
+  timeout: 5000,
+};
+
 export const useConfigStore = defineStore('config', () => {
   // ==============
   //   STATE
@@ -33,7 +37,7 @@ export const useConfigStore = defineStore('config', () => {
   // ==============
   async function fetchConfigs() {
     try {
-      const response = await api.get('/api/configs');
+      const response = await api.get('/api/configs', configs);
       const data: Config = response.data;
       config.value = data;
     } catch (error) {
@@ -43,7 +47,7 @@ export const useConfigStore = defineStore('config', () => {
 
   async function updateConfigs() {
     try {
-      const response = await api.post('/api/configs', { ...config.value });
+      const response = await api.post('/api/configs', { ...config.value }, configs);
       config.value = response.data;
     } catch (error) {
       console.error('Error updating configs:', error);

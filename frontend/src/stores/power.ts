@@ -18,6 +18,10 @@ export interface PowerManagerStatus {
   POLL_INTERVAL_S: number;
 }
 
+const config = {
+  timeout: 5000,
+};
+
 export const usePowerStore = defineStore('power', () => {
   // ==============
   //   STATE
@@ -43,7 +47,7 @@ export const usePowerStore = defineStore('power', () => {
   // ==============
   async function fetchPowerData(): Promise<DeyeRealtimeData[] | undefined> {
     try {
-      const response = await api.get('/api/power/system');
+      const response = await api.get('/api/power/system', config);
       const data = await response.data;
       updatePowerData(data);
       return data.value;
@@ -54,7 +58,7 @@ export const usePowerStore = defineStore('power', () => {
 
   async function removeDeviceFromSystem(ip: string): Promise<undefined> {
     try {
-      await api.delete('/api/power/system/' + ip);
+      await api.delete('/api/power/system/' + ip, config);
       await fetchPowerData();
     } catch (error) {
       console.error('Error remove power system data: ', error);

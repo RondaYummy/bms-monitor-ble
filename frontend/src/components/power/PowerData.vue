@@ -1,12 +1,14 @@
 <template>
   <div class="text-h6 q-gutter-sm row items-center">
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-activity text-primary m-md">
+    <svg :class="{ 'blink-attention': props?.data?.devices?.length }" xmlns="http://www.w3.org/2000/svg" width="24"
+      height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+      stroke-linejoin="round" class="lucide lucide-activity text-primary m-md">
       <path
         d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2">
       </path>
     </svg>
-    <span class="m-md text-white">Система Моніторингу</span>
+    <span class="m-md text-white" :class="{ 'blink-attention': props?.data?.devices?.length }">Система
+      Моніторингу</span>
   </div>
 
   <div class="stats-grid-container">
@@ -60,23 +62,23 @@
   </div>
 
   <div class="stats-header-container">
-    <div>
-      <p class="text-sm text-grey-7 q-mb-none">Вимкнено пристроїв</p>
+    <div style="flex: 1 1 49%">
+      <p class="text-sm text-black q-mb-none">Вимкнено пристроїв</p>
       <p class="blink-attention q-mb-none">{{ props?.data?.devices?.length || 0 }}</p>
     </div>
-    <div>
-      <p class="text-sm text-grey-7 q-mb-none">Загальна потужність вимкнена</p>
+    <div style="flex: 1 1 49%">
+      <p class="text-sm text-black q-mb-none">Вимкнена потужність</p>
       <p class="blink-attention q-mb-none">{{ Math.floor(totalPower || 0) }} kW</p>
     </div>
   </div>
 
   <div>
     <h3 class="text-lg-semibold">Вимкнені пристрої:</h3>
+    <p v-if="!props?.data?.devices?.length" class="text-center text-green">
+      Система працює у штатному режимі: навантаження нормалізовано, примусового вимкнення споживачів не відбувалося.
+    </p>
 
     <div class="devices-grid-container">
-      <p v-if="!props?.data?.devices?.length">
-        Навантаження в нормі, автоматично вимвнених приладів не має
-      </p>
 
       <div class="device-card" v-for="device in props?.data?.devices" :key="device?.ip">
         <div class="flex items-start justify-between q-mb-sm">
