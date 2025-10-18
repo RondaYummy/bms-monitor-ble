@@ -4,6 +4,7 @@ import json
 from cryptography.hazmat.primitives import serialization
 from fastapi import APIRouter, HTTPException
 from pywebpush import WebPushException, webpush
+from typing import Dict, Any
 
 import python.db as db
 
@@ -12,7 +13,6 @@ router = APIRouter()
 VAPID_CLAIMS = {
     "sub": "mailto:halevych.dev@gmail.com"
 }
-
 
 def convert_der_to_base64(der_key: bytes) -> str:
     return base64.urlsafe_b64encode(der_key).decode("utf-8").rstrip("=")
@@ -27,6 +27,36 @@ def convert_pem_to_der(private_pem: str) -> bytes:
         format=serialization.PrivateFormat.PKCS8,
         encryption_algorithm=serialization.NoEncryption()
     )
+
+async def send_push_notification(title: str, body: str):
+    config = db.get_config()
+    payload = json.dumps({"title": title, "body": body})
+    await _send_to_all_subscriptions(payload, config)
+
+
+async def _send_to_all_subscriptions(payload: str, config: Dict[str, Any]):
+    subscriptions = db.get_all_subscriptions()
+    try:
+        vapid_private_key_pem = config["VAPID_PRIVATE_KEY"]
+        private_key_der = convert_pem_to_der(vapid_private_key_pem)
+        private_key_base64 = convert_der_to_base64(private_key_der)
+    except Exception as e:
+        print(f"❌ VAPID Configuration Error: {e}")
+        return
+
+    for sub in subscriptions:
+        try:
+            webpush(
+                subscription_info=sub,
+                data=payload,
+                vapid_private_key=private_key_base64,
+                vapid_claims=VAPID_CLAIMS
+            )
+        except WebPushException as e:
+            if "410 Gone" in str(e):
+                db.remove_old_subscription(sub["endpoint"])
+            else:
+                print(f"Push Notification Error: {str(e)}")
 
 @router.post("/save-subscription")
 def save_subscription(subscription: dict):

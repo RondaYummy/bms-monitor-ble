@@ -8,6 +8,7 @@ from python.db import (
     update_tapo_device_by_ip,
 )
 from python.tapo.tapo_service import get_tapo_device
+from python.push_notifications import send_push_notification
 
 # Parameters
 THRESHOLD_W = 3300                # threshold in watts ( 7500 )
@@ -101,10 +102,15 @@ async def manage_tapo_power():
                 print(f"🔎 Current total load (sum deye.load_power): {total_load:.1f} W")
 
                 if total_load > THRESHOLD_W:
+                    load_to_shed = total_load - THRESHOLD_W
+                    message = f"🚨 Навантаження ({total_load:.0f} W) перевищує поріг ({THRESHOLD_W:.0f} W). Скидаємо навантаження!"
+                    asyncio.create_task(send_push_notification("⚠️ Увага: Перевантаження", message))
+
                     tapo_rows = get_all_tapo_devices() or []
                     candidates = [r for r in tapo_rows if r.get("device_on")]
                     if candidates:
-                        # сортуємо по estimated споживанню (descending) — вимикаємо найпотужніший для швидкої економії
+                        devices_turned_off_count = 0
+                        # sort by estimated consumption (descending) — turn off the most powerful ones for quick savings
                         candidates.sort(key=lambda r: _power_w_from_row(r), reverse=True)
                         for cand in candidates:
                             ip = cand["ip"]
@@ -113,22 +119,32 @@ async def manage_tapo_power():
                             last = disabled_devices.get(ip, {}).get("last_action", 0)
                             if now - last < MIN_TOGGLE_INTERVAL_S:
                                 continue
+
+                            est_power_w = _power_w_from_row(cand)
+
                             # turn off the first suitable one
                             success = await _disable_tapo_device(cand)
                             if success:
+                                devices_turned_off_count += 1
                                 # after turning it off, we will exit the loop — let's see the result in the next poll
-                                break
+                                load_to_shed -= est_power_w 
+                                print(f"📉 Скинуто {est_power_w:.0f} W. Залишок для скидання: {load_to_shed:.0f} W.")
+                                
+                                if load_to_shed <= 0:
+                                    print(f"✅ Цілі досягнуто. Вимкнено {devices_turned_off_count} пристроїв. Зупиняємо вимкнення.")
+                                    message = f"🚨 Навантаження вирівняно до позначки ({total_load:.0f} W) шляхом вимкнення {devices_turned_off_count} приладів."
+                                    asyncio.create_task(send_push_notification("🔌 Навантаження вирівняно", message))
+                                    break # Exit the shutdown cycle if the desired threshold has been reached
                     else:
                         print("ℹ️ No enabled Tapo devices available to disable.")
                 else:
-                    # Навантаження нижче порогу — можемо спробувати увімкнути раніше вимкнені
+                    # Load below threshold — we can try to turn on previously turned off
                     if disabled_devices:
                         tapo_rows = get_all_tapo_devices() or []
                         tapo_map = {r["ip"]: r for r in tapo_rows}
-                        # Розрахуємо поточний запас потужності
                         headroom = THRESHOLD_W - total_load
-                        # Спробуємо включати пристрої по порядку (FIFO або за збереженим порядком)
-                        # Для надійності сортуємо по часу вимкнення (ті, що довше вимкнені — вмикаємо раніше)
+                        # Let's try to turn on the devices in order (FIFO or in the saved order)
+                        # For reliability, we sort by shutdown time (those that have been shut down longer are turned on earlier).
                         items = sorted(disabled_devices.items(), key=lambda kv: kv[1]["off_since"])
                         for ip, meta in items:
                             now = time.time()
@@ -136,13 +152,11 @@ async def manage_tapo_power():
                             if now - last_action < MIN_TOGGLE_INTERVAL_S:
                                 continue
                             est_power = meta.get("power_w", 0.0)
-                            # Якщо естімейтовано в кВт то він вже конвертований у W функцією _power_w_from_row
-                            # Якщо пристрій не знайдено в БД — пропускаємо
                             row = tapo_map.get(ip)
                             if not row:
                                 disabled_devices.pop(ip, None)
                                 continue
-                            if est_power <= headroom + 50:  # +50W запас
+                            if est_power <= headroom + 50:  # +50W reserve
                                 success = await _enable_tapo_device(ip, row.get("email"), row.get("password"))
                                 if success:
                                     headroom -= est_power
