@@ -78,8 +78,8 @@
       <div class="device-card" v-for="device in props?.data?.devices" :key="device?.ip">
         <div class="flex items-start justify-between q-mb-sm">
           <div class="flex-gap-2">
-            <div class="icon-box-destructive">
-              <q-icon name="power_settings_new" size="sm" color="negative" />
+            <div class="icon-box-destructive cursor-pointer" @click="powerStore.removeDeviceFromSystem(device?.ip)">
+              <q-icon name="delete" size="sm" color="negative" />
             </div>
             <div>
               <p class="font-semibold text-dark q-mb-none">{{ device?.ip }}</p>
@@ -106,13 +106,11 @@
 
           <div class="flex-gap-2">
             <q-icon name="schedule" size="xs" />
-            <span>Вимкнено: {{ device?.off_since }}</span>
-            <!-- 18.10.2025, 20:17 -->
+            <span>Вимкнено: {{ formatOffSince(device?.off_since) }}</span>
           </div>
 
           <div class="flex items-center justify-between">
-            <span>Тривалість: {{ device?.off_since }}</span>
-            <!-- 1г 0хв -->
+            <span>Тривалість: {{ formatDuration(device?.duration_s) }}</span>
           </div>
         </div>
       </div>
@@ -122,7 +120,10 @@
 </template>
 
 <script setup lang="ts">
+import { usePowerStore } from 'src/stores/power';
 import { computed } from 'vue';
+
+const powerStore = usePowerStore();
 
 const props = defineProps(['data']);
 const totalPower = computed<number>(() => {
@@ -135,6 +136,68 @@ const totalPower = computed<number>(() => {
     return sum + power;
   }, 0);
 });
+
+function formatOffSince(unixTimestamp: number) {
+  if (!unixTimestamp) return 'N/A';
+  const date = new Date(unixTimestamp * 1000);
+
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
+
+  return new Intl.DateTimeFormat('uk-UA', options).format(date);
+}
+
+function formatDuration(totalSeconds: number) {
+  if (typeof totalSeconds !== 'number' || totalSeconds < 0) {
+    return '0 с';
+  }
+
+  const seconds = Math.floor(totalSeconds % 60);
+  const minutes = Math.floor((totalSeconds / 60) % 60);
+  const hours = Math.floor((totalSeconds / (60 * 60)) % 24);
+  const days = Math.floor(totalSeconds / (60 * 60 * 24));
+
+  const parts = [];
+
+  if (days > 0) {
+    parts.push(`${days} д`);
+  }
+  if (hours > 0) {
+    const time = [
+      String(hours).padStart(2, '0'),
+      String(minutes).padStart(2, '0'),
+      String(seconds).padStart(2, '0')
+    ].join(':');
+
+    if (days > 0) {
+      parts.push(time);
+    } else {
+      if (hours > 0) parts.push(`${hours} год`);
+      if (minutes > 0 && hours === 0) parts.push(`${minutes} хв`);
+      if (minutes === 0 && hours === 0) parts.push(`${seconds} с`);
+    }
+  } else if (minutes > 0) {
+    parts.push(`${minutes} хв`);
+    parts.push(`${seconds} с`);
+  } else {
+    parts.push(`${seconds} с`);
+  }
+
+  if (parts.length > 1 && days > 0) {
+    return `${days} д ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  } else if (parts.length > 1) {
+    return parts.slice(0, 2).join(' ');
+  }
+
+  return parts[0] || '0 с';
+}
 </script>
 
 <style scoped lang="scss">
@@ -235,12 +298,7 @@ $muted-30: to-rgba($color-muted, 0.3);
   color: $white;
   margin-top: 0.25rem;
   border: none;
-
   transition: background-color 300ms;
-
-  &:hover {
-    background-color: darken(rgba(240, 66, 66, 0.1), 5%);
-  }
 }
 
 .text-sm-muted {

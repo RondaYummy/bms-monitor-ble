@@ -52,6 +52,15 @@ export const usePowerStore = defineStore('power', () => {
     }
   }
 
+  async function removeDeviceFromSystem(ip: string): Promise<undefined> {
+    try {
+      await api.delete('/api/power/system/' + ip);
+      await fetchPowerData();
+    } catch (error) {
+      console.error('Error remove power system data: ', error);
+    }
+  }
+
   return {
     // ==============
     //   STATE
@@ -74,5 +83,6 @@ export const usePowerStore = defineStore('power', () => {
     //   ACTIONS
     // ==============
     fetchPowerData,
+    removeDeviceFromSystem,
   };
 });

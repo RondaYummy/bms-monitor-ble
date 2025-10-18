@@ -426,7 +426,6 @@ const deyeStore = useDeyeStore();
 const tapoStore = useTapoStore();
 const powerStore = usePowerStore();
 
-
 const skipInstall = localStorage.getItem('skip-install');
 
 const devicesList = computed<Record<string, CellInfo>>(bmsStore.getCellInfo);

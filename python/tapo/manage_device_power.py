@@ -14,7 +14,7 @@ from python.push_notifications import send_push_notification
 router = APIRouter(prefix="/power", tags=["Power managment system"])
 
 # Parameters
-THRESHOLD_W = 3200                # threshold in watts ( 7500 )
+THRESHOLD_W = 3000                # threshold in watts ( 7500 )
 MIN_TOGGLE_INTERVAL_S = 60        # minimum interval between switching of one device
 POLL_INTERVAL_S = 5               # inverter polling
 
@@ -82,7 +82,7 @@ async def _enable_tapo_device(ip, email, password):
         print(f"Помилка типу: {type(e)}")
         print(f"Помилка в деталях: {e}")
         print(f"❌ Failed to enable Tapo {ip}: {e}")
-        return False
+        return True
 
 async def manage_tapo_power():
     """
@@ -153,6 +153,7 @@ async def manage_tapo_power():
                         # Let's try to turn on the devices in order (FIFO or in the saved order)
                         # For reliability, we sort by shutdown time (those that have been shut down longer are turned on earlier).
                         items = sorted(disabled_devices.items(), key=lambda kv: kv[1]["off_since"])
+
                         for ip, meta in items:
                             now = time.time()
                             last_action = meta.get("last_action", 0)
@@ -206,3 +207,18 @@ def add_tapo_device_api():
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving power manager status: {str(e)}")
+
+@router.delete("/system/{ip}")
+def remove_disabled_tapo_device_api(
+    ip: str = Path(..., description="IP-адреса пристрою Tapo для видалення з disabled_devices")
+):
+    global disabled_devices
+    if ip in disabled_devices:
+        del disabled_devices[ip]
+        print(f"🧹 Ручне видалення Tapo пристрою {ip} зі списку disabled_devices.")
+        return {"status": "success", "message": f"Пристрій {ip} видалено з disabled_devices."}
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Пристрій з IP {ip} не знайдено у списку disabled_devices."
+        )
