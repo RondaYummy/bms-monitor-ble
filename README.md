@@ -29,6 +29,7 @@ It connects to:
 - Battery voltage, current, power, SOC, SOH
 - Cell temperatures, internal resistance, cycle count, balancing
 - Solar generation, home consumption, grid import/export
+- **Dynamic Load Shedding:** Automated power balancing to prevent inverter overload by switching Tapo smart plugs and reporting the number of devices disabled.
 
 ### ⚠️ WEB PUSH Notifications
 Critical events (e.g. overheating, cell imbalance, low charge) are sent as push notifications to the PWA frontend.

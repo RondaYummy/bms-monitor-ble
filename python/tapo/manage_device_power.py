@@ -1,6 +1,7 @@
 import asyncio
 import time
 from typing import Dict, Any
+from fastapi import APIRouter, Depends, HTTPException, Path
 
 from python.db import (
     get_all_deye_devices,
@@ -10,8 +11,10 @@ from python.db import (
 from python.tapo.tapo_service import get_tapo_device
 from python.push_notifications import send_push_notification
 
+router = APIRouter(prefix="/power", tags=["Power managment system"])
+
 # Parameters
-THRESHOLD_W = 3300                # threshold in watts ( 7500 )
+THRESHOLD_W = 3200                # threshold in watts ( 7500 )
 MIN_TOGGLE_INTERVAL_S = 60        # minimum interval between switching of one device
 POLL_INTERVAL_S = 5               # inverter polling
 
@@ -72,6 +75,8 @@ async def _enable_tapo_device(ip, email, password):
         if ip in disabled_devices:
             disabled_devices.pop(ip, None)
         print(f"🟢 Enabled Tapo device {ip} at {time.ctime(now)}")
+        message = f"🚨 Прилад який ми вимкнули для вирівнення навантаження увімкнено знову."
+        asyncio.create_task(send_push_notification("🔌 Навантаження впало", message))
         return True
     except Exception as e:
         print(f"❌ Failed to enable Tapo {ip}: {e}")
@@ -132,7 +137,7 @@ async def manage_tapo_power():
                                 
                                 if load_to_shed <= 0:
                                     print(f"✅ Цілі досягнуто. Вимкнено {devices_turned_off_count} пристроїв. Зупиняємо вимкнення.")
-                                    message = f"🚨 Навантаження вирівняно до позначки ({total_load:.0f} W) шляхом вимкнення {devices_turned_off_count} приладів."
+                                    message = f"🚨 Навантаження вирівняно до позначки ({total_load:.0f} W) шляхом вимкнення {devices_turned_off_count} прилад/ів."
                                     asyncio.create_task(send_push_notification("🔌 Навантаження вирівняно", message))
                                     break # Exit the shutdown cycle if the desired threshold has been reached
                     else:
@@ -168,3 +173,34 @@ async def manage_tapo_power():
             print(f"❌ Error in manage_tapo_power loop: {e}")
         finally:
             await asyncio.sleep(POLL_INTERVAL_S)
+
+@router.post("/system")
+def add_tapo_device_api():
+    try:
+        disabled_devices_map = disabled_devices.copy()
+        devices_list = []
+        now = time.time()
+        
+        for ip, meta in disabled_devices_map.items():
+            duration_s = now - meta.get('off_since', now)
+            
+            device_info = {
+                "ip": ip,
+                "off_since": meta.get('off_since'), # Timestamp when it was turned off
+                "power_w": meta.get('power_w'),     # Expected power (W)
+                "duration_s": duration_s,           # Duration of shutdown in seconds
+                "last_action": meta.get('last_action'),
+            }
+            devices_list.append(device_info)
+        
+        response = {
+            "devices": devices_list,
+            "threshold": THRESHOLD_W,
+            "MIN_TOGGLE_INTERVAL_S": MIN_TOGGLE_INTERVAL_S,
+            "POLL_INTERVAL_S": POLL_INTERVAL_S,
+        }
+        
+        return response
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving power manager status: {str(e)}")

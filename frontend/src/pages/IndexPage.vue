@@ -3,6 +3,7 @@
     v-if="!calculatedList && !deyeData && !devicesList?.length">
     <LoaderComponent />
   </q-page>
+
   <q-page v-else class="column items-center justify-evenly q-pa-lg">
     <template v-if="deyeData">
       <h6>
@@ -83,8 +84,22 @@
         </div>
 
         <div class="indicate indicate-info">
+          <q-icon v-if="powerSystemData?.devices?.length" @click="showPowerSystemDialog = true" name="power_off"
+            size="30px" color="red" />
           <q-icon @click="showInfo = true" name="info" size="24px" color="white" />
         </div>
+
+        <q-dialog v-model="showPowerSystemDialog">
+          <q-card dark>
+            <q-card-section>
+              <PowerData :data=powerSystemData />
+            </q-card-section>
+
+            <q-card-actions align="right">
+              <q-btn flat label="OK" color="primary" v-close-popup />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
 
         <q-dialog v-model="showInfo">
           <q-card dark>
@@ -342,7 +357,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -360,7 +375,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -386,6 +401,7 @@
 <script setup lang="ts">
 import LoaderComponent from '../components/LoaderComponent.vue';
 import BMSChart from '../components/BMSChart.vue';
+import PowerData from '../components/power/PowerData.vue'
 import {
   calculateAutonomyTime,
   calculateAveragePerIndex,
@@ -401,17 +417,21 @@ import { useDeyeStore } from 'src/stores/deye';
 import SemiCircleGauge from 'src/components/SemiCircleGauge.vue';
 import { useTapoStore } from 'src/stores/tapo';
 import AddtionalInfo from 'src/components/deye/AddtionalInfo.vue';
+import { usePowerStore } from 'src/stores/power';
 
 const token = useSessionStorage('access_token');
 
 const bmsStore = useBmsStore();
 const deyeStore = useDeyeStore();
 const tapoStore = useTapoStore();
+const powerStore = usePowerStore();
+
 
 const skipInstall = localStorage.getItem('skip-install');
 
 const devicesList = computed<Record<string, CellInfo>>(bmsStore.getCellInfo);
 const topTapoDevices = computed(() => tapoStore.topDevices);
+const powerSystemData = computed(powerStore.getPowerData);
 const deyeData = computed<DeyeSafeValues>(() => {
   const data = deyeStore.getDeyeData();
   const initial: DeyeSafeValues = {
@@ -466,6 +486,7 @@ const scrollContainer = ref<HTMLElement | null>(null);
 const installAppDialog = ref<boolean>(false);
 const calculatedList = ref<any>();
 const showInfo = ref(false);
+const showPowerSystemDialog = ref(false);
 const tab = ref<string>('All');
 const isCellVoltagesOpen = ref(false);
 const isCellResistancesOpen = ref(false);
@@ -620,6 +641,7 @@ const intervalFunction = async () => {
       bmsStore.fetchCellInfo(),
       deyeStore.fetchDeyeDevices(),
       tapoStore.getTopDevices(),
+      powerStore.fetchPowerData(),
     ]);
   } finally {
     isFetching.value = false;
