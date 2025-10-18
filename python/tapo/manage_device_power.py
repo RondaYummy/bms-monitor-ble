@@ -10,9 +10,9 @@ from python.db import (
 from python.tapo.tapo_service import get_tapo_device
 
 # Parameters
-THRESHOLD_W = 3000                # threshold in watts ( 7500 )
+THRESHOLD_W = 3300                # threshold in watts ( 7500 )
 MIN_TOGGLE_INTERVAL_S = 30        # minimum interval between switching of one device
-POLL_INTERVAL_S = 2               # inverter polling
+POLL_INTERVAL_S = 5               # inverter polling
 
 # In memory: which devices we turned off and metadata
 # disabled_devices[ip] = {"off_since": timestamp, "power_w": <estimated W>, "last_action": timestamp}
