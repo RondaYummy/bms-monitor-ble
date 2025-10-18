@@ -11,7 +11,7 @@ from python.tapo.tapo_service import get_tapo_device
 
 # Parameters
 THRESHOLD_W = 3300                # threshold in watts ( 7500 )
-MIN_TOGGLE_INTERVAL_S = 30        # minimum interval between switching of one device
+MIN_TOGGLE_INTERVAL_S = 60        # minimum interval between switching of one device
 POLL_INTERVAL_S = 5               # inverter polling
 
 # In memory: which devices we turned off and metadata
@@ -134,28 +134,22 @@ async def manage_tapo_power():
                             now = time.time()
                             last_action = meta.get("last_action", 0)
                             if now - last_action < MIN_TOGGLE_INTERVAL_S:
-                                continue  # занадто рано
+                                continue
                             est_power = meta.get("power_w", 0.0)
                             # Якщо естімейтовано в кВт то він вже конвертований у W функцією _power_w_from_row
                             # Якщо пристрій не знайдено в БД — пропускаємо
                             row = tapo_map.get(ip)
                             if not row:
-                                # очистимо, бо пристрій може бути видалений
                                 disabled_devices.pop(ip, None)
                                 continue
-                            # Якщо пристрій споживає більше, ніж headroom — не вмикаємо зараз
                             if est_power <= headroom + 50:  # +50W запас
-                                # Вмикаємо
                                 success = await _enable_tapo_device(ip, row.get("email"), row.get("password"))
                                 if success:
-                                    # зменшуємо headroom
                                     headroom -= est_power
-                                    # якщо headroom ще дозволяє — продовжимо включати
                                 else:
                                     disabled_devices[ip]["last_action"] = now
                             else:
                                 print(f"⏳ Not enough headroom to enable {ip} (needs {est_power:.0f} W, headroom {headroom:.0f} W)")
-                                # Продовжимо перевірку наступних (можливо є слабкіші)
         except Exception as e:
             print(f"❌ Error in manage_tapo_power loop: {e}")
         finally:

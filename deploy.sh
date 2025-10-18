@@ -17,13 +17,11 @@ function send_telegram_notification() {
 function deploy() {
   local DEPLOY_START_TIME=$(date +%s)
   local DEPLOY_START_DATE=$(date +%d.%m.%Y\ %H:%M:%S)
-  
   local START_MESSAGE="🚀 *[$PROJECT_NAME]* Починаємо автоматичне розгортання о $DEPLOY_START_DATE"
   send_telegram_notification "$START_MESSAGE"
+  echo "⏳ ====> Починаємо оновлення проекту"
 
-  echo "====> Починаємо оновлення проекту"
-
-  echo "====> Оновлюємо код з Git"
+  echo "⏳ ====> Оновлюємо код з Git"
   git pull
   if [ $? -ne 0 ]; then
     echo "❌ Помилка під час оновлення коду з Git"
@@ -34,7 +32,7 @@ function deploy() {
   fi
   echo "✅ Код успішно оновлено з Git"
 
-  echo "====> Ребілдимо Докер-образи через Docker Compose"
+  echo "⏳ ====> Ребілдимо Докер-образи через Docker Compose"
   # On weak Raspberry Pi it is: Heavily loads the CPU, Uses all RAM + disk I/O
   # - Because of this, the Pi can:
   # - shut down
@@ -79,7 +77,7 @@ function deploy() {
   fi
   echo "✅ Статичні файли успішно скопійовані"
 
-  echo "====> Видаляємо непотрібні  Докер-образи, контейнери, імеджі та мережі"
+  echo "⏳ ====> Видаляємо непотрібні  Докер-образи, контейнери, імеджі та мережі"
   docker system prune --all --force --volumes
   # Очищає все непотрібне, включаючи:
   # - Зупинені контейнери.
@@ -94,10 +92,9 @@ function deploy() {
   # END
   local DEPLOY_END_TIME=$(date +%s)
   local DURATION=$((DEPLOY_END_TIME - DEPLOY_START_TIME))
-  
   local SUCCESS_MESSAGE="✅ *[$PROJECT_NAME]* Успішне розгортання завершено! Тривалість: ${DURATION} секунд."
   send_telegram_notification "$SUCCESS_MESSAGE"
-  echo "====> Оновлення проекту завершено успішно"
+  echo "✅ ====> Оновлення проекту завершено успішно"
 
   # echo "====> Перезапускаємо сервер Ubuntu..."
   # sudo reboot
@@ -122,7 +119,7 @@ while [ 1 ]; do
     now=$(date +%s)
     target=$(date -d '04:00 next day' +%s)
     sleep_time=$(( target - now ))
-    sleep_time=30 # TODO: hardcoded
+    sleep_time=60 # TODO: hardcoded 1min
     sleep $sleep_time
 
     # sleep 300 # 5 min sleep
