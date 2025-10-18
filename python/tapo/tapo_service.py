@@ -1,12 +1,21 @@
 import asyncio
-import json
+from typing import Dict, Any
+import time
 
 from PyP100 import PyP110
 
-from python.db import get_all_tapo_devices, update_tapo_device_by_ip
+from python.db import get_all_tapo_devices, update_tapo_device_by_ip, get_all_deye_devices
 
 # List of models that support energy monitoring
 SUPPORTED_ENERGY_MONITORING_MODELS = {"P110", "P110M"}
+
+THRESHOLD_W = 7500                # threshold in watts
+MIN_TOGGLE_INTERVAL_S = 30        # minimum interval between switching of one device
+POLL_INTERVAL_S = 2
+# In memory: which devices we turned off and metadata
+# disabled_devices[ip] = {"off_since": timestamp, "power_w": <estimated W>, "last_action": timestamp}
+disabled_devices: Dict[str, Dict[str, Any]] = {}
+manage_lock = asyncio.Lock()
 
 class TapoDevice:
     def __init__(self, ip: str, email: str, password: str):

@@ -25,6 +25,7 @@ from python.pwd import hash_password, verify_password
 from python.tapo.find_tapo import router as tapo_find_router
 from python.tapo.tapo_routes import router as tapo_router
 from python.tapo.tapo_service import check_all_tapo_devices
+from python.tapo.manage_device_power import manage_tapo_power
 
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
@@ -58,12 +59,23 @@ app.add_middleware(
 )
 executor = ThreadPoolExecutor()
 
+async def manage_device_power_task_wrapper():
+    try:
+        await manage_tapo_power()
+    except Exception as e:
+        print(f"❌ manage_tapo_power crashed on startup: {e}")
+        await asyncio.sleep(5)
+        # restart recursively (or log in and log out)
+        asyncio.create_task(manage_device_power_task_wrapper())
+
+
 @app.on_event("startup")
 async def startup_event():
     loop = asyncio.get_running_loop()
     asyncio.create_task(ble_main())
     asyncio.create_task(db.process_devices())
     asyncio.create_task(run_deye_loop())
+    asyncio.create_task(manage_device_power_task_wrapper())
 
     async def periodic_tapo_status():
         while True:
