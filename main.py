@@ -24,6 +24,7 @@ from python.push_notifications import send_push_startup
 from python.pwd import hash_password, verify_password
 from python.tapo.find_tapo import router as tapo_find_router
 from python.tapo.tapo_routes import router as tapo_router
+from python.tapo.manage_device_power import router as power_manage_router
 from python.tapo.tapo_service import check_all_tapo_devices
 from python.tapo.manage_device_power import manage_tapo_power
 
@@ -50,6 +51,7 @@ app.include_router(tapo_router, prefix="/api")
 app.include_router(alerts_router, prefix="/api")
 app.include_router(tapo_find_router, prefix="/api")
 app.include_router(deye_router, prefix="/api")
+app.include_router(power_manage_router, prefix="/api")
 
 app.add_middleware(
     CORSMiddleware,
