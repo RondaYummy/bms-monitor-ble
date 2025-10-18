@@ -79,6 +79,8 @@ async def _enable_tapo_device(ip, email, password):
         asyncio.create_task(send_push_notification("🔌 Навантаження впало", message))
         return True
     except Exception as e:
+        print(f"Помилка типу: {type(e)}")
+        print(f"Помилка в деталях: {e}")
         print(f"❌ Failed to enable Tapo {ip}: {e}")
         return False
 
