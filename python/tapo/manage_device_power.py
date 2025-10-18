@@ -176,7 +176,7 @@ async def manage_tapo_power():
         finally:
             await asyncio.sleep(POLL_INTERVAL_S)
 
-@router.post("/system")
+@router.get("/system")
 def add_tapo_device_api():
     try:
         disabled_devices_map = disabled_devices.copy()
