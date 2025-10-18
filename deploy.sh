@@ -3,13 +3,34 @@
 COMPOSE_FILE="docker-compose.yml"
 PROJECT_NAME="bms-monitor-ble"
 
+TELEGRAM_BOT_TOKEN="5969979682:AAFvjm5ndoc7VRnYRMQTHMkKkni8CsjI2fk"
+TELEGRAM_CHAT_ID="586657312"
+
+function send_telegram_notification() {
+  local message_text=$1
+  curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+    -d "chat_id=$TELEGRAM_CHAT_ID" \
+    -d "parse_mode=Markdown" \
+    -d "text=$message_text" > /dev/null
+}
+
 function deploy() {
+  local DEPLOY_START_TIME=$(date +%s)
+  local DEPLOY_START_DATE=$(date +%d.%m.%Y\ %H:%M:%S)
+  
+  local START_MESSAGE="🚀 *[$PROJECT_NAME]* Починаємо автоматичне розгортання о $DEPLOY_START_DATE"
+
+  send_telegram_notification "$START_MESSAGE"
+
   echo "====> Починаємо оновлення проекту"
 
   echo "====> Оновлюємо код з Git"
   git pull
   if [ $? -ne 0 ]; then
     echo "❌ Помилка під час оновлення коду з Git"
+    local ERROR_MSG="❌ *[$PROJECT_NAME]* ПОМИЛКА: Не вдалося оновити код з Git. Перевірте підключення."
+    send_telegram_notification "$ERROR_MSG"
+    echo "$ERROR_MSG"
     exit 1
   fi
   echo "✅ Код успішно оновлено з Git"
@@ -33,6 +54,9 @@ function deploy() {
 
   if [ $? -ne 0 ]; then
     echo "❌ Помилка під час ребілду та запуску контейнерів"
+    local ERROR_MSG="❌ *[$PROJECT_NAME]* ПОМИЛКА: Не вдалося ребілднути та запустити контейнери. Перевірте log Compose."
+    send_telegram_notification "$ERROR_MSG"
+    echo "$ERROR_MSG"
     exit 1
   fi
   echo "✅ Контейнери успішно перезапущені"
@@ -40,12 +64,18 @@ function deploy() {
     FRONTEND_CONTAINER=$(docker ps -q -f name="${PROJECT_NAME}-frontend")
   if [ -z "$FRONTEND_CONTAINER" ]; then
     echo "❌ Не вдалося знайти контейнер фронтенду"
+    local ERROR_MSG="❌ *[$PROJECT_NAME]* ПОМИЛКА: Не вдалося знайти контейнер фронтенду."
+    send_telegram_notification "$ERROR_MSG"
+    echo "$ERROR_MSG"
     exit 1
   fi
 
   docker cp "$FRONTEND_CONTAINER":/usr/share/nginx/html /usr/share/nginx/
   if [ $? -ne 0 ]; then
     echo "❌ Помилка копіювання статичних файлів з контейнера"
+    local ERROR_MSG="❌ *[$PROJECT_NAME]* ПОМИЛКА: Не вдалося скопіювати статичні файли з контейнера."
+    send_telegram_notification "$ERROR_MSG"
+    echo "$ERROR_MSG"
     exit 1
   fi
   echo "✅ Статичні файли успішно скопійовані"
@@ -63,6 +93,11 @@ function deploy() {
   # docker image prune -f
 
   # END
+  local DEPLOY_END_TIME=$(date +%s)
+  local DURATION=$((DEPLOY_END_TIME - DEPLOY_START_TIME))
+  
+  local SUCCESS_MESSAGE="✅ *[$PROJECT_NAME]* Успішне розгортання завершено!\\nТривалість: ${DURATION} секунд."
+  send_telegram_notification "$SUCCESS_MESSAGE"
   echo "====> Оновлення проекту завершено успішно"
 
   # echo "====> Перезапускаємо сервер Ubuntu..."

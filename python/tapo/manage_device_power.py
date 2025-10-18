@@ -10,7 +10,7 @@ from python.db import (
 from python.tapo.tapo_service import get_tapo_device
 
 # Parameters
-THRESHOLD_W = 7500                # threshold in watts
+THRESHOLD_W = 4500                # threshold in watts
 MIN_TOGGLE_INTERVAL_S = 30        # minimum interval between switching of one device
 POLL_INTERVAL_S = 2               # inverter polling
 
