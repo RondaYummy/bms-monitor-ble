@@ -19,7 +19,6 @@ function deploy() {
   local DEPLOY_START_DATE=$(date +%d.%m.%Y\ %H:%M:%S)
   
   local START_MESSAGE="🚀 *[$PROJECT_NAME]* Починаємо автоматичне розгортання о $DEPLOY_START_DATE"
-
   send_telegram_notification "$START_MESSAGE"
 
   echo "====> Починаємо оновлення проекту"
@@ -96,7 +95,7 @@ function deploy() {
   local DEPLOY_END_TIME=$(date +%s)
   local DURATION=$((DEPLOY_END_TIME - DEPLOY_START_TIME))
   
-  local SUCCESS_MESSAGE="✅ *[$PROJECT_NAME]* Успішне розгортання завершено!\\nТривалість: ${DURATION} секунд."
+  local SUCCESS_MESSAGE="✅ *[$PROJECT_NAME]* Успішне розгортання завершено! Тривалість: ${DURATION} секунд."
   send_telegram_notification "$SUCCESS_MESSAGE"
   echo "====> Оновлення проекту завершено успішно"
 
