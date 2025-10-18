@@ -206,16 +206,16 @@ function formatDuration(totalSeconds: number) {
 <style scoped lang="scss">
 @import '../../css/quasar.variables.scss';
 
-span {
-  color: black;
-}
-
 $primary-10: to-rgba($primary, 0.1);
 $primary-5: to-rgba($primary, 0.05);
 $accent-10: to-rgba($accent, 0.1);
 $accent-5: to-rgba($accent, 0.05);
 $secondary-10: to-rgba($secondary, 0.1);
 $border-primary-20: to-rgba($primary, 0.2);
+
+span {
+  color: black;
+}
 
 .stats-grid-container {
   display: flex;
