@@ -14,7 +14,7 @@
   <div class="stats-grid-container">
 
     <div class="stat-item">
-      <div class="icon-box-primary">
+      <div class="column items-center q-gutter-sm">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="icon-base text-primary">
@@ -22,15 +22,13 @@
             d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z">
           </path>
         </svg>
-      </div>
-      <div>
         <p class="text-label">Максимальна потужність</p>
         <p class="blink-attention">{{ props?.data?.threshold / 1000 }} kW</p>
       </div>
     </div>
 
     <div class="stat-item">
-      <div class="icon-box-secondary">
+      <div class="column items-center q-gutter-sm">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="icon-base text-secondary">
@@ -38,23 +36,19 @@
           <line x1="12" x2="15" y1="14" y2="11"></line>
           <circle cx="12" cy="14" r="8"></circle>
         </svg>
-      </div>
-      <div>
         <p class="text-label">Інтервал перемикання</p>
         <p class="blink-attention">{{ props?.data?.MIN_TOGGLE_INTERVAL_S }} сек</p>
       </div>
     </div>
 
     <div class="stat-item">
-      <div class="icon-box-accent">
+      <div class="column items-center q-gutter-sm">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="icon-base text-accent">
           <circle cx="12" cy="12" r="10"></circle>
           <polyline points="12 6 12 12 16 14"></polyline>
         </svg>
-      </div>
-      <div>
         <p class="text-label">Інтервал оновлення</p>
         <p class="blink-attention">{{ props?.data?.POLL_INTERVAL_S }} сек</p>
       </div>
@@ -63,12 +57,12 @@
 
   <div class="stats-header-container">
     <div style="flex: 1 1 49%">
-      <p class="text-sm text-black q-mb-none">Вимкнено пристроїв</p>
-      <p class="blink-attention q-mb-none">{{ props?.data?.devices?.length || 0 }}</p>
+      <p class="text-sm text-black q-mb-none text-center">Вимкнено пристроїв</p>
+      <p class="blink-attention q-mb-none text-center">{{ props?.data?.devices?.length || 0 }}</p>
     </div>
     <div style="flex: 1 1 49%">
-      <p class="text-sm text-black q-mb-none">Вимкнена потужність</p>
-      <p class="blink-attention q-mb-none">{{ Math.floor(totalPower || 0) }} kW</p>
+      <p class="text-sm text-black q-mb-none text-center">Вимкнена потужність</p>
+      <p class="blink-attention q-mb-none text-center">{{ Math.floor(totalPower || 0) }} kW</p>
     </div>
   </div>
 
@@ -79,7 +73,6 @@
     </p>
 
     <div class="devices-grid-container">
-
       <div class="device-card" v-for="device in props?.data?.devices" :key="device?.ip">
         <div class="flex items-start justify-between q-mb-sm">
           <div class="flex-gap-2">
@@ -221,6 +214,7 @@ span {
 
 .stats-grid-container {
   display: flex;
+  justify-content: space-between;
   gap: 10px;
   margin-bottom: 1.5rem;
   background: linear-gradient(to bottom right, $primary-5, $accent-5);
@@ -241,6 +235,7 @@ span {
   color: white;
   font-weight: 500;
   line-height: 1.2;
+  margin-bottom: 0;
 }
 
 @function to-rgba($color, $opacity) {

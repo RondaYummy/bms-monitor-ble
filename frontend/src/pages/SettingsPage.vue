@@ -6,9 +6,9 @@
     <template v-if="token">
       <p class="charge text-center full-width q-mb-sm">
         Ви успішно авторизовані та можете змінювати налаштування.
+        {{ displayTimeRemaining() }}
       </p>
-      <q-btn class="q-mb-sm" @click="logout" color="black" :disable="!token"
-        label="Logout" />
+      <q-btn class="q-mb-sm" @click="logout" color="black" :disable="!token" label="Logout" />
     </template>
 
     <div class="row justify-center no-wrap q-gutter-sm q-mb-md" v-if="!token">
@@ -89,6 +89,7 @@ const login = async (pwd: string) => {
 
   const data = await response.json();
   localStorage.setItem('access_token', data.access_token);
+  localStorage.setItem('token_created_at', String(Date.now() + (24 * 60 * 60 * 30 * 1000)));
   token.value = data?.access_token;
   password.value = '';
   console.info('---Successful login---');
@@ -106,6 +107,19 @@ const logout = async () => {
   console.info('---Successful logout---');
   return true;
 };
+
+function displayTimeRemaining() {
+  const expiresAt = localStorage.getItem('token_created_at');
+  if (!expiresAt) return "Немає даних про сесію.";
+
+  const remainingMilliseconds = parseInt(expiresAt) - Date.now();
+  if (remainingMilliseconds <= 0) {
+    return "Сесія закінчилася. Будь ласка, увійдіть знову.";
+  }
+
+  const remainingDays = Math.ceil(remainingMilliseconds / (1000 * 60 * 60 * 24));
+  return `До виходу з системи залишилось ${remainingDays} ${remainingDays === 1 ? 'день' : 'днів'}.`;
+}
 
 onMounted(async () => {
   intervalId.value = setInterval(async () => {

@@ -2,28 +2,13 @@ import asyncio
 from copy import deepcopy
 from datetime import datetime
 
-
 class DataStore:
     def __init__(self):
         self.cell_info = {}
         self.setting_info = {}
         self.last_cell_info_update = {}
         self.response_buffers = {}
-        self.active_tokens = {}
         self.lock = asyncio.Lock()
-
-    async def add_token(self, token: str):
-        async with self.lock:
-            self.active_tokens[token] = {"active": True}
-
-    async def remove_token(self, token: str):
-        async with self.lock:
-            if token in self.active_tokens:
-                del self.active_tokens[token]
-
-    async def is_token_valid(self, token: str) -> bool:
-        async with self.lock:
-            return token in self.active_tokens
         
     async def delete_device_data(self, device_name):
         async with self.lock:

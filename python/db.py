@@ -274,6 +274,12 @@ def create_table():
                 stat_total_load REAL
             )
             ''')
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS active_tokens (
+                token TEXT PRIMARY KEY,
+                created_at TEXT
+            );
+            """)
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
@@ -976,3 +982,51 @@ def delete_deye_device_by_ip(ip: str):
     except sqlite3.Error as e:
         print(f"❌ Error deleting Deye device with IP {ip}: {e}")
         raise
+
+def add_token_to_db(token: str):
+    try:
+        with get_connection() as conn:
+            created_at = datetime.now().isoformat()
+            query = "INSERT OR REPLACE INTO active_tokens (token, created_at) VALUES (?, ?)"
+            conn.execute(query, (token, created_at)) 
+            conn.commit()
+    except sqlite3.Error as e:
+        print(f"❌ Error adding token to DB: {e}")
+        raise
+
+def remove_token_from_db(token: str):
+    try:
+        with get_connection() as conn:
+            query = "DELETE FROM active_tokens WHERE token = ?"
+            conn.execute(query, (token,))
+            conn.commit()
+    except sqlite3.Error as e:
+        print(f"❌ Error removing token from DB: {e}")
+        raise
+
+def is_token_valid_in_db(token: str, lifetime_seconds: int) -> bool:
+    try:
+        with get_connection() as conn:
+            query = "SELECT created_at FROM active_tokens WHERE token = ?"
+            cursor = conn.cursor()
+            cursor.execute(query, (token,))
+            result = cursor.fetchone()
+            
+            if not result:
+                return False
+
+            created_at_str = result[0]
+            created_at = datetime.fromisoformat(created_at_str)
+            
+            if datetime.now() < created_at + timedelta(seconds=lifetime_seconds):
+                return True
+            else:
+                print(f"⚠️ Token {token} expired. Removing from DB.")
+                remove_query = "DELETE FROM active_tokens WHERE token = ?"
+                conn.execute(remove_query, (token,))
+                conn.commit()
+                return False
+
+    except sqlite3.Error as e:
+        print(f"❌ Error validating token in DB: {e}")
+        return False

@@ -43,8 +43,6 @@ CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
 JK_BMS_OUI = {"c8:47:80"} # Separated by a comma, you can add all the beginnings of the JK-BMS devices
 
-TOKEN_LIFETIME_SECONDS = 3600
-
 app = FastAPI()
 
 app.include_router(tapo_router, prefix="/api")
@@ -122,13 +120,14 @@ async def login(request: Request):
         raise HTTPException(status_code=401, detail="Invalid password")
 
     token = str(uuid4())
-    await data_store.add_token(token)
-
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(executor, db.add_token_to_db, token)
     return {"access_token": token}
 
 @app.post("/api/logout")
 async def logout(token: str = Depends(verify_token)):
-    await data_store.remove_token(token)
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(executor, db.remove_token_from_db, token)
     return {"logount": True}
 
 class ConfigUpdateRequest(BaseModel):
