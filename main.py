@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 import python.battery_alerts as alerts
 import python.db as db
-from python.auth.verify_token import verify_token
+from python.auth.verify_token import verify_token, initialize_auth_dependencies
 from python.colors import *
 from python.data_store import data_store
 from python.deye.deye_routes import router as deye_router
@@ -57,7 +57,9 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+
 executor = ThreadPoolExecutor()
+initialize_auth_dependencies(executor)
 
 async def manage_device_power_task_wrapper():
     try:
