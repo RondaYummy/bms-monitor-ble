@@ -1,12 +1,9 @@
 <template>
   <pre>
-    {{ sslData }}
+    {{ props?.data }}
   </pre>
 </template>
 
 <script setup lang="ts">
-import { useConfigStore } from 'src/stores/config';
-import { computed } from 'vue';
-
-
+const props = defineProps(['data']);
 </script>

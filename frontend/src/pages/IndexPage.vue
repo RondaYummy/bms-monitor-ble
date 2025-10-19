@@ -83,12 +83,12 @@
           <q-tooltip> Індикатор використання потужностей з мережі </q-tooltip>
         </div>
 
-        <div class="indicate indicate-info">
-          <q-icon @click="showSslDialog = true" name="security" size="30px"
+        <div class="indicate indicate-info q-gutter-xs">
+          <q-icon @click="showSslDialog = true" name="security" size="34px"
             :color="sslData.status === 'danger' ? 'red' : 'white'" />
-          <q-icon @click="showPowerSystemDialog = true" name="power_off" size="30px"
+          <q-icon @click="showPowerSystemDialog = true" name="power_off" size="34px"
             :color="powerSystemData?.devices?.length ? 'red' : 'white'" />
-          <q-icon @click="showInfo = true" name="info" size="24px" color="white" />
+          <q-icon @click="showInfo = true" name="info" size="32px" color="white" />
         </div>
 
         <q-dialog v-model="showSslDialog">
