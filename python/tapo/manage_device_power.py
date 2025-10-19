@@ -1,7 +1,8 @@
 import asyncio
 import time
 from typing import Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path
+import json
 
 from python.db import (
     get_all_deye_devices,
@@ -78,11 +79,15 @@ async def _enable_tapo_device(ip, email, password):
         message = f"🚨 Прилад який ми вимкнули для вирівнення навантаження увімкнено знову."
         asyncio.create_task(send_push_notification("🔌 Навантаження впало", message))
         return True
+    except json.decoder.JSONDecodeError as e:
+      if ip in disabled_devices:
+          disabled_devices.pop(ip, None)
+      return True
     except Exception as e:
         print(f"Помилка типу: {type(e)}")
         print(f"Помилка в деталях: {e}")
         print(f"❌ Failed to enable Tapo {ip}: {e}")
-        return True
+        return False
 
 async def manage_tapo_power():
     """
@@ -106,7 +111,7 @@ async def manage_tapo_power():
                     except Exception:
                         pass
 
-                print(f"🔎 Current total load (sum deye.load_power): {total_load:.1f} W")
+                # print(f"🔎 Current total load (sum deye.load_power): {total_load:.1f} W")
 
                 if total_load > THRESHOLD_W:
                     load_to_shed = total_load - THRESHOLD_W

@@ -62,12 +62,12 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         try:
             reg_169_raw = modbus.read_holding_registers(169, 1)[0]
             grid_power = reg_169_raw - 0x10000 if reg_169_raw >= 0x8000 else reg_169_raw
-            if grid_power > 0:
-                print(f"➡️ Імпорт з мережі: {grid_power} W")
-            elif grid_power < 0:
-                print(f"⬅️ Експорт у мережу: {abs(grid_power)} W")
-            else:
-                print("⏸️ Немає обміну з мережею")
+            # if grid_power > 0:
+            #     print(f"➡️ Імпорт з мережі: {grid_power} W")
+            # elif grid_power < 0:
+            #     print(f"⬅️ Експорт у мережу: {abs(grid_power)} W")
+            # else:
+            #     print("⏸️ Немає обміну з мережею")
         except Exception as e:
             print(f"❌ Failed to read Grid Power (Reg 169): {e}")
 
@@ -122,7 +122,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         # Об'єднуємо у порядку LO-HI (Старше слово << 16 | Молодше слово)
         raw_grid_in = (reg_hi << 16) | reg_lo 
         grid_in = raw_grid_in * 0.1
-        print(f"✅[ Grid ] Загальна енергія з мережі: {grid_in:.2f} кВт·год")
+        # print(f"✅[ Grid ] Загальна енергія з мережі: {grid_in:.2f} кВт·год")
 
         daily_load = modbus.read_holding_registers(84, 1)[0] * 0.1
         print(f"[ Grid ] Денне споживання навантаження: {daily_load:.2f} кВт·год")

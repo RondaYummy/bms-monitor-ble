@@ -280,6 +280,12 @@ def create_table():
                 created_at TEXT
             );
             """)
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS ssl_certificates (
+                created_at TEXT
+                days INTEGER DEFAULT 90
+            );
+            """)
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
