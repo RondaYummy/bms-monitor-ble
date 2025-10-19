@@ -6,6 +6,16 @@
 1. Команда для запиту сертифіката
 Щоразу, коли вам потрібно отримати або поновити сертифікат, використовуйте наступну команду:
 
+Команда яка оновлює сертифікат та одразу записує в базу дату останнього оновлення сертифіката:
+```bash
+sudo certbot certonly --manual --preferred-challenges dns -d solar.levych.com && CURRENT_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) && docker exec bms-monitor-ble-python-app-1 sqlite3 /app/data/bms_data.db "INSERT INTO ssl_certificates (created_at, days) VALUES ('$CURRENT_DATE', 90);"
+```
+
+Та сама команда, трішки безпечніша бо використовує вбудовані функції sqlite3:
+```bash
+sudo certbot certonly --manual --preferred-challenges dns -d solar.levych.com && docker exec bms-monitor-ble-python-app-1 sqlite3 /app/data/bms_data.db "INSERT INTO ssl_certificates (created_at, days) VALUES (datetime('now', 'utc'), 90);"
+```
+
 ```bash
 sudo certbot certonly --manual --preferred-challenges dns -d solar.levych.com
 ```

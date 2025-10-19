@@ -282,7 +282,7 @@ def create_table():
             """)
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS ssl_certificates (
-                created_at TEXT
+                created_at TEXT,
                 days INTEGER DEFAULT 90
             );
             """)
