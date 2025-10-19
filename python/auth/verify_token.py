@@ -3,7 +3,6 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 import python.db as db
-from main import executor
 from concurrent.futures import ThreadPoolExecutor
 
 auth_scheme = HTTPBearer()
