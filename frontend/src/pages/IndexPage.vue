@@ -84,10 +84,24 @@
         </div>
 
         <div class="indicate indicate-info">
-          <q-icon @click="showPowerSystemDialog = true" name="power_off"
-            size="30px" :color="powerSystemData?.devices?.length ? 'red' : 'white'" />
+          <q-icon @click="showSslDialog = true" name="security" size="30px"
+            :color="sslData.status === 'danger' ? 'red' : 'white'" />
+          <q-icon @click="showPowerSystemDialog = true" name="power_off" size="30px"
+            :color="powerSystemData?.devices?.length ? 'red' : 'white'" />
           <q-icon @click="showInfo = true" name="info" size="24px" color="white" />
         </div>
+
+        <q-dialog v-model="showSslDialog">
+          <q-card dark>
+            <q-card-section>
+              <SslData :data=sslData />
+            </q-card-section>
+
+            <q-card-actions align="right">
+              <q-btn flat label="OK" color="primary" v-close-popup />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
 
         <q-dialog v-model="showPowerSystemDialog">
           <q-card dark>
@@ -357,7 +371,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -375,7 +389,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -418,6 +432,8 @@ import SemiCircleGauge from 'src/components/SemiCircleGauge.vue';
 import { useTapoStore } from 'src/stores/tapo';
 import AddtionalInfo from 'src/components/deye/AddtionalInfo.vue';
 import { usePowerStore } from 'src/stores/power';
+import SslData from 'src/components/SslData.vue';
+import { useConfigStore } from 'src/stores/config';
 
 const token = useSessionStorage('access_token');
 
@@ -425,9 +441,13 @@ const bmsStore = useBmsStore();
 const deyeStore = useDeyeStore();
 const tapoStore = useTapoStore();
 const powerStore = usePowerStore();
+const configStore = useConfigStore();
+
+configStore.fetchSsl();
 
 const skipInstall = localStorage.getItem('skip-install');
 
+const sslData = computed(configStore.getSsl);
 const devicesList = computed<Record<string, CellInfo>>(bmsStore.getCellInfo);
 const topTapoDevices = computed(() => tapoStore.topDevices);
 const powerSystemData = computed(powerStore.getPowerData);
@@ -486,6 +506,7 @@ const installAppDialog = ref<boolean>(false);
 const calculatedList = ref<any>();
 const showInfo = ref(false);
 const showPowerSystemDialog = ref(false);
+const showSslDialog = ref(false);
 const tab = ref<string>('All');
 const isCellVoltagesOpen = ref(false);
 const isCellResistancesOpen = ref(false);

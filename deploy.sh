@@ -3,8 +3,19 @@
 COMPOSE_FILE="docker-compose.yml"
 PROJECT_NAME="bms-monitor-ble"
 
-TELEGRAM_BOT_TOKEN="5969979682:AAFvjm5ndoc7VRnYRMQTHMkKkni8CsjI2fk"
-TELEGRAM_CHAT_ID="586657312"
+if [ -f .env ]; then
+    echo "ℹ️ Завантажуємо змінні оточення з .env"
+    source .env
+    
+    export TELEGRAM_BOT_TOKEN
+    export TELEGRAM_CHAT_ID
+else
+    echo "⚠️ Файл .env не знайдено. Перевіряємо змінні оточення."
+fi
+
+if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+    echo "❌ ПОМИЛКА: TELEGRAM_BOT_TOKEN або TELEGRAM_CHAT_ID не визначено."
+fi
 
 function send_telegram_notification() {
   local message_text=$1
@@ -94,7 +105,7 @@ function deploy() {
   local DURATION=$((DEPLOY_END_TIME - DEPLOY_START_TIME))
   local SUCCESS_MESSAGE="✅ *[$PROJECT_NAME]* Успішне розгортання завершено! Тривалість: ${DURATION} секунд."
   send_telegram_notification "$SUCCESS_MESSAGE"
-  echo "✅ ====> Оновлення проекту завершено успішно"
+  echo "⏳ ====> Оновлення проекту завершено успішно"
 
   # echo "====> Перезапускаємо сервер Ubuntu..."
   # sudo reboot

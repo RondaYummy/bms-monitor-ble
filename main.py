@@ -74,6 +74,8 @@ async def manage_device_power_task_wrapper():
 @app.on_event("startup")
 async def startup_event():
     loop = asyncio.get_running_loop()
+    await loop.run_in_executor(None, db.cleanup_ssl_certificates)
+    
     asyncio.create_task(ble_main())
     asyncio.create_task(db.process_devices())
     asyncio.create_task(run_deye_loop())
@@ -107,6 +109,47 @@ async def change_password(request: Request):
         raise HTTPException(status_code=500, detail="Error updating password.")
 
     return {"message": "Password changed successfully."}
+
+@app.get("/api/ssl")
+async def getSsl():
+    ssls_data = db.get_latest_ssl_certificate()
+    if not ssls_data:
+        return {
+            "status": "warning",
+            "message": "❌ У базі даних немає записів про SSL-сертифікати.",
+            "certificat": None
+        }
+    try:
+        created_at_str = ssls_data['created_at']
+        days = ssls_data.get('days', 90)
+        created_dt = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
+        expires_dt = created_dt + timedelta(days=days)
+        days_left = (expires_dt - datetime.now(expires_dt.tzinfo)).days
+        
+        status = "ok"
+        if days_left <= 30:
+            status = "warning"
+        if days_left <= 7:
+            status = "danger"
+
+        return {
+            "status": status,
+            "message": f"Сертифікат дійсний ще {days_left} днів.",
+            "certificat": {
+                "created_at": created_dt.isoformat(),
+                "expires_at": expires_dt.isoformat(),
+                "days_valid": days,
+                "days_left": days_left
+            }
+        }
+
+    except Exception as e:
+        print(f"❌ Помилка обробки даних SSL-сертифіката: {e}")
+        return {
+            "status": "error",
+            "message": f"Помилка при обробці запису: {e}",
+            "certificat": ssls_data 
+        }
 
 @app.post("/api/login")
 async def login(request: Request):

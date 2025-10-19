@@ -3,6 +3,21 @@ import { api } from 'src/boot/axios';
 import { Config } from 'src/models';
 import { ref, readonly } from 'vue';
 
+export type SslStatus = 'ok' | 'warning' | 'danger' | 'error' | 'none';
+
+export interface SslCertificateDetails {
+  created_at: string;
+  expires_at: string;
+  days_valid: number;
+  days_left: number;
+}
+
+export interface SslResponse {
+  status: SslStatus;
+  message: string;
+  certificat: SslCertificateDetails | null;
+}
+
 const configs = {
   timeout: 5000,
 };
@@ -18,11 +33,21 @@ export const useConfigStore = defineStore('config', () => {
     vapid_public: '',
   });
 
+  const ssl = ref<SslResponse>({
+    certificat: { days_left: 0, days_valid: 0, expires_at: '', created_at: '' },
+    message: '',
+    status: 'ok',
+  });
+
   // ==============
   //   GETTERS
   // ==============
   function getConfig(): Config {
     return config.value;
+  }
+
+  function getSsl(): SslResponse {
+    return ssl.value;
   }
 
   // ==============
@@ -35,6 +60,16 @@ export const useConfigStore = defineStore('config', () => {
   // ==============
   //   ACTIONS
   // ==============
+  async function fetchSsl() {
+    try {
+      const response = await api.get('/api/ssl', configs);
+      const data: SslResponse = response.data;
+      ssl.value = data;
+    } catch (error) {
+      console.error('Error fetching ssl:', error);
+    }
+  }
+
   async function fetchConfigs() {
     try {
       const response = await api.get('/api/configs', configs);
@@ -61,11 +96,15 @@ export const useConfigStore = defineStore('config', () => {
     get config() {
       return readonly(config);
     },
+    get ssl() {
+      return readonly(ssl);
+    },
 
     // ==============
     //   GETTERS
     // ==============
     getConfig,
+    getSsl,
 
     // ==============
     //   MUTATIONS
@@ -76,6 +115,7 @@ export const useConfigStore = defineStore('config', () => {
     //   ACTIONS
     // ==============
     fetchConfigs,
+    fetchSsl,
     updateConfigs,
   };
 });

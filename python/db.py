@@ -291,6 +291,70 @@ def create_table():
         print(f"Error creating table: {e}")
         raise
 
+def get_latest_ssl_certificate():
+    try:
+        with get_connection() as conn:
+            conn.row_factory = sqlite3.Row 
+            cursor = conn.cursor()
+            cursor.execute('''
+            SELECT created_at, days 
+            FROM ssl_certificates 
+            ORDER BY created_at DESC 
+            LIMIT 1
+            ''')
+            
+            row = cursor.fetchone()
+            if row:
+                return dict(row)
+            else:
+                return None
+    except sqlite3.Error as e:
+        print(f"❌ Error fetching latest SSL certificate: {e}")
+        return None
+
+def cleanup_ssl_certificates():
+    """
+    Deletes all records from the ssl_certificates table, keeping only 
+    the single most recently created certificate (the one with the largest created_at value).
+    
+    Returns:
+        int: The number of rows deleted, or None on error.
+    """
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+            SELECT MAX(created_at) FROM ssl_certificates
+            ''')
+            latest_created_at = cursor.fetchone()[0]
+            
+            if not latest_created_at:
+                print("⚠️ Table ssl_certificates is empty. Nothing to delete.")
+                return 0
+            cursor.execute('''
+            DELETE FROM ssl_certificates
+            WHERE created_at NOT IN (
+                SELECT created_at
+                FROM ssl_certificates
+                ORDER BY created_at DESC
+                LIMIT 1
+            );
+            ''')
+            
+            deleted_count = cursor.rowcount
+            conn.commit()
+            
+            if deleted_count > 0:
+                print(f"🧹 Successfully deleted {deleted_count} old SSL certificate record(s).")
+            else:
+                print("✅ No old SSL certificate records were found for deletion.")
+            
+            return deleted_count
+
+    except sqlite3.Error as e:
+        print(f"❌ Error cleaning up SSL certificates: {e}")
+        return None
+
 def delete_alert_by_id(alert_id):
     try:
         with get_connection() as conn:
