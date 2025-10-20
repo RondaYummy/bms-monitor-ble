@@ -59,7 +59,7 @@ async def _disable_tapo_device(device_row):
         # Let's update the database: set device_on = 0
         update_tapo_device_by_ip(ip, {"device_on": 0})
         disabled_devices[ip] = {"off_since": now, "power_w": est_power_w, "last_action": now}
-        print(f"🔴 Disabled Tapo device {ip} (est {est_power_w:.0f} W) at {time.ctime(now)}")
+        # print(f"🔴 Disabled Tapo device {ip} (est {est_power_w:.0f} W) at {time.ctime(now)}")
         return True
     except Exception as e:
         print(f"❌ Failed to disable Tapo {ip}: {e}")
@@ -75,7 +75,7 @@ async def _enable_tapo_device(ip, email, password):
         # Let's clear the record of the disabled device
         if ip in disabled_devices:
             disabled_devices.pop(ip, None)
-        print(f"🟢 Enabled Tapo device {ip} at {time.ctime(now)}")
+        # print(f"🟢 Enabled Tapo device {ip} at {time.ctime(now)}")
         message = f"🚨 Прилад який ми вимкнули для вирівнення навантаження увімкнено знову."
         asyncio.create_task(send_push_notification("🔌 Навантаження впало", message))
         return True
@@ -84,8 +84,8 @@ async def _enable_tapo_device(ip, email, password):
           disabled_devices.pop(ip, None)
       return True
     except Exception as e:
-        print(f"Помилка типу: {type(e)}")
-        print(f"Помилка в деталях: {e}")
+        # print(f"Помилка типу: {type(e)}")
+        # print(f"Помилка в деталях: {e}")
         print(f"❌ Failed to enable Tapo {ip}: {e}")
         return False
 
@@ -115,7 +115,7 @@ async def manage_tapo_power():
 
                 if total_load > THRESHOLD_W:
                     load_to_shed = total_load - THRESHOLD_W
-                    message = f"🚨 Навантаження ({total_load:.0f} W) перевищує поріг ({THRESHOLD_W:.0f} W). Скидаємо навантаження!"
+                    # message = f"🚨 Навантаження ({total_load:.0f} W) перевищує поріг ({THRESHOLD_W:.0f} W). Скидаємо навантаження!"
                     asyncio.create_task(send_push_notification("⚠️ Увага: Перевантаження", message))
 
                     tapo_rows = get_all_tapo_devices() or []
@@ -140,10 +140,10 @@ async def manage_tapo_power():
                                 devices_turned_off_count += 1
                                 # after turning it off, we will exit the loop — let's see the result in the next poll
                                 load_to_shed -= est_power_w 
-                                print(f"📉 Скинуто {est_power_w:.0f} W. Залишок для скидання: {load_to_shed:.0f} W.")
+                                # print(f"📉 Скинуто {est_power_w:.0f} W. Залишок для скидання: {load_to_shed:.0f} W.")
                                 
                                 if load_to_shed <= 0:
-                                    print(f"✅ Цілі досягнуто. Вимкнено {devices_turned_off_count} пристроїв. Зупиняємо вимкнення.")
+                                    # print(f"✅ Цілі досягнуто. Вимкнено {devices_turned_off_count} пристроїв. Зупиняємо вимкнення.")
                                     message = f"🚨 Навантаження вирівняно до позначки ({total_load:.0f} W) шляхом вимкнення {devices_turned_off_count} прилад/ів."
                                     asyncio.create_task(send_push_notification("🔌 Навантаження вирівняно", message))
                                     break # Exit the shutdown cycle if the desired threshold has been reached
@@ -220,7 +220,6 @@ def remove_disabled_tapo_device_api(
     global disabled_devices
     if ip in disabled_devices:
         del disabled_devices[ip]
-        print(f"🧹 Ручне видалення Tapo пристрою {ip} зі списку disabled_devices.")
         return {"status": "success", "message": f"Пристрій {ip} видалено з disabled_devices."}
     else:
         raise HTTPException(
