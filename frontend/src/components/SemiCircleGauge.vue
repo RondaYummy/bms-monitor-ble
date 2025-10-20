@@ -19,7 +19,7 @@
         <q-tooltip> Мінімальне значення </q-tooltip>
       </span>
       <span class="right-label">
-        7
+        7.5
         <q-tooltip> Максимальне значення </q-tooltip>
       </span>
     </div>
@@ -36,7 +36,7 @@ const props = defineProps<{
   additionalValue?: string;
   max?: number;
 }>();
-const max = props.max ?? 7000;
+const max = props.max ?? 7500;
 
 const kilowatts = computed(() => (props.value / 1000).toFixed(2) || 0);
 const percentage = computed(() => (Math.abs(props.value) / max) * 100);
@@ -140,15 +140,20 @@ const chartOptions = computed(() => ({
 .labels {
   position: absolute;
   width: 100%;
-  top: 64%;
+  top: 66%;
   display: flex;
   justify-content: space-between;
   padding: 0 17%;
   font-size: 12px;
 
+  .right-label {
+    margin: 0 -4.5px;
+  }
+
   span {
     color: black;
     font-weight: 700;
+    font-size: 1.05em;
   }
 
   @media screen and (max-width: 500px) {

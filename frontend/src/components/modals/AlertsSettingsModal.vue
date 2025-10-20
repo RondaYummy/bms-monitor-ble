@@ -11,24 +11,13 @@
             зроблено, щоб уникнути надмірної кількості повідомлень у вашій скриньці.
           </q-tooltip>
         </p>
-        <q-input
-          :disable="!token"
-          v-model.number="config.n_hours"
-          label-color="white"
-          color="white"
-          type="number"
-          filled
-        />
+
+        <q-input :disable="!token" v-model.number="config.n_hours" type="number"
+          filled />
       </div>
 
       <div class="row justify-between q-mt-sm">
-        <q-btn
-          @click="configStore.updateConfigs"
-          color="black"
-          size="xs"
-          :disable="!token"
-          label="Зберегти"
-        />
+        <q-btn @click="configStore.updateConfigs" color="black" size="xs" :disable="!token" label="Зберегти" />
 
         <q-btn @click="close" size="xs" color="black" :disable="!token" label="Скасувати" />
       </div>
@@ -85,5 +74,14 @@ function close() {
   padding: 20px;
   gap: 10px;
   background: #1e1f26;
+}
+
+p {
+  color: white;
+}
+
+::placeholder {
+  color: #ff0000;
+  opacity: 1;
 }
 </style>

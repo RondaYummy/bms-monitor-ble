@@ -114,6 +114,7 @@ function displayTimeRemaining() {
 
   const remainingMilliseconds = parseInt(expiresAt) - Date.now();
   if (remainingMilliseconds <= 0) {
+    logout();
     return "Сесія закінчилася. Будь ласка, увійдіть знову.";
   }
 
