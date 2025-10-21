@@ -230,4 +230,6 @@ function certificatStatus(status: string) {
 .red {
   background-color: rgba(239, 67, 67, 0.1);
 }
+
+
 </style>

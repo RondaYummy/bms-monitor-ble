@@ -91,7 +91,7 @@
           <q-icon @click="showInfo = true" name="info" size="32px" color="white" />
         </div>
 
-        <q-dialog v-model="showSslDialog">
+        <q-dialog v-model="showSslDialog" class="ssl-dialog">
           <q-card dark>
             <q-card-section>
               <SslData :data=sslData />
@@ -704,5 +704,9 @@ onBeforeUnmount(() => {
   border: 1px solid white;
   flex: 1 1 48%;
   min-width: 48%;
+}
+
+.ssl-dialog .q-card__section.q-card__section--vert {
+  padding: 0 !important;
 }
 </style>

@@ -274,3 +274,30 @@ sup {
     transform: rotate(1turn);
   }
 }
+
+
+/* Глобально для всього застосунку */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; /* або rgba(255,255,255,0.05) */
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(232, 48, 110, 0.8); /* рожево-фіолетовий акцент */
+}
+
+/* Для Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(232, 48, 110, 0.8) transparent;
+}
