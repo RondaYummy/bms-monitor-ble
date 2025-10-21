@@ -53,6 +53,7 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
   console.log('Notification Click: ', event);
 
   event.notification.close();
+
   if (event.action === 'close_all') {
     event.waitUntil(
       self.registration.getNotifications().then((notifs) => {
@@ -85,9 +86,7 @@ self.addEventListener('push', (event: PushEvent) => {
     icon: 'https://solar.levych.com:8443/icons/android-chrome-192x192.png',
     tag: `bms-alert-${Date.now()}`,
     requireInteraction: true,
-    actions: [
-      { action: 'close_all', title: 'Закрити всі' },
-    ],
+    actions: [{ action: 'close_all', title: 'Закрити всі' }],
     silent: false,
     // renotify: true,
     timestamp: Date.now(),
