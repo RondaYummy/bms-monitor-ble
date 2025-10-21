@@ -50,7 +50,7 @@ self.addEventListener('activate', (event) => {
 //   });
 // });
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
-  console.log('Notification Click: ', event);
+  console.debug('Notification Click: ', event);
 
   event.notification.close();
 
