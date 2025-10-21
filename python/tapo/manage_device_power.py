@@ -15,7 +15,7 @@ from python.push_notifications import send_push_notification
 router = APIRouter(prefix="/power", tags=["Power managment system"])
 
 # Parameters
-THRESHOLD_W = 7500                # threshold in watts ( 7500 )
+THRESHOLD_W = 7400                # threshold in watts ( 7400 )
 MIN_TOGGLE_INTERVAL_S = 60        # minimum interval between switching of one device
 POLL_INTERVAL_S = 5               # inverter polling
 
@@ -111,7 +111,7 @@ async def manage_tapo_power():
                     except Exception:
                         pass
 
-                # print(f"🔎 Current total load (sum deye.load_power): {total_load:.1f} W")
+                print(f"🔎 Current total load (sum deye.load_power): {total_load:.1f} W")
 
                 if total_load > THRESHOLD_W:
                     load_to_shed = total_load - THRESHOLD_W

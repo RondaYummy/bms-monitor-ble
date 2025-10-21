@@ -35,6 +35,35 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// TODO: Приклад виклику сповіщення з кнопками дій а нижче хендлер зареєстрвоаний.
+// navigator.serviceWorker.getRegistration().then(reg => {
+//   reg.showNotification("🔋 Тестова нотифікація", {
+//     body: "Це лише тест з консолі",
+//     tag: "test-alert",
+//     requireInteraction: true,
+//     actions: [
+//       { action: "open_app", title: "Відкрити" },
+//       { action: "close_all", title: "Закрити всі" }
+//     ],
+//     data: { url: "/#/settings" },
+//     icon: "https://solar.levych.com:8443/icons/android-chrome-192x192.png"
+//   });
+// });
+self.addEventListener('notificationclick', (event: NotificationEvent) => {
+  console.log('notificationclick', event);
+
+  event.notification.close();
+
+  if (event.action === 'close_all') {
+    event.waitUntil(
+      self.registration.getNotifications().then((notifs) => {
+        notifs.filter((n) => n.data?.group === 'device-alerts').forEach((n) => n.close());
+      })
+    );
+    return;
+  }
+});
+
 self.addEventListener('push', (event: PushEvent) => {
   if (!event.data) {
     console.error('No data in push event.');
@@ -47,15 +76,24 @@ self.addEventListener('push', (event: PushEvent) => {
     timestamp: number;
     vibrate: number[];
     renotify?: boolean;
+    actions: {
+      action: string;
+      title: string;
+    }[];
   } = {
     body: data.body,
     icon: 'https://solar.levych.com:8443/icons/android-chrome-192x192.png',
     tag: `bms-alert-${Date.now()}`,
     requireInteraction: true,
+    actions: [
+      // { action: 'open_app', title: 'Відкрити' },
+      { action: 'close_all', title: 'Закрити всі' },
+    ],
     silent: false,
     // renotify: true,
     timestamp: Date.now(),
     vibrate: [200, 100, 200],
+    data: { group: 'device-alerts' },
   };
 
   event.waitUntil(self.registration.showNotification(data.title, options));
