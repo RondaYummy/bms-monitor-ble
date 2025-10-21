@@ -50,10 +50,9 @@ self.addEventListener('activate', (event) => {
 //   });
 // });
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
-  console.log('notificationclick', event);
+  console.log('Notification Click: ', event);
 
   event.notification.close();
-
   if (event.action === 'close_all') {
     event.waitUntil(
       self.registration.getNotifications().then((notifs) => {
@@ -62,6 +61,7 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
     );
     return;
   }
+  // event.waitUntil(self.clients.openWindow('https://solar.levych.com:8443/#/settings'));
 });
 
 self.addEventListener('push', (event: PushEvent) => {
@@ -96,9 +96,4 @@ self.addEventListener('push', (event: PushEvent) => {
   };
 
   event.waitUntil(self.registration.showNotification(data.title, options));
-
-  self.addEventListener('notificationclick', function (event) {
-    event.notification.close();
-    event.waitUntil(self.clients.openWindow('https://solar.levych.com:8443/#/settings'));
-  });
 });
