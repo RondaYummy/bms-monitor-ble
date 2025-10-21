@@ -86,7 +86,6 @@ self.addEventListener('push', (event: PushEvent) => {
     tag: `bms-alert-${Date.now()}`,
     requireInteraction: true,
     actions: [
-      // { action: 'open_app', title: 'Відкрити' },
       { action: 'close_all', title: 'Закрити всі' },
     ],
     silent: false,

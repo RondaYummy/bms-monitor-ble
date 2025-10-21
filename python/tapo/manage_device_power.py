@@ -115,7 +115,7 @@ async def manage_tapo_power():
 
                 if total_load > THRESHOLD_W:
                     load_to_shed = total_load - THRESHOLD_W
-                    # message = f"🚨 Навантаження ({total_load:.0f} W) перевищує поріг ({THRESHOLD_W:.0f} W). Скидаємо навантаження!"
+                    message = f"🚨 Навантаження ({total_load:.0f} W) перевищує поріг ({THRESHOLD_W:.0f} W). Скидаємо навантаження!"
                     asyncio.create_task(send_push_notification("⚠️ Увага: Перевантаження", message))
 
                     tapo_rows = get_all_tapo_devices() or []

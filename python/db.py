@@ -313,13 +313,6 @@ def get_latest_ssl_certificate():
         return None
 
 def cleanup_ssl_certificates():
-    """
-    Deletes all records from the ssl_certificates table, keeping only 
-    the single most recently created certificate (the one with the largest created_at value).
-    
-    Returns:
-        int: The number of rows deleted, or None on error.
-    """
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
@@ -633,11 +626,6 @@ def fetch_all_data_range(from_dt: datetime, to_dt: datetime):
         raise
     
 def fetch_all_data(days=None):
-    """
-    Gets records from the table for the current day if days=1.
-    If the days parameter is not passed, no data is returned.
-    Results are cached for 1 minute, and the cache key include days.
-    """
     if days is None:
         print("No 'days' parameter provided. No data will be fetched.")
         return None
