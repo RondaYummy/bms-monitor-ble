@@ -98,6 +98,8 @@
             </q-card-section>
 
             <q-card-actions align="right">
+              <q-btn flat label="GitHub"
+                href="https://github.com/RondaYummy/bms-monitor-ble/blob/main/SSL_CERTIFICATE.md" color="primary" />
               <q-btn flat label="OK" color="primary" v-close-popup />
             </q-card-actions>
           </q-card>
@@ -137,6 +139,11 @@
                 <p>
                   ⚠️ <strong>Критичні події</strong> (наприклад, перегрів, дисбаланс, низький заряд)
                   надсилаються як <strong>Web Push-сповіщення</strong> у PWA-додаток.
+                </p>
+                <p>
+                  🔌 <strong>Динамічне скидання навантаження:</strong> автоматичне балансування потужності для
+                  запобігання перевантаженню інвертора шляхом перемикання розумних розеток Tapo та повідомлення про
+                  кількість відключених пристроїв.
                 </p>
                 <p>
                   📱 Фронтенд — <strong>PWA-додаток</strong>, підтримує мобільні
@@ -371,7 +378,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -389,7 +396,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -639,6 +646,7 @@ function installApp() {
 
 function skipInstallApp() {
   localStorage.setItem('skip-install', 'true');
+  installAppDialog.value = false;
 }
 
 function selectSingleDevice(tab: string) {

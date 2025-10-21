@@ -1,7 +1,7 @@
 <p align="center">
-  <img src="devices.png" style="height: 500px; object-fit: contain;">
-  <img src="summary.png" style="height: 500px; object-fit: contain;">
-  <img src="settings.png" style="height: 500px; object-fit: contain;">
+  <img src="devices.png" alt="Devices overview" height="500" style="height: 500px; object-fit: contain;">
+  <img src="summary.png" alt="System summary" height="500" style="height: 500px; object-fit: contain;">
+  <img src="settings.png" alt="App settings" height="500" style="height: 500px; object-fit: contain;">
 </p>
 
 ## Supported devices
@@ -26,10 +26,15 @@ It connects to:
 - **Deye Inverter** via WiFi stick (using `pysolarmanv5`)
 
 ### 🧠 Key Features:
-- Battery voltage, current, power, SOC, SOH
-- Cell temperatures, internal resistance, cycle count, balancing
-- Solar generation, home consumption, grid import/export
-- **Dynamic Load Shedding:** Automated power balancing to prevent inverter overload by switching Tapo smart plugs and reporting the number of devices disabled.
+- 🔋 Real-time monitoring of battery and inverter data
+- - Battery voltage, current, power, SOC, SOH
+- - Cell temperatures, internal resistance, cycle count, balancing
+- - Solar generation, home consumption, grid import/export
+
+- 🌡️ Automatic alerts for temperature or imbalance
+
+- ⚙️ Dynamic power balancing with Tapo smart plugs
+- - **Dynamic Load Shedding:** Automated power balancing to prevent inverter overload by switching Tapo smart plugs and reporting the number of devices disabled.
 
 ### ⚠️ WEB PUSH Notifications
 Critical events (e.g. overheating, cell imbalance, low charge) are sent as push notifications to the PWA frontend.
@@ -96,7 +101,7 @@ To connect to a Tapo outlet, you need to specify the outlet IP and EMAIL and PAS
   PythonApp --> Push[Web Push Notifications]
 </code>
   
-## First steeps:
+## First steps:
 #### To access your application from outside the local network, you need to get a static IP address from your Internet provider. And etup Nginx and SSL ( https://github.com/RondaYummy/bms-monitor-ble/blob/main/docs/nginx.md )
 
 ### Make sure that the systemctl service is running:
@@ -175,8 +180,11 @@ This project is my attempt to create a fully local, integrated, and extensible e
 - [x] PWA frontend with offline support
 - [x] Web push notifications
 - [x] Dockerized backend
-- [ ] Telegram bot alerts
-- [ ] Admin dashboard with charts
+- [x] Automated power balancing to prevent inverter overload by switching Tapo smart plugs and reporting the number of devices disabled.
+- [ ] Turning on Tapo smart plugs using timers.
+- [ ] Dashboard with charts
+- [ ] Export historical data (CSV / Grafana)
+- [ ] Add multi-inverter support
 ```
 
 ## 🛠️ Tech Stack
@@ -189,6 +197,7 @@ This project is my attempt to create a fully local, integrated, and extensible e
 | Backend | Python / FastAPI / SQLite |
 | Frontend | Vue 3 + TypeScript + Quasar + PWA |
 | Deployment | Docker + PM2 |
+| Notifications | Web Push API |
 
 ### Top contributors:
 <a href="https://github.com/RondaYummy/bms-monitor-ble/graphs/contributors">
