@@ -147,13 +147,13 @@ const chartOptions = computed(() => ({
   font-size: 12px;
 
   .right-label {
-    margin: 0 -4.5px;
+    margin: 0 -2px;
   }
 
   span {
     color: black;
-    font-weight: 700;
-    font-size: 1.05em;
+    font-weight: 800;
+    font-size: 0.8em;
   }
 
   @media screen and (max-width: 500px) {
@@ -162,12 +162,11 @@ const chartOptions = computed(() => ({
   }
 
   @media screen and (max-width: 448px) {
-    top: 51%;
     padding: 0 16%;
   }
 
   @media screen and (max-width: 368px) {
-    top: 44%;
+    top: 50%;
     padding: 0 15%;
     font-size: 10px;
   }
