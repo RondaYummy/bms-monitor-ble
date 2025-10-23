@@ -1,26 +1,49 @@
 <template>
-  <q-page class="column items-center q-pa-lg">
-    <p class="unique text-center full-width q-mb-sm" v-if="!token">
-      Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
-    </p>
+  <div class="auth-header">
+
     <template v-if="token">
-      <p class="charge text-center full-width q-mb-sm">
+      <p class="text-success q-mb-sm">
         Ви успішно авторизовані та можете змінювати налаштування.
+      </p>
+      <p class="text-muted">
         {{ displayTimeRemaining() }}
       </p>
-      <q-btn class="q-mb-sm" @click="logout" color="black" :disable="!token" label="Logout" />
+
+      <button class="q-mb-sm logout-button" type="button" @click="logout">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="lucide lucide-log-out h-4 w-4">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" x2="9" y1="12" y2="12"></line>
+        </svg>
+        LOGOUT
+      </button>
     </template>
 
-    <div class="row justify-center no-wrap q-gutter-sm q-mb-md" v-if="!token">
-      <q-input v-model="password" dense outlined label="Введіть пароль" label-color="white" color="white"
-        :type="isPwd ? 'password' : 'text'">
-        <template v-slot:append>
-          <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer text-white"
-            @click="isPwd = !isPwd" />
-        </template>
-      </q-input>
-      <q-btn @click="login(password)" color="black" label="Підтвердити" />
-    </div>
+    <template v-if="!token">
+      <p class="text-negat text-center full-width q-mb-sm">
+        Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
+      </p>
+
+      <div class="row justify-center items-center no-wrap q-gutter-sm q-mb-md">
+        <q-input v-model="password" dense outlined label="Введіть пароль" label-color="white" color="white"
+          :type="isPwd ? 'password' : 'text'">
+          <template v-slot:append>
+            <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer text-white"
+              @click="isPwd = !isPwd" />
+          </template>
+        </q-input>
+
+        <button class="q-mb-sm login-button" type="button" @click="login(password)">
+          ПІДТВЕРДИТИ
+        </button>
+      </div>
+    </template>
+  </div>
+
+
+  <q-page class="column items-center q-pa-lg">
 
     <div class="full-width">
       <q-tabs v-model="tab" align="justify" narrow-indicator class="q-mb-lg">
@@ -136,7 +159,63 @@ configStore.fetchConfigs();
 </script>
 
 <style scoped lang="scss">
-:deep(.q-field__native) {
-  color: white !important;
+:deep(.q-field) {
+  color: rgb(248, 250, 252) !important;
+}
+
+:deep(.q-field) {
+  color: rgb(248, 250, 252) !important;
+  border: 1px solid rgb(248, 250, 252);
+  border-radius: 10px;
+  margin-top: 0;
+}
+
+.auth-header {
+  background-color: rgba(25, 29, 36, 0.5);
+  border-bottom: 1px solid rgb(43, 48, 59);
+  backdrop-filter: blur(4px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  .text-success {
+    color: rgb(22, 162, 73);
+  }
+
+  .text-muted {
+    color: rgb(152, 164, 179);
+  }
+
+  .text-negat {
+    color: rgb(239, 67, 67);
+  }
+
+  .logout-button {
+    color: rgb(239, 67, 67);
+    background-color: rgb(17, 19, 23);
+    border: 1px solid rgba(239, 67, 67, 0.5);
+    border-radius: 10px;
+    padding: 10px 32px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .login-button {
+    background-color: rgb(232, 48, 110);
+    padding: 10px 32px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    color: rgb(248, 250, 252);
+  }
 }
 </style>
