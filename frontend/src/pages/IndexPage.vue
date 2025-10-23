@@ -45,20 +45,7 @@
 
       <div ref="scrollContainer" @wheel.prevent="handleScroll"
         class="row justify-between full-width q-pt-sm q-mb-sm top-tapo-row no-wrap">
-        <div class="column items-center q-pa-md rounded-borders top-tapo" v-for="item of topTapoDevices"
-          :key="item?.ip">
-          <span class="text-light-green-12">
-            {{ item?.power_watt > 0 ? (item?.power_watt / 1000)?.toFixed(2) : '0' }}
-            <sup>kW</sup>
-          </span>
-
-          <span class="text-center">{{ item?.name }}</span>
-          <q-icon v-if="!changeStateTapoDevices.find((d) => d === item?.ip)"
-            @click="toggleDevice(item?.device_on, item?.ip)" name="power_settings_new"
-            class="cursor-pointer toggle-device"
-            :class="{ 'text-white': item?.device_on == 0, 'text-red': item?.device_on == 1 }" size="3em" />
-          <div v-else class="loader"></div>
-        </div>
+        <TopTapoDevice :item="item" v-for="item of topTapoDevices" :key="item?.ip" />
       </div>
     </template>
 
@@ -378,7 +365,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -396,7 +383,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-            }}</q-chip>
+              }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -429,7 +416,6 @@ import {
   calculateChargeTime,
   formatMinutes,
   isInstalled,
-  useSessionStorage,
 } from '../helpers/utils';
 import { ref, watch, onBeforeUnmount, computed, onMounted } from 'vue';
 import type { BeforeInstallPromptEvent, CellInfo, DeyeSafeValues } from '../models';
@@ -441,8 +427,7 @@ import AddtionalInfo from 'src/components/deye/AddtionalInfo.vue';
 import { usePowerStore } from 'src/stores/power';
 import SslData from 'src/components/SslData.vue';
 import { useConfigStore } from 'src/stores/config';
-
-const token = useSessionStorage('access_token');
+import TopTapoDevice from 'src/components/tapo/TopTapoDevice.vue';
 
 const bmsStore = useBmsStore();
 const deyeStore = useDeyeStore();
@@ -517,7 +502,6 @@ const showSslDialog = ref(false);
 const tab = ref<string>('All');
 const isCellVoltagesOpen = ref(false);
 const isCellResistancesOpen = ref(false);
-const changeStateTapoDevices = ref<Array<string>>([]);
 const showMoreDeye = ref(false);
 
 const autonomyTime = computed(() => calculateAutonomyTime(
@@ -536,24 +520,6 @@ window.addEventListener('beforeinstallprompt', (event: Event) => {
 watch(devicesList, () => {
   selectSingleDevice(tab.value);
 });
-
-async function toggleDevice(state: number, deviceIp: string) {
-  if (!token.value) return;
-  changeStateTapoDevices.value.push(deviceIp);
-  try {
-    if (state == 1) {
-      await tapoStore.disableDevice(deviceIp);
-    } else {
-      await tapoStore.enableDevice(deviceIp);
-    }
-  } catch (err) {
-    console.error(err);
-  } finally {
-    changeStateTapoDevices.value = changeStateTapoDevices.value.filter(
-      (ip: string) => ip !== deviceIp
-    );
-  }
-}
 
 const yieldToBrowser = () => new Promise(resolve => setTimeout(resolve, 0));
 
@@ -701,20 +667,14 @@ onBeforeUnmount(() => {
   background: #1e1f26 !important;
 }
 
+.ssl-dialog .q-card__section.q-card__section--vert {
+  padding: 0 !important;
+}
+
 .top-tapo-row {
   gap: 10px;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
-}
-
-.top-tapo {
-  border: 1px solid white;
-  flex: 1 1 48%;
-  min-width: 48%;
-}
-
-.ssl-dialog .q-card__section.q-card__section--vert {
-  padding: 0 !important;
 }
 </style>
