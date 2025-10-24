@@ -11,6 +11,7 @@ from python.push_notifications import send_push_notification
 SUPPORTED_ENERGY_MONITORING_MODELS = {"P110", "P110M"}
 
 scheduled_off_tasks: Dict[str, Dict[str, Any]] = {}
+scheduled_tasks_lock = asyncio.Lock()
 
 class TapoDevice:
     def __init__(self, ip: str, email: str, password: str):

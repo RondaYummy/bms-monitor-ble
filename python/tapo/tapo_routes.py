@@ -5,7 +5,7 @@ import time
 import python.db as db
 from python.auth.verify_token import verify_token
 from python.tapo.dto import TapoDeviceCreateDto, TapoDeviceUpdateDto, TimerRequestDto
-from python.tapo.tapo_service import TapoDevice, schedule_turn_off_worker, scheduled_off_tasks
+from python.tapo.tapo_service import TapoDevice, schedule_turn_off_worker, scheduled_off_tasks, scheduled_tasks_lock
 
 router = APIRouter(prefix="/tapo", tags=["TP-Link Tapo Devices"])
 
@@ -111,48 +111,64 @@ def turn_off_device(ip: str):
         raise HTTPException(status_code=500, detail=f"❌ The device could not be turned off: {str(e)}")
 
 @router.post("/devices/{ip}/off/timer", dependencies=[Depends(verify_token)])
-def turn_off_device_timer(ip: str, body: TimerRequestDto):
+async def turn_off_device_timer(ip: str, body: TimerRequestDto):
     minutes = body.timer
     seconds = minutes * 60
-
-    if ip in scheduled_off_tasks:
-        return {
-            "status": "already_scheduled",
-            "ip": ip,
-            "timer_minutes": scheduled_off_tasks[ip].get("timer_minutes"),
-            "execute_at": scheduled_off_tasks[ip].get("execute_at"),
-        }
 
     now = time.time()
     execute_at = now + seconds
 
-    loop = asyncio.get_running_loop()
-    task = loop.create_task(schedule_turn_off_worker(ip))
+    async with scheduled_tasks_lock:
+        if ip in scheduled_off_tasks:
+            return {
+                "status": "already_scheduled",
+                "ip": ip,
+                "timer_minutes": scheduled_off_tasks[ip].get("timer_minutes"),
+                "execute_at": scheduled_off_tasks[ip].get("execute_at"),
+            }
 
-    scheduled_off_tasks[ip] = {
-        "task": task,
-        "scheduled_at": now,
-        "execute_at": execute_at,
-        "timer_minutes": minutes,
-    }
+        entry = {
+            "task": None,
+            "scheduled_at": now,
+            "execute_at": execute_at,
+            "timer_minutes": minutes,
+        }
+        scheduled_off_tasks[ip] = entry
+
+        device = db.get_tapo_device_by_ip(ip)
+        if not device:
+            raise HTTPException(status_code=404, detail="Device not found")
+
+        loop = asyncio.get_running_loop()
+        tapo = TapoDevice(ip, device["email"], device["password"])
+        await loop.run_in_executor(None, tapo.turn_on)
+
+        task = asyncio.create_task(schedule_turn_off_worker(ip))
+        
+        entry["task"] = task
 
     return {"status": "timer-activated", "ip": ip, "timer_minutes": minutes, "execute_at": execute_at}
 
 @router.delete("/devices/{ip}/off/timer", dependencies=[Depends(verify_token)])
-def cancel_turn_off_timer(ip: str):
-    entry = scheduled_off_tasks.get(ip)
-    if not entry:
-        raise HTTPException(status_code=404, detail=f"No scheduled timer for device {ip}")
-    task: asyncio.Task = entry.get("task")
-    if task and not task.done():
-        task.cancel()
-    scheduled_off_tasks.pop(ip, None)
+async def cancel_turn_off_timer(ip: str):
+    async with scheduled_tasks_lock:
+        entry = scheduled_off_tasks.get(ip)
+        if not entry:
+            raise HTTPException(status_code=404, detail=f"No scheduled timer for device {ip}")
+
+        task: asyncio.Task = entry.get("task")
+        if task and not task.done():
+            task.cancel()
+        scheduled_off_tasks.pop(ip, None)
 
     device = db.get_tapo_device_by_ip(ip)
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
+
+    loop = asyncio.get_running_loop()
     tapo = TapoDevice(ip, device["email"], device["password"])
-    tapo.turn_off()
+    await loop.run_in_executor(None, tapo.turn_off)
+
     return {"status": "cancelled", "ip": ip}
 
 @router.delete("/device/{ip}", dependencies=[Depends(verify_token)])
