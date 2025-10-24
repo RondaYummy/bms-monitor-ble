@@ -19,7 +19,7 @@ export interface PowerManagerStatus {
 }
 
 const config = {
-  timeout: 4000,
+  timeout: 6000,
 };
 
 export const usePowerStore = defineStore('power', () => {

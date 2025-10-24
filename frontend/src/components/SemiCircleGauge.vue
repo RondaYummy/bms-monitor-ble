@@ -125,10 +125,10 @@ const chartOptions = computed(() => ({
 }
 
 .value-text {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   color: white;
-  margin-top: -7px;
+  margin-top: -12px;
 }
 
 .value-text2 {

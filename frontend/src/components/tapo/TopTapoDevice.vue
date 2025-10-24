@@ -30,7 +30,7 @@
             <div class="full-width text-white text-center">
               {{ formatMinutes(item.timerTimeLeft) }}
               <q-tooltip :delay="200">
-                Вимкнемо через <br />{{ formatMinutes(item.timerTimeLeft) }}
+                Вимкнемо через <br />{{ timeLeft }}
               </q-tooltip>
             </div>
           </template>
@@ -44,16 +44,15 @@
 import { formatMinutes, useSessionStorage } from 'src/helpers/utils';
 import { TapoDevice } from 'src/models';
 import { useTapoStore } from 'src/stores/tapo';
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const tapoStore = useTapoStore();
 
 const props = defineProps<{ item: TapoDevice }>();
-
 const token = useSessionStorage('access_token');
 
 const timeOptions = Array.from({ length: 32 }, (_, i) => {
-  const totalMinutes = (i + 1) * 5; // Interval 5 min
+  const totalMinutes = (i + 1) * 15; // Interval 15 min
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
 
@@ -71,13 +70,24 @@ const changeStateTapoDevices = ref<Array<string>>([]);
 const timer = ref(props.item.timer);
 const time = ref(timeOptions[0]);
 
+const timeLeft = computed(() => {
+  const time = props.item.timerTimeLeft || 0;
+  if (time < 1) {
+    return '';
+  }
+  if (time < 60) {
+    return `${time}m`;
+  }
+  return formatMinutes(time);
+});
+
 async function toggleTimer(value: boolean) {
   if (value) {
     await tapoStore.enableTimer(props.item.ip, time.value?.value || 0);
   } else {
     await tapoStore.disableTimer(props.item.ip);
   }
-};
+}
 
 async function toggleDevice(state: number, deviceIp: string) {
   if (!token.value) return;
@@ -96,6 +106,13 @@ async function toggleDevice(state: number, deviceIp: string) {
     );
   }
 }
+
+watch(
+  () => props.item.timer,
+  (newVal) => {
+    timer.value = newVal;
+  }
+);
 </script>
 
 <style scoped lang="scss">
@@ -120,7 +137,7 @@ async function toggleDevice(state: number, deviceIp: string) {
 
 :deep(.q-field__control) {
   border-radius: 8px;
-  min-height: 48px;
+  min-height: 48px !important;
 }
 
 :deep(.q-select__dropdown-icon) {

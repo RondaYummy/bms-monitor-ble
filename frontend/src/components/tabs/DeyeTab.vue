@@ -19,11 +19,11 @@
   <q-separator class="q-mt-md q-mb-md" color="white" />
 
   <div v-for="item of deyeStore?.deyeData" :key="item?.serial_number">
-    <div class="deye-item row q-mt-sm q-mb-sm rounded-borders q-pa-lg">
-      <q-icon @click.prevent="deleteDevice(item?.ip)" class="cursor-pointer q-mr-sm remove" name="delete" size="1.5em"
-        color="red"></q-icon>
+    <div class="deye-item column q-mt-sm q-mb-sm rounded-borders q-pa-lg">
+      <div class="row">
+        <q-icon @click.prevent="deleteDevice(item?.ip)" class="cursor-pointer q-mr-sm remove" name="delete" size="1.5em"
+          color="red"></q-icon>
 
-      <div class="column" style="flex: 1">
         <div class="row justify-between">
           <span @click="copy(item?.id)">
             <span class="muted">ID:</span> {{ item?.id }}
@@ -33,18 +33,19 @@
             {{ item?.device_on == 0 ? 'Disabled' : 'Enabled' }}
           </span>
         </div>
+      </div>
 
-        <div class="row justify-between">
-          <span @click="copy(item?.serial_number)">
-            <span class="muted">SN:</span>
-            {{ item?.serial_number }}
-            <q-tooltip> Серійний номер пристрою. </q-tooltip>
-          </span>
 
-          <span @click="copy(item?.ip)">
-            <span class="muted">IP:</span> {{ item?.ip }}
-          </span>
-        </div>
+      <div class="row justify-between">
+        <span @click="copy(item?.serial_number)">
+          <span class="muted">SN:</span>
+          {{ item?.serial_number }}
+          <q-tooltip> Серійний номер пристрою. </q-tooltip>
+        </span>
+
+        <span @click="copy(item?.ip)">
+          <span class="muted">IP:</span> {{ item?.ip }}
+        </span>
       </div>
     </div>
   </div>

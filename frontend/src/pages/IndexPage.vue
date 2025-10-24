@@ -310,7 +310,6 @@
           <span v-if="calculatedList?.charge_current < 0" :class="{ 'blink-attention': autonomyTime <= 120 }">
             ⏳ Autonomy:
             {{ formatMinutes(autonomyTime) }}
-            <sup>h</sup>
 
             <q-tooltip>
               Autonomy - Час автономної роботи при поточних навантаженнях. Також враховується
