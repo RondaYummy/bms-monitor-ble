@@ -644,7 +644,7 @@ const intervalFunction = async () => {
 
 onMounted(() => {
   intervalFunction();
-  intervalId.value = setInterval(intervalFunction, 3000);
+  intervalId.value = setInterval(intervalFunction, 2000);
 });
 
 onBeforeUnmount(() => {

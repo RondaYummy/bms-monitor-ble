@@ -5,7 +5,7 @@ import { Alert } from 'src/models';
 import { readonly, ref } from 'vue';
 
 const config = {
-  timeout: 5000,
+  timeout: 4000,
 };
 
 export const useAlertsStore = defineStore('alerts', () => {

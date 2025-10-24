@@ -19,7 +19,7 @@ export interface SslResponse {
 }
 
 const configs = {
-  timeout: 5000,
+  timeout: 4000,
 };
 
 export const useConfigStore = defineStore('config', () => {

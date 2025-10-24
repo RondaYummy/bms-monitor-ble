@@ -12,7 +12,7 @@ export interface UpdateTapoDeviceDto {
 }
 
 const config = {
-  timeout: 5000,
+  timeout: 4000,
 };
 
 export const useTapoStore = defineStore('tapo', () => {

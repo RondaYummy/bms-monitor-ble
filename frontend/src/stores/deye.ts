@@ -4,7 +4,7 @@ import { DeyeRealtimeData } from 'src/models';
 import { readonly, ref } from 'vue';
 
 const config = {
-  timeout: 5000,
+  timeout: 4000,
 };
 
 export const useDeyeStore = defineStore('deye', () => {
