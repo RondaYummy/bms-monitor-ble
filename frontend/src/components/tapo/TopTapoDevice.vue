@@ -24,10 +24,10 @@
 
         <q-toggle color="pink" v-model="timer" @update:model-value="toggleTimer" />
 
-        <q-select :disable="timer" popup-content-class="dark-select-popup" class="full-width select-time q-mt-sm"
+        <q-select :disable="timer" popup-content-class="dark-select-popup" class="full-width q-mt-sm"
           outlined dense options-dense v-model="time" :options="timeOptions">
           <template v-slot:selected v-if="item.timer && item.timerTimeLeft">
-            <div class="full-width text-white text-center">Вимкнемо через {{ formatMinutes(item.timerTimeLeft) }}</div>
+            <div class="full-width text-white text-center">Вимкнемо через <br/>{{ formatMinutes(item.timerTimeLeft) }}</div>
           </template>
         </q-select>
       </div>
@@ -110,12 +110,12 @@ async function toggleDevice(state: number, deviceIp: string) {
   background-color: rgb(17, 19, 23);
   border: 1px solid rgb(43, 48, 59);
   border-radius: 8px;
-  height: 48px;
+  min-height: 48px;
 }
 
 :deep(.q-field__control) {
   border-radius: 8px;
-  height: 48px;
+  min-height: 48px;
 }
 
 :deep(.q-select__dropdown-icon) {
