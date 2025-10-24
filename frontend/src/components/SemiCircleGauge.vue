@@ -153,7 +153,7 @@ const chartOptions = computed(() => ({
   span {
     color: black;
     font-weight: 800;
-    font-size: 0.8em;
+    font-size: 0.7em;
   }
 
   @media screen and (max-width: 500px) {

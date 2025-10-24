@@ -1,5 +1,6 @@
 <template>
-  <div class="text-h6 q-mb-sm full-width">TP-LINK Tapo Devices</div>
+  <div class="text-h6 q-mb-sm full-width">TP-Link Tapo Devices</div>
+  <p>Тут ви можете керувати своїми пристроями Tapo.</p>
 
   <q-expansion-item
     :disable="!token"

@@ -2,7 +2,7 @@
   <div class="auth-header">
 
     <template v-if="token">
-      <p class="text-success q-mb-sm">
+      <p class="text-success text-center q-mb-sm">
         Ви успішно авторизовані та можете змінювати налаштування.
       </p>
       <p class="text-muted">

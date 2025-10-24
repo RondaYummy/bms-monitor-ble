@@ -1,5 +1,7 @@
 <template>
-  <div class="text-h6 q-mb-sm full-width">Deye inverter Devices</div>
+  <div class="text-h6 q-mb-sm full-width">Deye Inverter Devices</div>
+  <p>Тут ви можете керувати своїми пристроями Deye.</p>
+
   <q-expansion-item :disable="!token" v-model="expandAddDeyeDevice" icon="add" label="Add new device" dark dense-toggle>
     <p>
       Перш ніж додати ваш інвертор Deye, необхідно дізнатися IP-адресу Wi-Fi стіка та серійний номер
@@ -11,8 +13,10 @@
     <q-input label-color="white" label="Device Serial Number" :disable="!token" v-model="createDeye.serial_number"
       filled class="q-mb-sm q-mt-sm" />
     <q-btn :loading="loading" @click="createDeyeDevice" :disable="!token || !createDeye.ip || !createDeye.serial_number"
-      color="black" label="Додати новий Deye пристрій" />
+      color="black" label="Додати інвертор" />
   </q-expansion-item>
+
+  <q-separator class="q-mt-md q-mb-md" color="white" />
 
   <div v-for="item of deyeStore?.deyeData" :key="item?.serial_number">
     <div class="deye-item row q-mt-sm q-mb-sm rounded-borders q-pa-lg">
@@ -22,11 +26,11 @@
       <div class="column" style="flex: 1">
         <div class="row justify-between">
           <span @click="copy(item?.id)">
-            <span class="muted">Device ID:</span> {{ item?.id }}
+            <span class="muted">ID:</span> {{ item?.id }}
           </span>
 
-          <span @click="copy(item?.ip)">
-            <span class="muted">IP:</span> {{ item?.ip }}
+          <span :class="item?.device_on == 0 ? 'text-red' : 'text-green'">
+            {{ item?.device_on == 0 ? 'Disabled' : 'Enabled' }}
           </span>
         </div>
 
@@ -37,8 +41,8 @@
             <q-tooltip> Серійний номер пристрою. </q-tooltip>
           </span>
 
-          <span :class="item?.device_on == 0 ? 'text-red' : 'text-green'">
-            {{ item?.device_on == 0 ? 'Disabled' : 'Enabled' }}
+          <span @click="copy(item?.ip)">
+            <span class="muted">IP:</span> {{ item?.ip }}
           </span>
         </div>
       </div>

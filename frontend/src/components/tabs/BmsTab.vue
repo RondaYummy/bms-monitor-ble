@@ -1,5 +1,5 @@
 <template>
-  <div class="text-h6">BMS Devices</div>
+  <div class="text-h6">JK-BMS Devices</div>
   <p>Тут ви можете керувати своїми пристроями JK-BMS.</p>
 
   <q-btn

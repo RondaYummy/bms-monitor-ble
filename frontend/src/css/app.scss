@@ -275,7 +275,6 @@ sup {
   }
 }
 
-
 /* Глобально для всього застосунку */
 ::-webkit-scrollbar {
   width: 6px;
@@ -303,6 +302,18 @@ sup {
 }
 
 .dark-select-popup {
-  background-color: rgb(17, 19, 23);
+  background-color: rgb(17, 19, 23) !important;
   border: 1px solid rgb(43, 48, 59);
+}
+
+.q-select__dialog:has(.dark-select-popup) {
+  background-color: rgb(17, 19, 23) !important;
+  border-top: 1px solid rgb(43, 48, 59);
+  border-left: 1px solid rgb(43, 48, 59);
+  border-right: 1px solid rgb(43, 48, 59);
+
+  .dark-select-popup {
+    border: none;
+    border-top: 1px solid rgb(43, 48, 59);
+  }
 }
