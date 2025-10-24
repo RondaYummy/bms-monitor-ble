@@ -147,6 +147,12 @@ def cancel_turn_off_timer(ip: str):
     if task and not task.done():
         task.cancel()
     scheduled_off_tasks.pop(ip, None)
+
+    device = db.get_tapo_device_by_ip(ip)
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    tapo = TapoDevice(ip, device["email"], device["password"])
+    tapo.turn_off()
     return {"status": "cancelled", "ip": ip}
 
 @router.delete("/device/{ip}", dependencies=[Depends(verify_token)])
