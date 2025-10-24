@@ -24,10 +24,15 @@
 
         <q-toggle color="pink" v-model="timer" @update:model-value="toggleTimer" />
 
-        <q-select :disable="timer" popup-content-class="dark-select-popup" class="full-width q-mt-sm"
-          outlined dense options-dense v-model="time" :options="timeOptions">
+        <q-select :disable="timer" popup-content-class="dark-select-popup" class="full-width q-mt-sm" outlined dense
+          options-dense v-model="time" :options="timeOptions">
           <template v-slot:selected v-if="item.timer && item.timerTimeLeft">
-            <div class="full-width text-white text-center">Вимкнемо через <br/>{{ formatMinutes(item.timerTimeLeft) }}</div>
+            <div class="full-width text-white text-center">
+              {{ formatMinutes(item.timerTimeLeft) }}
+              <q-tooltip :delay="200">
+                Вимкнемо через <br />{{ formatMinutes(item.timerTimeLeft) }}
+              </q-tooltip>
+            </div>
           </template>
         </q-select>
       </div>
@@ -48,7 +53,7 @@ const props = defineProps<{ item: TapoDevice }>();
 const token = useSessionStorage('access_token');
 
 const timeOptions = Array.from({ length: 32 }, (_, i) => {
-  const totalMinutes = (i + 1) * 10; // Interval 10 min
+  const totalMinutes = (i + 1) * 5; // Interval 5 min
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
 

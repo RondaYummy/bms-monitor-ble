@@ -113,26 +113,53 @@ async def check_all_tapo_devices():
     await asyncio.gather(*(limited(d) for d in devices))
 
 async def schedule_turn_off_worker(ip: str):
-    entry = scheduled_off_tasks.get(ip)
-    if not entry:
-        return
-
-    execute_at = entry["execute_at"]
-    now = time.time()
-    sleep_seconds = max(0, execute_at - now)
-    try:
-        await asyncio.sleep(sleep_seconds)
-
-        if ip not in scheduled_off_tasks:
+    # Захоплюємо entry швидко (без довгих операцій)
+    async with scheduled_tasks_lock:
+        entry = scheduled_off_tasks.get(ip)
+        if not entry:
             return
+        # Використовуємо monotonic для відліку інтервалу
+        execute_at_monotonic = entry.get("execute_at_monotonic")
+        # backward-compat: якщо немає execute_at_monotonic, обчислимо з execute_at (time.time)
+        if execute_at_monotonic is None:
+            execute_at = entry.get("execute_at", time.time())
+            # translate to monotonic deadline
+            execute_at_monotonic = time.monotonic() + max(0, execute_at - time.time())
+            entry["execute_at_monotonic"] = execute_at_monotonic
 
+    # Лог створення
+    print(f"[TIMER] scheduled for {ip}: execute_at_monotonic={execute_at_monotonic}, now_monotonic={time.monotonic()}")
+
+    try:
+        # Цикл очікування: спимо дрібними шматками, щоб швидше реагувати на cancel/завантаження loop
+        while True:
+            remaining = execute_at_monotonic - time.monotonic()
+            if remaining <= 0:
+                break
+            # спимо максимально 1 секунду або менше, якщо залишилось менше
+            sleep_for = remaining if remaining < 1.0 else 1.0
+            await asyncio.sleep(sleep_for)
+
+        # перед виконанням ще раз перевіримо, чи запис існує (не скасували)
+        async with scheduled_tasks_lock:
+            if ip not in scheduled_off_tasks:
+                print(f"[TIMER] {ip} entry removed before execution (cancelled).")
+                return
+            # можна також перевіряти, чи execute_at_monotonic співпадає з тим, що ми мали (для безпеки)
+
+        # Отримуємо дані про пристрій
         device = get_tapo_device_by_ip(ip)
         if not device:
-            scheduled_off_tasks.pop(ip, None)
+            async with scheduled_tasks_lock:
+                scheduled_off_tasks.pop(ip, None)
+            print(f"[TIMER] Device {ip} not in DB, removed timer.")
             return
 
         email = device.get("email")
         password = device.get("password")
+
+        # Лог перед викликанням вимкнення
+        print(f"[TIMER] executing turn_off for {ip} at {time.time()} (monotonic {time.monotonic()})")
 
         loop = asyncio.get_running_loop()
         try:
@@ -142,15 +169,20 @@ async def schedule_turn_off_worker(ip: str):
 
             msg = f"🔴 Пристрій {ip} автоматично вимкнений за таймером."
             asyncio.create_task(send_push_notification("🔌 Пристрій вимкнуто", msg))
+            print(f"[TIMER] turn_off for {ip} finished.")
         except Exception as e:
             print(f"❌ Error while executing scheduled turn off for {ip}: {e}")
         finally:
-            scheduled_off_tasks.pop(ip, None)
+            async with scheduled_tasks_lock:
+                scheduled_off_tasks.pop(ip, None)
 
     except asyncio.CancelledError:
-        scheduled_off_tasks.pop(ip, None)
-        return
+        async with scheduled_tasks_lock:
+            scheduled_off_tasks.pop(ip, None)
+        print(f"[TIMER] cancelled for {ip}")
+        raise
     except Exception as e:
+        async with scheduled_tasks_lock:
+            scheduled_off_tasks.pop(ip, None)
         print(f"❌ Unexpected error in scheduler worker for {ip}: {e}")
-        scheduled_off_tasks.pop(ip, None)
         return
