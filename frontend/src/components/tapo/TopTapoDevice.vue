@@ -12,7 +12,6 @@
     <div v-else class="loader"></div>
 
     <div class="tapo-timer">
-      <q-tooltip>Час, через який необхідно вимкнути пристрій</q-tooltip>
       <div class="row justify-center items-center">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -23,33 +22,33 @@
 
         <span :class="{ 'text-pink': timer }">Timer</span>
 
-        <q-toggle color="pink" v-model="timer" />
+        <q-toggle color="pink" v-model="timer" @update:model-value="toggleTimer" />
 
-        <q-select popup-content-class="dark-select-popup" class="full-width select-time q-mt-sm" outlined dense
-          options-dense v-model="time" :options="timeOptions" />
+        <q-select :disable="timer" popup-content-class="dark-select-popup" class="full-width select-time q-mt-sm"
+          outlined dense options-dense v-model="time" :options="timeOptions">
+          <template v-slot:selected v-if="item.timer && item.timerTimeLeft">
+            <div class="full-width text-white text-center">Вимкнемо через {{ formatMinutes(item.timerTimeLeft) }}</div>
+          </template>
+        </q-select>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useSessionStorage } from 'src/helpers/utils';
+import { formatMinutes, useSessionStorage } from 'src/helpers/utils';
 import { TapoDevice } from 'src/models';
 import { useTapoStore } from 'src/stores/tapo';
 import { ref } from 'vue';
 
 const tapoStore = useTapoStore();
 
-defineProps<{ item: TapoDevice }>();
+const props = defineProps<{ item: TapoDevice }>();
 
 const token = useSessionStorage('access_token');
 
-const changeStateTapoDevices = ref<Array<string>>([]);
-const timer = ref(false);
-const time = ref(15);
-
 const timeOptions = Array.from({ length: 32 }, (_, i) => {
-  const totalMinutes = (i + 1) * 15;
+  const totalMinutes = (i + 1) * 10; // Interval 10 min
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
 
@@ -58,10 +57,22 @@ const timeOptions = Array.from({ length: 32 }, (_, i) => {
   if (minutes > 0) labelParts.push(`${minutes}m`);
 
   return {
-    label: labelParts.join(" "),
+    label: labelParts.join(' '),
     value: totalMinutes,
   };
 });
+
+const changeStateTapoDevices = ref<Array<string>>([]);
+const timer = ref(props.item.timer);
+const time = ref(timeOptions[0]);
+
+async function toggleTimer(value: boolean) {
+  if (value) {
+    await tapoStore.enableTimer(props.item.ip, time.value?.value || 0);
+  } else {
+    await tapoStore.disableTimer(props.item.ip);
+  }
+};
 
 async function toggleDevice(state: number, deviceIp: string) {
   if (!token.value) return;
@@ -99,10 +110,12 @@ async function toggleDevice(state: number, deviceIp: string) {
   background-color: rgb(17, 19, 23);
   border: 1px solid rgb(43, 48, 59);
   border-radius: 8px;
+  height: 48px;
 }
 
 :deep(.q-field__control) {
   border-radius: 8px;
+  height: 48px;
 }
 
 :deep(.q-select__dropdown-icon) {

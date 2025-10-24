@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Path
+import asyncio
+import time
 
 import python.db as db
 from python.auth.verify_token import verify_token
-from python.tapo.dto import TapoDeviceCreateDto, TapoDeviceUpdateDto
-from python.tapo.tapo_service import TapoDevice
+from python.tapo.dto import TapoDeviceCreateDto, TapoDeviceUpdateDto, TimerRequestDto
+from python.tapo.tapo_service import TapoDevice, schedule_turn_off_worker, scheduled_off_tasks
 
 router = APIRouter(prefix="/tapo", tags=["TP-Link Tapo Devices"])
 
@@ -36,9 +38,25 @@ def add_tapo_device_api(device: TapoDeviceCreateDto):
 def get_all_tapo_devices():
     try:
         devices = db.get_all_tapo_devices()
+        now = time.time()
+        result = []
+
         for device in devices:
             device.pop("password", None)
-        return {"devices": devices}
+            ip = device.get("ip")
+            entry = scheduled_off_tasks.get(ip)
+            timer_enabled = bool(entry)
+            timer_time_left = 0
+
+            if entry:
+                execute_at = entry.get("execute_at", now)
+                timer_time_left = max(0, int((execute_at - now) / 60))
+
+            device["timer"] = timer_enabled
+            device["timerTimeLeft"] = timer_time_left
+            result.append(device)
+        
+        return {"devices": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error when receiving a list: {str(e)}")
 
@@ -92,6 +110,45 @@ def turn_off_device(ip: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"❌ The device could not be turned off: {str(e)}")
 
+@router.post("/devices/{ip}/off/timer", dependencies=[Depends(verify_token)])
+def turn_off_device_timer(ip: str, body: TimerRequestDto):
+    minutes = body.timer
+    seconds = minutes * 60
+
+    if ip in scheduled_off_tasks:
+        return {
+            "status": "already_scheduled",
+            "ip": ip,
+            "timer_minutes": scheduled_off_tasks[ip].get("timer_minutes"),
+            "execute_at": scheduled_off_tasks[ip].get("execute_at"),
+        }
+
+    now = time.time()
+    execute_at = now + seconds
+
+    loop = asyncio.get_running_loop()
+    task = loop.create_task(schedule_turn_off_worker(ip))
+
+    scheduled_off_tasks[ip] = {
+        "task": task,
+        "scheduled_at": now,
+        "execute_at": execute_at,
+        "timer_minutes": minutes,
+    }
+
+    return {"status": "timer-activated", "ip": ip, "timer_minutes": minutes, "execute_at": execute_at}
+
+@router.delete("/devices/{ip}/off/timer", dependencies=[Depends(verify_token)])
+def cancel_turn_off_timer(ip: str):
+    entry = scheduled_off_tasks.get(ip)
+    if not entry:
+        raise HTTPException(status_code=404, detail=f"No scheduled timer for device {ip}")
+    task: asyncio.Task = entry.get("task")
+    if task and not task.done():
+        task.cancel()
+    scheduled_off_tasks.pop(ip, None)
+    return {"status": "cancelled", "ip": ip}
+
 @router.delete("/device/{ip}", dependencies=[Depends(verify_token)])
 async def delete_tapo_device(ip: str = Path(..., example="192.168.31.110")):
     device = db.get_tapo_device_by_ip(ip)
@@ -123,8 +180,27 @@ def update_tapo_device_config(ip: str, update_data: TapoDeviceUpdateDto):
 def get_top_priority_devices():
     try:
         devices = db.get_top_priority_tapo_devices()
+        now = time.time()
+        result = []
+
         for device in devices:
             device.pop("password", None)
-        return {"top_devices": devices}
+
+            ip = device.get("ip")
+            entry = scheduled_off_tasks.get(ip)
+
+            timer_enabled = bool(entry)
+            timer_time_left = 0
+
+            if entry:
+                execute_at = entry.get("execute_at", now)
+                timer_time_left = max(0, int((execute_at - now) / 60))
+
+            device["timer"] = timer_enabled
+            device["timerTimeLeft"] = timer_time_left
+
+            result.append(device)
+            
+        return {"top_devices": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"❌ Failed to retrieve top devices: {e}")

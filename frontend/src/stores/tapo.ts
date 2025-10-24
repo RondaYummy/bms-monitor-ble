@@ -104,7 +104,7 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function enableDevice(ip: string): Promise<void> {
     try {
-      await api.post(`/api/tapo/devices/${ip}/on`, config);
+      await api.post(`/api/tapo/devices/${ip}/on`, {}, config);
       changeDevicesState(ip, 1);
     } catch (error) {
       console.error('Error enable tapo device: ', error);
@@ -120,12 +120,42 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function disableDevice(ip: string): Promise<void> {
     try {
-      await api.post(`/api/tapo/devices/${ip}/off`, config);
+      await api.post(`/api/tapo/devices/${ip}/off`, {}, config);
       changeDevicesState(ip, 0);
     } catch (error) {
       console.error('Error disable tapo device: ', error);
       Notify.create({
         message: 'Error disable device.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
+    }
+  }
+
+  async function enableTimer(ip: string, timer: number): Promise<void> {
+    try {
+      await api.post(`/api/tapo/devices/${ip}/off/timer`, { timer }, config);
+    } catch (error) {
+      console.error('Error enable timer tapo device: ', error);
+      Notify.create({
+        message: 'Error enable timer device.',
+        color: 'red',
+        icon: 'warning',
+        position: 'top',
+        timeout: 2000,
+      });
+    }
+  }
+
+  async function disableTimer(ip: string): Promise<void> {
+    try {
+      await api.delete(`/api/tapo/devices/${ip}/off/timer`, config);
+    } catch (error) {
+      console.error('Error disable tapo device timer: ', error);
+      Notify.create({
+        message: 'Error disable device timer.',
         color: 'red',
         icon: 'warning',
         position: 'top',
@@ -239,5 +269,7 @@ export const useTapoStore = defineStore('tapo', () => {
     disableDevice,
     removeDevice,
     getTopDevices,
+    enableTimer,
+    disableTimer,
   };
 });

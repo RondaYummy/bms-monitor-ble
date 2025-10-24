@@ -208,4 +208,6 @@ export interface TapoDevice {
   fw_ver: string; // Наприклад, "1.3.7 Build 20230711 Rel. 61904"
   hw_ver: string; // Наприклад, "1.0.0"
   added_at: string; // ISO-датастрока, наприклад "2025-05-20T01:43:17"
+  timer?: boolean;
+  timerTimeLeft?: number;
 }

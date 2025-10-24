@@ -1,11 +1,16 @@
 import asyncio
+import time
 
+from typing import Dict, Any
 from PyP100 import PyP110
 
-from python.db import get_all_tapo_devices, update_tapo_device_by_ip, get_all_deye_devices
+from python.db import get_all_tapo_devices, update_tapo_device_by_ip, get_tapo_device_by_ip
+from python.push_notifications import send_push_notification
 
 # List of models that support energy monitoring
 SUPPORTED_ENERGY_MONITORING_MODELS = {"P110", "P110M"}
+
+scheduled_off_tasks: Dict[str, Dict[str, Any]] = {}
 
 class TapoDevice:
     def __init__(self, ip: str, email: str, password: str):
@@ -105,3 +110,46 @@ async def check_all_tapo_devices():
             await check_and_update_device_status_async(dev)
 
     await asyncio.gather(*(limited(d) for d in devices))
+
+async def schedule_turn_off_worker(ip: str):
+    entry = scheduled_off_tasks.get(ip)
+    if not entry:
+        return
+
+    execute_at = entry["execute_at"]
+    now = time.time()
+    sleep_seconds = max(0, execute_at - now)
+    try:
+        await asyncio.sleep(sleep_seconds)
+
+        if ip not in scheduled_off_tasks:
+            return
+
+        device = get_tapo_device_by_ip(ip)
+        if not device:
+            scheduled_off_tasks.pop(ip, None)
+            return
+
+        email = device.get("email")
+        password = device.get("password")
+
+        loop = asyncio.get_running_loop()
+        try:
+            tapo = get_tapo_device(ip, email, password)
+            await loop.run_in_executor(None, tapo.turn_off)
+            update_tapo_device_by_ip(ip, {"device_on": 0})
+
+            msg = f"🔴 Пристрій {ip} автоматично вимкнений за таймером."
+            asyncio.create_task(send_push_notification("🔌 Пристрій вимкнуто", msg))
+        except Exception as e:
+            print(f"❌ Error while executing scheduled turn off for {ip}: {e}")
+        finally:
+            scheduled_off_tasks.pop(ip, None)
+
+    except asyncio.CancelledError:
+        scheduled_off_tasks.pop(ip, None)
+        return
+    except Exception as e:
+        print(f"❌ Unexpected error in scheduler worker for {ip}: {e}")
+        scheduled_off_tasks.pop(ip, None)
+        return
