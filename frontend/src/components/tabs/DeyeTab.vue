@@ -2,19 +2,22 @@
   <div class="text-h6 q-mb-sm full-width">Deye Inverter Devices</div>
   <p>Тут ви можете керувати своїми пристроями Deye.</p>
 
-  <q-expansion-item :disable="!token" v-model="expandAddDeyeDevice" icon="add" label="Add new device" dark dense-toggle>
-    <p>
-      Перш ніж додати ваш інвертор Deye, необхідно дізнатися IP-адресу Wi-Fi стіка та серійний номер
-      пристрою. Рекомендуємо призначити статичну IP-адресу, щоб уникнути збоїв у роботі.
-    </p>
+  <div class="red-item">
+    <q-expansion-item :disable="!token" v-model="expandAddDeyeDevice" icon="add" label="Add new device" dark
+      dense-toggle>
+      <p>
+        Перш ніж додати ваш інвертор Deye, необхідно дізнатися IP-адресу Wi-Fi стіка та серійний номер
+        пристрою. Рекомендуємо призначити статичну IP-адресу, щоб уникнути збоїв у роботі.
+      </p>
 
-    <q-input label-color="white" label="Device IP Address" :disable="!token" v-model="createDeye.ip" filled
-      class="q-mb-sm q-mt-sm" />
-    <q-input label-color="white" label="Device Serial Number" :disable="!token" v-model="createDeye.serial_number"
-      filled class="q-mb-sm q-mt-sm" />
-    <q-btn :loading="loading" @click="createDeyeDevice" :disable="!token || !createDeye.ip || !createDeye.serial_number"
-      color="black" label="Додати інвертор" />
-  </q-expansion-item>
+      <q-input label-color="white" label="Device IP Address" :disable="!token" v-model="createDeye.ip" filled
+        class="q-mb-sm q-mt-sm" />
+      <q-input label-color="white" label="Device Serial Number" :disable="!token" v-model="createDeye.serial_number"
+        filled class="q-mb-sm q-mt-sm" />
+      <q-btn :loading="loading" @click="createDeyeDevice"
+        :disable="!token || !createDeye.ip || !createDeye.serial_number" color="black" label="Додати інвертор" />
+    </q-expansion-item>
+  </div>
 
   <q-separator class="q-mt-md q-mb-md" color="white" />
 
@@ -24,7 +27,7 @@
         <q-icon @click.prevent="deleteDevice(item?.ip)" class="cursor-pointer q-mr-sm remove" name="delete" size="1.5em"
           color="red"></q-icon>
 
-        <div class="row justify-between">
+        <div class="row justify-between" style="flex: 1 1 auto;">
           <span @click="copy(item?.id)">
             <span class="muted">ID:</span> {{ item?.id }}
           </span>
@@ -36,14 +39,14 @@
       </div>
 
 
-      <div class="row justify-between">
-        <span @click="copy(item?.serial_number)">
+      <div class="row justify-between q-mt-sm">
+        <span @click="copy(item?.serial_number)" class="text-caption">
           <span class="muted">SN:</span>
           {{ item?.serial_number }}
           <q-tooltip> Серійний номер пристрою. </q-tooltip>
         </span>
 
-        <span @click="copy(item?.ip)">
+        <span @click="copy(item?.ip)" class="text-caption">
           <span class="muted">IP:</span> {{ item?.ip }}
         </span>
       </div>

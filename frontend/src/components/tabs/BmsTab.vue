@@ -34,6 +34,7 @@
       </q-item>
     </q-list>
   </template>
+
   <template v-if="notFoundDevices">
     <h6 class="q-mt-md">Нових пристроїв JK-BMS не знайдено.</h6>
   </template>

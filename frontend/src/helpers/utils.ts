@@ -108,13 +108,17 @@ export function calculateAutonomyTime(
 }
 
 export function formatMinutes(totalMinutes: number): string {
+  let message = ``;
   if (isFinite(totalMinutes)) {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
 
-    return `${hours}h ${minutes}m`; // Example: 8h 52m
+    if (hours > 0) {
+      message += `${hours}h `;
+    }
+    return message + `${minutes}m`; // Example: 8h 52m
   }
-  return '';
+  return message;
 }
 
 /**

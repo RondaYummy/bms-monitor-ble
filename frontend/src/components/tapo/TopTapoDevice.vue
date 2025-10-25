@@ -22,9 +22,9 @@
 
         <span :class="{ 'text-pink': timer }">Timer</span>
 
-        <q-toggle color="pink" v-model="timer" @update:model-value="toggleTimer" />
+        <q-toggle :disable="!token" color="pink" v-model="timer" @update:model-value="toggleTimer" />
 
-        <q-select :disable="timer" popup-content-class="dark-select-popup" class="full-width q-mt-sm" outlined dense
+        <q-select :disable="timer || !token" popup-content-class="dark-select-popup" class="full-width q-mt-sm" outlined dense
           options-dense v-model="time" :options="timeOptions">
           <template v-slot:selected v-if="item.timer && item.timerTimeLeft">
             <div class="full-width text-white text-center">
@@ -73,7 +73,7 @@ const time = ref(timeOptions[0]);
 const timeLeft = computed(() => {
   const time = props.item.timerTimeLeft || 0;
   if (time < 1) {
-    return '';
+    return '< 1m';
   }
   if (time < 60) {
     return `${time}m`;
