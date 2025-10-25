@@ -65,14 +65,14 @@
       </div>
     </q-banner>
 
-    <div v-if="!alertsMain?.length" class="text-center">
+    <div v-if="!alertsMain?.length" class="text-center q-mt-md not-found">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
         <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
         <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
       </svg>
       <p class="text-muted text-muted-title">
-        Немає сповіщень ({{ selectedLevel }})
+        Немає сповіщень {{ selectedLevel ? `(${selectedLevel})` : '' }}
       </p>
       <p class="text-muted">Всі системи працюють нормально</p>
     </div>
@@ -99,7 +99,7 @@ watch(alerts, () => {
 });
 
 function filterAlertsByLevel(level?: string): void {
-  if (!alerts.value) {
+  if (!alerts.value || !alerts.value?.length) {
     return;
   }
   if (!level) {
@@ -107,7 +107,7 @@ function filterAlertsByLevel(level?: string): void {
     return;
   }
   selectedLevel.value = level;
-  alertsMain.value = alerts.value?.filter((a) => a.level === level);
+  alertsMain.value = alerts?.value?.filter((a) => a?.level === level);
 }
 
 onMounted(async () => {
@@ -129,14 +129,16 @@ alertsStore.fetchErrorAlerts();
 }
 
 .text-muted-title {
-  font-size: 18px;
+  font-size: 20px;
   color: rgb(152, 164, 179);
   font-weight: 500;
 }
 
-svg {
-  width: 4rem;
-  height: 4rem;
+.not-found {
+  svg {
+    width: 4rem;
+    height: 4rem;
+  }
 }
 
 .clear-all-btn {
@@ -146,10 +148,28 @@ svg {
   padding: 8px 16px;
   font-weight: 900;
   background-color: rgba(239, 67, 67, 0.1);
-  margin: 0 0 0 auto;
+  margin: 10px 0 10px auto;
+  display: flex;
+  animation-duration: 0.3s;
+  transition-duration: 0.3s;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 
   span {
     color: rgb(239, 67, 67);
   }
+}
+
+.clear-all-btn:hover {
+  transform: matrix(1.05, 0, 0, 1.05, 0, 0);
+  background-color: rgba(239, 67, 67, 0.2);
+}
+
+:deep(.q-chip) {
+  font-weight: 500;
+  font-size: 14px;
+  padding: 4px 20px;
+  height: 36px;
+  border-radius: 10px;
 }
 </style>

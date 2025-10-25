@@ -17,7 +17,7 @@
 
           <SemiCircleGauge :value="-(deyeData?.battery_power || 0)" :image="'/inverter/battery_yellow_200x200.png'"
             :tooltip="'Потужність заряду/розряду акумулятора'"
-            :additional-value="deyeData?.battery_soc > 0 ? `${deyeData?.battery_soc}%` : ''" />
+            :additional-value="`${deyeData?.battery_voltage}`" />
         </div>
 
         <div class="column">

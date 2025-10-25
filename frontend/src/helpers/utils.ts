@@ -196,6 +196,7 @@ export function parseManufacturingDate(dateStr: string): string {
 }
 
 export function sortDevices<T extends { name: string }>(arr: T[]): T[] {
+  if (!Array.isArray(arr)) return [];
   return arr?.sort((a, b) => b.name.localeCompare(a.name));
 }
 

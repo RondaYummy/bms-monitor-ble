@@ -135,6 +135,7 @@ const chartOptions = computed(() => ({
   font-size: 16px;
   font-weight: 600;
   margin-top: -24px;
+  padding-bottom: 5px;
 }
 
 .labels {
