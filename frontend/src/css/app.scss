@@ -324,3 +324,14 @@ sup {
   border-radius: 10px;
   border: 1px solid rgba(232, 48, 110, 0.2);
 }
+
+.muted {
+  color: rgb(152, 164, 179);
+}
+
+.device-item {
+  border: 1px solid rgba(43, 48, 59, 0.5);
+  background: linear-gradient(135deg, rgb(25, 29, 36), rgb(33, 36, 44));
+  border-radius: 10px;
+  margin: 10px 0px;
+}

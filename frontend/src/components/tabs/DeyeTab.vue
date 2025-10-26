@@ -129,8 +129,4 @@ deyeStore.fetchDeyeDevices();
   padding: 8px;
   border-radius: 10px;
 }
-
-.muted {
-  color: rgb(152, 164, 179);
-}
 </style>

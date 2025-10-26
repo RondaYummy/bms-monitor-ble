@@ -1,6 +1,6 @@
 <template>
   <ul>
-    <li v-for="device of devicesList" :key="`sr_${device?.serial_number}`">
+    <li v-for="device of devicesList" :key="`sr_${device?.serial_number}`" class="q-pa-lg device-item">
       <div class="column">
         <div class="row justify-between q-mb-10">
           <div class="column">
@@ -57,7 +57,6 @@
           label="Приєднатися"
         />
       </div>
-      <q-separator color="orange" inset />
     </li>
   </ul>
 </template>

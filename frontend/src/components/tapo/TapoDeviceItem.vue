@@ -1,21 +1,13 @@
 <template>
-  <div class="row device-row">
-    <q-icon
-    v-if="!loadding"
-      @click="toggleDevice(device?.device_on)"
-      name="power_settings_new"
+  <div class="row device-row device-item">
+    <q-icon v-if="!loadding" @click="toggleDevice(device?.device_on)" name="power_settings_new"
       class="cursor-pointer toggle-device"
-      :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }"
-      size="3em"
-    />
+      :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
     <div v-else class="loader toggle-device"></div>
-    <div
-      :class="{
-        'connected-device': device?.device_on == 1,
-        'disconnected-device': device?.device_on == 0,
-      }"
-      class="q-pa-xs cursor-pointer text-weight-bold q-mt-sm q-mb-10 text-center cursor-pointer badge"
-    ></div>
+    <div :class="{
+      'connected-device': device?.device_on == 1,
+      'disconnected-device': device?.device_on == 0,
+    }" class="q-pa-xs cursor-pointer text-weight-bold q-mt-sm q-mb-10 text-center cursor-pointer badge"></div>
 
     <h6 @click="copy(device?.device_id)" class="tect-center full-width text-capitalize">
       <span class="q-mr-sm">{{ device?.name }}</span>
@@ -27,12 +19,7 @@
           <span class="unique q-mr-sm">
             {{ device?.model }}
           </span>
-          <q-icon
-            @click.prevent="openEditModal(device)"
-            class="cursor-pointer"
-            name="edit"
-            size="1.5em"
-          ></q-icon>
+          <q-icon @click.prevent="openEditModal(device)" class="cursor-pointer" name="edit" size="1.5em"></q-icon>
         </span>
 
         <span @click="copy(device?.ip)" class="unique">{{ device?.ip }}</span>
@@ -62,12 +49,8 @@
     <q-card dark style="min-width: 350px">
       <q-card-section>
         <div class="text-h6">
-          <q-icon
-            @click.prevent="deleteDevice(device?.ip)"
-            class="cursor-pointer q-mr-sm"
-            name="delete"
-            size="1.5em"
-          ></q-icon>
+          <q-icon @click.prevent="deleteDevice(device?.ip)" class="cursor-pointer q-mr-sm" name="delete"
+            size="1.5em"></q-icon>
           {{ editedDeviceData?.name }}
         </div>
         <div class="row justify-center full-width">
@@ -84,16 +67,8 @@
 
       <q-card-section class="q-pt-none">
         <div class="row justify-between items-center">
-          <q-input
-            label-color="white"
-            dark
-            label="Device IP Address"
-            :disable="!token"
-            v-model="editedDeviceData.ip"
-            filled
-            class="q-mb-sm q-mt-sm"
-            style="flex: 1 1 auto"
-          />
+          <q-input label-color="white" dark label="Device IP Address" :disable="!token" v-model="editedDeviceData.ip"
+            filled class="q-mb-sm q-mt-sm" style="flex: 1 1 auto" />
           <q-icon class="q-pl-md" name="help" size="2.5em">
             <q-tooltip>
               Щоб забезпечити стабільну роботу системи, потрібно **призначити статичні IP-адреси**
@@ -104,16 +79,8 @@
         </div>
 
         <div class="row justify-between items-center">
-          <q-input
-            label-color="white"
-            dark
-            label="Priority"
-            :disable="!token"
-            v-model="editedDeviceData.priority"
-            filled
-            class="q-mb-sm"
-            style="flex: 1 1 auto"
-          />
+          <q-input label-color="white" dark label="Priority" :disable="!token" v-model="editedDeviceData.priority"
+            filled class="q-mb-sm" style="flex: 1 1 auto" />
           <q-icon class="q-pl-md" name="help" size="2.5em">
             <q-tooltip>
               Приорітет пристрою, чим вищий приорітет, тим важливіший пристрій. Наприклад
@@ -124,48 +91,24 @@
         </div>
 
         <div class="row justify-between items-center">
-          <q-input
-            label-color="white"
-            dark
-            label="Email to Tapo application"
-            :disable="!token"
-            v-model="editedDeviceData.email"
-            filled
-            class="q-mb-sm"
-            style="flex: 1 1 auto"
-          />
+          <q-input label-color="white" dark label="Email to Tapo application" :disable="!token"
+            v-model="editedDeviceData.email" filled class="q-mb-sm" style="flex: 1 1 auto" />
           <q-icon class="q-pl-md" name="help" size="2.5em">
             <q-tooltip> Необхідно для підключення до вашого девайсу. </q-tooltip>
           </q-icon>
         </div>
 
         <div class="row justify-between items-center">
-          <q-input
-            label-color="white"
-            dark
-            label="Password to Tapo application"
-            :disable="!token"
-            v-model="editedDeviceData.password"
-            filled
-            class="q-mb-sm"
-            style="flex: 1 1 auto"
-          />
+          <q-input label-color="white" dark label="Password to Tapo application" :disable="!token"
+            v-model="editedDeviceData.password" filled class="q-mb-sm" style="flex: 1 1 auto" />
           <q-icon class="q-pl-md" name="help" size="2.5em">
             <q-tooltip> Необхідно для підключення до вашого девайсу. </q-tooltip>
           </q-icon>
         </div>
 
         <div class="row justify-between items-center">
-          <q-input
-            label-color="white"
-            dark
-            label="Device power ( W )"
-            :disable="!token"
-            v-model="editedDeviceData.power_watt"
-            filled
-            class="q-mb-sm"
-            style="flex: 1 1 auto"
-          />
+          <q-input label-color="white" dark label="Device power ( W )" :disable="!token"
+            v-model="editedDeviceData.power_watt" filled class="q-mb-sm" style="flex: 1 1 auto" />
           <q-icon class="q-pl-md" name="help" size="2.5em">
             <q-tooltip>
               Потужність прилада, який вмикається цією розеткою Tapo. Наприклад бойлер, який
@@ -177,19 +120,11 @@
 
       <q-card-actions align="right" class="text-primary">
         <q-btn flat label="Cancel" v-close-popup />
-        <q-btn
-          v-close-popup
-          :loading="loadingEditDevice"
-          @click="editTapoDevice"
-          :disable="!token"
-          color="black"
-          label="Update"
-        />
+        <q-btn v-close-popup :loading="loadingEditDevice" @click="editTapoDevice" :disable="!token" color="black"
+          label="Update" />
       </q-card-actions>
     </q-card>
   </q-dialog>
-
-  <q-separator color="orange" inset />
 </template>
 
 <script setup lang="ts">
@@ -276,6 +211,7 @@ async function toggleDevice(state: number) {
   width: 100%;
   padding: 15px;
   position: relative;
+  margin: 10px 0;
 }
 
 .toggle-device {

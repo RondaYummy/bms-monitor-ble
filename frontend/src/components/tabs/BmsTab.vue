@@ -2,49 +2,40 @@
   <div class="text-h6">JK-BMS Devices</div>
   <p>Тут ви можете керувати своїми пристроями JK-BMS.</p>
 
-  <q-btn
-    :loading="loadingDevices"
-    @click="fetchDevices"
-    :disable="!token"
-    color="black"
-    label="Пошук нових пристроїв"
-  />
+  <div class="red-item">
+    <q-expansion-item :disable="!token" v-model="expandAddDevice" icon="add" label="Add new device" dark dense-toggle>
 
-  <template v-if="devices.length">
-    <h6 class="q-mt-md">Знайдені пристрої:</h6>
-    <p>
-      Щоб приєднатися до пристрою, просто натисніть на нього. Доданий вами девайс, буде підключений
-      приблизно за 10 секунд і ви зможете побачити його на головному екрані.
-    </p>
-    <q-list bordered separator>
-      <q-item
-        v-for="device of devices"
-        :key="device.address"
-        clickable
-        :disable="!!attemptToConnectDevice"
-        :active="attemptToConnectDevice === device.address"
-        @click="token && connectToDevice(device.address, device.name)"
-        v-ripple
-      >
-        <q-item-section>{{
-          attemptToConnectDevice === device.address
-            ? `Підключення до ${device?.name}`
-            : device?.name
-        }}</q-item-section>
-      </q-item>
-    </q-list>
-  </template>
+      <q-btn :loading="loadingDevices" @click="fetchDevices" :disable="!token" color="black"
+        label="Пошук нових пристроїв" />
 
-  <template v-if="notFoundDevices">
-    <h6 class="q-mt-md">Нових пристроїв JK-BMS не знайдено.</h6>
-  </template>
+      <template v-if="devices.length">
+        <h6 class="q-mt-md">Знайдені пристрої:</h6>
+        <p>
+          Щоб приєднатися до пристрою, просто натисніть на нього. Доданий вами девайс, буде підключений
+          приблизно за 10 секунд і ви зможете побачити його на головному екрані.
+        </p>
+        <q-list bordered separator>
+          <q-item v-for="device of devices" :key="device.address" clickable :disable="!!attemptToConnectDevice"
+            :active="attemptToConnectDevice === device.address"
+            @click="token && connectToDevice(device.address, device.name)" v-ripple>
+            <q-item-section>{{
+              attemptToConnectDevice === device.address
+                ? `Підключення до ${device?.name}`
+                : device?.name
+            }}</q-item-section>
+          </q-item>
+        </q-list>
+      </template>
 
-  <q-separator class="q-mt-md" color="white" />
-
-  <div>
-    <div class="text-h6 q-mt-md">Ваші пристрої:</div>
-    <DevicesList :disconnect-btn="true" />
+      <template v-if="notFoundDevices">
+        <h6 class="q-mt-md">Нових пристроїв JK-BMS не знайдено.</h6>
+      </template>
+    </q-expansion-item>
   </div>
+
+  <q-separator class="q-mt-md q-mb-md" color="white" />
+
+  <DevicesList :disconnect-btn="true" />
 </template>
 
 <script setup lang="ts">
@@ -62,6 +53,7 @@ const notFoundDevices = ref<boolean>(false);
 const loadingDevices = ref<boolean>(false);
 const attemptToConnectDevice = ref<string>('');
 const intervalId = ref();
+const expandAddDevice = ref(false);
 
 async function fetchDevices() {
   try {

@@ -17,7 +17,7 @@
 
           <SemiCircleGauge :value="-(deyeData?.battery_power || 0)" :image="'/inverter/battery_yellow_200x200.png'"
             :tooltip="'Потужність заряду/розряду акумулятора'"
-            :additional-value="`${deyeData?.battery_voltage}`" />
+            :additional-value="`${deyeData?.battery_voltage?.toFixed(2)}ᵛ`" />
         </div>
 
         <div class="column">
@@ -36,6 +36,35 @@
         <AddtionalInfo :data="deyeData" />
       </template>
     </template>
+
+    <div class="card">
+  <div class="card-content">
+    <div class="card-header">
+      <div class="flex-1 space-y-1">
+        <div class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z" />
+          </svg>
+          <h3>Авто-балансування</h3>
+        </div>
+        <p class="card-subtitle">Автоматично вимикає прилади, якщо споживання перевищує генерацію</p>
+      </div>
+
+      <button class="status-btn status-btn--active">
+        <div class="status-dot"></div>
+        АКТИВНО
+      </button>
+    </div>
+
+    <div class="card-footer">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+      </svg>
+      <span>Система моніторить баланс енергії</span>
+    </div>
+  </div>
+</div>
+
 
     <template v-if="topTapoDevices?.length">
       <h6>
