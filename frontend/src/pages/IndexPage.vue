@@ -30,7 +30,7 @@
         </div>
       </div>
 
-      <q-btn @click="showMoreDeye = !showMoreDeye" label="Show more ⤵️" class="q-mb-sm" size="sm" flat />
+      <q-btn @click="showMoreDeye = !showMoreDeye" label="↓ Show more ↓" class="q-mb-sm full-width" size="md" unelevated />
 
       <template v-if="showMoreDeye">
         <AddtionalInfo :data="deyeData" />
@@ -366,7 +366,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
@@ -384,7 +384,7 @@
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
               String(idx + 1).padStart(2, '0')
-              }}</q-chip>
+            }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
         </div>
