@@ -1,9 +1,9 @@
 <template>
   <div class="box">
     <div class="p-6">
-      <div class="row items-center justify-between gap-4">
+      <div class="row items-center justify-between gap-4 column-media">
         <div class="flex-1 space-y-1">
-          <div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+          <div class="flex items-center justify-center-media gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round" class="lucide lucide-zap w-5 h-5 text-success">
               <path
@@ -25,7 +25,7 @@
         </button>
       </div>
 
-      <div v-if="enabled" class="mt-4 pt-4 border-t row items-center gap-2 text-sm text-success">
+      <div v-if="enabled" class="mt-4 pt-4 border-t row items-center gap-2 text-sm text-success text-center-media">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
           class="lucide lucide-shield w-4 h-4">
@@ -166,5 +166,25 @@ h3 {
 
 .border-t {
   border-top: 1px solid rgba(43, 48, 59, 0.5);
+}
+
+@media screen and (max-width: 767px) {
+  .column-media {
+    flex-direction: column;
+    text-align: center;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  .justify-center-media {
+    justify-content: center;
+  }
+
+  .text-center-media {
+    text-align: center;
+    justify-content: center;
+  }
 }
 </style>
