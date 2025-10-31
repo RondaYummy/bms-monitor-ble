@@ -111,7 +111,7 @@ async def manage_tapo_power():
                     except Exception:
                         pass
 
-                # print(f"🔎 Current total load (sum deye.load_power): {total_load:.1f} W")
+                print(f"🔎 Current total load (sum deye.load_power): {total_load:.1f} W")
 
                 if total_load > THRESHOLD_W:
                     load_to_shed = total_load - THRESHOLD_W
