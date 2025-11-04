@@ -95,7 +95,7 @@ export const useBmsStore = defineStore('bms', () => {
 
   async function connectToDevice(address: string, name: string): Promise<void> {
     try {
-      const res = await api.post('/api/connect-device', { address, name }, config);
+      const res = await api.post('/api/connect-device', { address, name });
       if (res?.data?.error) {
         Notify.create({
           message: res?.data?.error,

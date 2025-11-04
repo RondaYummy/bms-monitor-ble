@@ -188,7 +188,7 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function searchTapoDevices(data: { email: string; password: string }) {
     try {
-      const res = await api.post(`/api/tapo/devices/search`, data, config);
+      const res = await api.post(`/api/tapo/devices/search`, data);
       foundDevices.value = res.data?.devices;
       return foundDevices.value;
     } catch (error) {

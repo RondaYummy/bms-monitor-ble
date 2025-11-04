@@ -47,7 +47,7 @@ export const useDeyeStore = defineStore('deye', () => {
     slave_id?: number;
   }): Promise<DeyeRealtimeData[] | undefined> {
     try {
-      const response = await api.post('/api/deye/device', data, config);
+      const response = await api.post('/api/deye/device', data);
       const devices = await response.data;
       updateDeyeData(devices);
       return deyeData.value;
