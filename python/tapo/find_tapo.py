@@ -32,6 +32,8 @@ def ping(ip):
 def try_check_device(ip: str, email: str, password: str):
     try:
         device = PyP110.P110(ip, email, password)
+
+        # See more: https://github.com/almottier/TapoP100?tab=readme-ov-file#plugs---p100-p105-etc
         # device.handshake() # DEPRECATED
         # device.login() # DEPRECATED
         info = device.getDeviceInfo()
