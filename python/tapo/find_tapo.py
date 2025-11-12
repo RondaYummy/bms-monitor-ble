@@ -32,7 +32,6 @@ def ping(ip):
 def try_check_device(ip: str, email: str, password: str):
     try:
         device = PyP110.P110(ip, email, password)
-
         # See more: https://github.com/almottier/TapoP100?tab=readme-ov-file#plugs---p100-p105-etc
         # device.handshake() # DEPRECATED
         # device.login() # DEPRECATED
@@ -67,7 +66,6 @@ def search_tapo_devices(request: ScanRequest):
         ping_results = list(executor.map(ping, ip_list))
 
     alive_ips = [ip for ip in ping_results if ip]
-
     time.sleep(1)
 
     found_devices = []
@@ -75,8 +73,9 @@ def search_tapo_devices(request: ScanRequest):
         results = executor.map(lambda ip: try_check_device(ip, request.email, request.password), alive_ips)
         found_devices = [res for res in results if res]
 
-    new_devices = []
+    print("✅ Found devices:", [dev for dev in found_devices])
 
+    new_devices = []
     for d in found_devices:
         existing = db.get_tapo_device_by_ip(d["ip"])
         if existing:
