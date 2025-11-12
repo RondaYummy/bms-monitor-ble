@@ -61,8 +61,6 @@ def search_tapo_devices(request: ScanRequest):
 
     ip_list = [str(ip) for ip in network.hosts()]
 
-    time.sleep(1)
-
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         ping_results = list(executor.map(ping, ip_list))
 
