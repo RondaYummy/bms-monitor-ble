@@ -32,8 +32,8 @@ def ping(ip):
 def try_check_device(ip: str, email: str, password: str):
     try:
         device = PyP110.P110(ip, email, password)
-        device.handshake()
-        device.login()
+        # device.handshake() # DEPRECATED
+        # device.login() # DEPRECATED
         info = device.getDeviceInfo()
         name = device.getDeviceName()
         model = info.get("model", "Unknown")
