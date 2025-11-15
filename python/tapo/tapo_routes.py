@@ -110,6 +110,12 @@ def turn_off_device(ip: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"❌ The device could not be turned off: {str(e)}")
 
+async def safe_turn_on(ip: str, tapo: TapoDevice):
+    try:
+        await asyncio.get_running_loop().run_in_executor(None, tapo.turn_on)
+    except Exception as e:
+        logger.warning(f"Ignored error while turning on Tapo {ip}: {e}")
+
 @router.post("/devices/{ip}/off/timer", dependencies=[Depends(verify_token)])
 async def turn_off_device_timer(ip: str, body: TimerRequestDto):
     minutes = body.timer
@@ -127,6 +133,10 @@ async def turn_off_device_timer(ip: str, body: TimerRequestDto):
                 "execute_at": scheduled_off_tasks[ip].get("execute_at"),
             }
 
+        device = db.get_tapo_device_by_ip(ip)
+        if not device:
+            raise HTTPException(status_code=404, detail="Device not found")
+
         entry = {
             "task": None,
             "scheduled_at": now,
@@ -134,14 +144,10 @@ async def turn_off_device_timer(ip: str, body: TimerRequestDto):
             "timer_minutes": minutes,
         }
         scheduled_off_tasks[ip] = entry
-
-        device = db.get_tapo_device_by_ip(ip)
-        if not device:
-            raise HTTPException(status_code=404, detail="Device not found")
-
+        
         loop = asyncio.get_running_loop()
         tapo = TapoDevice(ip, device["email"], device["password"])
-        await loop.run_in_executor(None, tapo.turn_on)
+        asyncio.create_task(safe_turn_on(ip, tapo))
 
         task = asyncio.create_task(schedule_turn_off_worker(ip))
         
