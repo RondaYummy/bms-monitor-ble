@@ -71,12 +71,14 @@ async def check_and_update_device_status_async(device_row):
 
             update_data = {
                 "device_on": status.get("device_on", False),
-                "name": name,
                 "model": model,
                 "fw_ver": info.get("fw_ver"),
                 "hw_ver": info.get("hw_ver"),
                 "device_id": info.get("device_id"),
             }
+
+            if name:
+                update_data["name"] = name
 
             # If the device supports energy monitoring, try to read
             if model in SUPPORTED_ENERGY_MONITORING_MODELS:

@@ -5,7 +5,7 @@
       <sup>kW</sup>
     </span>
 
-    <span class="text-center tapo-name">{{ item?.name }}</span>
+    <span class="text-center tapo-name">{{ item?.name || 'Unknown' }}</span>
     <q-icon v-if="!changeStateTapoDevices.find((d) => d === item?.ip)" @click="toggleDevice(item?.device_on, item?.ip)"
       name="power_settings_new" class="cursor-pointer"
       :class="{ 'text-white': item?.device_on == 0, 'text-red': item?.device_on == 1 }" size="3em" />
