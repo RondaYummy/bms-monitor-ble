@@ -832,36 +832,33 @@ def update_tapo_device_by_ip(ip, info: dict):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            # Main fields to update
-            fields = [
-                "name = ?",
-                "model = ?",
-                "fw_ver = ?",
-                "hw_ver = ?",
-                "device_id = ?",
-                "device_on = ?"
-            ]
-            values = [
-                info.get("name"),
-                info.get("model"),
-                info.get("fw_ver"),
-                info.get("hw_ver"),
-                info.get("device_id"),
-                info.get("device_on", False)
-            ]
-            # Additional field power_watt (optional)
-            if "power_watt" in info:
-                fields.append("power_watt = ?")
-                values.append(info["power_watt"])
+
+            fields = []
+            values = []
+
+            allowed_fields = ["name", "model", "fw_ver", "hw_ver", "device_id", "device_on", "power_watt"]
+
+            for field in allowed_fields:
+                if field in info:
+                    fields.append(f"{field} = ?")
+                    values.append(info[field])
+
+            if not fields:
+                return get_tapo_device_by_ip(ip)
+
             values.append(ip)
+
             sql = f'''
                 UPDATE tapo_devices
                 SET {", ".join(fields)}
                 WHERE ip = ?
             '''
+
             cursor.execute(sql, values)
             conn.commit()
+
             return get_tapo_device_by_ip(ip)
+
     except sqlite3.Error as e:
         print(f"❌ Error updating the Tapo device: {e}")
         raise

@@ -72,6 +72,10 @@ def turn_on_device(ip: str):
         info = status.get("info", {})
         tapo.turn_on()
 
+        print("STATUS:", status)
+        print("NAME:", name)
+        print("INFO:", info)
+
         update_data = {
             "device_on": True,
             "model": info.get("model"),
