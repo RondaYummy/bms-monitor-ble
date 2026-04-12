@@ -17,7 +17,7 @@
             </p>
           </div>
 
-          <button class="btn btn-enabled" :disabled="!token" @click="enabled = true;">
+          <button class="btn btn-enabled" :disabled="!token" @click="setAutoPowerManagement">
             <div class="w-2 h-2 rounded-full bg-success animate-pulse"></div>
             ВКЛЮЧИТИ
           </button>
@@ -51,7 +51,7 @@
             </span>
 
             <div class="column items-center justify-center">
-              <button v-if="enabled" class="btn text-red q-mt-md" @click="enabled = false">
+              <button v-if="enabled" class="btn text-red q-mt-md" @click="setAutoPowerManagement">
                 <div class="w-2 h-2 rounded-full bg-negative animate-pulse"></div>
                 ВИКЛЮЧИТИ
               </button>
@@ -67,7 +67,7 @@
 import { Notify } from 'quasar';
 import { useSessionStorage } from 'src/helpers/utils';
 import { useConfigStore } from 'src/stores/config';
-import { ref, watch, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 
 const token = useSessionStorage('access_token');
 const configStore = useConfigStore();
@@ -75,6 +75,7 @@ const configStore = useConfigStore();
 const enabled = ref(false);
 
 async function setAutoPowerManagement() {
+  enabled.value = !enabled.value;
   try {
     await configStore.updateConfigs({
       auto_power_management_enabled: enabled.value ? 1 : 0,
@@ -95,14 +96,8 @@ async function setAutoPowerManagement() {
       position: 'top',
       timeout: 2000,
     });
-
   }
 }
-
-watch(enabled, (val: boolean, old: boolean) => {
-  if (val === old) return;
-  void setAutoPowerManagement();
-});
 
 onMounted(async () => {
   await configStore.fetchConfigs();
