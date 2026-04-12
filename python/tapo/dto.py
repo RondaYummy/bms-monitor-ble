@@ -15,6 +15,11 @@ class TapoDeviceUpdateDto(BaseModel):
     password: Optional[str] = Field(None, description="New password for device")
     power_watt: Optional[int] = Field(None, description="Manual power_watt override")
     priority: Optional[int] = Field(None, description="Priority level")
+
+    auto_power_off_enabled: Optional[bool] = Field(
+        None,
+        description="Enable/disable auto power off for this device"
+    )
     
 class TimerRequestDto(BaseModel):
     timer: int = Field(..., gt=0, description="Timer in minutes (integer > 0)")

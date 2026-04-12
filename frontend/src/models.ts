@@ -94,6 +94,7 @@ export interface Config {
   password: string;
   vapid_public: string;
   n_hours: number;
+  auto_power_management_enabled: number;
 }
 
 export interface Alert {
@@ -210,4 +211,5 @@ export interface TapoDevice {
   added_at: string; // ISO-датастрока, наприклад "2025-05-20T01:43:17"
   timer?: boolean;
   timerTimeLeft?: number;
+  auto_power_off_enabled?: number;
 }

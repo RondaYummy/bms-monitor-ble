@@ -27,6 +27,7 @@ from python.tapo.tapo_routes import router as tapo_router
 from python.tapo.manage_device_power import router as power_manage_router
 from python.tapo.tapo_service import check_all_tapo_devices
 from python.tapo.manage_device_power import manage_tapo_power
+from python.auto_power import auto_power_manager_loop
 
 with open('configs/error_codes.yaml', 'r') as file:
     error_codes = yaml.safe_load(file)
@@ -80,6 +81,7 @@ async def startup_event():
     asyncio.create_task(db.process_devices())
     asyncio.create_task(run_deye_loop())
     asyncio.create_task(manage_device_power_task_wrapper())
+    asyncio.create_task(auto_power_manager_loop())
 
     async def periodic_tapo_status():
         while True:
@@ -205,6 +207,25 @@ async def get_configs():
     for key in ["VAPID_PRIVATE_KEY", "password"]:
         config.pop(key, None)
     return config
+
+class ToggleAutoPowerRequest(BaseModel):
+    enabled: bool
+
+@app.patch(
+    "/api/auto-power",
+    summary="Toggle auto power management",
+    dependencies=[Depends(verify_token)]
+)
+def toggle_auto_power(body: ToggleAutoPowerRequest):
+    success = db.toggle_auto_power_management(body.enabled)
+
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to update config")
+
+    return {
+        "status": "ok",
+        "enabled": body.enabled
+    }
 
 @app.post("/api/configs", dependencies=[Depends(verify_token)])
 async def update_configs(request: ConfigUpdateRequest):

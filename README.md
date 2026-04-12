@@ -180,11 +180,26 @@ This project is my attempt to create a fully local, integrated, and extensible e
 - [x] PWA frontend with offline support
 - [x] Web push notifications
 - [x] Dockerized backend
-- [x] Automated power balancing to prevent inverter overload by switching Tapo smart plugs and reporting the number of devices disabled.
-- [ ] Turning on Tapo smart plugs using timers.
-- [ ] Dashboard with charts
+
+## ⚡ Energy Management Core (DONE v1)
+- [x] Automated power balancing (PV vs Load control)
+- [x] Smart device shutdown via Tapo plugs
+- [x] Priority-based device handling removed from auto-loop
+- [x] Auto power management toggle (config-driven feature flag)
+- [x] Timer-based device shutdown system
+- [x] Real-time device state sync (UI ↔ backend)
+
+## 📊 Next Features
 - [ ] Export historical data (CSV / Grafana)
-- [ ] Add multi-inverter support
+- [ ] Device groups (rooms / zones)
+- [ ] Manual override mode (lock device states)
+- [ ] Smart reactivation (auto turn-on when surplus power appears)
+- [ ] Energy prediction (basic forecasting)
+- [ ] Notifications rules engine (custom alerts)
+
+## 🌐 Multi-site / scaling (future)
+- [ ] Multi-house / multi-site support
+- [ ] Cloud sync mode (optional)
 ```
 
 ## 🛠️ Tech Stack

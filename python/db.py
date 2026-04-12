@@ -198,7 +198,8 @@ def create_table():
                 password TEXT DEFAULT '',
                 VAPID_PUBLIC_KEY TEXT DEFAULT '',
                 VAPID_PRIVATE_KEY TEXT DEFAULT '',
-                n_hours INTEGER DEFAULT 12
+                n_hours INTEGER DEFAULT 12,
+                auto_power_management_enabled INTEGER DEFAULT 0
             )
             ''')
             cursor.execute("SELECT COUNT(*) FROM configs")
@@ -238,6 +239,7 @@ def create_table():
                 password TEXT NOT NULL,
                 device_on BOOLEAN DEFAULT FALSE,
                 auto_enabled BOOLEAN DEFAULT FALSE,
+                auto_power_off_enabled INTEGER DEFAULT 0,
                 device_id TEXT,
                 name TEXT,
                 model TEXT,
@@ -1113,4 +1115,18 @@ def refresh_ssl_certificate():
 
     except sqlite3.Error as e:
         print(f"❌ Error updating SSL certificate: {e}")
+        return False
+
+def toggle_auto_power_management(enabled: bool):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                UPDATE configs
+                SET auto_power_management_enabled = ?
+            ''', (int(enabled),))
+            conn.commit()
+            return True
+    except sqlite3.Error as e:
+        print(f"❌ Error updating config: {e}")
         return False

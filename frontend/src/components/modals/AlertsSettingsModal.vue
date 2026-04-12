@@ -17,7 +17,7 @@
       </div>
 
       <div class="row justify-between q-mt-sm">
-        <q-btn @click="configStore.updateConfigs" color="black" size="xs" :disable="!token" label="Зберегти" />
+        <q-btn @click="configStore.updateConfigs()" color="black" size="xs" :disable="!token" label="Зберегти" />
 
         <q-btn @click="close" size="xs" color="black" :disable="!token" label="Скасувати" />
       </div>

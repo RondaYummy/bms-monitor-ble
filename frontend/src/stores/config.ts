@@ -31,6 +31,8 @@ export const useConfigStore = defineStore('config', () => {
     password: '',
     VAPID_PUBLIC_KEY: '',
     vapid_public: '',
+    auto_power_management_enabled: 0,
+
   });
 
   const ssl = ref<SslResponse>({
@@ -90,9 +92,14 @@ export const useConfigStore = defineStore('config', () => {
     }
   }
 
-  async function updateConfigs() {
+  async function updateConfigs(payload?: Partial<Config>) {
     try {
-      const response = await api.post('/api/configs', { ...config.value }, configs);
+      const response = await api.post(
+        '/api/configs',
+        { ...config.value, ...payload },
+        configs
+      );
+  
       config.value = response.data;
     } catch (error) {
       console.error('Error updating configs:', error);

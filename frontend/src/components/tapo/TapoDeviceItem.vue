@@ -1,9 +1,18 @@
 <template>
   <div class="row device-row device-item">
-    <q-icon v-if="!loadding" @click="toggleDevice(device?.device_on)" name="power_settings_new"
-      class="cursor-pointer toggle-device"
-      :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
-    <div v-else class="loader toggle-device"></div>
+    <div>
+      <q-icon v-if="!loadding" @click="toggleDevice(device?.device_on)" name="power_settings_new"
+        class="cursor-pointer toggle-device"
+        :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
+      <div v-else class="loader toggle-device"></div>
+      <q-btn class="toggle-power-device" dense flat round :color="device.auto_power_off_enabled ? 'green' : 'grey'" icon="bolt"
+        @click="tapoStore?.toggleAutoPower(device)">
+        <q-tooltip>
+          Автоматичне вимкнення при низькій генерації
+        </q-tooltip>
+      </q-btn>
+    </div>
+
     <div :class="{
       'connected-device': device?.device_on == 1,
       'disconnected-device': device?.device_on == 0,
@@ -218,6 +227,12 @@ async function toggleDevice(state: number) {
   position: absolute;
   top: 10px;
   right: 10px;
+}
+
+.toggle-power-device {
+  position: absolute;
+  top: 15px;
+  right: 50px;
 }
 
 .badge:before {

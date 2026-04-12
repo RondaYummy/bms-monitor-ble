@@ -64,12 +64,51 @@
 </template>
 
 <script setup lang="ts">
+import { Notify } from 'quasar';
 import { useSessionStorage } from 'src/helpers/utils';
-import { ref } from 'vue';
+import { useConfigStore } from 'src/stores/config';
+import { ref, watch, onMounted } from 'vue';
 
 const token = useSessionStorage('access_token');
+const configStore = useConfigStore();
 
 const enabled = ref(false);
+
+async function setAutoPowerManagement() {
+  try {
+    await configStore.updateConfigs({
+      auto_power_management_enabled: enabled.value ? 1 : 0,
+    });
+    Notify.create({
+      message: enabled.value
+        ? 'Автоматичне керування увімкнено'
+        : 'Автоматичне керування вимкнено',
+      color: 'secondary',
+      position: 'top',
+    });
+  } catch (error) {
+    console.error(error);
+    Notify.create({
+      message: 'Сталася помилка під час включення/виключення моніторингу балансу сонячної електроенергії',
+      color: 'red',
+      icon: 'warning',
+      position: 'top',
+      timeout: 2000,
+    });
+
+  }
+}
+
+watch(enabled, (val: boolean, old: boolean) => {
+  if (val === old) return;
+  void setAutoPowerManagement();
+});
+
+onMounted(async () => {
+  await configStore.fetchConfigs();
+  enabled.value =
+    configStore.getConfig().auto_power_management_enabled === 1;
+});
 </script>
 
 <style scoped lang="scss">

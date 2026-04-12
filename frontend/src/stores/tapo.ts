@@ -9,6 +9,7 @@ export interface UpdateTapoDeviceDto {
   password?: string;
   power_watt?: number;
   priority?: number;
+  auto_power_off_enabled?: number;
 }
 
 const config = {
@@ -19,7 +20,42 @@ export const useTapoStore = defineStore('tapo', () => {
   // ==============
   //   STATE
   // ==============
-  const devices = ref<TapoDevice[]>([]);
+  const devices = ref<TapoDevice[]>([
+    {
+      id: 1,
+      ip: "192.168.31.101",
+      email: "user1@example.com",
+      device_on: 1,
+      device_id: "TAPO_P100_001",
+      power_watt: 2000,
+      priority: 1,
+      name: "Qm9pbGVyIFJvb20=", // "Boiler Room" base64
+      model: "P100",
+      fw_ver: "1.3.7 Build 20230711 Rel. 61904",
+      hw_ver: "1.0.0",
+      added_at: "2025-05-20T01:43:17",
+      timer: false,
+      timerTimeLeft: 0,
+      auto_power_off_enabled: 1,
+    },
+    {
+      id: 2,
+      ip: "192.168.31.102",
+      email: "user2@example.com",
+      device_on: 0,
+      device_id: "TAPO_P100_002",
+      power_watt: 800,
+      priority: 2,
+      name: "VGVsZXZpc29yIFJvb20=", // "Televisor Room" base64
+      model: "P100",
+      fw_ver: "1.3.7 Build 20230711 Rel. 61904",
+      hw_ver: "1.0.0",
+      added_at: "2025-05-18T14:22:10",
+      timer: true,
+      timerTimeLeft: 25,
+      auto_power_off_enabled: 0,
+    },
+  ]);
   const foundDevices = ref();
   const topDevices = ref<TapoDevice[]>([]);
 
@@ -235,6 +271,12 @@ export const useTapoStore = defineStore('tapo', () => {
     }
   }
 
+  async function toggleAutoPower(device: TapoDevice) {
+  await updateTapoDeviceConfig(device.ip, {
+    auto_power_off_enabled: device.auto_power_off_enabled ? 1 : 0,
+  });
+}
+
   return {
     // ==============
     //   STATE
@@ -271,5 +313,6 @@ export const useTapoStore = defineStore('tapo', () => {
     getTopDevices,
     enableTimer,
     disableTimer,
+    toggleAutoPower,
   };
 });
