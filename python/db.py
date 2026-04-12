@@ -747,7 +747,7 @@ def get_config():
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours FROM configs LIMIT 1")
+            cursor.execute("SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours, auto_power_management_enabled FROM configs LIMIT 1")
             config = cursor.fetchone()
             if config:
                 CONFIG_CACHE = {
@@ -755,6 +755,7 @@ def get_config():
                     "VAPID_PUBLIC_KEY": config[1],
                     "VAPID_PRIVATE_KEY": config[2],
                     "n_hours": config[3],
+                    "auto_power_management_enabled": config[4],
                 }
                 CONFIG_CACHE_TIMESTAMP = time.time()
                 return CONFIG_CACHE
@@ -764,19 +765,23 @@ def get_config():
         print(f"Error fetching config: {e}")
         return None
 
-def update_config(password=None, vapid_public=None, vapid_private=None, n_hours=None):
+def update_config(password=None, vapid_public=None, vapid_private=None, n_hours=None, auto_power_management_enabled=None):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
 
-            cursor.execute("SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours FROM configs LIMIT 1")
+            cursor.execute("""
+                SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours, auto_power_management_enabled
+                FROM configs LIMIT 1
+            """)
             existing_config = cursor.fetchone()
+
             if not existing_config:
                 raise ValueError("Config record not found!")
-            
-            if n_hours:
+
+            if n_hours is not None or auto_power_management_enabled is not None:
                 global CONFIG_CACHE, CONFIG_CACHE_TIMESTAMP
-                CONFIG_CACHE = None  # Clearing the cache after an update
+                CONFIG_CACHE = None
                 CONFIG_CACHE_TIMESTAMP = 0
 
             updated_config = {
@@ -784,15 +789,27 @@ def update_config(password=None, vapid_public=None, vapid_private=None, n_hours=
                 "VAPID_PUBLIC_KEY": vapid_public if vapid_public is not None else existing_config[1],
                 "VAPID_PRIVATE_KEY": vapid_private if vapid_private is not None else existing_config[2],
                 "n_hours": n_hours if n_hours is not None else existing_config[3],
+                "auto_power_management_enabled": auto_power_management_enabled if auto_power_management_enabled is not None else existing_config[4],
             }
 
             cursor.execute("""
                 UPDATE configs
-                SET password = ?, VAPID_PUBLIC_KEY = ?, VAPID_PRIVATE_KEY = ?, n_hours = ?
-            """, (updated_config["password"], updated_config["VAPID_PUBLIC_KEY"], updated_config["VAPID_PRIVATE_KEY"], updated_config["n_hours"]))
+                SET password = ?,
+                    VAPID_PUBLIC_KEY = ?,
+                    VAPID_PRIVATE_KEY = ?,
+                    n_hours = ?,
+                    auto_power_management_enabled = ?
+            """, (
+                updated_config["password"],
+                updated_config["VAPID_PUBLIC_KEY"],
+                updated_config["VAPID_PRIVATE_KEY"],
+                updated_config["n_hours"],
+                updated_config["auto_power_management_enabled"],
+            ))
 
             conn.commit()
             return updated_config
+
     except sqlite3.Error as e:
         print(f"Error updating config: {e}")
         return None
@@ -884,9 +901,12 @@ def update_tapo_device_config_by_ip(ip: str, updates: dict):
             if "priority" in updates:
                 fields.append("priority = ?")
                 values.append(updates["priority"])
+            if "auto_power_off_enabled" in updates:
+                fields.append("auto_power_off_enabled = ?")
+                values.append(updates["auto_power_off_enabled"])
 
             if not fields:
-                return False  # Nothing is updated
+                return get_tapo_device_by_ip(ip)  # Nothing is updated
 
             values.append(ip)
             sql = f'''

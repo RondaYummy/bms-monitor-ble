@@ -204,7 +204,7 @@ async def get_configs():
         raise HTTPException(status_code=404, detail="Config not found.")
     
     config = config.copy()
-    for key in ["VAPID_PRIVATE_KEY", "password"]:
+    for key in ["VAPID_PRIVATE_KEY", "password", "auto_power_management_enabled"]:
         config.pop(key, None)
     return config
 
@@ -230,7 +230,8 @@ def toggle_auto_power(body: ToggleAutoPowerRequest):
 @app.post("/api/configs", dependencies=[Depends(verify_token)])
 async def update_configs(request: ConfigUpdateRequest):
     updated_config = db.update_config(
-        n_hours=request.n_hours
+        n_hours=request.n_hours,
+        auto_power_management_enabled=request.auto_power_management_enabled
     )
     if not updated_config:
         raise HTTPException(status_code=500, detail="Error updating config.")
