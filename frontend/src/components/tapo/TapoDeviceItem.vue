@@ -5,12 +5,14 @@
         class="cursor-pointer toggle-device"
         :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
       <div v-else class="loader toggle-device"></div>
-      <q-btn class="toggle-power-device" dense flat round :color="device.auto_power_off_enabled === 1 ? 'green' : 'grey'" icon="bolt"
-        @click="tapoStore?.toggleAutoPower(device)">
+
+      <q-icon v-if="!loadding" name="bolt"
+        class="cursor-pointer toggle-power-device"
+        :class="{ 'text-white': device?.auto_power_off_enabled == 0, 'text-green': device?.auto_power_off_enabled == 1 }" size="3em" @click="tapoStore?.toggleAutoPower(device)">
         <q-tooltip>
           Автоматичне вимкнення при низькій генерації
         </q-tooltip>
-      </q-btn>
+      </q-icon>
     </div>
 
     <div :class="{
@@ -231,7 +233,7 @@ async function toggleDevice(state: number) {
 
 .toggle-power-device {
   position: absolute;
-  top: 15px;
+  top: 10px;
   right: 50px;
 }
 

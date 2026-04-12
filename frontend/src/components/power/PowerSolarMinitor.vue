@@ -107,7 +107,7 @@ watch(enabled, (val: boolean, old: boolean) => {
 onMounted(async () => {
   await configStore.fetchConfigs();
   enabled.value =
-    configStore.getConfig().auto_power_management_enabled === 1;
+    configStore.getConfig().auto_power_management_enabled == 1;
 });
 </script>
 
