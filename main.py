@@ -151,6 +151,21 @@ async def getSsl():
             "certificat": ssls_data 
         }
 
+@app.post("/api/ssl/refresh", dependencies=[Depends(verify_token)])
+async def refresh_ssl():
+    success = db.refresh_ssl_certificate()
+
+    if not success:
+        return {
+            "status": "error",
+            "message": "❌ Не вдалося оновити SSL сертифікат"
+        }
+
+    return {
+        "status": "ok",
+        "message": "✅ SSL сертифікат успішно оновлено (відлік скинуто)"
+    }
+
 @app.post("/api/login")
 async def login(request: Request):
     body = await request.json()

@@ -2,45 +2,72 @@
   <div class="box">
     <div class="p-6">
       <div class="row items-center justify-between gap-4 column-media">
-        <div class="flex-1 space-y-1">
-          <div class="flex items-center justify-center-media gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round" class="lucide lucide-zap w-5 h-5 text-success">
-              <path
-                d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z">
-              </path>
-            </svg>
-            <h3 class="font-semibold text-foreground">Авто-балансування</h3>
+        <template v-if="!enabled">
+          <div class="flex-1 space-y-1">
+            <div class="flex items-center justify-center-media gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24"
+                height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-zap w-5 h-5 text-success">
+                <path
+                  d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z">
+                </path>
+              </svg>
+              <h3 class="font-semibold text-foreground">Авто-балансування</h3>
+            </div>
+            <p class="text-sm text-muted-foreground">Автоматично вимикає прилади, якщо споживання перевищує генерацію
+            </p>
           </div>
-          <p class="text-sm text-muted-foreground">Автоматично вимикає прилади, якщо споживання перевищує генерацію</p>
-        </div>
 
-        <button v-if="!enabled" class="btn" @click="enabled = true;">
-          ВИМКНЕНО
-        </button>
-
-        <button v-if="enabled" class="btn btn-enabled" @click="enabled = false">
-          <div class="w-2 h-2 rounded-full bg-success animate-pulse"></div>
-          АКТИВНО
-        </button>
+          <button class="btn btn-enabled" :disabled="!token" @click="enabled = true;">
+            <div class="w-2 h-2 rounded-full bg-success animate-pulse"></div>
+            ВКЛЮЧИТИ
+          </button>
+        </template>
       </div>
 
-      <div v-if="enabled" class="mt-4 pt-4 border-t row items-center gap-2 text-sm text-success text-center-media">
+      <div v-if="enabled" class="pt-2 row items-center gap-2 text-sm text-success text-center-media">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-          class="lucide lucide-shield w-4 h-4">
+          class="lucide lucide-shield w-4 h-4 btn-enabled">
           <path
             d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z">
           </path>
         </svg>
-        <span>Система моніторить баланс енергії</span>
+        <span>Система моніторить баланс сонячної електроенергії</span>
+
+        <q-popup-proxy v-if="token">
+          <q-banner class="q-dark q-pa-md text-success text-center-media">
+            <template v-slot:avatar>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="lucide lucide-shield w-4 h-4 btn-enabled">
+                <path
+                  d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z">
+                </path>
+              </svg>
+            </template>
+
+            <span>
+              Автоматично вимикає прилади, якщо споживання еоектроенергії перевищує сонячну генерацію.
+            </span>
+
+            <div class="column items-center justify-center">
+              <button v-if="enabled" class="btn text-red q-mt-md" @click="enabled = false">
+                <div class="w-2 h-2 rounded-full bg-negative animate-pulse"></div>
+                ВИКЛЮЧИТИ
+              </button>
+            </div>
+          </q-banner>
+        </q-popup-proxy>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { useSessionStorage } from 'src/helpers/utils';
 import { ref } from 'vue';
+
+const token = useSessionStorage('access_token');
 
 const enabled = ref(false);
 </script>

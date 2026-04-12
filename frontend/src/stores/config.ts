@@ -70,6 +70,16 @@ export const useConfigStore = defineStore('config', () => {
     }
   }
 
+  async function refreshSsl() {
+    try {
+      const response = await api.get('/api/ssl/refresh', configs);
+      const data: SslResponse = response.data;
+      ssl.value = data;
+    } catch (error) {
+      console.error('Error refreshing ssl:', error);
+    }
+  }
+
   async function fetchConfigs() {
     try {
       const response = await api.get('/api/configs', configs);
@@ -117,5 +127,6 @@ export const useConfigStore = defineStore('config', () => {
     fetchConfigs,
     fetchSsl,
     updateConfigs,
+    refreshSsl,
   };
 });

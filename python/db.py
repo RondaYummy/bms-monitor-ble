@@ -1085,3 +1085,32 @@ def is_token_valid_in_db(token: str, lifetime_seconds: int) -> bool:
     except sqlite3.Error as e:
         print(f"❌ Error validating token in DB: {e}")
         return False
+
+def refresh_ssl_certificate():
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+
+            cursor.execute('''
+                UPDATE ssl_certificates
+                SET created_at = datetime('now')
+                WHERE created_at = (
+                    SELECT created_at 
+                    FROM ssl_certificates 
+                    ORDER BY created_at DESC 
+                    LIMIT 1
+                )
+            ''')
+
+            if cursor.rowcount == 0:
+                cursor.execute('''
+                    INSERT INTO ssl_certificates (created_at, days)
+                    VALUES (datetime('now'), 90)
+                ''')
+
+            conn.commit()
+            return True
+
+    except sqlite3.Error as e:
+        print(f"❌ Error updating SSL certificate: {e}")
+        return False

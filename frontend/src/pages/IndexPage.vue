@@ -30,7 +30,8 @@
         </div>
       </div>
 
-      <q-btn @click="showMoreDeye = !showMoreDeye" label="↓ Show more ↓" class="q-mb-sm full-width" size="md" unelevated />
+      <q-btn @click="showMoreDeye = !showMoreDeye" label="↓ Show more ↓" class="q-mb-sm full-width" size="md"
+        unelevated />
 
       <template v-if="showMoreDeye">
         <AddtionalInfo :data="deyeData" />
@@ -87,8 +88,20 @@
             </q-card-section>
 
             <q-card-actions align="right">
-              <q-btn flat label="GitHub"
+              <q-btn flat label="GitHub" :disable="!token"
                 href="https://github.com/RondaYummy/bms-monitor-ble/blob/main/SSL_CERTIFICATE.md" color="primary" />
+
+              <q-btn flat label="Поновити" :disable="!token" color="black">
+                <q-popup-proxy>
+                  <q-banner class="q-pa-md">
+                    <template v-slot:avatar>
+                      <q-icon name="lock" color="black" />
+                    </template>
+                    <q-btn label="Сертифікат поновлено" color="black" @click="refreshSsl" v-close-popup />
+                  </q-banner>
+                </q-popup-proxy>
+              </q-btn>
+
               <q-btn flat label="OK" color="primary" v-close-popup />
             </q-card-actions>
           </q-card>
@@ -417,6 +430,7 @@ import {
   calculateChargeTime,
   formatMinutes,
   isInstalled,
+  useSessionStorage,
 } from '../helpers/utils';
 import { ref, watch, onBeforeUnmount, computed, onMounted } from 'vue';
 import type { BeforeInstallPromptEvent, CellInfo, DeyeSafeValues } from '../models';
@@ -430,12 +444,14 @@ import SslData from 'src/components/SslData.vue';
 import { useConfigStore } from 'src/stores/config';
 import TopTapoDevice from 'src/components/tapo/TopTapoDevice.vue';
 import PowerSolarMinitor from 'src/components/power/PowerSolarMinitor.vue';
+import { Notify } from 'quasar';
 
 const bmsStore = useBmsStore();
 const deyeStore = useDeyeStore();
 const tapoStore = useTapoStore();
 const powerStore = usePowerStore();
 const configStore = useConfigStore();
+const token = useSessionStorage('access_token');
 
 configStore.fetchSsl();
 
@@ -524,6 +540,26 @@ watch(devicesList, () => {
 });
 
 const yieldToBrowser = () => new Promise(resolve => setTimeout(resolve, 0));
+
+async function refreshSsl() {
+  try {
+    await configStore.refreshSsl();
+    Notify.create({
+      message: 'Термін дії SSL сертифікату скинуто',
+      color: 'secondary',
+      position: 'top',
+    });
+  } catch (error) {
+    console.error(error);
+    Notify.create({
+      message: 'Сталася помилка під час скидання терміну дії SSL сертифікату',
+      color: 'red',
+      icon: 'warning',
+      position: 'top',
+      timeout: 2000,
+    });
+  }
+}
 
 async function calculateData() {
   const values = Object.values(devicesList.value);
