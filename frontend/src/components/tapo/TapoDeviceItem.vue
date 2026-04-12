@@ -5,7 +5,7 @@
         class="cursor-pointer toggle-device"
         :class="{ 'text-white': device?.device_on == 0, 'text-red': device?.device_on == 1 }" size="3em" />
       <div v-else class="loader toggle-device"></div>
-      <q-btn class="toggle-power-device" dense flat round :color="device.auto_power_off_enabled ? 'green' : 'grey'" icon="bolt"
+      <q-btn class="toggle-power-device" dense flat round :color="device.auto_power_off_enabled === 1 ? 'green' : 'grey'" icon="bolt"
         @click="tapoStore?.toggleAutoPower(device)">
         <q-tooltip>
           Автоматичне вимкнення при низькій генерації

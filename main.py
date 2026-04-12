@@ -196,6 +196,7 @@ class ConfigUpdateRequest(BaseModel):
     password: Optional[str] = None
     VAPID_PUBLIC_KEY: Optional[str] = None
     n_hours: Optional[int] = None
+    auto_power_management_enabled: Optional[int] = None
 
 @app.get("/api/configs")
 async def get_configs():

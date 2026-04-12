@@ -273,7 +273,7 @@ export const useTapoStore = defineStore('tapo', () => {
 
   async function toggleAutoPower(device: TapoDevice) {
   await updateTapoDeviceConfig(device.ip, {
-    auto_power_off_enabled: device.auto_power_off_enabled ? 1 : 0,
+    auto_power_off_enabled: device.auto_power_off_enabled == 1 ? 0 : 1,
   });
 }
 
