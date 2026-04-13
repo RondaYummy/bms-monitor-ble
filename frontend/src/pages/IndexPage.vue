@@ -378,7 +378,7 @@
         <div class="row justify-between">
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
-              String(idx + 1).padStart(2, '0')
+              String(Number(idx) + 1).padStart(2, '0')
             }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>
@@ -396,7 +396,7 @@
         <div class="row justify-between">
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
             <q-chip dense outline color="primary" text-color="white">{{
-              String(idx + 1).padStart(2, '0')
+              String(Number(idx) + 1).padStart(2, '0')
             }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
           </div>

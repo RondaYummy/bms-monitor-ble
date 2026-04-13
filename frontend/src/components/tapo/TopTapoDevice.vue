@@ -1,35 +1,37 @@
 <template>
   <div class="top-tapo device-card">
     <div class="device-main">
-      <div class="power-block">
-        <span class="power-value">
-          {{ item?.power_watt > 0 ? (item?.power_watt / 1000)?.toFixed(2) : '0' }}
-          <sup>kW</sup>
-        </span>
-      </div>
+      <div class="device-top-row">
+        <div class="device-text">
+          <div class="power-value">
+            {{ item?.power_watt > 0 ? (item?.power_watt / 1000)?.toFixed(2) : '0' }}
+            <sup>kW</sup>
+          </div>
 
-      <div class="device-info">
-        <span class="tapo-name">{{ item?.name || 'Unknown' }}</span>
+          <div class="device-name-row">
+            <span class="tapo-name">{{ item?.name || 'Unknown' }}</span>
 
-        <div
-          class="device-status-badge"
-          :class="item?.device_on == 1 ? 'status-on' : 'status-off'"
-        >
-          <span class="status-dot"></span>
-          {{ item?.device_on == 1 ? 'Enabled' : 'Disabled' }}
+            <div
+              class="device-status-badge"
+              :class="item?.device_on == 1 ? 'status-on' : 'status-off'"
+            >
+              <span class="status-dot"></span>
+              {{ item?.device_on == 1 ? 'On' : 'Off' }}
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div class="device-action">
-        <q-icon
-          v-if="!changeStateTapoDevices.find((d) => d === item?.ip)"
-          @click="toggleDevice(item?.device_on, item?.ip)"
-          name="power_settings_new"
-          class="cursor-pointer action-icon power-icon"
-          :class="{ 'is-off': item?.device_on == 0, 'is-on': item?.device_on == 1 }"
-          size="2.8em"
-        />
-        <div v-else class="loader"></div>
+        <div class="device-action">
+          <q-icon
+            v-if="!changeStateTapoDevices.find((d) => d === item?.ip)"
+            @click="toggleDevice(item?.device_on, item?.ip)"
+            name="power_settings_new"
+            class="cursor-pointer action-icon power-icon"
+            :class="{ 'is-off': item?.device_on == 0, 'is-on': item?.device_on == 1 }"
+            size="2.3em"
+          />
+          <div v-else class="loader"></div>
+        </div>
       </div>
     </div>
 
@@ -38,8 +40,8 @@
         <div class="timer-title" :class="{ 'is-active': timer }">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="22"
-            height="22"
+            width="18"
+            height="18"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -75,7 +77,7 @@
           :options="timeOptions"
         >
           <template v-slot:selected v-if="item.timer && item.timerTimeLeft">
-            <div class="full-width text-white text-center">
+            <div class="full-width text-white text-center timer-selected-value">
               {{ formatMinutes(item.timerTimeLeft) }}
               <q-tooltip :delay="200">
                 Вимкнемо через <br />{{ timeLeft }}
@@ -171,152 +173,132 @@ watch(
 }
 
 .device-card {
-  position: relative;
-  overflow: hidden;
   width: 100%;
-  min-height: 100%;
   display: flex;
   flex-direction: column;
-  border-radius: 20px;
-  padding: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(8px);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .device-card:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 16px 34px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .device-main {
-  display: grid;
-  grid-template-columns: minmax(72px, auto) 1fr auto;
-  align-items: center;
-  gap: 14px;
-  min-height: 96px;
+  display: flex;
+  flex-direction: column;
 }
 
-.power-block {
+.device-top-row {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.device-text {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .power-value {
-  display: inline-block;
-  font-size: 2rem;
+  font-size: 1.7rem;
   font-weight: 800;
   line-height: 1;
   color: #8ef0b5;
   letter-spacing: -0.02em;
-  white-space: nowrap;
 }
 
 .power-value sup {
-  font-size: 0.7rem;
-  top: -0.65em;
+  font-size: 0.68rem;
+  top: -0.55em;
   position: relative;
-  color: rgba(142, 240, 181, 0.85);
+  color: rgba(142, 240, 181, 0.8);
 }
 
-.device-info {
-  min-width: 0;
+.device-name-row {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  flex-wrap: wrap;
   gap: 8px;
-  text-align: center;
+  margin-top: 8px;
 }
 
 .tapo-name {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  line-clamp: 2;
-  min-height: 2.8em;
+  min-width: 0;
   max-width: 100%;
-  font-size: 1rem;
+  display: block;
+  font-size: 0.96rem;
   font-weight: 700;
   color: #fff;
-  line-height: 1.4;
+  line-height: 1.35;
   word-break: break-word;
 }
 
 .device-status-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 32px;
-  padding: 0 10px;
+  gap: 6px;
+  min-height: 26px;
+  padding: 0 8px;
   border-radius: 999px;
-  font-size: 0.84rem;
+  font-size: 0.74rem;
   font-weight: 700;
   white-space: nowrap;
-  max-width: 100%;
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .status-on {
   color: #7ee2a8;
-  background: rgba(46, 204, 113, 0.12);
-  border: 1px solid rgba(46, 204, 113, 0.24);
+  background: rgba(46, 204, 113, 0.1);
+  border: 1px solid rgba(46, 204, 113, 0.2);
 }
 
 .status-on .status-dot {
   background: #2ecc71;
-  box-shadow: 0 0 10px rgba(46, 204, 113, 0.55);
 }
 
 .status-off {
   color: #d0d6dd;
-  background: rgba(139, 148, 158, 0.14);
-  border: 1px solid rgba(139, 148, 158, 0.24);
+  background: rgba(139, 148, 158, 0.12);
+  border: 1px solid rgba(139, 148, 158, 0.2);
 }
 
 .status-off .status-dot {
   background: #8b949e;
-  box-shadow: 0 0 10px rgba(139, 148, 158, 0.35);
 }
 
 .device-action {
+  min-width: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 56px;
 }
 
 .action-icon {
-  border-radius: 14px;
-  padding: 6px;
+  border-radius: 12px;
+  padding: 4px;
   transition:
     transform 0.2s ease,
-    background 0.2s ease,
-    color 0.2s ease;
+    background 0.2s ease;
 }
 
 .action-icon:hover {
-  transform: scale(1.06);
-  background: rgba(255, 255, 255, 0.08);
+  transform: scale(1.04);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .power-icon.is-on {
@@ -328,25 +310,26 @@ watch(
 }
 
 .tapo-timer {
-  margin-top: auto;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .timer-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  min-height: 42px;
+  gap: 10px;
+  min-height: 34px;
 }
 
 .timer-title {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: rgba(255, 255, 255, 0.78);
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.72);
   font-weight: 700;
+  font-size: 0.88rem;
 }
 
 .timer-title.is-active {
@@ -358,20 +341,25 @@ watch(
 }
 
 .timer-select-wrap {
-  margin-top: 12px;
+  margin-top: 10px;
+}
+
+.timer-selected-value {
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 :deep(.timer-select) {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  min-height: 48px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  min-height: 42px;
 }
 
 :deep(.timer-select .q-field__control) {
-  border-radius: 14px;
-  min-height: 48px !important;
-  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  min-height: 42px !important;
+  background: transparent;
 }
 
 :deep(.timer-select .q-field__native),
@@ -395,32 +383,51 @@ watch(
 
 @media (max-width: 640px) {
   .device-card {
-    padding: 16px;
-    border-radius: 16px;
+    padding: 12px;
+    border-radius: 14px;
+    box-shadow: none;
+    background: rgba(255, 255, 255, 0.035);
   }
 
-  .device-main {
-    grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
-    min-height: unset;
-  }
-
-  .power-block,
-  .device-action {
-    justify-content: center;
+  .device-top-row {
+    align-items: flex-start;
   }
 
   .power-value {
-    font-size: 1.8rem;
+    font-size: 1.45rem;
   }
 
-  .device-info {
-    width: 100%;
+  .tapo-name {
+    font-size: 0.9rem;
   }
 
-  .timer-header {
-    align-items: center;
+  .device-status-badge {
+    font-size: 0.72rem;
+    min-height: 24px;
+    padding: 0 7px;
+  }
+
+  .action-icon {
+    padding: 2px;
+  }
+
+  .tapo-timer {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+
+  .timer-title {
+    font-size: 0.82rem;
+  }
+
+  :deep(.timer-select) {
+    min-height: 40px;
+    border-radius: 10px;
+  }
+
+  :deep(.timer-select .q-field__control) {
+    min-height: 40px !important;
+    border-radius: 10px;
   }
 }
 </style>
