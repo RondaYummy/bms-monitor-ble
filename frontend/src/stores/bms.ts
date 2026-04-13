@@ -9,14 +9,66 @@ const config = {
   timeout: 6000,
 };
 
+const devicesBMS: Device[] = [
+  {
+    address: "192.168.0.101",
+    name: "JK-BMS Battery #1"
+  },
+  {
+    address: "192.168.0.102",
+    name: "JK-BMS Battery #2"
+  }
+];
+
+const devicesInfo: DeviceInfo[] = [
+  {
+    device_name: "JK-BMS Battery #1",
+    device_uptime: 86400,
+    frame_counter: 10234,
+    frame_type: 1,
+    hardware_version: "HW-1.0",
+    manufacturing_date: "2025-11-15",
+    power_on_count: 42,
+    serial_number: "JK123456789",
+    software_version: "SW-2.3.1",
+    vendor_id: "JK-BMS",
+    name: 'fdsfds',
+    address: '11231',
+    user_data: '',
+    connected: false,
+    id: 0,
+    added_at: '',
+    enabled: false
+  },
+  {
+    device_name: "JK-BMS Battery #2",
+    device_uptime: 43200,
+    frame_counter: 5678,
+    frame_type: 1,
+    hardware_version: "HW-1.1",
+    manufacturing_date: "2025-12-01",
+    power_on_count: 27,
+    serial_number: "JK987654321",
+    software_version: "SW-2.4.0",
+    vendor_id: "JK-BMS",
+    name: 'dsffds',
+    address: 'dsfdfs',
+    user_data: '',
+    connected: false,
+    id: 0,
+    added_at: '',
+    enabled: false
+  }
+];
+
 export const useBmsStore = defineStore('bms', () => {
   // ==============
   //   STATE
   // ==============
   const cellInfo = ref<Record<string, CellInfo>>({});
-  const deviceInfo = ref<DeviceInfo[]>([]);
+  const deviceInfo = ref<DeviceInfo[]>(devicesInfo);
   const settingInfo = ref<SettingInfo[]>([]);
-  const devices = ref<Device[]>([]);
+  const devices = ref<Device[]>(devicesBMS);
 
   // ==============
   //   GETTERS

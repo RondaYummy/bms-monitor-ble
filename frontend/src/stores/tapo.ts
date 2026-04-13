@@ -16,13 +16,67 @@ const config = {
   timeout: 6000,
 };
 
+const tapoDevices = [
+  {
+    id: 21312,
+    ip: '213 123 12',
+    email: 'badsaadsdas@ggg.gg',
+    device_on: 1,
+    device_id: 'sdffds',
+    power_watt: 1500,
+    priority: 10,
+    name: 'sdfadsasad',
+    model: 'P100',
+    fw_ver: '1.3.7 Build 20230711 Rel. 61904',
+    hw_ver: '1.0.0',
+    added_at: '2025-05-20T01:43:17',
+    timer: true,
+    timerTimeLeft: 13221,
+    auto_power_off_enabled: 1,
+  },
+  {
+    id: 21312,
+    ip: '213 123 12',
+    email: 'badsaadsdas@ggg.gg',
+    device_on: 1,
+    device_id: 'sdffds',
+    power_watt: 1500,
+    priority: 10,
+    name: 'sdfadsasad',
+    model: 'P100',
+    fw_ver: '1.3.7 Build 20230711 Rel. 61904',
+    hw_ver: '1.0.0',
+    added_at: '2025-05-20T01:43:17',
+    timer: true,
+    timerTimeLeft: 13221,
+    auto_power_off_enabled: 1,
+  },
+  {
+    id: 21312,
+    ip: '213 123 12',
+    email: 'badsaadsdas@ggg.gg',
+    device_on: 1,
+    device_id: 'sdffds',
+    power_watt: 1500,
+    priority: 10,
+    name: 'sdfadsasad',
+    model: 'P100',
+    fw_ver: '1.3.7 Build 20230711 Rel. 61904',
+    hw_ver: '1.0.0',
+    added_at: '2025-05-20T01:43:17',
+    timer: true,
+    timerTimeLeft: 13221,
+    auto_power_off_enabled: 1,
+  }
+];
+
 export const useTapoStore = defineStore('tapo', () => {
   // ==============
   //   STATE
   // ==============
-  const devices = ref<TapoDevice[]>([]);
+  const devices = ref<TapoDevice[]>(tapoDevices);
   const foundDevices = ref();
-  const topDevices = ref<TapoDevice[]>([]);
+  const topDevices = ref<TapoDevice[]>(tapoDevices);
 
   // ==============
   //   GETTERS

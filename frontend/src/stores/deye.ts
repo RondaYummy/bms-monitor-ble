@@ -7,11 +7,62 @@ const config = {
   timeout: 6000,
 };
 
+const data: DeyeRealtimeData[] = [
+  {
+    id: 1,
+    ip: "192.168.1.10",
+    serial_number: "DEYE123456789",
+    slave_id: 1,
+    timestamp: "2026-04-13T10:00:00Z",
+    pv1_power: 1200,
+    pv2_power: 1300,
+    total_pv: 2500,
+    load_power: 1800,
+    grid_power: 200,
+    battery_power: -300,
+    battery_voltage: 48.5,
+    battery_soc: 75,
+    net_balance: 400,
+    device_on: 1,
+    stat_daily_pv: 15.2,
+    stat_total_pv: 12450.7,
+    stat_daily_bat_discharge: 5.1,
+    stat_daily_grid_in: 3.4,
+    stat_daily_grid_out: 2.8,
+    stat_total_grid_out: 8420.3,
+    stat_total_load: 15890.6,
+  },
+  {
+    id: 2,
+    ip: "192.168.1.11",
+    serial_number: "DEYE987654321",
+    slave_id: 1,
+    timestamp: "2026-04-13T10:05:00Z",
+    pv1_power: 900,
+    pv2_power: 1100,
+    total_pv: 2000,
+    load_power: 1500,
+    grid_power: -100,
+    battery_power: 200,
+    battery_voltage: 47.8,
+    battery_soc: 60,
+    net_balance: 300,
+    device_on: 1,
+    stat_daily_pv: 12.7,
+    stat_total_pv: 9870.4,
+    stat_daily_bat_discharge: 4.3,
+    stat_daily_grid_in: 2.1,
+    stat_daily_grid_out: 3.6,
+    stat_total_grid_out: 7650.2,
+    stat_total_load: 13450.9,
+  }
+];
+
 export const useDeyeStore = defineStore('deye', () => {
   // ==============
   //   STATE
   // ==============
-  const deyeData = ref<DeyeRealtimeData[]>([]);
+  const deyeData = ref<DeyeRealtimeData[]>(data);
 
   // ==============
   //   GETTERS
