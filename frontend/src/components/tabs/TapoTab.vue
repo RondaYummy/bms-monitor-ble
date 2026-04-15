@@ -333,7 +333,11 @@ tapoStore.fetchDevices();
 .search-actions {
   margin-top: 16px;
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
+}
+
+:deep(.block) {
+  color: black;
 }
 
 .primary-btn {

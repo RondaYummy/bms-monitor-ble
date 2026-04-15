@@ -7,7 +7,7 @@ services:
       - "8444:8444"
     environment:
       - TZ=Europe/Kiev
-      - VITE_API_URL=http://python-app:8000
+      - VITE_API_URL=${VITE_API_URL}
     volumes:
       - ./frontend:/app
       - /app/node_modules
