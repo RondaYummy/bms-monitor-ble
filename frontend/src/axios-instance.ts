@@ -8,8 +8,11 @@ function isHtmlResponse(headers: any, data: any) {
   return false;
 }
 
+const apiUrl = import.meta.env.VITE_API_URL || '';
+console.log('apiUrl', apiUrl);
+
 export const api = axios.create({
-  baseURL: '',
+  baseURL: apiUrl,
   timeout: 20000,
 });
 

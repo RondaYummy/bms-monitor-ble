@@ -40,6 +40,7 @@
 import { useSessionStorage } from 'src/helpers/utils';
 import { ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
+import { api } from '../../axios-instance';
 
 const $q = useQuasar();
 const token = useSessionStorage('access_token');
@@ -76,15 +77,11 @@ function close() {
 
 async function updatePassword() {
   try {
-    const response = await fetch('/api/change-password', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token.value}`,
-      },
-      body: JSON.stringify({ old_password: oldPassword.value, new_password: newPassword.value }),
+    const response = await api.post('/api/change-password', {
+      old_password: oldPassword.value,
+      new_password: newPassword.value,
     });
-    const json = await response.json();
+    const json = response.data;
     $q.notify({
       message: json?.message,
       color: 'info',

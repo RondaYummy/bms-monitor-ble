@@ -93,7 +93,7 @@ import BmsTab from 'src/components//tabs/BmsTab.vue';
 import TapoTab from 'src/components/tabs/TapoTab.vue';
 import SettingsTab from 'src/components/tabs/SettingsTab.vue';
 import AlertsTab from 'src/components/tabs/AlertsTab.vue';
-
+import { api } from '../axios-instance';
 const configStore = useConfigStore();
 
 const token = useSessionStorage('access_token');
@@ -104,13 +104,11 @@ const isPwd = ref<boolean>(true);
 const intervalId = ref<NodeJS.Timeout>();
 
 const login = async (pwd: string) => {
-  const response = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: pwd }),
+  const response = await api.post('/api/login', {
+    password: pwd,
   });
 
-  const data = await response.json();
+  const data = response.data;
   localStorage.setItem('access_token', data.access_token);
   localStorage.setItem('token_created_at', String(Date.now() + (24 * 60 * 60 * 30 * 1000)));
   token.value = data?.access_token;
@@ -120,10 +118,7 @@ const login = async (pwd: string) => {
 };
 
 const logout = async () => {
-  await fetch('/api/logout', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-  });
+  await api.post('/api/logout');
   localStorage.removeItem('access_token');
   token.value = '';
   password.value = '';
