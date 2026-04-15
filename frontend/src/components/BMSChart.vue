@@ -422,7 +422,7 @@ async function fetchDataAndProcess(
     }
 
     selectTypeChart(selectedTypeChart.value);
-    chartRef.value?.chart.updateOptions(chartOptions.value);
+    chartRef.value?.chart.updateOptions(chartOptions.value as any);
   } catch (error) {
     console.error('Error fetching data:', error);
   }
@@ -473,7 +473,7 @@ function selectTypeChart(type: 'power' | 'current' | 'remainingCapacity') {
       },
     ];
   }
-  chartRef.value?.chart.updateOptions(chartOptions.value);
+  chartRef.value?.chart.updateOptions(chartOptions.value as any);
 }
 
 onMounted(async () => {

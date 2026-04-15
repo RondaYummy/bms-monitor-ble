@@ -122,7 +122,6 @@ const logout = async () => {
   localStorage.removeItem('access_token');
   token.value = '';
   password.value = '';
-  console.info('---Successful logout---');
   return true;
 };
 

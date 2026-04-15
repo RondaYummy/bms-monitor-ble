@@ -327,4 +327,13 @@ Promise.allSettled([bmsStore.fetchSettings()]);
     padding: 10px 12px;
   }
 }
+
+:deep(.block) {
+  color: black;
+}
+
+:deep(.q-spinner) {
+  color: black;
+}
+
 </style>

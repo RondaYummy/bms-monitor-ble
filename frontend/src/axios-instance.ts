@@ -9,7 +9,7 @@ function isHtmlResponse(headers: any, data: any) {
 }
 
 const apiUrl = import.meta.env.VITE_API_URL || '';
-console.log('apiUrl', apiUrl);
+console.log(`🚀 Using API URL: ${apiUrl}`);
 
 export const api = axios.create({
   baseURL: apiUrl,

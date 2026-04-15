@@ -434,4 +434,16 @@ deyeStore.fetchDeyeDevices();
     border-radius: 16px;
   }
 }
+
+:deep(.block) {
+  color: black;
+}
+
+:deep(.q-spinner) {
+  color: black;
+}
+
+:deep(.q-field__native) {
+  color: white;
+}
 </style>
