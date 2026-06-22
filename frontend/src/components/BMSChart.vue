@@ -110,6 +110,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import type ApexCharts from 'apexcharts';
+import { api } from '../axios-instance';
 
 const props = defineProps(['tab']);
 
@@ -319,7 +320,7 @@ async function fetchAggregatedData(
     if (range && range.from && range.to) {
       url += `&from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`;
     }
-    const response: any = await fetch(url);
+    const response: any = await api.get(url);
     if (!response.ok) {
       throw new Error('Failed to fetch aggregated data');
     }
@@ -421,7 +422,7 @@ async function fetchDataAndProcess(
     }
 
     selectTypeChart(selectedTypeChart.value);
-    chartRef.value?.chart.updateOptions(chartOptions.value);
+    chartRef.value?.chart.updateOptions(chartOptions.value as any);
   } catch (error) {
     console.error('Error fetching data:', error);
   }
@@ -472,7 +473,7 @@ function selectTypeChart(type: 'power' | 'current' | 'remainingCapacity') {
       },
     ];
   }
-  chartRef.value?.chart.updateOptions(chartOptions.value);
+  chartRef.value?.chart.updateOptions(chartOptions.value as any);
 }
 
 onMounted(async () => {

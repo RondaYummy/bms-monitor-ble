@@ -36,7 +36,7 @@ export default defineConfig(() => {
       distDir: 'dist/pwa',
 
       target: {
-        browser: ['es2022', 'firefox115', 'chrome115', 'safari14'],
+        browser: ['es2022'],
         node: 'node20',
       },
 

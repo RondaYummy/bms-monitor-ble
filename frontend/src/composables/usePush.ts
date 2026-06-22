@@ -1,6 +1,7 @@
 import { ref } from 'vue';
 import { Notify } from 'quasar';
 import { useConfigStore } from 'src/stores/config';
+import { api } from '../boot/axios';
 
 export function usePush() {
   const pushSubscription = ref<PushSubscription | null>(null);
@@ -52,10 +53,8 @@ export function usePush() {
       pushSubscription.value = subscription;
       console.info('✅ Нова Push Subscription отримано:', subscription);
 
-      await fetch('/api/save-subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subscription),
+      await api.post('/api/save-subscription', {
+        subscription: subscription,
       })
         .then(() => {
           Notify.create({

@@ -224,7 +224,11 @@ deyeStore.fetchDeyeDevices();
 .add-device-actions {
   margin-top: 16px;
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
+}
+
+:deep(.block) {
+  color: black;
 }
 
 .primary-btn {
@@ -429,5 +433,17 @@ deyeStore.fetchDeyeDevices();
     padding: 16px;
     border-radius: 16px;
   }
+}
+
+:deep(.block) {
+  color: black;
+}
+
+:deep(.q-spinner) {
+  color: black;
+}
+
+:deep(.q-field__native) {
+  color: white;
 }
 </style>

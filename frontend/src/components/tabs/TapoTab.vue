@@ -365,10 +365,22 @@ tapoStore.fetchDevices();
   flex: 1 1 auto;
 }
 
+:deep(.q-field__native) {
+  color: white;
+}
+
 .search-actions {
   margin-top: 16px;
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
+}
+
+:deep(.block) {
+  color: black;
+}
+
+:deep(.q-spinner) {
+  color: black;
 }
 
 .primary-btn {

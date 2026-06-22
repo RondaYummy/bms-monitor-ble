@@ -185,9 +185,13 @@ Promise.allSettled([bmsStore.fetchSettings()]);
   padding: 6px 16px 18px;
 }
 
+:deep(.block) {
+  color: black;
+}
+
 .search-actions {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .primary-btn {
@@ -323,4 +327,13 @@ Promise.allSettled([bmsStore.fetchSettings()]);
     padding: 10px 12px;
   }
 }
+
+:deep(.block) {
+  color: black;
+}
+
+:deep(.q-spinner) {
+  color: black;
+}
+
 </style>
