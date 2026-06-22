@@ -43,11 +43,33 @@
             />
           </div>
 
+          <div class="form-row subnet-row">
+            <q-input
+              label-color="white"
+              label="Підмережа для пошуку"
+              :disable="!token"
+              v-model="newTapoDevice.subnet"
+              filled
+              class="form-input"
+              hint="Діапазон IP вашої мережі, де шукати розетки (наприклад, 192.168.1.0/24)"
+              persistent-hint
+            />
+            <q-icon class="help-icon" name="help" size="2em">
+              <q-tooltip max-width="360px">
+                Пошук працює лише в локальній мережі: сервер пінгує всі IP у вказаній підмережі, потім
+                на відповідних адресах перевіряє, чи це пристрій Tapo, використовуючи ваш email і пароль.
+                Повертаються лише пристрої, яких ще немає в системі. Якщо розетка в іншій підмережі
+                (наприклад, через ретранслятор у режимі роутера), вкажіть її підмережу. Сервер має мати
+                доступ до цієї мережі.
+              </q-tooltip>
+            </q-icon>
+          </div>
+
           <div class="search-actions">
             <q-btn
               :loading="loadingTapoDevices"
               @click="searchTapoDevices"
-              :disable="!token || !newTapoDevice.email || !newTapoDevice.password"
+              :disable="!token || !newTapoDevice.email || !newTapoDevice.password || !newTapoDevice.subnet"
               label="Шукати пристрої Tapo"
               class="primary-btn search-btn"
               no-caps
@@ -58,7 +80,7 @@
             <div class="empty-state-card">
               <div class="empty-state-title">Нових пристроїв TP-Link Tapo не знайдено</div>
               <div class="empty-state-text">
-                Перевірте облікові дані Tapo та спробуйте виконати пошук ще раз.
+                Перевірте облікові дані Tapo, правильність підмережі та спробуйте виконати пошук ще раз.
               </div>
             </div>
           </template>
@@ -198,7 +220,14 @@ const loadingTapoDevices = ref<boolean>(false);
 const openModalAddTapo = ref<boolean>(false);
 const modalAddTapoDeviceData = ref();
 const intervalId = ref();
-const newTapoDevice = ref({ ip: '', email: '', password: '', power_watt: 0, priority: 1 });
+const newTapoDevice = ref({
+  ip: '',
+  email: '',
+  password: '',
+  subnet: '192.168.31.0/24',
+  power_watt: 0,
+  priority: 1,
+});
 
 async function openModalAddTapoDevice(device: any) {
   modalAddTapoDeviceData.value = device;
@@ -212,6 +241,7 @@ async function searchTapoDevices() {
     await tapoStore.searchTapoDevices({
       email: newTapoDevice.value.email,
       password: newTapoDevice.value.password,
+      subnet: newTapoDevice.value.subnet,
     });
   } catch (error) {
     console.error(error);
@@ -323,6 +353,11 @@ tapoStore.fetchDevices();
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.subnet-row {
+  margin-top: 12px;
+  margin-bottom: 0;
 }
 
 .form-input {
