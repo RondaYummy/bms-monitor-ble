@@ -12,11 +12,13 @@ RUN npm run build
 
 FROM nginx:stable-alpine
 
-# Копіюємо статичні файли у папку nginx
+RUN apk add --no-cache gettext
+
 COPY --from=build-stage /usr/src/app/dist /usr/share/nginx/html
 
-# Копіюємо кастомний конфіг для nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf.template /etc/nginx/conf.d/nginx.conf.template
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 8444
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/entrypoint.sh"]
