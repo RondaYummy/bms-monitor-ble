@@ -270,6 +270,7 @@ async function editTapoDevice() {
       power_watt: editedDeviceData.value.power_watt,
       priority: editedDeviceData.value.priority,
     };
+    
     if (editedDeviceData.value.password) {
       updateData.password = editedDeviceData.value.password;
     }
