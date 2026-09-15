@@ -273,7 +273,6 @@ async function editTapoDevice() {
     if (editedDeviceData.value.password) {
       updateData.password = editedDeviceData.value.password;
     }
-
     await tapoStore.updateTapoDeviceConfig(editedTapoIp.value, updateData);
   } catch (error) {
     console.error(error);
