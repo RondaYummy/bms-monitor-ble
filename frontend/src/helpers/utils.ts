@@ -1,4 +1,4 @@
-import { onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { eventBus } from '../eventBus';
 import { copyToClipboard, Notify } from 'quasar';
 
@@ -38,6 +38,27 @@ export const useSessionStorage = (key: string) => {
 
   return value;
 };
+
+export const AUTH_STORAGE_KEYS = ['access_token', 'access_role', 'access_username', 'token_created_at'];
+
+/**
+ * Session info of the logged-in user. `isAdmin` guards every control that changes something;
+ * viewers can log in (e.g. when public read access is disabled) but only see data.
+ * Sessions from before roles existed have no stored role: the backend treats them as admin.
+ */
+export const useAuth = () => {
+  const token = useSessionStorage('access_token');
+  const role = useSessionStorage('access_role');
+  const username = useSessionStorage('access_username');
+  const isLoggedIn = computed(() => !!token.value);
+  const isAdmin = computed(() => !!token.value && (role.value === 'admin' || !role.value));
+  return { token, role, username, isLoggedIn, isAdmin };
+};
+
+export function clearSession() {
+  AUTH_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+  AUTH_STORAGE_KEYS.forEach((key) => eventBus.emit('session:remove', key));
+}
 
 export function formatDuration(seconds: number) {
   const units = [

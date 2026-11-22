@@ -1,22 +1,36 @@
 <template>
   <div class="toggle-wrapper">
-    <span :class="{ disabled: disabled }" class="name">{{ title }}</span>
+    <span :class="{ disabled: !interactive }" class="name">
+      {{ title }}
+      <q-spinner v-if="loading" size="0.8em" class="q-ml-xs" />
+    </span>
     <div class="toggle transparent">
-      <input :disabled="disabled" :checked="checked" id="transparent" type="checkbox" />
-      <label class="toggle-item" for="transparent"></label>
+      <!-- unique id per instance: all toggles used to share id="transparent" -->
+      <input
+        :id="uid"
+        :disabled="!interactive || loading"
+        :checked="checked"
+        type="checkbox"
+        @change="onChange"
+      />
+      <label class="toggle-item" :for="uid"></label>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue';
+import { ref, useId, watch } from 'vue';
 
 const props = defineProps({
   title: String,
   value: Boolean,
+  interactive: { type: Boolean, default: false },
+  loading: { type: Boolean, default: false },
 });
+const emit = defineEmits<{ (e: 'toggle', value: boolean): void }>();
+
+const uid = `toggle-${useId()}`;
 const checked = ref(props.value);
-const disabled = ref(true);
 
 watch(
   () => props.value,
@@ -24,6 +38,14 @@ watch(
     checked.value = newValue;
   }
 );
+
+function onChange(event: Event) {
+  const requested = (event.target as HTMLInputElement).checked;
+  // The parent confirms and applies the change; until the BMS reports it, show the real state.
+  (event.target as HTMLInputElement).checked = props.value;
+  checked.value = props.value;
+  emit('toggle', requested);
+}
 </script>
 
 <style scoped lang="scss">
@@ -105,7 +127,7 @@ label.toggle-item {
   }
 }
 
-#transparent:checked + label {
+input:checked + label {
   &:before {
     transform: translateX(59px);
   }

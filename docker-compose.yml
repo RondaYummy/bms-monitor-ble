@@ -40,6 +40,8 @@ services:
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
       - CORS_ORIGINS=${CORS_ORIGINS:-}
       - VAPID_SUBJECT=${VAPID_SUBJECT:-mailto:halevych.dev@gmail.com}
+      # Optional: encryption key for Tapo passwords / 2FA secrets (default: data/secret.key, auto-generated)
+      - SECRET_KEY=${SECRET_KEY:-}
     privileged: true  # Allows access to the Bluetooth adapter
     cap_add:
       - NET_RAW

@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from PyP100 import PyP110
 
 import python.db as db
-from python.auth.verify_token import verify_token
+from python.auth.verify_token import require_admin
 
 MAX_WORKERS = 100
 MAX_SCAN_HOSTS = 1024  # e.g. a /22 — prevents scanning (and DoS-ing) huge ranges like 10.0.0.0/8
@@ -51,7 +51,7 @@ def try_check_device(ip: str, email: str, password: str):
     except Exception as e:
         return None
 
-@router.post("/tapo/devices/search", dependencies=[Depends(verify_token)])
+@router.post("/tapo/devices/search", dependencies=[Depends(require_admin)])
 def search_tapo_devices(request: ScanRequest):
     print(f"🌐 Tapo scan in subnet: {request.subnet}")
 

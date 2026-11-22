@@ -12,26 +12,26 @@
           </q-tooltip>
         </p>
 
-        <q-input :disable="!token" v-model.number="config.n_hours" type="number"
+        <q-input :disable="!canEdit" v-model.number="config.n_hours" type="number"
           filled />
       </div>
 
       <div class="row justify-between q-mt-sm">
-        <q-btn @click="configStore.updateConfigs()" color="black" size="xs" :disable="!token" label="Зберегти" />
+        <q-btn @click="configStore.updateConfigs()" color="black" size="xs" :disable="!canEdit" label="Зберегти" />
 
-        <q-btn @click="close" size="xs" color="black" :disable="!token" label="Скасувати" />
+        <q-btn @click="close" size="xs" color="black" :disable="!canEdit" label="Скасувати" />
       </div>
     </div>
   </q-dialog>
 </template>
 
 <script setup lang="ts">
-import { useSessionStorage } from 'src/helpers/utils';
+import { useAuth } from 'src/helpers/utils';
 import type { Config } from 'src/models';
 import { useConfigStore } from 'src/stores/config';
 import { ref, watch } from 'vue';
 
-const token = useSessionStorage('access_token');
+const { isAdmin: canEdit } = useAuth();
 const configStore = useConfigStore();
 
 interface Props {

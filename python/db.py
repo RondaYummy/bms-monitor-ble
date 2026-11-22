@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 
+from python import security
 from python.pwd import hash_password
 
 data_aggregator = defaultdict(lambda: {
@@ -23,6 +24,7 @@ data_aggregator = defaultdict(lambda: {
     "power_sum": 0,
     "current_min": float('inf'),
     "current_max": float('-inf'),
+    "voltage_diff_max": None,
     "count": 0,
     "last_insert_time": None
 })
@@ -67,7 +69,7 @@ async def process_devices():
 
         await asyncio.sleep(60 * 5)
 
-def update_aggregated_data(device_name, device_address, current, power, remaining_capacity):
+def update_aggregated_data(device_name, device_address, current, power, remaining_capacity, voltage_difference=None):
     """Updates intermediate data for aggregation."""
     global data_aggregator
     now = datetime.now()
@@ -96,6 +98,9 @@ def update_aggregated_data(device_name, device_address, current, power, remainin
 
     device_data["current_min"] = min(device_data["current_min"], current)
     device_data["current_max"] = max(device_data["current_max"], current)
+    if isinstance(voltage_difference, (int, float)):
+        previous = device_data.get("voltage_diff_max")
+        device_data["voltage_diff_max"] = voltage_difference if previous is None else max(previous, voltage_difference)
 
     # Increase the number of records
     device_data["count"] += 1
@@ -126,7 +131,8 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
             power=power_avg,
             remaining_capacity=remaining_capacity_avg,
             device_address=device_address,
-            device_name=device_name
+            device_name=device_name,
+            voltage_difference=device_data.get("voltage_diff_max"),
         )
         # print(f"Aggregated data saved for {device_name} ({device_address}) at {timestamp}")
     except Exception as e:
@@ -137,6 +143,7 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
         "power_sum": 0,
         "current_min": float('inf'),
         "current_max": float('-inf'),
+        "voltage_diff_max": None,
         "remaining_capacity": 0,
         "count": 0,
         "last_insert_time": now
@@ -334,10 +341,74 @@ def create_table():
                 days INTEGER DEFAULT 90
             );
             """)
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                password_hash TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'viewer' CHECK (role IN ('admin', 'viewer')),
+                totp_secret TEXT,
+                totp_enabled INTEGER NOT NULL DEFAULT 0,
+                totp_last_step INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+            """)
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS tapo_rules (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ip TEXT NOT NULL,
+                name TEXT,
+                enabled INTEGER NOT NULL DEFAULT 1,
+                start_time TEXT NOT NULL,
+                end_time TEXT NOT NULL,
+                days TEXT NOT NULL DEFAULT '0123456',
+                min_soc REAL,
+                min_pv_w REAL,
+                turn_off_at_end INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            )
+            """)
+
+            # ---- Additive migrations for existing databases ----
+            _ensure_column(cursor, "bms_data", "voltage_difference", "REAL")
+            _ensure_column(cursor, "bms_data", "resolution", "INTEGER DEFAULT 60")
+            _ensure_column(cursor, "error_notifications", "message", "TEXT")
+            _ensure_column(cursor, "active_tokens", "user_id", "INTEGER")
+            _ensure_column(cursor, "configs", "public_read", "INTEGER DEFAULT 1")
+            _ensure_column(cursor, "configs", "alert_thresholds", "TEXT")
+            _ensure_column(cursor, "configs", "raw_retention_days", "INTEGER DEFAULT 90")
+            _ensure_column(cursor, "configs", "alerts_retention_days", "INTEGER DEFAULT 365")
+            _ensure_column(cursor, "configs", "backup_enabled", "INTEGER DEFAULT 1")
+            _ensure_column(cursor, "configs", "backup_keep", "INTEGER DEFAULT 7")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_bms_data_device_ts ON bms_data (device_address, timestamp)")
+
+            # The single legacy password becomes the "admin" user.
+            cursor.execute("SELECT COUNT(*) FROM users")
+            if cursor.fetchone()[0] == 0:
+                cursor.execute("SELECT password FROM configs LIMIT 1")
+                row = cursor.fetchone()
+                legacy_hash = row[0] if row and row[0] else hash_password(_initial_admin_password())
+                cursor.execute(
+                    "INSERT INTO users (username, password_hash, role) VALUES ('admin', ?, 'admin')",
+                    (legacy_hash,),
+                )
+                print("👤 Created user 'admin' (role: admin) from the existing password.")
+
+            # Encrypt Tapo passwords that are still stored in plaintext.
+            cursor.execute("SELECT id, password FROM tapo_devices")
+            for device_id, password in cursor.fetchall():
+                if password and not security.is_encrypted(password):
+                    cursor.execute("UPDATE tapo_devices SET password = ? WHERE id = ?",
+                                   (security.encrypt(password), device_id))
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error creating table: {e}")
         raise
+
+def _ensure_column(cursor, table: str, column: str, ddl: str):
+    cursor.execute(f"PRAGMA table_info({table})")
+    if column not in {row[1] for row in cursor.fetchall()}:
+        cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {ddl}")
 
 def get_latest_ssl_certificate():
     try:
@@ -543,7 +614,7 @@ def insert_device(
         raise
 
 
-def insert_alert_data(device_address, device_name, error_code, occurred_at, n_hours=1) -> bool:
+def insert_alert_data(device_address, device_name, error_code, occurred_at, n_hours=1, message=None) -> bool:
     """Stores an alert unless the same code was already raised for the device in the last n_hours.
 
     Returns True if a new alert was stored (i.e. a notification should be sent).
@@ -571,9 +642,9 @@ def insert_alert_data(device_address, device_name, error_code, occurred_at, n_ho
                 return False
 
             cursor.execute('''
-            INSERT INTO error_notifications (device_address, error_code, occurred_at, device_name)
-            VALUES (?, ?, ?, ?)
-            ''', (device_address, str(error_code), occurred_at, device_name))
+            INSERT INTO error_notifications (device_address, error_code, occurred_at, device_name, message)
+            VALUES (?, ?, ?, ?, ?)
+            ''', (device_address, str(error_code), occurred_at, device_name, message))
             ALERT_CACHE.setdefault(device_address, {})[error_code] = {"timestamp": occurred_at, "id": cursor.lastrowid}
             return True
 
@@ -581,14 +652,14 @@ def insert_alert_data(device_address, device_name, error_code, occurred_at, n_ho
         print(f"Error inserting alerts data: {e}")
         raise
 
-def insert_data(timestamp, current, power, remaining_capacity, device_address, device_name):
+def insert_data(timestamp, current, power, remaining_capacity, device_address, device_name, voltage_difference=None):
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-            INSERT INTO bms_data (timestamp, current, power, remaining_capacity, device_address, device_name)
-            VALUES (?, ?, ?, ?, ?, ?)
-            ''', (timestamp, current, power, remaining_capacity, device_address, device_name))
+            INSERT INTO bms_data (timestamp, current, power, remaining_capacity, device_address, device_name, voltage_difference)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (timestamp, current, power, remaining_capacity, device_address, device_name, voltage_difference))
             conn.commit()
     except sqlite3.Error as e:
         print(f"Error inserting data: {e}")
@@ -672,7 +743,7 @@ def fetch_all_notifications():
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                SELECT id, device_address, error_code, device_name, occurred_at
+                SELECT id, device_address, error_code, device_name, occurred_at, message
                 FROM error_notifications
                 ORDER BY occurred_at DESC
             ''')
@@ -753,6 +824,11 @@ def get_all_subscriptions():
         print(f"❌ Error receiving subscriptions: {e}")
         return []
 
+CONFIG_UPDATABLE_COLUMNS = {
+    "n_hours", "auto_power_management_enabled", "public_read", "alert_thresholds",
+    "raw_retention_days", "alerts_retention_days", "backup_enabled", "backup_keep",
+}
+
 def get_config():
     global CONFIG_CACHE, CONFIG_CACHE_TIMESTAMP
 
@@ -761,24 +837,26 @@ def get_config():
 
     try:
         with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours, auto_power_management_enabled FROM configs LIMIT 1")
-            config = cursor.fetchone()
-            if config:
-                CONFIG_CACHE = {
-                    "password": config[0],
-                    "VAPID_PUBLIC_KEY": config[1],
-                    "VAPID_PRIVATE_KEY": config[2],
-                    "n_hours": config[3],
-                    "auto_power_management_enabled": config[4],
-                }
-                CONFIG_CACHE_TIMESTAMP = time.time()
-                return CONFIG_CACHE
-            else:
+            conn.row_factory = sqlite3.Row
+            row = conn.execute("SELECT * FROM configs ORDER BY id LIMIT 1").fetchone()
+            if not row:
                 return None
+            CONFIG_CACHE = dict(row)
+            CONFIG_CACHE_TIMESTAMP = time.time()
+            return CONFIG_CACHE
     except sqlite3.Error as e:
         print(f"Error fetching config: {e}")
         return None
+
+def update_config_fields(**fields):
+    """Updates whitelisted config columns (None values are ignored). Returns the fresh config."""
+    fields = {k: v for k, v in fields.items() if k in CONFIG_UPDATABLE_COLUMNS and v is not None}
+    if fields:
+        with get_connection() as conn:
+            assignments = ", ".join(f"{key} = ?" for key in fields)
+            conn.execute(f"UPDATE configs SET {assignments}", list(fields.values()))
+    invalidate_config_cache()
+    return get_config()
 
 def invalidate_config_cache():
     global CONFIG_CACHE, CONFIG_CACHE_TIMESTAMP
@@ -832,6 +910,12 @@ def update_config(password=None, vapid_public=None, vapid_private=None, n_hours=
         print(f"Error updating config: {e}")
         return None
 
+def _tapo_row(row: dict | None) -> dict | None:
+    """Tapo passwords are encrypted at rest; callers always get the plaintext."""
+    if row is not None and row.get("password"):
+        row["password"] = security.decrypt(row["password"])
+    return row
+
 def get_tapo_device_by_ip(ip):
     with get_connection() as conn:
         cursor = conn.cursor()
@@ -839,7 +923,7 @@ def get_tapo_device_by_ip(ip):
         row = cursor.fetchone()
         if row:
             columns = [desc[0] for desc in cursor.description]
-            return dict(zip(columns, row))
+            return _tapo_row(dict(zip(columns, row)))
         return None
 
 def insert_tapo_device(ip, email, password, power_watt=0, priority=0):
@@ -856,7 +940,7 @@ def insert_tapo_device(ip, email, password, power_watt=0, priority=0):
                 INSERT INTO tapo_devices (
                     ip, email, password, added_at, device_on, power_watt, priority
                 ) VALUES (?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?)
-            ''', (ip, email, password, False, power_watt, priority))
+            ''', (ip, email, security.encrypt(password), False, power_watt, priority))
 
             conn.commit()
             return get_tapo_device_by_ip(ip)
@@ -913,7 +997,7 @@ def update_tapo_device_config_by_ip(ip: str, updates: dict):
                 values.append(updates["email"])
             if updates.get("password"):
                 fields.append("password = ?")
-                values.append(updates["password"])
+                values.append(security.encrypt(updates["password"]))
             if "power_watt" in updates:
                 fields.append("power_watt = ?")
                 values.append(updates["power_watt"])
@@ -957,7 +1041,7 @@ def get_top_priority_tapo_devices(limit: int | None = None):
                 params = (limit,)
 
             cursor.execute(sql_query, params)
-            devices = [dict(row) for row in cursor.fetchall()]
+            devices = [_tapo_row(dict(row)) for row in cursor.fetchall()]
             return devices
     except sqlite3.Error as e:
         print(f"❌ DB error in get_top_priority_tapo_devices: {e}")
@@ -969,7 +1053,7 @@ def get_all_tapo_devices():
         cursor.execute("SELECT * FROM tapo_devices")
         rows = cursor.fetchall()
         columns = [desc[0] for desc in cursor.description]
-        return [dict(zip(columns, row)) for row in rows]
+        return [_tapo_row(dict(zip(columns, row))) for row in rows]
 
 def get_tapo_device_by_id(id):
     with get_connection() as conn:
@@ -978,7 +1062,7 @@ def get_tapo_device_by_id(id):
         row = cursor.fetchone()
         if row:
             columns = [desc[0] for desc in cursor.description]
-            return dict(zip(columns, row))
+            return _tapo_row(dict(zip(columns, row)))
         return None
 
 def delete_tapo_device_by_ip(ip: str):
@@ -986,8 +1070,9 @@ def delete_tapo_device_by_ip(ip: str):
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM tapo_devices WHERE ip = ?", (ip,))
-            conn.commit()
-            return cursor.rowcount > 0  # True if at least 1 line was deleted
+            deleted = cursor.rowcount
+            cursor.execute("DELETE FROM tapo_rules WHERE ip = ?", (ip,))
+            return deleted > 0  # True if at least 1 line was deleted
     except sqlite3.Error as e:
         print(f"❌ Error deleting the Tapo device with IP {ip}: {e}")
         raise
@@ -1083,13 +1168,13 @@ def _hash_token(token: str) -> str:
     # Tokens are stored hashed, so a leaked DB file/backup does not contain usable sessions.
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
-def add_token_to_db(token: str):
+def add_token_to_db(token: str, user_id: int | None = None):
     try:
         with get_connection() as conn:
             created_at = datetime.now().isoformat()
             conn.execute(
-                "INSERT OR REPLACE INTO active_tokens (token, created_at) VALUES (?, ?)",
-                (_hash_token(token), created_at),
+                "INSERT OR REPLACE INTO active_tokens (token, created_at, user_id) VALUES (?, ?, ?)",
+                (_hash_token(token), created_at, user_id),
             )
     except sqlite3.Error as e:
         print(f"❌ Error adding token to DB: {e}")
@@ -1104,14 +1189,27 @@ def remove_token_from_db(token: str):
         print(f"❌ Error removing token from DB: {e}")
         raise
 
-def remove_all_tokens_except(token: str | None = None):
-    """Revokes every session (e.g. after a password change), optionally keeping the current one."""
+def _first_admin_id(conn) -> int | None:
+    row = conn.execute("SELECT id FROM users WHERE role = 'admin' ORDER BY id LIMIT 1").fetchone()
+    return row[0] if row else None
+
+def remove_all_tokens_except(token: str | None = None, user_id: int | None = None):
+    """Revokes sessions (e.g. after a password change), optionally keeping the current one.
+
+    With `user_id` only that user's sessions are revoked (legacy sessions without user belong to the first admin).
+    """
     try:
         with get_connection() as conn:
-            if token:
-                conn.execute("DELETE FROM active_tokens WHERE token NOT IN (?, ?)", (_hash_token(token), token))
+            keep = (_hash_token(token), token) if token else ("", "")
+            if user_id is None:
+                conn.execute("DELETE FROM active_tokens WHERE token NOT IN (?, ?)", keep)
             else:
-                conn.execute("DELETE FROM active_tokens")
+                legacy_owner = _first_admin_id(conn)
+                conn.execute(
+                    "DELETE FROM active_tokens WHERE token NOT IN (?, ?) "
+                    "AND (user_id = ? OR (user_id IS NULL AND ? = ?))",
+                    (*keep, user_id, user_id, legacy_owner),
+                )
     except sqlite3.Error as e:
         print(f"❌ Error revoking tokens: {e}")
         raise
@@ -1126,32 +1224,134 @@ def purge_expired_tokens(lifetime_seconds: int):
     except sqlite3.Error as e:
         print(f"❌ Error purging expired tokens: {e}")
 
-def is_token_valid_in_db(token: str, lifetime_seconds: int) -> bool:
+def get_session(token: str, lifetime_seconds: int) -> dict | None:
+    """Returns {"user_id", "username", "role"} for a valid session, otherwise None."""
     try:
         with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT token, created_at FROM active_tokens WHERE token IN (?, ?)",
+            row = conn.execute(
+                "SELECT token, created_at, user_id FROM active_tokens WHERE token IN (?, ?)",
                 (_hash_token(token), token),
-            )
-            result = cursor.fetchone()
+            ).fetchone()
+            if not row:
+                return None
 
-            if not result:
-                return False
+            stored_token, created_at_str, user_id = row
+            if datetime.now() >= datetime.fromisoformat(created_at_str) + timedelta(seconds=lifetime_seconds):
+                print("⚠️ Session token expired. Removing from DB.")
+                conn.execute("DELETE FROM active_tokens WHERE token = ?", (stored_token,))
+                return None
 
-            stored_token, created_at_str = result
-            created_at = datetime.fromisoformat(created_at_str)
-
-            if datetime.now() < created_at + timedelta(seconds=lifetime_seconds):
-                return True
-
-            print("⚠️ Session token expired. Removing from DB.")
-            conn.execute("DELETE FROM active_tokens WHERE token = ?", (stored_token,))
-            return False
-
+            # Sessions created before multi-user support belong to the (first) admin.
+            if user_id is None:
+                user_id = _first_admin_id(conn)
+            user = conn.execute("SELECT id, username, role FROM users WHERE id = ?", (user_id,)).fetchone()
+            if not user:
+                conn.execute("DELETE FROM active_tokens WHERE token = ?", (stored_token,))
+                return None
+            return {"user_id": user[0], "username": user[1], "role": user[2]}
     except sqlite3.Error as e:
         print(f"❌ Error validating token in DB: {e}")
-        return False
+        return None
+
+def is_token_valid_in_db(token: str, lifetime_seconds: int) -> bool:
+    return get_session(token, lifetime_seconds) is not None
+
+# ---------------------------------------------------------------- users
+
+USER_PUBLIC_COLUMNS = "id, username, role, totp_enabled, created_at"
+
+def _user_row(row) -> dict | None:
+    if row is None:
+        return None
+    user = dict(row)
+    if "totp_secret" in user:
+        user["totp_secret"] = security.decrypt(user["totp_secret"])
+    if "totp_enabled" in user:
+        user["totp_enabled"] = bool(user["totp_enabled"])
+    return user
+
+def get_user_by_username(username: str) -> dict | None:
+    with get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        return _user_row(conn.execute("SELECT * FROM users WHERE username = ?", (username.strip(),)).fetchone())
+
+def get_user_by_id(user_id: int) -> dict | None:
+    with get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        return _user_row(conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone())
+
+def list_users() -> list[dict]:
+    with get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(f"SELECT {USER_PUBLIC_COLUMNS} FROM users ORDER BY id").fetchall()
+        return [_user_row(r) for r in rows]
+
+def count_admins() -> int:
+    with get_connection() as conn:
+        return conn.execute("SELECT COUNT(*) FROM users WHERE role = 'admin'").fetchone()[0]
+
+def create_user(username: str, password_hash: str, role: str) -> dict:
+    with get_connection() as conn:
+        cursor = conn.execute(
+            "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+            (username.strip(), password_hash, role),
+        )
+        user_id = cursor.lastrowid
+    return get_user_by_id(user_id)
+
+USER_UPDATABLE_COLUMNS = {"password_hash", "role", "totp_secret", "totp_enabled", "totp_last_step"}
+
+def update_user(user_id: int, **fields):
+    fields = {k: v for k, v in fields.items() if k in USER_UPDATABLE_COLUMNS}
+    if "totp_secret" in fields:
+        fields["totp_secret"] = security.encrypt(fields["totp_secret"]) if fields["totp_secret"] else None
+    if not fields:
+        return get_user_by_id(user_id)
+    with get_connection() as conn:
+        assignments = ", ".join(f"{key} = ?" for key in fields)
+        conn.execute(f"UPDATE users SET {assignments} WHERE id = ?", [*fields.values(), user_id])
+    return get_user_by_id(user_id)
+
+def delete_user(user_id: int) -> bool:
+    with get_connection() as conn:
+        deleted = conn.execute("DELETE FROM users WHERE id = ?", (user_id,)).rowcount
+        conn.execute("DELETE FROM active_tokens WHERE user_id = ?", (user_id,))
+        return deleted > 0
+
+# ---------------------------------------------------------------- tapo schedule rules
+
+TAPO_RULE_COLUMNS = ("ip", "name", "enabled", "start_time", "end_time", "days", "min_soc", "min_pv_w", "turn_off_at_end")
+
+def list_tapo_rules() -> list[dict]:
+    with get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        return [dict(r) for r in conn.execute("SELECT * FROM tapo_rules ORDER BY ip, start_time").fetchall()]
+
+def get_tapo_rule(rule_id: int) -> dict | None:
+    with get_connection() as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute("SELECT * FROM tapo_rules WHERE id = ?", (rule_id,)).fetchone()
+        return dict(row) if row else None
+
+def create_tapo_rule(**fields) -> dict:
+    fields = {k: v for k, v in fields.items() if k in TAPO_RULE_COLUMNS}
+    with get_connection() as conn:
+        columns = ", ".join(fields)
+        placeholders = ", ".join("?" for _ in fields)
+        rule_id = conn.execute(f"INSERT INTO tapo_rules ({columns}) VALUES ({placeholders})", list(fields.values())).lastrowid
+    return get_tapo_rule(rule_id)
+
+def update_tapo_rule(rule_id: int, **fields) -> dict | None:
+    fields = {k: v for k, v in fields.items() if k in TAPO_RULE_COLUMNS}
+    if fields:
+        with get_connection() as conn:
+            assignments = ", ".join(f"{key} = ?" for key in fields)
+            conn.execute(f"UPDATE tapo_rules SET {assignments} WHERE id = ?", [*fields.values(), rule_id])
+    return get_tapo_rule(rule_id)
+
+def delete_tapo_rule(rule_id: int) -> bool:
+    with get_connection() as conn:
+        return conn.execute("DELETE FROM tapo_rules WHERE id = ?", (rule_id,)).rowcount > 0
 
 def refresh_ssl_certificate():
     try:

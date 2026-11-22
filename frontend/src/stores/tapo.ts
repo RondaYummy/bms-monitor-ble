@@ -294,6 +294,7 @@ export const useTapoStore = defineStore('tapo', () => {
     //   MUTATIONS
     // ==============
     updateDevices,
+    updateTopDevices,
 
     // ==============
     //   ACTIONS

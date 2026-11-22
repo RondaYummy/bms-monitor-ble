@@ -88,10 +88,10 @@
             </q-card-section>
 
             <q-card-actions align="right">
-              <q-btn flat label="GitHub" :disable="!token"
+              <q-btn flat label="GitHub" :disable="!canEdit"
                 href="https://github.com/RondaYummy/bms-monitor-ble/blob/main/SSL_CERTIFICATE.md" color="primary" />
 
-              <q-btn flat label="Поновити" :disable="!token" color="black">
+              <q-btn flat label="Поновити" :disable="!canEdit" color="black">
                 <q-popup-proxy>
                   <q-banner class="q-pa-md">
                     <template v-slot:avatar>
@@ -367,6 +367,8 @@
       </q-card>
     </q-dialog>
 
+    <BatteryAnalytics v-if="Object.keys(devicesList || {}).length" />
+
     <BMSChart :tab="tab" />
 
     <q-expansion-item v-model="isCellVoltagesOpen" switch-toggle-side expand-separator label="Cell Voltages">
@@ -430,7 +432,7 @@ import {
   calculateChargeTime,
   formatMinutes,
   isInstalled,
-  useSessionStorage,
+  useAuth,
 } from '../helpers/utils';
 import { ref, watch, onBeforeUnmount, computed, onMounted } from 'vue';
 import type { BeforeInstallPromptEvent, CellInfo, DeyeSafeValues } from '../models';
@@ -440,6 +442,8 @@ import SemiCircleGauge from 'src/components/SemiCircleGauge.vue';
 import { useTapoStore } from 'src/stores/tapo';
 import AddtionalInfo from 'src/components/deye/AddtionalInfo.vue';
 import { usePowerStore } from 'src/stores/power';
+import { useLiveStore } from 'src/stores/live';
+import BatteryAnalytics from 'src/components/BatteryAnalytics.vue';
 import SslData from 'src/components/SslData.vue';
 import { useConfigStore } from 'src/stores/config';
 import TopTapoDevice from 'src/components/tapo/TopTapoDevice.vue';
@@ -450,8 +454,9 @@ const bmsStore = useBmsStore();
 const deyeStore = useDeyeStore();
 const tapoStore = useTapoStore();
 const powerStore = usePowerStore();
+const liveStore = useLiveStore();
 const configStore = useConfigStore();
-const token = useSessionStorage('access_token');
+const { isAdmin: canEdit } = useAuth();
 
 configStore.fetchSsl();
 
@@ -666,7 +671,8 @@ if (!isInstalled() && skipInstall !== 'true') {
 }
 
 const intervalFunction = async () => {
-  if (isFetching.value || document.hidden) return;
+  // With the live stream connected the server pushes updates; polling is only the fallback.
+  if (isFetching.value || document.hidden || liveStore.isConnected()) return;
   isFetching.value = true;
   try {
     await Promise.allSettled([
@@ -685,12 +691,14 @@ const onVisibilityChange = () => {
 };
 
 onMounted(() => {
+  liveStore.start();
   intervalFunction();
   intervalId.value = setInterval(intervalFunction, 2000);
   document.addEventListener('visibilitychange', onVisibilityChange);
 });
 
 onBeforeUnmount(() => {
+  liveStore.stop();
   clearInterval(intervalId.value);
   document.removeEventListener('visibilitychange', onVisibilityChange);
 });

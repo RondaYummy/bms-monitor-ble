@@ -9,7 +9,7 @@
 
     <div class="add-device-card">
       <q-expansion-item
-        :disable="!token"
+        :disable="!canEdit"
         v-model="expandAddTapoDevice"
         icon="add"
         label="Add new device"
@@ -28,7 +28,7 @@
             <q-input
               label-color="white"
               label="Email from Tapo App"
-              :disable="!token"
+              :disable="!canEdit"
               v-model="newTapoDevice.email"
               filled
               class="form-input"
@@ -36,7 +36,7 @@
             <q-input
               label-color="white"
               label="Password from Tapo App"
-              :disable="!token"
+              :disable="!canEdit"
               type="password"
               autocomplete="new-password"
               v-model="newTapoDevice.password"
@@ -49,7 +49,7 @@
             <q-input
               label-color="white"
               label="Підмережа для пошуку"
-              :disable="!token"
+              :disable="!canEdit"
               v-model="newTapoDevice.subnet"
               filled
               class="form-input"
@@ -71,7 +71,7 @@
             <q-btn
               :loading="loadingTapoDevices"
               @click="searchTapoDevices"
-              :disable="!token || !newTapoDevice.email || !newTapoDevice.password || !newTapoDevice.subnet"
+              :disable="!canEdit || !newTapoDevice.email || !newTapoDevice.password || !newTapoDevice.subnet"
               label="Шукати пристрої Tapo"
               class="primary-btn search-btn"
               no-caps
@@ -97,7 +97,7 @@
                   :key="device?.ip"
                   clickable
                   :disable="openModalAddTapo"
-                  @click="token && openModalAddTapoDevice(device)"
+                  @click="canEdit && openModalAddTapoDevice(device)"
                   v-ripple
                   class="device-found-item"
                 >
@@ -131,7 +131,7 @@
                   <q-input
                     label-color="white"
                     label="Device IP Address"
-                    :disable="!token"
+                    :disable="!canEdit"
                     v-model="newTapoDevice.ip"
                     filled
                     class="form-input"
@@ -149,7 +149,7 @@
                   <q-input
                     label-color="white"
                     label="Priority"
-                    :disable="!token"
+                    :disable="!canEdit"
                     v-model="newTapoDevice.priority"
                     filled
                     class="form-input"
@@ -166,7 +166,7 @@
                   <q-input
                     label-color="white"
                     label="Device power ( W )"
-                    :disable="!token"
+                    :disable="!canEdit"
                     v-model="newTapoDevice.power_watt"
                     filled
                     class="form-input"
@@ -186,7 +186,7 @@
                   v-close-popup
                   :loading="loadingDevices"
                   @click="addTapoDevice"
-                  :disable="!token || !newTapoDevice.ip || !newTapoDevice.email || !newTapoDevice.password"
+                  :disable="!canEdit || !newTapoDevice.ip || !newTapoDevice.email || !newTapoDevice.password"
                   label="Додати новий пристрій"
                   class="primary-btn"
                   no-caps
@@ -203,18 +203,23 @@
     <div class="devices-list-wrap">
       <TapoDevicesList />
     </div>
+
+    <q-separator class="section-separator" color="white" />
+
+    <TapoRules />
   </div>
 </template>
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import TapoDevicesList from '../tapo/TapoDevicesList.vue';
+import TapoRules from '../tapo/TapoRules.vue';
 import { useTapoStore } from 'src/stores/tapo';
-import { useSessionStorage } from 'src/helpers/utils';
+import { useAuth } from 'src/helpers/utils';
 
 const tapoStore = useTapoStore();
 
-const token = useSessionStorage('access_token');
+const { isAdmin: canEdit } = useAuth();
 
 const loadingDevices = ref<boolean>(false);
 const expandAddTapoDevice = ref(false);

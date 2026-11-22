@@ -9,7 +9,7 @@
 
     <div class="add-device-card">
       <q-expansion-item
-        :disable="!token"
+        :disable="!canEdit"
         v-model="expandAddDeyeDevice"
         icon="add"
         label="Add new device"
@@ -27,7 +27,7 @@
             <q-input
               label-color="white"
               label="Device IP Address"
-              :disable="!token"
+              :disable="!canEdit"
               v-model="createDeye.ip"
               filled
               class="form-input"
@@ -35,7 +35,7 @@
             <q-input
               label-color="white"
               label="Device Serial Number"
-              :disable="!token"
+              :disable="!canEdit"
               v-model="createDeye.serial_number"
               filled
               class="form-input"
@@ -46,7 +46,7 @@
             <q-btn
               :loading="loading"
               @click="createDeyeDevice"
-              :disable="!token || !createDeye.ip || !createDeye.serial_number"
+              :disable="!canEdit || !createDeye.ip || !createDeye.serial_number"
               label="Додати інвертор"
               class="primary-btn"
             />
@@ -108,13 +108,13 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { copy, useSessionStorage } from 'src/helpers/utils';
+import { copy, useAuth } from 'src/helpers/utils';
 import { useDeyeStore } from 'src/stores/deye';
 import { Notify } from 'quasar';
 
 const deyeStore = useDeyeStore();
 
-const token = useSessionStorage('access_token');
+const { isAdmin: canEdit } = useAuth();
 
 const expandAddDeyeDevice = ref(false);
 const intervalId = ref();
