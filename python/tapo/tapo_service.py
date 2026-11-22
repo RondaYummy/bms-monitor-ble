@@ -1,4 +1,6 @@
 import asyncio
+import base64
+import threading
 import time
 
 from typing import Dict, Any
@@ -19,19 +21,37 @@ class TapoDevice:
         self.email = email
         self.password = password
         self.plug = PyP110.P110(ip, email, password)
+        # The session is shared between the poller and API handlers (different threads);
+        # the Tapo protocol uses request sequence numbers, so calls must not overlap.
+        self._lock = threading.Lock()
 
     def get_info(self):
-        return self.plug.getDeviceInfo()
+        with self._lock:
+            return self.plug.getDeviceInfo()
 
     def get_name(self):
-        return self.plug.getDeviceName()
+        with self._lock:
+            return self.plug.getDeviceName()
+
+    @staticmethod
+    def name_from_info(info: dict):
+        """The nickname is already in getDeviceInfo() (base64) - saves a second HTTP request."""
+        nickname = (info or {}).get("nickname")
+        if not nickname:
+            return None
+        try:
+            return base64.b64decode(nickname).decode("utf-8")
+        except Exception:
+            return None
 
     def getEnergyUsage(self):
-        return self.plug.getEnergyUsage()
+        with self._lock:
+            return self.plug.getEnergyUsage()
 
     def get_status(self) -> dict:
         try:
-            info = self.plug.getDeviceInfo()
+            with self._lock:
+                info = self.plug.getDeviceInfo()
             relay_state = info.get("device_on", False)
 
             return {
@@ -46,17 +66,25 @@ class TapoDevice:
             }
 
     def turn_on(self):
-        self.plug.turnOn()
+        with self._lock:
+            self.plug.turnOn()
 
     def turn_off(self):
-        self.plug.turnOff()
+        with self._lock:
+            self.plug.turnOff()
 
 TAPO_CACHE: dict[str, TapoDevice] = {}
 
 def get_tapo_device(ip: str, email: str, password: str) -> TapoDevice:
-    if ip not in TAPO_CACHE:
-        TAPO_CACHE[ip] = TapoDevice(ip, email, password)
-    return TAPO_CACHE[ip]
+    """Reuses the authenticated session; re-creates it when the credentials were changed."""
+    cached = TAPO_CACHE.get(ip)
+    if cached is None or cached.email != email or cached.password != password:
+        cached = TapoDevice(ip, email, password)
+        TAPO_CACHE[ip] = cached
+    return cached
+
+def forget_tapo_device(ip: str):
+    TAPO_CACHE.pop(ip, None)
 
 async def check_and_update_device_status_async(device_row):
     loop = asyncio.get_event_loop()
@@ -65,8 +93,13 @@ async def check_and_update_device_status_async(device_row):
         try:
             tapo = get_tapo_device(device_row["ip"], device_row["email"], device_row["password"])
             status = tapo.get_status()
-            name = tapo.get_name()
+            if status.get("error"):
+                # Drop the cached session so the next poll does a fresh handshake.
+                forget_tapo_device(device_row["ip"])
+                update_tapo_device_by_ip(device_row["ip"], {"device_on": False})
+                return
             info = status.get("info", {})
+            name = TapoDevice.name_from_info(info)
             model = info.get("model")
 
             update_data = {
@@ -154,8 +187,8 @@ async def schedule_turn_off_worker(ip: str):
         try:
             # tapo = get_tapo_device(ip, email, password)
             # await loop.run_in_executor(None, tapo.turn_off)v
-            tapo = TapoDevice(ip, device["email"], device["password"])
-            tapo.turn_off()
+            tapo = get_tapo_device(ip, device["email"], device["password"])
+            await asyncio.to_thread(tapo.turn_off)
             update_tapo_device_by_ip(ip, {"device_on": 0})
 
             msg = f"🔴 Пристрій {ip} автоматично вимкнений за таймером."

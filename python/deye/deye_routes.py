@@ -1,7 +1,8 @@
+import ipaddress
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Path
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 import python.db as db
 from python.auth.verify_token import verify_token
@@ -17,12 +18,26 @@ class CreateDeyeDeviceRequest(BaseModel):
     slave_id: Optional[int] = Field(1, description="Modbus slave ID")
     device_on: Optional[bool] = Field(True, description="Device power state")
 
+    @field_validator("ip")
+    @classmethod
+    def validate_ip(cls, value: str) -> str:
+        return str(ipaddress.ip_address(value.strip()))
+
+    @field_validator("serial_number")
+    @classmethod
+    def validate_serial(cls, value: str) -> str:
+        value = value.strip()
+        if not value.isdigit() or len(value) > 12:
+            raise ValueError("serial_number must be numeric")
+        return value
+
 @router.get("/devices", summary="Get all Deye devices")
 def get_all_deye_devices():
     try:
         return db.get_all_deye_devices()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"❌ Failed to list Deye devices: {e}")
+        raise HTTPException(status_code=500, detail="Failed to list devices")
 
 @router.delete(
     "/device/{ip}",
@@ -35,8 +50,11 @@ def delete_deye_device(ip: str = Path(..., description="IP address of the Deye d
         if not deleted:
             raise HTTPException(status_code=404, detail="Device not found")
         return {"detail": f"Device {ip} deleted successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"❌ Failed to delete Deye device {ip}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete device")
 
 @router.patch(
     "/devices/{ip}/toggle",
@@ -50,8 +68,11 @@ def toggle_deye_device(ip: str, body: DeviceToggleRequest):
             raise HTTPException(status_code=404, detail="Device not found")
         # db.update_deye_device_data(ip, {"device_on": int(body.device_on)}) # TODO: update status
         return {"detail": f"Device {ip} state updated to {body.device_on}"}
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"❌ Failed to toggle Deye device {ip}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update device")
 
 @router.post(
     "/device",
@@ -68,4 +89,5 @@ def create_deye_device(request: CreateDeyeDeviceRequest):
         )
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"❌ Failed to create Deye device: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create device")

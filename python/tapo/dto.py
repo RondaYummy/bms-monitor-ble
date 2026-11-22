@@ -1,6 +1,7 @@
+import ipaddress
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class TapoDeviceCreateDto(BaseModel):
@@ -9,6 +10,12 @@ class TapoDeviceCreateDto(BaseModel):
     password: str = Field(..., example="secret123")
     power_watt: int = Field(0, example=2000, description="Estimated power consumption of the device in watts")
     priority: int = Field(0, example=1, description="Priority level of the device (lower means higher priority)")
+
+    @field_validator("ip")
+    @classmethod
+    def validate_ip(cls, value: str) -> str:
+        # Only real IP addresses: the server connects to this host with the stored credentials.
+        return str(ipaddress.ip_address(value.strip()))
 
 class TapoDeviceUpdateDto(BaseModel):
     email: Optional[str] = Field(None, description="New email for device")

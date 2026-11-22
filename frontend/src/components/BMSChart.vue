@@ -320,12 +320,8 @@ async function fetchAggregatedData(
     if (range && range.from && range.to) {
       url += `&from=${encodeURIComponent(range.from)}&to=${encodeURIComponent(range.to)}`;
     }
-    const response: any = await api.get(url);
-    if (!response.ok) {
-      throw new Error('Failed to fetch aggregated data');
-    }
-    const data = await response.json();
-    return data;
+    const response = await api.get(url);
+    return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
     console.error('Error fetching aggregated data:', error);
     return [];
@@ -481,6 +477,7 @@ onMounted(async () => {
   await fetchDataAndProcess(days.value, range.value);
   loadingRangeData.value = '';
   intervalId.value = setInterval(async () => {
+    if (document.hidden) return; // don't poll while the app is in the background
     await fetchDataAndProcess(days.value, range.value);
   }, 60000);
 });

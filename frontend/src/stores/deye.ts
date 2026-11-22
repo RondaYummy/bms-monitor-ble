@@ -73,7 +73,7 @@ export const useDeyeStore = defineStore('deye', () => {
 
   async function deleteDeyeDevice(ip: string): Promise<void> {
     try {
-      await api.delete(`/api/deye/device?ip=${ip}`, config);
+      await api.delete(`/api/deye/device/${encodeURIComponent(ip)}`, config);
       await fetchDeyeDevices();
     } catch (error) {
       console.error('Error delete Deye: ', error);

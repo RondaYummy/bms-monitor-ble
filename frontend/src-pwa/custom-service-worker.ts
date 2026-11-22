@@ -13,6 +13,13 @@ import {
 } from 'workbox-precaching';
 import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { NetworkFirst } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
+import type { WorkboxPlugin } from 'workbox-core/types';
+
+// Workbox plugin classes don't satisfy `exactOptionalPropertyTypes`; this cast is type-only.
+// (NetworkFirst already caches only successful responses, so no CacheableResponsePlugin is needed.)
+const expiration = (maxEntries: number, maxAgeSeconds: number) =>
+  new ExpirationPlugin({ maxEntries, maxAgeSeconds }) as unknown as WorkboxPlugin;
 
 self.skipWaiting();
 clientsClaim();
@@ -27,8 +34,27 @@ registerRoute(
   })
 );
 
-registerRoute(({ url }) => url.pathname.startsWith('/'), new NetworkFirst(), 'GET');
-registerRoute(({ url }) => /^http/.test(url.pathname), new NetworkFirst(), 'GET');
+// API: only same-origin GETs, short network timeout and a bounded cache. Previously EVERY GET
+// (any origin, every unique /api/aggregated-data?from=..&to=.. URL) was cached forever.
+registerRoute(
+  ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/api/'),
+  new NetworkFirst({
+    cacheName: 'api-cache',
+    networkTimeoutSeconds: 10,
+    plugins: [expiration(50, 24 * 60 * 60)],
+  }),
+  'GET'
+);
+
+// Other same-origin assets that are not in the precache manifest.
+registerRoute(
+  ({ url, sameOrigin }) => sameOrigin && !url.pathname.startsWith('/api/'),
+  new NetworkFirst({
+    cacheName: 'runtime-cache',
+    plugins: [expiration(100, 30 * 24 * 60 * 60)],
+  }),
+  'GET'
+);
 
 self.addEventListener('activate', (event) => {
   console.log('customSw -> @activate :: ', event);
@@ -62,7 +88,14 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
     );
     return;
   }
-  // event.waitUntil(self.clients.openWindow('https://solar.levych.com:8443/#/settings'));
+  // Focus an already open app window, or open the app.
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      const existing = windows.find((w) => 'focus' in w);
+      if (existing) return existing.focus();
+      return self.clients.openWindow('/#/settings');
+    })
+  );
 });
 
 self.addEventListener('push', (event: PushEvent) => {
@@ -71,7 +104,12 @@ self.addEventListener('push', (event: PushEvent) => {
     return;
   }
 
-  const data = event.data.json();
+  let data: { title?: string; body?: string };
+  try {
+    data = event.data.json();
+  } catch {
+    data = { title: 'BMS Monitor', body: event.data.text() };
+  }
 
   const options: NotificationOptions & {
     timestamp: number;
@@ -82,8 +120,8 @@ self.addEventListener('push', (event: PushEvent) => {
       title: string;
     }[];
   } = {
-    body: data.body,
-    icon: 'https://solar.levych.com:8443/icons/android-chrome-192x192.png',
+    body: data.body ?? '',
+    icon: '/icons/android-chrome-192x192.png',
     tag: `bms-alert-${Date.now()}`,
     requireInteraction: true,
     actions: [{ action: 'close_all', title: 'Закрити всі' }],
@@ -94,5 +132,5 @@ self.addEventListener('push', (event: PushEvent) => {
     data: { group: 'device-alerts' },
   };
 
-  event.waitUntil(self.registration.showNotification(data.title, options));
+  event.waitUntil(self.registration.showNotification(data.title || 'BMS Monitor', options));
 });

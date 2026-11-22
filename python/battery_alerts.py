@@ -1,13 +1,12 @@
-from datetime import datetime
-from typing import List, TypedDict
 from datetime import datetime, timedelta, timezone
+from typing import List, TypedDict
 
 import yaml
 
 import python.db as db
 from python.push_notifications import send_push_alerts
 
-with open('configs/error_codes.yaml', 'r') as file:
+with open('configs/error_codes.yaml', 'r', encoding='utf-8') as file:
     error_codes = yaml.safe_load(file)
 
 SEND_ALLOWED_AFTER: datetime = datetime.now(timezone.utc) + timedelta(minutes=3)
@@ -39,13 +38,13 @@ class CellInfo(TypedDict):
     emergency_time_countdown: int
 
 def add_alert(alerts, code):
-    alert = error_codes[int(code)]
+    # Copy: never mutate the shared error_codes dictionary.
+    alert = dict(error_codes[int(code)])
     alert["id"] = int(code)
     alerts.append(alert)
 
 async def evaluate_alerts(device_address: str, device_name: str, cell_info: CellInfo):
     if datetime.now(timezone.utc) < SEND_ALLOWED_AFTER:
-        print(f"⏰ Затримка: Alerts пригнічено (сервер нещодавно запустився).")
         return
     try:
         alerts = []
@@ -92,14 +91,16 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
         elif cell_info["charge_current"] < -80:
             add_alert(alerts, "1015")
 
-        if cell_info["state_of_health"] < 90:
-            add_alert(alerts, "1016")
-        elif cell_info["state_of_health"] < 80:
+        # The stricter threshold must be checked first, otherwise 1017 could never fire.
+        if cell_info["state_of_health"] < 80:
             add_alert(alerts, "1017")
+        elif cell_info["state_of_health"] < 90:
+            add_alert(alerts, "1016")
 
-        if max(cell_info["cell_resistances"]) > 0.5:
+        max_resistance = max(cell_info["cell_resistances"], default=0)
+        if max_resistance > 0.5:
             add_alert(alerts, "1018")
-        elif max(cell_info["cell_resistances"]) > 0.3:
+        elif max_resistance > 0.3:
             add_alert(alerts, "1019")
 
         if cell_info["battery_voltage"] > 55:
@@ -111,17 +112,33 @@ async def evaluate_alerts(device_address: str, device_name: str, cell_info: Cell
         elif cell_info["battery_voltage"] < 43:
             add_alert(alerts, "1023")
 
-        if cell_info["emergency_time_countdown"] < 5:
+        # Countdown is in seconds and 0 means "no emergency" — previously 0 triggered 1024 permanently.
+        emergency_countdown = cell_info["emergency_time_countdown"]
+        if 0 < emergency_countdown < 5 * 60:
             add_alert(alerts, "1024")
-        elif cell_info["emergency_time_countdown"] < 10:
+        elif 0 < emergency_countdown < 10 * 60:
             add_alert(alerts, "1025")
 
-        config = db.get_config()
+        if cell_info["cycle_count"] > 2000:
+            add_alert(alerts, "1026")
+        elif cell_info["cycle_count"] > 1500:
+            add_alert(alerts, "1027")
+
+        if not alerts:
+            return alerts
+
+        config = db.get_config() or {}
+        n_hours = config.get("n_hours") or 12
         for alert in alerts:
-            alert_id = int(alert['id'])
-            db.insert_alert_data(device_address, device_name, alert['id'], datetime.now(), config['n_hours'])
-            await send_push_alerts(device_name, {"id": alert_id, "message": error_codes[alert_id]["message"]}, config)
+            alert_id = int(alert["id"])
+            # One failing/duplicate alert must not stop the others from being processed.
+            try:
+                is_new = db.insert_alert_data(device_address, device_name, alert_id, datetime.now(), n_hours)
+                if is_new:
+                    await send_push_alerts(device_name, {"id": alert_id, "message": error_codes[alert_id]["message"]}, config)
+            except Exception as e:
+                print(f"❌ Failed to process alert {alert_id} for {device_name}: {e}")
 
         return alerts
     except Exception as e:
-        pass
+        print(f"❌ evaluate_alerts error for {device_name}: {e}")

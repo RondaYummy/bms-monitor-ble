@@ -5,7 +5,20 @@ import time
 import python.db as db
 from python.auth.verify_token import verify_token
 from python.tapo.dto import TapoDeviceCreateDto, TapoDeviceUpdateDto, TimerRequestDto
-from python.tapo.tapo_service import TapoDevice, schedule_turn_off_worker, scheduled_off_tasks, scheduled_tasks_lock
+from python.tapo.tapo_service import (
+    TapoDevice,
+    forget_tapo_device,
+    get_tapo_device,
+    schedule_turn_off_worker,
+    scheduled_off_tasks,
+    scheduled_tasks_lock,
+)
+
+# Never expose Tapo cloud credentials through the public (unauthenticated) read endpoints.
+PRIVATE_TAPO_FIELDS = ("password", "email")
+
+def _public_device(device: dict) -> dict:
+    return {k: v for k, v in device.items() if k not in PRIVATE_TAPO_FIELDS}
 
 router = APIRouter(prefix="/tapo", tags=["TP-Link Tapo Devices"])
 
@@ -31,8 +44,11 @@ def add_tapo_device_api(device: TapoDeviceCreateDto):
         return {
             "status": "added",
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error adding: {str(e)}")
+        print(f"❌ Error adding Tapo device: {e}")
+        raise HTTPException(status_code=500, detail="Error adding device")
 
 @router.get("/devices")
 def get_all_tapo_devices():
@@ -42,7 +58,7 @@ def get_all_tapo_devices():
         result = []
 
         for device in devices:
-            device.pop("password", None)
+            device = _public_device(device)
             ip = device.get("ip")
             entry = scheduled_off_tasks.get(ip)
             timer_enabled = bool(entry)
@@ -66,15 +82,11 @@ def turn_on_device(ip: str):
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
     try:
-        tapo = TapoDevice(ip, device["email"], device["password"])
+        tapo = get_tapo_device(ip, device["email"], device["password"])
         status = tapo.get_status()
-        name = tapo.get_name()
         info = status.get("info", {})
+        name = TapoDevice.name_from_info(info)
         tapo.turn_on()
-
-        print("STATUS:", status)
-        print("NAME:", name)
-        print("INFO:", info)
 
         update_data = {
             "device_on": True,
@@ -90,7 +102,9 @@ def turn_on_device(ip: str):
         db.update_tapo_device_by_ip(ip, update_data)
         return {"status": "on", "ip": ip}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"❌ The device could not be turned on: {str(e)}")
+        forget_tapo_device(ip)
+        print(f"❌ The device {ip} could not be turned on: {e}")
+        raise HTTPException(status_code=500, detail="❌ The device could not be turned on")
 
 @router.post("/devices/{ip}/off", dependencies=[Depends(verify_token)])
 def turn_off_device(ip: str):
@@ -98,10 +112,10 @@ def turn_off_device(ip: str):
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
     try:
-        tapo = TapoDevice(ip, device["email"], device["password"])
+        tapo = get_tapo_device(ip, device["email"], device["password"])
         status = tapo.get_status()
-        name = tapo.get_name()
         info = status.get("info", {})
+        name = TapoDevice.name_from_info(info)
         tapo.turn_off()
 
         update_data = {
@@ -118,13 +132,15 @@ def turn_off_device(ip: str):
         db.update_tapo_device_by_ip(ip, update_data)
         return {"status": "off", "ip": ip}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"❌ The device could not be turned off: {str(e)}")
+        forget_tapo_device(ip)
+        print(f"❌ The device {ip} could not be turned off: {e}")
+        raise HTTPException(status_code=500, detail="❌ The device could not be turned off")
 
 async def safe_turn_on(ip: str, tapo: TapoDevice):
     try:
         await asyncio.get_running_loop().run_in_executor(None, tapo.turn_on)
     except Exception as e:
-        logger.warning(f"Ignored error while turning on Tapo {ip}: {e}")
+        print(f"Ignored error while turning on Tapo {ip}: {e}")
 
 @router.post("/devices/{ip}/off/timer", dependencies=[Depends(verify_token)])
 async def turn_off_device_timer(ip: str, body: TimerRequestDto):
@@ -155,9 +171,8 @@ async def turn_off_device_timer(ip: str, body: TimerRequestDto):
         }
         scheduled_off_tasks[ip] = entry
         
-        loop = asyncio.get_running_loop()
-        tapo = TapoDevice(ip, device["email"], device["password"])
-        asyncio.create_task(safe_turn_on(ip, tapo))
+        tapo = get_tapo_device(ip, device["email"], device["password"])
+        entry["turn_on_task"] = asyncio.create_task(safe_turn_on(ip, tapo))
 
         task = asyncio.create_task(schedule_turn_off_worker(ip))
         
@@ -181,9 +196,8 @@ async def cancel_turn_off_timer(ip: str):
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
 
-    loop = asyncio.get_running_loop()
-    tapo = TapoDevice(ip, device["email"], device["password"])
-    await loop.run_in_executor(None, tapo.turn_off)
+    tapo = get_tapo_device(ip, device["email"], device["password"])
+    await asyncio.to_thread(tapo.turn_off)
 
     return {"status": "cancelled", "ip": ip}
 
@@ -196,6 +210,7 @@ async def delete_tapo_device(ip: str = Path(..., example="192.168.31.110")):
     success = db.delete_tapo_device_by_ip(ip)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to delete the Tapo device")
+    forget_tapo_device(ip)
     
     return {"message": f"Tapo device with IP {ip} deleted successfully"}
 
@@ -209,10 +224,11 @@ def update_tapo_device_config(ip: str, update_data: TapoDeviceUpdateDto):
         updated_device = db.update_tapo_device_config_by_ip(ip, update_data.dict(exclude_unset=True))
         return {
             "message": f"Device {ip} updated successfully",
-            "device": {k: v for k, v in updated_device.items() if k != "password"}
+            "device": _public_device(updated_device)
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"❌ Failed to update device: {e}")
+        print(f"❌ Failed to update Tapo device {ip}: {e}")
+        raise HTTPException(status_code=500, detail="❌ Failed to update device")
 
 @router.get("/devices/top")
 def get_top_priority_devices():
@@ -222,7 +238,7 @@ def get_top_priority_devices():
         result = []
 
         for device in devices:
-            device.pop("password", None)
+            device = _public_device(device)
 
             ip = device.get("ip")
             entry = scheduled_off_tasks.get(ip)

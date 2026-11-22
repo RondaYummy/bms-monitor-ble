@@ -37,6 +37,8 @@
               label-color="white"
               label="Password from Tapo App"
               :disable="!token"
+              type="password"
+              autocomplete="new-password"
               v-model="newTapoDevice.password"
               filled
               class="form-input"

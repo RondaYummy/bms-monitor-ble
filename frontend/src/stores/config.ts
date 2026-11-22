@@ -74,7 +74,7 @@ export const useConfigStore = defineStore('config', () => {
 
   async function refreshSsl() {
     try {
-      const response = await api.get('/api/ssl/refresh', configs);
+      const response = await api.post('/api/ssl/refresh', {}, configs);
       const data: SslResponse = response.data;
       ssl.value = data;
     } catch (error) {

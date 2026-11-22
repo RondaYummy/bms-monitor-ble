@@ -1,7 +1,7 @@
 import asyncio
 import time
 from typing import Dict, Any
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path
 import json
 
 from python.db import (
@@ -9,6 +9,7 @@ from python.db import (
     get_all_tapo_devices,
     update_tapo_device_by_ip,
 )
+from python.auth.verify_token import verify_token
 from python.tapo.tapo_service import get_tapo_device
 from python.push_notifications import send_push_notification
 
@@ -111,7 +112,6 @@ async def manage_tapo_power():
                     except Exception:
                         pass
 
-                print(f"🔎 Current total load (sum deye.load_power): {total_load:.1f} W")
 
                 if total_load > THRESHOLD_W:
                     load_to_shed = total_load - THRESHOLD_W
@@ -213,7 +213,7 @@ def add_tapo_device_api():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving power manager status: {str(e)}")
 
-@router.delete("/system/{ip}")
+@router.delete("/system/{ip}", dependencies=[Depends(verify_token)])
 def remove_disabled_tapo_device_api(
     ip: str = Path(..., description="IP-адреса пристрою Tapo для видалення з disabled_devices")
 ):

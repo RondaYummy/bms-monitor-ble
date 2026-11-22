@@ -6,7 +6,9 @@
       <q-input
         :disable="!token"
         v-model="oldPassword"
-        label="Введіть пароль"
+        type="password"
+        autocomplete="current-password"
+        label="Введіть поточний пароль"
         label-color="white"
         filled
       />
@@ -15,9 +17,12 @@
 
       <q-input
         :disable="!token"
-        label="Введіть новий пароль"
+        label="Введіть новий пароль (мінімум 8 символів)"
         label-color="white"
         v-model="newPassword"
+        type="password"
+        autocomplete="new-password"
+        :rules="[(v: string) => !v || v.length >= MIN_PASSWORD_LENGTH || 'Мінімум 8 символів']"
         filled
       />
 
@@ -26,7 +31,8 @@
           @click="updatePassword"
           color="positive"
           size="xs"
-          :disable="!token"
+          :disable="!token || !oldPassword || newPassword.length < MIN_PASSWORD_LENGTH"
+          :loading="saving"
           label="Зберегти"
         />
 
@@ -50,8 +56,10 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const MIN_PASSWORD_LENGTH = 8;
 const oldPassword = ref('');
 const newPassword = ref('');
+const saving = ref(false);
 
 const emits = defineEmits<{
   (e: 'update:show', value: boolean): void;
@@ -76,6 +84,7 @@ function close() {
 }
 
 async function updatePassword() {
+  saving.value = true;
   try {
     const response = await api.post('/api/change-password', {
       old_password: oldPassword.value,
@@ -90,8 +99,18 @@ async function updatePassword() {
       timeout: 2000,
     });
     close();
-  } catch (error) {
-    console.error('Error updating configs:', error);
+  } catch (error: any) {
+    console.error('Error changing password:', error);
+    const detail = error?.response?.data?.detail;
+    $q.notify({
+      message: typeof detail === 'string' ? detail : 'Не вдалося змінити пароль',
+      color: 'red',
+      icon: 'warning',
+      position: 'top',
+      timeout: 3000,
+    });
+  } finally {
+    saving.value = false;
   }
 }
 </script>

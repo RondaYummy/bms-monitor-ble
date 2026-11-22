@@ -165,6 +165,11 @@ export default defineConfig(() => {
       workboxOptions: {
         swSrc: 'src-pwa/custom-service-worker.ts',
       },
+      extendInjectManifestOptions(cfg) {
+        // vue3-apexcharts ships a second (SSR) ApexCharts build that the SPA never loads;
+        // without this every client would download ~500 KB extra into the precache.
+        cfg.globIgnores = [...(cfg.globIgnores || []), '**/apexcharts.ssr.esm-*.js'];
+      },
     },
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/developing-cordova-apps/configuring-cordova

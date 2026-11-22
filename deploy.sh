@@ -89,7 +89,9 @@ function deploy() {
   echo "✅ Статичні файли успішно скопійовані"
 
   echo "⏳ ====> Видаляємо непотрібні  Докер-образи, контейнери, імеджі та мережі"
-  docker system prune --all --force --volumes
+  # NOTE: no --volumes here: if a container is not running at this moment its volume
+  # (sqlite_data = all history, passwords, devices) would be deleted.
+  docker system prune --all --force
   # Очищає все непотрібне, включаючи:
   # - Зупинені контейнери.
   # - Невикористовувані образи (включаючи "dangling" і "непов'язані").
