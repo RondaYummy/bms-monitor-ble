@@ -9,7 +9,7 @@
 
     <div class="add-device-card">
       <q-expansion-item
-        :disable="!token"
+        :disable="!canEdit"
         v-model="expandAddDevice"
         icon="add"
         label="Add new device"
@@ -22,7 +22,7 @@
             <q-btn
               :loading="loadingDevices"
               @click="fetchDevices"
-              :disable="!token"
+              :disable="!canEdit"
               label="Пошук нових пристроїв"
               class="primary-btn"
             />
@@ -43,7 +43,7 @@
                   clickable
                   :disable="!!attemptToConnectDevice"
                   :active="attemptToConnectDevice === device.address"
-                  @click="token && connectToDevice(device.address, device.name)"
+                  @click="canEdit && connectToDevice(device.address, device.name)"
                   v-ripple
                   class="device-found-item"
                   active-class="device-found-item-active"
@@ -99,14 +99,14 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
-import { useSessionStorage } from '../../helpers/utils';
+import { useAuth } from '../../helpers/utils';
 import DevicesList from '../DevicesList.vue';
 import type { Device } from '../../models';
 import { useBmsStore } from 'src/stores/bms';
 
 const bmsStore = useBmsStore();
 
-const token = useSessionStorage('access_token');
+const { isAdmin: canEdit } = useAuth();
 const devices = computed<Device[]>(bmsStore.getDevices);
 const notFoundDevices = ref<boolean>(false);
 const loadingDevices = ref<boolean>(false);

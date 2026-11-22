@@ -58,7 +58,7 @@
         </div>
 
         <q-toggle
-          :disable="!token"
+          :disable="!canEdit"
           color="pink"
           v-model="timer"
           @update:model-value="toggleTimer"
@@ -67,7 +67,7 @@
 
       <div class="timer-select-wrap">
         <q-select
-          :disable="timer || !token"
+          :disable="timer || !canEdit"
           popup-content-class="dark-select-popup"
           class="timer-select"
           outlined
@@ -91,7 +91,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatMinutes, useSessionStorage } from 'src/helpers/utils';
+import { formatMinutes, useAuth } from 'src/helpers/utils';
 import { TapoDevice } from 'src/models';
 import { useTapoStore } from 'src/stores/tapo';
 import { computed, ref, watch } from 'vue';
@@ -99,7 +99,7 @@ import { computed, ref, watch } from 'vue';
 const tapoStore = useTapoStore();
 
 const props = defineProps<{ item: TapoDevice }>();
-const token = useSessionStorage('access_token');
+const { isAdmin: canEdit } = useAuth();
 
 const timeOptions = Array.from({ length: 32 }, (_, i) => {
   const totalMinutes = (i + 1) * 15;
@@ -140,7 +140,7 @@ async function toggleTimer(value: boolean) {
 }
 
 async function toggleDevice(state: number, deviceIp: string) {
-  if (!token.value) return;
+  if (!canEdit.value) return;
   changeStateTapoDevices.value.push(deviceIp);
   try {
     if (state == 1) {

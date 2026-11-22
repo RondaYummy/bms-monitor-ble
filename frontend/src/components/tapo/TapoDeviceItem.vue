@@ -124,7 +124,7 @@
             label-color="white"
             dark
             label="Device IP Address"
-            :disable="!token"
+            :disable="!canEdit"
             v-model="editedDeviceData.ip"
             filled
             class="form-input"
@@ -143,7 +143,7 @@
             label-color="white"
             dark
             label="Priority"
-            :disable="!token"
+            :disable="!canEdit"
             v-model="editedDeviceData.priority"
             filled
             class="form-input"
@@ -161,7 +161,7 @@
             label-color="white"
             dark
             label="Email to Tapo application (порожнє = без змін)"
-            :disable="!token"
+            :disable="!canEdit"
             autocomplete="off"
             v-model="editedDeviceData.email"
             filled
@@ -177,7 +177,7 @@
             label-color="white"
             dark
             label="Password to Tapo application (порожнє = без змін)"
-            :disable="!token"
+            :disable="!canEdit"
             type="password"
             autocomplete="new-password"
             v-model="editedDeviceData.password"
@@ -194,7 +194,7 @@
             label-color="white"
             dark
             label="Device power ( W )"
-            :disable="!token"
+            :disable="!canEdit"
             v-model="editedDeviceData.power_watt"
             filled
             class="form-input"
@@ -214,7 +214,7 @@
           v-close-popup
           :loading="loadingEditDevice"
           @click="editTapoDevice"
-          :disable="!token"
+          :disable="!canEdit"
           label="Update"
           class="primary-btn"
         />
@@ -224,12 +224,12 @@
 </template>
 
 <script setup lang="ts">
-import { copy, useSessionStorage } from 'src/helpers/utils';
+import { copy, useAuth } from 'src/helpers/utils';
 import { TapoDevice } from 'src/models';
 import { UpdateTapoDeviceDto, useTapoStore } from 'src/stores/tapo';
 import { computed, ref } from 'vue';
 
-const token = useSessionStorage('access_token');
+const { isAdmin: canEdit } = useAuth();
 const tapoStore = useTapoStore();
 
 const props = defineProps<{ device: TapoDevice }>();
@@ -255,7 +255,7 @@ const editedDeviceData = ref<TapoDevice & { password?: string }>({
 });
 
 async function deleteDevice(ip: string) {
-  if (!token.value) return;
+  if (!canEdit.value) return;
   await tapoStore.removeDevice(ip);
 }
 
@@ -290,7 +290,7 @@ async function editTapoDevice() {
 }
 
 async function toggleDevice(state: number) {
-  if (!token.value) return;
+  if (!canEdit.value) return;
   loadding.value = true;
   try {
     if (state == 1) {

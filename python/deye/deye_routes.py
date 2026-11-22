@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path
 from pydantic import BaseModel, Field, field_validator
 
 import python.db as db
-from python.auth.verify_token import verify_token
+from python.auth.verify_token import require_admin
 
 router = APIRouter(prefix="/deye", tags=["Deye Devices"])
 
@@ -42,7 +42,7 @@ def get_all_deye_devices():
 @router.delete(
     "/device/{ip}",
     summary="Delete Deye device by IP",
-    dependencies=[Depends(verify_token)]
+    dependencies=[Depends(require_admin)]
 )
 def delete_deye_device(ip: str = Path(..., description="IP address of the Deye device")):
     try:
@@ -59,7 +59,7 @@ def delete_deye_device(ip: str = Path(..., description="IP address of the Deye d
 @router.patch(
     "/devices/{ip}/toggle",
     summary="Toggle device_on state",
-    dependencies=[Depends(verify_token)]
+    dependencies=[Depends(require_admin)]
 )
 def toggle_deye_device(ip: str, body: DeviceToggleRequest):
     try:
@@ -77,7 +77,7 @@ def toggle_deye_device(ip: str, body: DeviceToggleRequest):
 @router.post(
     "/device",
     summary="Create new Deye device",
-    dependencies=[Depends(verify_token)]
+    dependencies=[Depends(require_admin)]
 )
 def create_deye_device(request: CreateDeyeDeviceRequest):
     try:

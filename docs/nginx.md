@@ -250,6 +250,16 @@ server {
 
     include snippets/ssl-params.conf;
 
+    # Live-оновлення (Server-Sent Events): без буферизації і з довгим таймаутом
+    location = /api/stream {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_http_version 1.1;
+        proxy_set_header Connection '';
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_buffering off;
+        proxy_read_timeout 1h;
+    }
+
     # Проксі на Python-додаток
     location /api/ {
         proxy_pass http://127.0.0.1:8000; # Проксі-запити до Python-додатка

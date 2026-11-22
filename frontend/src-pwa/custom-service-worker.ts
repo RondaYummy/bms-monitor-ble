@@ -37,7 +37,9 @@ registerRoute(
 // API: only same-origin GETs, short network timeout and a bounded cache. Previously EVERY GET
 // (any origin, every unique /api/aggregated-data?from=..&to=.. URL) was cached forever.
 registerRoute(
-  ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/api/'),
+  // /api/stream (SSE) must never go through a caching strategy: it is an endless response.
+  ({ url, sameOrigin }) =>
+    sameOrigin && url.pathname.startsWith('/api/') && url.pathname !== '/api/stream',
   new NetworkFirst({
     cacheName: 'api-cache',
     networkTimeoutSeconds: 10,

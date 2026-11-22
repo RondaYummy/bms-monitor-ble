@@ -125,6 +125,36 @@ Other optional variables (put them in `.env`):
 
 The backend API port is published on `127.0.0.1:8000` only; access it through nginx (`/api/`).
 
+### 👥 Users, roles and 2FA
+- Login is now **username + password** (the existing password belongs to the user `admin`).
+- Roles: **admin** (can change everything) and **viewer** (read-only). Manage them in **Settings → Користувачі та доступ**.
+- **Public read access** can be switched off there: then the dashboard requires a login (viewer or admin).
+- **2FA (TOTP)** for any user: **Settings → Двофакторна автентифікація**.
+- Locked out? From the server console:
+```bash
+docker compose exec python-app python -m python.manage list-users
+docker compose exec python-app python -m python.manage reset-password admin
+docker compose exec python-app python -m python.manage disable-2fa admin
+```
+
+### 🔑 Encryption, retention and backups
+- Tapo passwords and 2FA secrets are encrypted in the DB with a key from `SECRET_KEY` or `data/secret.key`
+  (generated automatically). **Back up `secret.key` separately** — it is intentionally not part of DB backups.
+- Per-minute history older than **90 days** is automatically averaged into hourly rows; alerts older than
+  **365 days** are removed. A gzip-compressed DB backup is created **daily** in `data/backups` (last 7 kept).
+  All of this is configurable in **Settings → Дані та бекапи**, where backups can also be downloaded.
+- Restore: stop the backend, `gunzip -c bms_data-….db.gz > data/bms_data.db`, put the matching `secret.key` next to it, start again.
+
+### 🔋 Other features
+- **Alert thresholds** (Settings → Пороги Alerts) with presets for LiFePO4 / Li-ion / LTO and the cell count.
+  ⚠️ Defaults are now LiFePO4 16S (the old hardcoded 4.2/4.3 V and 51 V limits were Li-ion-like and fired constantly).
+- **Battery forecast** on the main page: runtime by the usual hourly consumption profile and cell-imbalance trend.
+- **Tapo schedule rules** (Settings → Tapo → Розклад), e.g. "boiler on 11:00–15:00 if SOC > 70% and PV > 2 kW".
+- **JK-BMS switches** (charge / discharge / balance) can be changed by admins in Settings → JK-BMS settings.
+- **Live updates** via Server-Sent Events (`/api/stream`); the UI falls back to polling if the stream is unavailable.
+  If you use your own nginx, add the `/api/stream` location from `docs/nginx.md` (no buffering).
+- Build the frontend with an **empty `VITE_API_URL`** (see `frontend/.env.example`): requests go to `/api` on the same origin.
+
 ### Build Docker:
 ```bash
 yarn build

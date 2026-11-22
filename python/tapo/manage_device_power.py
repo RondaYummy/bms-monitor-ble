@@ -9,7 +9,7 @@ from python.db import (
     get_all_tapo_devices,
     update_tapo_device_by_ip,
 )
-from python.auth.verify_token import verify_token
+from python.auth.verify_token import require_admin
 from python.tapo.tapo_service import get_tapo_device
 from python.push_notifications import send_push_notification
 
@@ -183,7 +183,7 @@ async def manage_tapo_power():
             await asyncio.sleep(POLL_INTERVAL_S)
 
 @router.get("/system")
-def add_tapo_device_api():
+def power_system_status():
     try:
         disabled_devices_map = disabled_devices.copy()
         devices_list = []
@@ -213,7 +213,7 @@ def add_tapo_device_api():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error retrieving power manager status: {str(e)}")
 
-@router.delete("/system/{ip}", dependencies=[Depends(verify_token)])
+@router.delete("/system/{ip}", dependencies=[Depends(require_admin)])
 def remove_disabled_tapo_device_api(
     ip: str = Path(..., description="IP-адреса пристрою Tapo для видалення з disabled_devices")
 ):

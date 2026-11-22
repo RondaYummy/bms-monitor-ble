@@ -63,7 +63,7 @@
         <div v-if="disconnectBtn" class="device-actions">
           <q-btn
             v-if="device.connected"
-            :disable="!token || !!disconnectDeviceState"
+            :disable="!canEdit || !!disconnectDeviceState"
             :loading="disconnectDeviceState === device.address"
             @click="disconnectDevice(device.address, device.name)"
             label="Від’єднатися"
@@ -74,7 +74,7 @@
             v-if="!device.connected"
             :loading="attemptToConnectDevice === device.address"
             @click="connectToDevice(device.address, device.name)"
-            :disable="!token || !!attemptToConnectDevice"
+            :disable="!canEdit || !!attemptToConnectDevice"
             label="Приєднатися"
             class="primary-btn"
             no-caps
@@ -86,13 +86,13 @@
 </template>
 
 <script setup lang="ts">
-import { copy, formatDuration, parseManufacturingDate, useSessionStorage } from '../helpers/utils';
+import { copy, formatDuration, parseManufacturingDate, useAuth } from '../helpers/utils';
 import { ref, onBeforeUnmount, computed } from 'vue';
 import type { DeviceInfo } from '../models';
 import { useBmsStore } from 'src/stores/bms';
 
 const bmsStore = useBmsStore();
-const token = useSessionStorage('access_token');
+const { isAdmin: canEdit } = useAuth();
 
 const devicesList = computed<DeviceInfo[]>(bmsStore.getDeviceInfo);
 const attemptToConnectDevice = ref<string>('');
