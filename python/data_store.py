@@ -1,4 +1,5 @@
 import asyncio
+import time
 from copy import deepcopy
 from datetime import datetime
 
@@ -6,6 +7,7 @@ class DataStore:
     def __init__(self):
         self.cell_info = {}
         self.setting_info = {}
+        self.setting_info_updated_at = {}
         self.last_cell_info_update = {}
         self.response_buffers = {}
         self.lock = asyncio.Lock()
@@ -53,6 +55,11 @@ class DataStore:
     async def update_setting_info(self, device_address, info):
         async with self.lock:
             self.setting_info[device_address] = info
+            self.setting_info_updated_at[device_address] = time.monotonic()
+
+    async def get_setting_info_updated_at(self, device_address):
+        async with self.lock:
+            return self.setting_info_updated_at.get(device_address)
 
     async def get_setting_info(self):
         async with self.lock:

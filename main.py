@@ -1,11 +1,8 @@
 import asyncio
 import os
-import secrets
-import time
-from collections import defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Literal, Optional
 
 import uvicorn
 import yaml
@@ -17,15 +14,27 @@ from pydantic import BaseModel, Field
 
 import python.battery_alerts as alerts
 import python.db as db
-from python.auth.verify_token import verify_token, initialize_auth_dependencies, TOKEN_LIFETIME_SECONDS
+from python.alert_thresholds import render_message, router as alert_thresholds_router
+from python.analytics import router as analytics_router
+from python.auth.auth_routes import router as auth_router
+from python.auth.verify_token import (
+    AuthContext,
+    initialize_auth_dependencies,
+    is_public_read_enabled,
+    require_admin,
+    session_for_token,
+)
 from python.colors import *
 from python.data_store import data_store
 from python.deye.deye_routes import router as deye_router
 from python.deye.read_deye import run_deye_loop
+from python.live import hub as live_hub, router as live_router
+from python.maintenance import maintenance_loop, router as maintenance_router
 from python.push_notifications import router as alerts_router
-from python.push_notifications import send_push_startup
-from python.pwd import hash_password, verify_password
+from python.push_notifications import send_push_notification, send_push_startup
+from python.pwd import verify_password
 from python.tapo.find_tapo import router as tapo_find_router
+from python.tapo.schedule import router as tapo_schedule_router, run_tapo_schedule_loop
 from python.tapo.tapo_routes import router as tapo_router
 from python.tapo.manage_device_power import router as power_manage_router
 from python.tapo.tapo_service import check_all_tapo_devices
@@ -47,13 +56,45 @@ CMD_TYPE_CELL_INFO = 0x96 # 0x02: Cell Info Frame
 CMD_TYPE_SETTINGS = 0x95 # 0x01: Settings
 JK_BMS_OUI = {"c8:47:80"} # Separated by a comma, you can add all the beginnings of the JK-BMS devices
 
+# JK-BMS (JK02 protocol) write registers: register = (offset in the settings frame - 6) / 4 + 1
+BMS_SWITCH_REGISTERS = {
+    "charge": (0x1D, "charge_switch"),      # settings frame bytes 118-121
+    "discharge": (0x1E, "discharge_switch"),  # bytes 122-125
+    "balance": (0x1F, "balancer_switch"),     # bytes 126-129
+}
+
 app = FastAPI()
 
+app.include_router(auth_router, prefix="/api")
+app.include_router(tapo_schedule_router, prefix="/api")  # before tapo_router: /tapo/rules must not hit /tapo/{...}
 app.include_router(tapo_router, prefix="/api")
 app.include_router(alerts_router, prefix="/api")
 app.include_router(tapo_find_router, prefix="/api")
 app.include_router(deye_router, prefix="/api")
 app.include_router(power_manage_router, prefix="/api")
+app.include_router(alert_thresholds_router, prefix="/api")
+app.include_router(analytics_router, prefix="/api")
+app.include_router(maintenance_router, prefix="/api")
+app.include_router(live_router, prefix="/api")
+
+# Endpoints that must work without a session even when public read access is disabled.
+ALWAYS_PUBLIC_PATHS = {"/api/login", "/api/configs", "/api/stream"}
+
+@app.middleware("http")
+async def read_access_guard(request: Request, call_next):
+    """With `public_read` disabled every data endpoint requires a session (viewer or admin).
+
+    Mutating endpoints are protected individually with `require_admin`.
+    """
+    path = request.url.path
+    guarded = (request.method == "GET" and path.startswith("/api/") and path not in ALWAYS_PUBLIC_PATHS) \
+        or path == "/api/save-subscription"
+    if guarded and not is_public_read_enabled():
+        header = request.headers.get("authorization", "")
+        scheme, _, token = header.partition(" ")
+        if scheme.lower() != "bearer" or not await session_for_token(token.strip()):
+            return JSONResponse(status_code=401, content={"detail": "Login required"})
+    return await call_next(request)
 
 # The frontend is served by nginx which proxies /api on the same origin, so CORS is only needed
 # for development setups (e.g. `quasar dev` on :8080). Configure with CORS_ORIGINS="http://a,http://b".
@@ -62,7 +103,7 @@ if _cors_origins:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=_cors_origins,
-        allow_methods=["GET", "POST", "PATCH", "DELETE"],
+        allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE"],
         allow_headers=["Authorization", "Content-Type"],
     )
 
@@ -91,11 +132,6 @@ async def run_forever(name: str, factory, restart_delay: float = 5):
 
 LEGACY_DEFAULT_PASSWORD = "123456"
 
-async def periodic_maintenance():
-    while True:
-        await asyncio.to_thread(db.purge_expired_tokens, TOKEN_LIFETIME_SECONDS)
-        await asyncio.sleep(60 * 60 * 6)
-
 async def periodic_tapo_status():
     while True:
         try:
@@ -115,69 +151,26 @@ async def startup_event():
     spawn(run_forever("manage_tapo_power", manage_tapo_power))
     spawn(run_forever("auto_power_manager", auto_power_manager_loop))
     spawn(run_forever("tapo_status", periodic_tapo_status))
-    spawn(run_forever("maintenance", periodic_maintenance))
+    spawn(run_forever("tapo_schedule", run_tapo_schedule_loop))
+    spawn(run_forever("maintenance", maintenance_loop))
 
-    config = db.get_config()
-    if config and await loop.run_in_executor(executor, verify_password, LEGACY_DEFAULT_PASSWORD, config.get("password", "")):
+    admin = await loop.run_in_executor(None, db.get_user_by_username, "admin")
+    if admin and await loop.run_in_executor(executor, verify_password, LEGACY_DEFAULT_PASSWORD, admin["password_hash"]):
         print("⚠️⚠️⚠️ SECURITY WARNING: the admin password is still the default '123456'. Change it in Settings! ⚠️⚠️⚠️")
+    config = db.get_config()
     if config:
         spawn(send_push_startup(config))
 
-# ---------- Brute-force protection for /api/login ----------
-LOGIN_WINDOW_SECONDS = 15 * 60
-LOGIN_MAX_FAILURES_PER_CLIENT = 5
-LOGIN_MAX_FAILURES_GLOBAL = 30
-_login_failures: dict = defaultdict(deque)
+@app.on_event("shutdown")
+async def shutdown_event():
+    live_hub.closed = True  # lets open SSE streams finish so the server can stop
 
-def _client_key(request: Request) -> str:
-    # nginx sets X-Real-IP; the backend port itself is bound to localhost only (see docker-compose.yml).
-    return request.headers.get("x-real-ip") or (request.client.host if request.client else "unknown")
+PRIVATE_CONFIG_KEYS = ("id", "password", "VAPID_PRIVATE_KEY", "alert_thresholds")
 
-def _recent_failures(key: str, now: float) -> deque:
-    attempts = _login_failures[key]
-    while attempts and now - attempts[0] > LOGIN_WINDOW_SECONDS:
-        attempts.popleft()
-    return attempts
-
-def _check_login_allowed(client: str):
-    now = time.monotonic()
-    if (len(_recent_failures(client, now)) >= LOGIN_MAX_FAILURES_PER_CLIENT
-            or len(_recent_failures("*", now)) >= LOGIN_MAX_FAILURES_GLOBAL):
-        raise HTTPException(status_code=429, detail="Too many failed login attempts. Try again later.")
-
-def _register_login_failure(client: str):
-    now = time.monotonic()
-    _recent_failures(client, now).append(now)
-    _recent_failures("*", now).append(now)
-
-class LoginRequest(BaseModel):
-    password: str = Field(..., max_length=256)
-
-class ChangePasswordRequest(BaseModel):
-    old_password: str = Field(..., max_length=256)
-    new_password: str = Field(..., min_length=8, max_length=256)
-
-@app.post("/api/change-password")
-async def change_password(body: ChangePasswordRequest, token: str = Depends(verify_token)):
-    loop = asyncio.get_running_loop()
-    config = db.get_config()
-    if not config or not config.get("password"):
-        raise HTTPException(status_code=500, detail="Password is not set in server configuration")
-
-    # Previously the old password was never checked: a stolen session could take over the account.
-    if not await loop.run_in_executor(executor, verify_password, body.old_password, config["password"]):
-        # 400, not 401/403: the frontend treats those as "session expired" and logs the user out.
-        raise HTTPException(status_code=400, detail="Old password is incorrect.")
-
-    hashed_new_password = await loop.run_in_executor(executor, hash_password, body.new_password)
-    updated_config = db.update_config(password=hashed_new_password)
-
-    if not updated_config:
-        raise HTTPException(status_code=500, detail="Error updating password.")
-
-    # Log out every other session.
-    await loop.run_in_executor(executor, db.remove_all_tokens_except, token)
-    return {"message": "Password changed successfully."}
+def _public_config(config: dict) -> dict:
+    config = {k: v for k, v in config.items() if k not in PRIVATE_CONFIG_KEYS}
+    config["public_read"] = bool(config.get("public_read", 1))
+    return config
 
 @app.get("/api/ssl")
 async def getSsl():
@@ -220,7 +213,7 @@ async def getSsl():
             "certificat": None
         }
 
-@app.post("/api/ssl/refresh", dependencies=[Depends(verify_token)])
+@app.post("/api/ssl/refresh", dependencies=[Depends(require_admin)])
 async def refresh_ssl():
     success = db.refresh_ssl_certificate()
 
@@ -233,37 +226,10 @@ async def refresh_ssl():
     # Same shape as GET /api/ssl, so the UI can render the fresh state directly.
     return await getSsl()
 
-@app.post("/api/login")
-async def login(body: LoginRequest, request: Request):
-    client = _client_key(request)
-    _check_login_allowed(client)
-
-    config = db.get_config()
-    pwd = config.get("password", "") if config else ""
-    if not pwd:
-        raise HTTPException(status_code=404, detail="Password is not set in server configuration")
-
-    loop = asyncio.get_running_loop()
-    # Argon2 is intentionally slow: never run it on the event loop.
-    if not body.password or not await loop.run_in_executor(executor, verify_password, body.password, pwd):
-        _register_login_failure(client)
-        await asyncio.sleep(1)  # slow down online guessing
-        raise HTTPException(status_code=401, detail="Invalid password")
-
-    _login_failures.pop(client, None)
-    token = secrets.token_urlsafe(32)
-    await loop.run_in_executor(executor, db.add_token_to_db, token)
-    return {"access_token": token}
-
-@app.post("/api/logout")
-async def logout(token: str = Depends(verify_token)):
-    loop = asyncio.get_running_loop()
-    await loop.run_in_executor(executor, db.remove_token_from_db, token)
-    return {"logout": True}
-
 class ConfigUpdateRequest(BaseModel):
     n_hours: Optional[int] = Field(None, ge=1, le=24 * 30)
     auto_power_management_enabled: Optional[int] = Field(None, ge=0, le=1)
+    public_read: Optional[bool] = None
 
 @app.get("/api/configs")
 async def get_configs():
@@ -271,10 +237,7 @@ async def get_configs():
     if not config:
         raise HTTPException(status_code=404, detail="Config not found.")
     
-    config = config.copy()
-    for key in ["VAPID_PRIVATE_KEY", "password"]:
-        config.pop(key, None)
-    return config
+    return _public_config(config)
 
 class ToggleAutoPowerRequest(BaseModel):
     enabled: bool
@@ -282,7 +245,7 @@ class ToggleAutoPowerRequest(BaseModel):
 @app.patch(
     "/api/auto-power",
     summary="Toggle auto power management",
-    dependencies=[Depends(verify_token)]
+    dependencies=[Depends(require_admin)]
 )
 def toggle_auto_power(body: ToggleAutoPowerRequest):
     success = db.toggle_auto_power_management(body.enabled)
@@ -295,15 +258,17 @@ def toggle_auto_power(body: ToggleAutoPowerRequest):
         "enabled": body.enabled
     }
 
-@app.post("/api/configs", dependencies=[Depends(verify_token)])
+@app.post("/api/configs", dependencies=[Depends(require_admin)])
 async def update_configs(request: ConfigUpdateRequest):
-    updated_config = db.update_config(
+    updated_config = db.update_config_fields(
         n_hours=request.n_hours,
-        auto_power_management_enabled=request.auto_power_management_enabled
+        auto_power_management_enabled=request.auto_power_management_enabled,
+        public_read=None if request.public_read is None else int(request.public_read),
     )
     if not updated_config:
         raise HTTPException(status_code=500, detail="Error updating config.")
-    return {"message": "Configuration updated successfully", "config": updated_config}
+    # Never return the password hash / VAPID private key (the old code did).
+    return {"message": "Configuration updated successfully", "config": _public_config(updated_config)}
 
 @app.get("/api/device-settings")
 async def get_device_settings():
@@ -317,17 +282,59 @@ async def get_device_settings():
         print(f"❌ Error reading device settings: {e}")
         raise HTTPException(status_code=500, detail="Error reading device settings")
 
+class BmsSwitchRequest(BaseModel):
+    switch: Literal["charge", "discharge", "balance"]
+    enabled: bool
+
+@app.post("/api/device-settings/{address}/switch")
+async def set_bms_switch(address: str, body: BmsSwitchRequest, ctx: AuthContext = Depends(require_admin)):
+    """Turns the charge / discharge / balancer MOSFET switch of a connected JK-BMS on or off.
+
+    After writing, the settings frame is requested again and the new state is returned only once the
+    BMS itself reports it (so the UI never shows a state the BMS did not accept).
+    """
+    address = address.strip().lower()
+    client = active_clients.get(address)
+    if client is None:
+        raise HTTPException(status_code=409, detail="Device is not connected")
+
+    register, field = BMS_SWITCH_REGISTERS[body.switch]
+    requested_at = await data_store.get_setting_info_updated_at(address)
+    try:
+        await ble_write(address, client, create_command(register, 1 if body.enabled else 0, 4))
+        await asyncio.sleep(1)
+        await ble_write(address, client, create_command(CMD_TYPE_SETTINGS))
+    except Exception as e:
+        print(f"❌ BMS write failed for {address}: {e}")
+        raise HTTPException(status_code=502, detail="Failed to send the command to the BMS")
+
+    settings = None
+    for _ in range(20):  # up to ~10 s for the fresh settings frame
+        await asyncio.sleep(0.5)
+        if (await data_store.get_setting_info_updated_at(address) or 0) > (requested_at or 0):
+            settings = await data_store.get_setting_info_by_address(address)
+            break
+
+    applied = bool(settings) and bool(settings.get(field)) == body.enabled
+    name = (settings or {}).get("name") or address
+    state = "увімкнено" if body.enabled else "вимкнено"
+    labels = {"charge": "Заряд", "discharge": "Розряд", "balance": "Балансування"}
+    print(f"🔧 BMS {name}: {body.switch} -> {body.enabled} by {ctx.username} (applied={applied})")
+    if applied:
+        spawn(send_push_notification("🔧 JK-BMS", f"{name}: {labels[body.switch]} {state} ({ctx.username})"))
+    return {"applied": applied, "confirmed": settings is not None, "settings": settings}
+
 class DeleteAlertRequest(BaseModel):
     id: int
 @app.post("/api/error-alerts")
-async def delete_error_alert(request: DeleteAlertRequest, token: str = Depends(verify_token)):
+async def delete_error_alert(request: DeleteAlertRequest, ctx: AuthContext = Depends(require_admin)):
     try:
         db.delete_alert_by_id(alert_id=request.id)
         return {"message": f"Alert with ID {request.id} has been deleted successfully."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error deleting alert: {str(e)}")
 
-@app.delete("/api/error-alerts/all", dependencies=[Depends(verify_token)])
+@app.delete("/api/error-alerts/all", dependencies=[Depends(require_admin)])
 async def delete_all_error_alerts():
     try:
         db.delete_all_alerts()
@@ -342,18 +349,20 @@ async def get_error_alerts():
         return JSONResponse(content={"message": "No error alerts available yet."}, status_code=404)
 
     enriched_data = []
-    for alert_id, device_address, error_code, device_name, timestamp in data:
+    for alert_id, device_address, error_code, device_name, timestamp, stored_message in data:
         try:
             code_info = error_codes.get(int(error_code), {})
         except (TypeError, ValueError):
             code_info = {}
+        # New alerts store the message rendered with the thresholds valid at that moment.
+        message = stored_message or render_message(code_info.get('message', 'Message not found'))
         enriched_data.append({
             "id": alert_id,
             "device_address": device_address,
             "error_code": error_code,
             "device_name": device_name,
             "timestamp": str(timestamp),
-            "message": code_info.get('message', 'Message not found'),
+            "message": message,
             "level": code_info.get('level', 'Level not found'),
         })
     return enriched_data
@@ -372,7 +381,7 @@ class DeviceRequest(BaseModel):
     name: Optional[str] = None
 
 @app.post("/api/disconnect-device")
-async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depends(verify_token)):
+async def disconnect_device(body: DeviceRequest = Body(...), ctx: AuthContext = Depends(require_admin)):
     device_address = body.address.strip().lower()
     device_name = body.name.strip() if body.name else device_address
     if not device_address:
@@ -411,7 +420,7 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
 
 
 @app.post("/api/connect-device")
-async def connect_device(request: DeviceRequest, token: str = Depends(verify_token)):
+async def connect_device(request: DeviceRequest, ctx: AuthContext = Depends(require_admin)):
     try:
         device_address = request.address.strip().lower()
         device_name = request.name.strip() if request.name else device_address
@@ -461,7 +470,7 @@ async def discover_ble_devices(timeout: float = 5.0):
     async with ble_scan_lock:
         return await BleakScanner.discover(timeout=timeout)
 
-@app.get("/api/devices", dependencies=[Depends(verify_token)])
+@app.get("/api/devices", dependencies=[Depends(require_admin)])
 async def discover_devices():
     try:
         log("API", "🔍 Scanning for new devices...")
@@ -525,12 +534,25 @@ async def get_aggregated_data(
 def calculate_crc(data):
     return sum(data) % 256
 
-def create_command(command_type):
+def create_command(command_type, value: int = 0, length: int = 0):
+    """20-byte JK02 command: header, command/register, length, 32-bit LE value, padding, CRC."""
     frame = bytearray(20)
     frame[:4] = CMD_HEADER
     frame[4] = command_type
+    frame[5] = length
+    frame[6:10] = int(value).to_bytes(4, byteorder='little', signed=False)
     frame[19] = calculate_crc(frame[:19])
     return frame
+
+# Connected BLE clients (for write commands from the API) and per-device write locks so API writes
+# never interleave with the polling loop's commands.
+active_clients: dict = {}
+ble_write_locks: dict = {}
+
+async def ble_write(device_address: str, client, frame):
+    lock = ble_write_locks.setdefault(device_address, asyncio.Lock())
+    async with lock:
+        await client.write_gatt_char(CHARACTERISTIC_UUID, frame)
     
 def log(device_name, message, force=False):
     global ENABLE_LOGS
@@ -799,7 +821,7 @@ async def parse_cell_info(data, device_name, device_address):
         await alerts.evaluate_alerts(device_address=device_address, device_name=device_name, cell_info=cell_info)
 
         if await are_all_allowed_devices_connected_and_have_data():
-            db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power, remaining_capacity=remaining_capacity)
+            db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power, remaining_capacity=remaining_capacity, voltage_difference=voltage_diff)
         return cell_info
 
     except Exception as e:
@@ -900,6 +922,7 @@ async def connect_and_run(device):
                         handle_ble_notification(device, data)
 
                     await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
+                    active_clients[device_address] = client
                     db.update_device_status(device_address, connected=True, enabled=True)
                     log(device.name, f"🟢 Connected and notification started", force=True)
 
@@ -916,14 +939,14 @@ async def connect_and_run(device):
                         if device_info_data.get("frame_type") is None:
                             # If the device information is not yet saved, send the command
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
-                            await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
+                            await ble_write(device_address, client, device_info_command)
                             log(device.name, f"📲 Device Info command sent: {device_info_command.hex()}", force=True)
                             await asyncio.sleep(2)
 
                         settings_info = await data_store.get_setting_info_by_address(device_address)
                         if not settings_info:
                             setting_info_command = create_command(CMD_TYPE_SETTINGS)
-                            await client.write_gatt_char(CHARACTERISTIC_UUID, setting_info_command)
+                            await ble_write(device_address, client, setting_info_command)
                             log(device.name, f"⚙️ Setting Info command sent: {setting_info_command.hex()}", force=True)
                             await asyncio.sleep(8)
 
@@ -931,12 +954,12 @@ async def connect_and_run(device):
                         last_update = await data_store.get_last_cell_info_update(device.name)
                         if not last_update or (datetime.now() - last_update).total_seconds() > 30:
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
-                            await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
+                            await ble_write(device_address, client, device_info_command)
                             log(device.name, f"📢 Device Info command sent: {device_info_command.hex()}", force=True)
                             await asyncio.sleep(2)
 
                             cell_info_command = create_command(CMD_TYPE_CELL_INFO)
-                            await client.write_gatt_char(CHARACTERISTIC_UUID, cell_info_command)
+                            await ble_write(device_address, client, cell_info_command)
                             log(device.name, f"✅ Command successfully sent: {cell_info_command.hex()}", force=True)
                             log(device.name, f"Last update: {last_update}. Now: {datetime.now()}", force=True)
                             await asyncio.sleep(2)
@@ -946,6 +969,7 @@ async def connect_and_run(device):
             except Exception as e:
                 log(device.name, f"❌ Connection error: {str(e)}", force=True)
             finally:
+                active_clients.pop(device_address, None)
                 log(device.name, "🔄 Retrying connection in 8 seconds...", force=True)
                 await asyncio.sleep(8)
 

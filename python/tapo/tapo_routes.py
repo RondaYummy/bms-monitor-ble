@@ -3,7 +3,7 @@ import asyncio
 import time
 
 import python.db as db
-from python.auth.verify_token import verify_token
+from python.auth.verify_token import require_admin
 from python.tapo.dto import TapoDeviceCreateDto, TapoDeviceUpdateDto, TimerRequestDto
 from python.tapo.tapo_service import (
     TapoDevice,
@@ -14,6 +14,14 @@ from python.tapo.tapo_service import (
     scheduled_tasks_lock,
 )
 
+def _note_manual(ip: str):
+    # Manual control wins over schedule rules until the active window ends.
+    from python.tapo.schedule import note_manual_action
+    try:
+        note_manual_action(ip)
+    except Exception as e:
+        print(f"⚠️ Could not register manual action for {ip}: {e}")
+
 # Never expose Tapo cloud credentials through the public (unauthenticated) read endpoints.
 PRIVATE_TAPO_FIELDS = ("password", "email")
 
@@ -22,7 +30,7 @@ def _public_device(device: dict) -> dict:
 
 router = APIRouter(prefix="/tapo", tags=["TP-Link Tapo Devices"])
 
-@router.post("/devices/add", dependencies=[Depends(verify_token)])
+@router.post("/devices/add", dependencies=[Depends(require_admin)])
 def add_tapo_device_api(device: TapoDeviceCreateDto):
     try:
         existing = db.get_tapo_device_by_ip(device.ip)
@@ -76,7 +84,7 @@ def get_all_tapo_devices():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error when receiving a list: {str(e)}")
 
-@router.post("/devices/{ip}/on", dependencies=[Depends(verify_token)])
+@router.post("/devices/{ip}/on", dependencies=[Depends(require_admin)])
 def turn_on_device(ip: str):
     device = db.get_tapo_device_by_ip(ip)
     if not device:
@@ -100,13 +108,14 @@ def turn_on_device(ip: str):
             update_data["name"] = name
 
         db.update_tapo_device_by_ip(ip, update_data)
+        _note_manual(ip)
         return {"status": "on", "ip": ip}
     except Exception as e:
         forget_tapo_device(ip)
         print(f"❌ The device {ip} could not be turned on: {e}")
         raise HTTPException(status_code=500, detail="❌ The device could not be turned on")
 
-@router.post("/devices/{ip}/off", dependencies=[Depends(verify_token)])
+@router.post("/devices/{ip}/off", dependencies=[Depends(require_admin)])
 def turn_off_device(ip: str):
     device = db.get_tapo_device_by_ip(ip)
     if not device:
@@ -130,6 +139,7 @@ def turn_off_device(ip: str):
             update_data["name"] = name
 
         db.update_tapo_device_by_ip(ip, update_data)
+        _note_manual(ip)
         return {"status": "off", "ip": ip}
     except Exception as e:
         forget_tapo_device(ip)
@@ -142,7 +152,7 @@ async def safe_turn_on(ip: str, tapo: TapoDevice):
     except Exception as e:
         print(f"Ignored error while turning on Tapo {ip}: {e}")
 
-@router.post("/devices/{ip}/off/timer", dependencies=[Depends(verify_token)])
+@router.post("/devices/{ip}/off/timer", dependencies=[Depends(require_admin)])
 async def turn_off_device_timer(ip: str, body: TimerRequestDto):
     minutes = body.timer
     seconds = minutes * 60
@@ -180,7 +190,7 @@ async def turn_off_device_timer(ip: str, body: TimerRequestDto):
 
     return {"status": "timer-activated", "ip": ip, "timer_minutes": minutes, "execute_at": execute_at}
 
-@router.delete("/devices/{ip}/off/timer", dependencies=[Depends(verify_token)])
+@router.delete("/devices/{ip}/off/timer", dependencies=[Depends(require_admin)])
 async def cancel_turn_off_timer(ip: str):
     async with scheduled_tasks_lock:
         entry = scheduled_off_tasks.get(ip)
@@ -201,7 +211,7 @@ async def cancel_turn_off_timer(ip: str):
 
     return {"status": "cancelled", "ip": ip}
 
-@router.delete("/device/{ip}", dependencies=[Depends(verify_token)])
+@router.delete("/device/{ip}", dependencies=[Depends(require_admin)])
 async def delete_tapo_device(ip: str = Path(..., example="192.168.31.110")):
     device = db.get_tapo_device_by_ip(ip)
     if not device:
@@ -214,7 +224,7 @@ async def delete_tapo_device(ip: str = Path(..., example="192.168.31.110")):
     
     return {"message": f"Tapo device with IP {ip} deleted successfully"}
 
-@router.patch("/device/{ip}", dependencies=[Depends(verify_token)])
+@router.patch("/device/{ip}", dependencies=[Depends(require_admin)])
 def update_tapo_device_config(ip: str, update_data: TapoDeviceUpdateDto):
     device = db.get_tapo_device_by_ip(ip)
     if not device:

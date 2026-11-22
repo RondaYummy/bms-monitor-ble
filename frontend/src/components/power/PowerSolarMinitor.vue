@@ -17,7 +17,7 @@
             </p>
           </div>
 
-          <button class="btn btn-enabled" :disabled="!token" @click="setAutoPowerManagement">
+          <button class="btn btn-enabled" :disabled="!canEdit" @click="setAutoPowerManagement">
             <div class="w-2 h-2 rounded-full bg-success animate-pulse"></div>
             ВКЛЮЧИТИ
           </button>
@@ -34,7 +34,7 @@
         </svg>
         <span>Система моніторить баланс сонячної електроенергії</span>
 
-        <q-popup-proxy v-if="token">
+        <q-popup-proxy v-if="canEdit">
           <q-banner class="q-dark q-pa-md text-success text-center-media">
             <template v-slot:avatar>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
@@ -65,11 +65,11 @@
 
 <script setup lang="ts">
 import { Notify } from 'quasar';
-import { useSessionStorage } from 'src/helpers/utils';
+import { useAuth } from 'src/helpers/utils';
 import { useConfigStore } from 'src/stores/config';
 import { ref, onMounted } from 'vue';
 
-const token = useSessionStorage('access_token');
+const { isAdmin: canEdit } = useAuth();
 const configStore = useConfigStore();
 
 const enabled = ref(false);

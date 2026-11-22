@@ -95,6 +95,7 @@ export interface Config {
   vapid_public: string;
   n_hours: number;
   auto_power_management_enabled: number;
+  public_read?: boolean;
 }
 
 export interface Alert {

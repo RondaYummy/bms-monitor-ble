@@ -38,7 +38,7 @@
 
   <div class="column">
     <q-banner v-for="alert of alertsMain" :key="alert?.id"
-      v-touch-hold.mouse="() => token && alertsStore.deleteErrorAlert(alert?.id)" inline-actions :class="{
+      v-touch-hold.mouse="() => canEdit && alertsStore.deleteErrorAlert(alert?.id)" inline-actions :class="{
         'bg-negative': alert?.level === 'critical',
         'bg-red': alert?.level === 'error',
         'bg-orange': alert?.level === 'warning',
@@ -80,14 +80,14 @@
 </template>
 
 <script setup lang="ts">
-import { formatTimestamp, getAlertIcon, useSessionStorage } from 'src/helpers/utils';
+import { formatTimestamp, getAlertIcon, useAuth } from 'src/helpers/utils';
 import type { Alert } from '../../models';
 import { useAlertsStore } from 'src/stores/alerts';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const alertsStore = useAlertsStore();
 
-const token = useSessionStorage('access_token');
+const { isAdmin: canEdit } = useAuth();
 
 const selectedLevel = ref<string>();
 const intervalId = ref();

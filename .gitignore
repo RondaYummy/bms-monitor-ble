@@ -176,3 +176,8 @@ cython_debug/
 
 bms_data.db
 
+
+# Runtime secrets & backups (normally inside the sqlite_data volume)
+secret.key
+data/
+backups/

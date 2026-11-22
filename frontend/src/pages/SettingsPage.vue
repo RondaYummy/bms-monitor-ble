@@ -3,7 +3,8 @@
 
     <template v-if="token">
       <p class="text-success text-center q-mb-sm">
-        Ви успішно авторизовані та можете змінювати налаштування.
+        Ви увійшли як <b>{{ username || 'admin' }}</b>
+        ({{ isAdmin ? 'адміністратор' : 'лише перегляд' }}).
       </p>
       <p class="text-muted">
         {{ displayTimeRemaining() }}
@@ -26,19 +27,29 @@
         Щоб мати можливість змінювати налаштування, будь ласка, авторизуйтеся.
       </p>
 
-      <div class="row justify-center items-center no-wrap q-gutter-sm q-mb-md">
-        <q-input v-model="password" dense outlined label="Введіть пароль" label-color="white" color="white"
-          :type="isPwd ? 'password' : 'text'">
-          <template v-slot:append>
-            <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer text-white"
-              @click="isPwd = !isPwd" />
-          </template>
-        </q-input>
+      <form class="column items-center q-gutter-sm q-mb-md" @submit.prevent="login(password)">
+        <template v-if="!otpStep">
+          <q-input v-model="loginUsername" dense outlined label="Користувач" label-color="white" color="white"
+            autocomplete="username" input-class="text-white" />
+          <q-input v-model="password" dense outlined label="Введіть пароль" label-color="white" color="white"
+            autocomplete="current-password" input-class="text-white" :type="isPwd ? 'password' : 'text'">
+            <template v-slot:append>
+              <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer text-white"
+                @click="isPwd = !isPwd" />
+            </template>
+          </q-input>
+        </template>
+        <template v-else>
+          <p class="text-white q-mb-none">Введіть 6-значний код із застосунку-автентифікатора</p>
+          <q-input v-model="otp" dense outlined label="Код 2FA" label-color="white" color="white" autofocus
+            inputmode="numeric" autocomplete="one-time-code" maxlength="6" input-class="text-white text-center" />
+          <q-btn flat dense size="sm" color="grey-5" label="Назад" @click="resetLoginForm" />
+        </template>
 
-        <button class="q-mb-sm login-button" type="button" @click="login(password)">
+        <button class="q-mb-sm login-button" type="submit" :disabled="loggingIn">
           ПІДТВЕРДИТИ
         </button>
-      </div>
+      </form>
     </template>
   </div>
 
@@ -87,7 +98,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { Notify } from 'quasar';
-import { useSessionStorage } from '../helpers/utils';
+import { clearSession, useAuth } from '../helpers/utils';
 import DeyeTab from 'src/components/tabs/DeyeTab.vue';
 import { useConfigStore } from 'src/stores/config';
 import BmsTab from 'src/components//tabs/BmsTab.vue';
@@ -97,7 +108,17 @@ import AlertsTab from 'src/components/tabs/AlertsTab.vue';
 import { api } from '../axios-instance';
 const configStore = useConfigStore();
 
-const token = useSessionStorage('access_token');
+const { token, role, username, isAdmin } = useAuth();
+const loginUsername = ref<string>('admin');
+const otp = ref<string>('');
+const otpStep = ref(false);
+const loggingIn = ref(false);
+
+function resetLoginForm() {
+  otpStep.value = false;
+  otp.value = '';
+  password.value = '';
+}
 
 const tab = ref<string>('Alerts');
 const password = ref<string>('');
@@ -105,31 +126,44 @@ const isPwd = ref<boolean>(true);
 const intervalId = ref<NodeJS.Timeout>();
 
 const login = async (pwd: string) => {
+  if (loggingIn.value) return false;
+  loggingIn.value = true;
   let response;
   try {
     response = await api.post('/api/login', {
+      username: loginUsername.value.trim() || 'admin',
       password: pwd,
+      ...(otpStep.value ? { otp: otp.value.trim() } : {}),
     });
   } catch (error: any) {
     const status = error?.response?.status;
+    const detail = error?.response?.data?.detail;
     Notify.create({
       message: status === 429
         ? 'Забагато невдалих спроб. Спробуйте пізніше.'
-        : 'Невірний пароль',
+        : detail === 'Invalid 2FA code' ? 'Невірний код 2FA' : 'Невірний логін або пароль',
       color: 'red',
       icon: 'warning',
       position: 'top',
       timeout: 2500,
     });
+    otp.value = '';
     return false;
+  } finally {
+    loggingIn.value = false;
   }
 
   const data = response.data;
-  localStorage.setItem('access_token', data.access_token);
+  if (data?.otp_required) {
+    // Password is correct, the account has 2FA: ask for the code and repeat the request.
+    otpStep.value = true;
+    return false;
+  }
   localStorage.setItem('token_created_at', String(Date.now() + (24 * 60 * 60 * 30 * 1000)));
-  token.value = data?.access_token;
-  password.value = '';
-  console.info('---Successful login---');
+  token.value = data.access_token;
+  role.value = data.role || 'admin';
+  username.value = data.username || loginUsername.value;
+  resetLoginForm();
   return true;
 };
 
@@ -140,10 +174,11 @@ const logout = async () => {
     console.warn('Logout request failed (session may already be expired):', error);
   } finally {
     // Always drop the local session, even if the server call failed.
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('token_created_at');
-    token.value = '';
-    password.value = '';
+    clearSession();
+    token.value = null;
+    role.value = null;
+    username.value = null;
+    resetLoginForm();
   }
   return true;
 };
