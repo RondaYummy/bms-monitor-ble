@@ -28,6 +28,7 @@ STATUS_TTL_SECONDS = 15 * 60
 IOS_MIN_INTERVAL_MIN = 60
 SOC_STEP = 10                   # crossing 70% -> 60% etc. counts as a change
 GRID_PRESENT_MIN_V = 150.0
+GRID_FLOW_MIN_W = 50
 DEYE_MAX_AGE_SECONDS = 120
 INTERVAL_CHOICES = (5, 10, 15, 30, 60)
 
@@ -62,7 +63,9 @@ async def build_snapshot(now: Optional[datetime] = None) -> Optional[dict]:
         if soc is None and device.get("battery_soc") is not None:
             soc = float(device["battery_soc"])
         if device.get("grid_voltage") is not None:
-            grid = bool(grid) or device["grid_voltage"] >= GRID_PRESENT_MIN_V
+            # Energy flowing to/from the grid also proves it is there (guards against a bad voltage reading).
+            present = device["grid_voltage"] >= GRID_PRESENT_MIN_V or abs(device.get("grid_power") or 0) >= GRID_FLOW_MIN_W
+            grid = bool(grid) or present
 
     if soc is None and pv_w is None:
         return None
@@ -84,37 +87,56 @@ def _hm(minutes: Optional[float]) -> Optional[str]:
     return f"{minutes // 60} год {minutes % 60:02d} хв" if minutes >= 60 else f"{minutes} хв"
 
 
-def format_status(snapshot: dict) -> dict:
-    """Notification title/body. Title stays short (it is what a locked screen shows)."""
-    soc, runtime = snapshot.get("soc"), snapshot.get("runtime") or {}
-    parts = []
-    if soc is not None:
-        parts.append(f"🔋 {round(soc)}%")
-    if snapshot.get("pv_w") is not None:
-        parts.append(f"☀️ {snapshot['pv_w'] / 1000:.1f} кВт")
-    if snapshot.get("load_w") is not None:
-        parts.append(f"🏠 {snapshot['load_w'] / 1000:.1f} кВт")
-    title = " · ".join(parts) or "BMS Monitor"
+def _short(minutes: Optional[float]) -> Optional[str]:
+    """Compact duration for the notification title: '45 хв', '2 год 15 хв', '14 год'."""
+    if minutes is None:
+        return None
+    minutes = int(round(minutes))
+    if minutes < 60:
+        return f"{minutes} хв"
+    if minutes < 180:
+        return f"{minutes // 60} год {minutes % 60} хв"
+    return f"{round(minutes / 60)} год"
 
+
+def format_status(snapshot: dict) -> dict:
+    """Notification text built for the COLLAPSED view.
+
+    Android shows one line of title and one of body next to the site name, and a web notification cannot
+    be forced to open expanded, so the title carries what matters most (SOC + time left / state) and stays
+    ~20 characters; power figures go to the body.
+    """
+    soc, runtime = snapshot.get("soc"), snapshot.get("runtime") or {}
+    soc_text = f"{round(soc)}%" if soc is not None else "—"
     current = snapshot.get("current_a") or 0
-    if snapshot.get("grid") is False:
-        left = _hm(runtime.get("no_charge_min") or runtime.get("by_current_load_min"))
-        body = "⚡ Мережі немає" + (f" — батареї вистачить ще ~{left}" if left else "")
+    grid = snapshot.get("grid")
+
+    if grid is False:
+        left = _short(runtime.get("no_charge_min") or runtime.get("by_current_load_min"))
+        title = f"⚡ {soc_text}" + (f" · ~{left}" if left else "")
     elif current < -0.3:
-        left = _hm(runtime.get("by_profile_min") or runtime.get("by_current_load_min"))
         if runtime.get("self_sufficient"):
-            body = "⏳ Розряд, але до вечора сонце зарядить батарею"
+            title = f"🔋 {soc_text} · ☀️ вистачить"
         else:
-            body = f"⏳ Розряд — вистачить ще ~{left}" if left else "⏳ Розряд"
+            left = _short(runtime.get("by_profile_min") or runtime.get("by_current_load_min"))
+            title = f"🔋 {soc_text}" + (f" · ⏳ ~{left}" if left else " · розряд")
     elif current > 0.3:
         full_at = runtime.get("full_at")
-        body = f"🔌 Заряд — повна о {full_at[11:16]}" if full_at else "🔌 Заряд"
+        title = f"🔋 {soc_text} · 🔌 " + (f"до {full_at[11:16]}" if full_at else "заряд")
     else:
-        body = "✅ Батарея в режимі очікування"
-    if snapshot.get("grid") is True and current >= -0.3:
-        body += " · мережа є"
-    body += f" · {snapshot['at']:%H:%M}"
-    return {"title": title, "body": body}
+        title = f"🔋 {soc_text}"
+
+    parts = []
+    if grid is False:
+        parts.append("Мережі немає")
+    if snapshot.get("pv_w") is not None:
+        parts.append(f"☀️ {snapshot['pv_w'] / 1000:.1f}")
+    if snapshot.get("load_w") is not None:
+        parts.append(f"🏠 {snapshot['load_w'] / 1000:.1f} кВт")
+    if grid is True:
+        parts.append("мережа є")
+    parts.append(f"{snapshot['at']:%H:%M}")
+    return {"title": title, "body": " · ".join(parts)}
 
 
 def status_payload(snapshot: dict) -> str:

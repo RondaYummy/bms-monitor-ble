@@ -27,7 +27,7 @@ SOCKET_TIMEOUT_SECONDS = 10
 # every request is a full TCP round trip to the Wi-Fi stick.
 BLOCK_STATS = (70, 17)       # 70..86   daily/total battery, grid and load counters
 BLOCK_PV_TOTALS = (96, 13)   # 96..108  total PV (u32 @96) and daily PV (@108)
-BLOCK_REALTIME = (169, 23)   # 169..191 grid/load/battery/PV instant values
+BLOCK_REALTIME = (150, 42)   # 150..191 grid voltage + grid/load/battery/PV instant values
 
 # One persistent connection per logger (re-created after any error).
 _clients: dict = {}
@@ -80,7 +80,9 @@ def _read_deye_blocking(ip: str, serial_number: int, slave_id: int) -> dict:
     total_pv = pv1_power + pv2_power
     load_power = to_signed(rt(178))
     grid_power = to_signed(rt(169))  # >0 import from grid, <0 export
-    grid_voltage = rt(173) * 0.1     # ~0 V when the grid is down (used for outage notifications)
+    # Grid voltage L1 is register 150 (0x0096). Register 173 is the inverter L1 POWER (W): reading it as
+    # a voltage made e.g. 204 W look like 20.4 V and reported a grid outage while the grid was present.
+    grid_voltage = rt(150) * 0.1     # ~0 V when the grid is down (used for outage notifications)
     bat_power = to_signed(rt(190))
     bat_voltage = rt(183) * 0.01
     bat_soc = rt(184)
