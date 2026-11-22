@@ -35,7 +35,29 @@ body {
   -webkit-user-select: none !important;
   -webkit-overflow-scrolling: touch;
   -webkit-text-size-adjust: none !important;
-  font-family: 'Inter', serif;
+}
+
+/*
+ * The font is set where it is INHERITED, not on `*`: a universal font-family also hits the inner
+ * <span> that Quasar >= 2.3x puts inside <i class="material-icons">, so icons rendered as their
+ * names ("home", "settings") instead of the icon glyphs.
+ */
+html,
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+/* Form controls don't inherit the font by default. */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Chart labels (ApexCharts sets a font attribute on SVG text; the old `*` rule overrode it). */
+svg text {
+  font-family: 'Inter', sans-serif;
 }
 
 #q-app {
