@@ -5,6 +5,17 @@ from python import cell_history
 from python.data_store import data_store
 from python.logger import log
 
+
+def clean_numbers(value, digits: int = 4):
+    """Raw register * 0.001 gives values like 3.5500000000000003: round floats (also inside lists)."""
+    if isinstance(value, float):
+        return round(value, digits)
+    if isinstance(value, list):
+        return [clean_numbers(v, digits) for v in value]
+    if isinstance(value, dict):
+        return {k: clean_numbers(v, digits) for k, v in value.items()}
+    return value
+
 async def parse_device_info(data, device_name, device_address):
     """Parsing Device Info Frame (0x03)."""
     log(device_name, "Parsing Device Info Frame...")
@@ -166,6 +177,7 @@ async def parse_setting_info(data, device_name, device_address):
         setting_info["timed_stored_data"] = bool(bitmask & 0b0000000100000000)  # bit8
         setting_info["charging_float_mode"] = bool(bitmask & 0b0000001000000000)  # bit9
 
+        setting_info = clean_numbers(setting_info)
         await data_store.update_setting_info(device_address, setting_info)
 
         log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=False)
@@ -262,6 +274,7 @@ async def parse_cell_info(data, device_name, device_address):
             "emergency_time_countdown": emergency_time_countdown,
         }
 
+        cell_info = clean_numbers(cell_info)
         await data_store.update_cell_info(device_name, cell_info)
         await cell_history.record_cell_info(device_address.lower(), device_name, filtered_voltages, state_of_charge)
         await alerts.evaluate_alerts(device_address=device_address, device_name=device_name, cell_info=cell_info)

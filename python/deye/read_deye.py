@@ -85,7 +85,7 @@ def _read_deye_blocking(ip: str, serial_number: int, slave_id: int) -> dict:
     bat_soc = rt(184)
     net_balance = total_pv + grid_power - load_power - bat_power
 
-    return {
+    data = {
         "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
         "pv1_power": pv1_power,
         "pv2_power": pv2_power,
@@ -111,6 +111,8 @@ def _read_deye_blocking(ip: str, serial_number: int, slave_id: int) -> dict:
         "grid_in": ((st(80) << 16) | st(78)) * 0.1,
         "daily_load": st(84) * 0.1,
     }
+    # register * 0.1 / 0.01 -> 12.299999999999999 etc.: keep two decimals
+    return {k: round(v, 2) if isinstance(v, float) else v for k, v in data.items()}
 
 
 async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):

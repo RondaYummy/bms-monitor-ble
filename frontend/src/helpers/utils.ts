@@ -101,33 +101,19 @@ export function calculateAveragePerIndex(arrays: Array<any>) {
 }
 
 /**
- * Calculates the battery life of the system.
+ * Minutes until the battery is empty at the current battery current.
  *
- * @param {number} remainingCapacity - The remaining battery charge in Ah.
- * @param {number} chargeCurrent - Current consumption in A.
- * @param {number} inverterEfficiency - Inverter efficiency (default 0.95).
- * @returns {number|string} - Battery life in hours or '∞' if consumption is 0.
+ * The BMS measures the DC current at the battery, which already includes the inverter's losses,
+ * so no extra efficiency factor is applied. Near-zero discharge (idle) returns Infinity.
+ *
+ * @param remainingCapacity - remaining charge in Ah
+ * @param chargeCurrent - battery current in A (negative = discharging)
  */
-export function calculateAutonomyTime(
-  remainingCapacity: number,
-  charge_current: number,
-  inverterEfficiency = 0.95
-): number {
-  if (charge_current >= 0) {
+export function calculateAutonomyTime(remainingCapacity: number, chargeCurrent: number): number {
+  if (!Number.isFinite(remainingCapacity) || !Number.isFinite(chargeCurrent) || chargeCurrent > -0.3) {
     return Infinity;
   }
-
-  const MIN_DISCHARGE_AMPS = -9; // -9A because we still calculate “Inverter efficiency” and 9 / 0.96 will be 9.
-  if (charge_current >= MIN_DISCHARGE_AMPS) {
-    // Setting the minimum discharge current (9A), if there is a discharge, this is approximately calculated as 49V * 9A = 441 kW.
-    charge_current = MIN_DISCHARGE_AMPS;
-  }
-
-  // Consideration of inverter efficiency
-  const effectiveCurrent = Math.abs(charge_current) / inverterEfficiency;
-  const autonomyTime = remainingCapacity / effectiveCurrent;
-  const totalMinutes = autonomyTime * 60;
-  return Math.round(totalMinutes);
+  return Math.round((remainingCapacity / Math.abs(chargeCurrent)) * 60);
 }
 
 export function formatMinutes(totalMinutes: number): string {

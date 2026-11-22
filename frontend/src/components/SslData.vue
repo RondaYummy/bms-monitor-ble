@@ -181,7 +181,7 @@ function certificatStatus(status: string) {
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: rgb(22, 162, 73);
+      background-color: rgb(21, 128, 61);
       border-radius: 9999px;
       border-style: solid;
       border-width: 1px;

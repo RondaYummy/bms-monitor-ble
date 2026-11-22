@@ -13,7 +13,7 @@
         </p>
 
         <q-input :disable="!canEdit" v-model.number="config.n_hours" type="number"
-          filled />
+          dark filled />
       </div>
 
       <div class="row justify-between q-mt-sm">

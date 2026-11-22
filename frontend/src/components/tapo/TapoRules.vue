@@ -5,7 +5,7 @@
       <q-btn
         v-if="canEdit"
         dense
-        color="positive"
+        color="green-8"
         icon="add"
         label="Правило"
         :disable="!devices.length"

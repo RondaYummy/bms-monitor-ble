@@ -11,25 +11,25 @@
       <div class="column text-center items-center justify-between cell-item">
         <img src="/images/carbon.png" alt="CO2" />
         <span class="text-subtitle1">Зменшення викидів CO2</span>
-        <span class="text-h6 text-weight-bold">{{ (props.data.stat_total_pv * 0.000793)?.toFixed(2) }} тонн</span>
+        <span class="text-h6 text-weight-bold">{{ fixed(num(props.data.stat_total_pv) * 0.000793) }} тонн</span>
       </div>
 
       <div class="column text-center items-center justify-between cell-item">
         <img src="/images/pine-tree.png" alt="pine-tree" />
         <span class="text-subtitle1">Еквівалентна к-ть посаджених дерев</span>
-        <span class="text-h6 text-weight-bold">{{ Math.trunc(props.data.stat_total_pv * 0.997 / 18.3) }} дерев</span>
+        <span class="text-h6 text-weight-bold">{{ Math.trunc(num(props.data.stat_total_pv) * 0.997 / 18.3) }} дерев</span>
       </div>
 
       <div class="column text-center items-center justify-between cell-item">
         <img src="/images/profit.png" alt="profit" />
         <span class="text-subtitle1">Оцінка прибутку</span>
-        <span class="text-h6 text-weight-bold">{{ formatterUAH.format(props.data.stat_total_pv * 4.32) }}</span>
+        <span class="text-h6 text-weight-bold">{{ formatterUAH.format(num(props.data.stat_total_pv) * 4.32) }}</span>
       </div>
 
       <div class="column text-center items-center justify-between cell-item">
         <img src="/images/solar-cell.png" alt="solar-cell" />
         <span class="text-subtitle1">Загальне виробництво</span>
-        <span class="text-h6 text-weight-bold">{{ (props.data.stat_total_pv / 1000)?.toFixed(2) }} МВт·год</span>
+        <span class="text-h6 text-weight-bold">{{ fixed(num(props.data.stat_total_pv) / 1000) }} МВт·год</span>
 
         <q-tooltip>
           [ PV ]
@@ -39,7 +39,7 @@
       <div class="column text-center items-center justify-between cell-item">
         <img src="/images/total-used.png" alt="total-used" />
         <span class="text-subtitle1">Загальне споживання</span>
-        <span class="text-h6 text-weight-bold">{{ (props.data.stat_total_load / 1000)?.toFixed(2) }} МВт·год</span>
+        <span class="text-h6 text-weight-bold">{{ fixed(num(props.data.stat_total_load) / 1000) }} МВт·год</span>
 
         <q-tooltip>
           [ PV + Grid ]
@@ -49,7 +49,7 @@
       <div class="column text-center items-center justify-between cell-item">
         <img src="/images/total-grid-used.png" alt="total-grid-used" />
         <span class="text-subtitle1">Загальний вивід до мережі</span>
-        <span class="text-h6 text-weight-bold">{{ props.data.stat_total_grid_out?.toFixed(2) }} МВт·год</span>
+        <span class="text-h6 text-weight-bold">{{ fixed(num(props.data.stat_total_grid_out) / 1000) }} МВт·год</span>
 
         <q-tooltip>
           [ Grid ] [ Статистика роботи ]
@@ -59,7 +59,7 @@
       <div class="column text-center items-center justify-between cell-item">
         <img src="/images/grid-buy.png" alt="grid-buy" />
         <span class="text-subtitle1">Кількість придбаної електроенергії в день</span>
-        <span class="text-h6 text-weight-bold">{{ props.data.stat_daily_grid_in?.toFixed(2) }} кВт·год</span>
+        <span class="text-h6 text-weight-bold">{{ fixed(props.data.stat_daily_grid_in) }} кВт·год</span>
 
         <q-tooltip>
           [ Grid ]
@@ -69,7 +69,7 @@
       <div class="column text-center items-center justify-between cell-item">
         <img src="/images/grid-sell.png" alt="grid-sell" />
         <span class="text-subtitle1">Кількість проданої електроенергії в день</span>
-        <span class="text-h6 text-weight-bold">{{ props.data.stat_daily_grid_out }} кВт·год</span>
+        <span class="text-h6 text-weight-bold">{{ fixed(props.data.stat_daily_grid_out) }} кВт·год</span>
 
         <q-tooltip>
           [ Grid ]
@@ -79,7 +79,7 @@
       <div class="column text-center items-center justify-between cell-item">
         <img src="/images/pv-dailly.png" alt="pv-dailly" />
         <span class="text-subtitle1"> Виробництво соянчної енергії в день</span>
-        <span class="text-h6 text-weight-bold">{{ props.data.stat_daily_pv }} кВт·год</span>
+        <span class="text-h6 text-weight-bold">{{ fixed(props.data.stat_daily_pv) }} кВт·год</span>
 
         <q-tooltip>
           [ PV ]
@@ -89,7 +89,7 @@
       <div class="column text-center items-center justify-between cell-item">
         <img src="/images/grid-total-used-dailly.png" alt="grid-total-used-dailly" />
         <span class="text-subtitle1">Щоденне споживання ( Від мережі )</span>
-        <span class="text-h6 text-weight-bold">{{ props.data.stat_daily_bat_discharge }} кВт·год</span>
+        <span class="text-h6 text-weight-bold">{{ fixed(props.data.stat_daily_bat_discharge) }} кВт·год</span>
 
         <q-tooltip>
           [ Battery ]
@@ -150,7 +150,7 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="OK" color="primary" v-close-popup />
+        <q-btn flat label="OK" color="light-blue-4" v-close-popup />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -164,7 +164,10 @@ import { DeyeSafeValues } from 'src/models';
 const props = defineProps<{
   data: DeyeSafeValues;
 }>();
-console.log(props.data);
+
+// Register values are int * 0.1, so raw numbers look like 12.299999999 and break the layout.
+const num = (value: unknown) => (Number.isFinite(Number(value)) ? Number(value) : 0);
+const fixed = (value: unknown, digits = 2) => num(value).toFixed(digits);
 
 const showInfo = ref(false);
 
