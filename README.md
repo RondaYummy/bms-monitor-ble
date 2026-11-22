@@ -161,6 +161,15 @@ docker compose exec python-app python -m python.manage disable-2fa admin
 - Shows paid vs. "without the system", savings, export income and self-sufficiency per day/month;
   download **CSV** or press **Print** → "Save as PDF" for a report.
 
+### 📲 Live status on the phone (PWA)
+- Settings → Settings → **Живий стан у сповіщенні** (per device, after subscribing to PUSH): a quiet notification
+  like `🔋 78% · ☀️ 3.2 кВт · 🏠 1.1 кВт` / `⏳ Розряд — вистачить ще ~14 год` that **replaces itself** every
+  5–60 min, immediately when the grid goes down/returns (`⚡ Мережі немає — батареї вистачить ще ~10 год`) or SOC
+  crosses a 10% step. iPhones get updates only on such changes (iOS shows every push as a new banner).
+- **SOC on the app icon** (Badging API): number on iPhone (installed app, iOS 16.4+), Windows, macOS; a dot on Android.
+- Long-press the app icon for **shortcuts** (Overview, Statistics, Energy, Settings).
+- A real home-screen widget is not possible for PWAs on Android/iOS (only with a native wrapper).
+
 ### ☀️ Solar forecast (Open-Meteo, free, no API key)
 - Settings → Settings → **Прогноз сонця**: coordinates (or "my location"), panel tilt and orientation; installed
   power is optional. Works for any location (e.g. Lviv). Coordinates are rounded to ~1 km before being sent.

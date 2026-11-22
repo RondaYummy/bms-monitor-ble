@@ -58,5 +58,48 @@
       "type": "image/png",
       "sizes": "1920x1080"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Стан батареї",
+      "short_name": "Огляд",
+      "url": "/#/",
+      "icons": [
+        {
+          "src": "/icons/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Статистика",
+      "url": "/#/stats",
+      "icons": [
+        {
+          "src": "/icons/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Економія",
+      "url": "/#/energy",
+      "icons": [
+        {
+          "src": "/icons/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Налаштування",
+      "url": "/#/settings",
+      "icons": [
+        {
+          "src": "/icons/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }

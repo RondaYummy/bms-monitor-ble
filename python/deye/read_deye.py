@@ -80,6 +80,7 @@ def _read_deye_blocking(ip: str, serial_number: int, slave_id: int) -> dict:
     total_pv = pv1_power + pv2_power
     load_power = to_signed(rt(178))
     grid_power = to_signed(rt(169))  # >0 import from grid, <0 export
+    grid_voltage = rt(173) * 0.1     # ~0 V when the grid is down (used for outage notifications)
     bat_power = to_signed(rt(190))
     bat_voltage = rt(183) * 0.01
     bat_soc = rt(184)
@@ -96,6 +97,7 @@ def _read_deye_blocking(ip: str, serial_number: int, slave_id: int) -> dict:
         "battery_voltage": bat_voltage,
         "battery_soc": bat_soc,
         "net_balance": net_balance,
+        "grid_voltage": grid_voltage,
 
         "stat_daily_pv": pv(108) * 0.1,
         "stat_total_pv": ((pv(97) << 16) + pv(96)) * 0.1,

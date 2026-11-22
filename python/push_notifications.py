@@ -52,25 +52,44 @@ def _vapid_private_key_base64(private_pem: str) -> str:
     return convert_der_to_base64(convert_pem_to_der(private_pem))
 
 
+def send_to_subscription(sub: dict, payload: str, private_key_base64: str,
+                         ttl: int = 0, urgency: Optional[str] = None) -> bool:
+    """Sends one push (blocking). Removes subscriptions the push service reports as gone. Returns success."""
+    try:
+        webpush(
+            subscription_info={"endpoint": sub["endpoint"], "keys": sub["keys"]},
+            data=payload,
+            vapid_private_key=private_key_base64,
+            vapid_claims=dict(VAPID_CLAIMS),
+            timeout=PUSH_TIMEOUT_SECONDS,
+            ttl=ttl,
+            headers={"Urgency": urgency} if urgency else None,
+        )
+        return True
+    except WebPushException as e:
+        status = getattr(getattr(e, "response", None), "status_code", None)
+        if status in (404, 410) or "410 Gone" in str(e):
+            db.remove_old_subscription(sub["endpoint"])
+        else:
+            print(f"Push Notification Error: {e}")
+    except Exception as e:
+        print(f"Push Notification Error: {e}")
+    return False
+
+
+def vapid_key_from_config(config: Optional[Dict[str, Any]] = None) -> Optional[str]:
+    config = config or db.get_config() or {}
+    try:
+        return _vapid_private_key_base64(config["VAPID_PRIVATE_KEY"])
+    except Exception as e:
+        print(f"❌ VAPID Configuration Error: {e}")
+        return None
+
+
 def _send_blocking(payload: str, private_key_base64: str):
     """Runs in a worker thread: pywebpush does synchronous HTTP requests."""
     for sub in db.get_all_subscriptions():
-        try:
-            webpush(
-                subscription_info=sub,
-                data=payload,
-                vapid_private_key=private_key_base64,
-                vapid_claims=dict(VAPID_CLAIMS),
-                timeout=PUSH_TIMEOUT_SECONDS,
-            )
-        except WebPushException as e:
-            status = getattr(getattr(e, "response", None), "status_code", None)
-            if status in (404, 410) or "410 Gone" in str(e):
-                db.remove_old_subscription(sub["endpoint"])
-            else:
-                print(f"Push Notification Error: {e}")
-        except Exception as e:
-            print(f"Push Notification Error: {e}")
+        send_to_subscription(sub, payload, private_key_base64)
 
 
 async def _send_to_all_subscriptions(payload: str, config: Optional[Dict[str, Any]] = None):
