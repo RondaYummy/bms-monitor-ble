@@ -41,6 +41,12 @@
         </div>
       </div>
 
+      <div v-if="runtime.max_soc_today !== null && runtime.max_soc_today !== undefined" class="outlook">
+        <template v-if="runtime.full_at">🔋 Батарея зарядиться до 100% приблизно о <b>{{ runtime.full_at.slice(11, 16) }}</b></template>
+        <template v-else>🔋 Сьогодні заряд дійде максимум до <b>{{ Math.round(runtime.max_soc_today) }}%</b></template>
+        <span v-if="runtime.solar_used" class="text-amber-4"> · ☀️ з прогнозом сонця</span>
+      </div>
+
       <div class="text-caption text-grey-4">
         Точність: <b :class="confidenceClass">{{ confidenceLabel }}</b>
         <span v-if="runtime.accuracy?.mae_soc_pct !== undefined && runtime.accuracy?.mae_soc_pct !== null">
@@ -119,6 +125,9 @@ interface Analytics {
     no_charge_source: 'load' | 'bms' | null;
     avg_discharge_a: number | null;
     model: string;
+    solar_used: boolean;
+    max_soc_today: number | null;
+    full_at: string | null;
     accuracy: { mae_soc_pct: number | null; points: number } | null;
     current_now_a: number;
     reserve_soc: number;
@@ -225,6 +234,11 @@ onBeforeUnmount(() => clearInterval(timer));
 }
 .bar-discharge {
   background: #ff9800;
+}
+.outlook {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 6px 10px;
 }
 .imbalance {
   background: rgba(255, 255, 255, 0.04);

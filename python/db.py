@@ -381,11 +381,13 @@ def create_table():
             _ensure_column(cursor, "configs", "backup_enabled", "INTEGER DEFAULT 1")
             _ensure_column(cursor, "configs", "backup_keep", "INTEGER DEFAULT 7")
             _ensure_column(cursor, "configs", "energy_tariffs", "TEXT")
+            _ensure_column(cursor, "configs", "solar_settings", "TEXT")
 
             # Feature modules own their tables (imported here to avoid import cycles).
-            from python import cell_history, energy
+            from python import cell_history, energy, solar_forecast
             energy.create_tables(cursor)
             cell_history.create_tables(cursor)
+            solar_forecast.create_tables(cursor)
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_bms_data_device_ts ON bms_data (device_address, timestamp)")
 
             # The single legacy password becomes the "admin" user.
@@ -832,7 +834,7 @@ def get_all_subscriptions():
 
 CONFIG_UPDATABLE_COLUMNS = {
     "n_hours", "auto_power_management_enabled", "public_read", "alert_thresholds",
-    "raw_retention_days", "alerts_retention_days", "backup_enabled", "backup_keep", "energy_tariffs",
+    "raw_retention_days", "alerts_retention_days", "backup_enabled", "backup_keep", "energy_tariffs", "solar_settings",
 }
 
 def get_config():

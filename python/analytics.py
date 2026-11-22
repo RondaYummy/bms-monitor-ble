@@ -11,6 +11,8 @@ Runtime model (what makes it accurate):
   * **Backtest**: several variants are replayed on the last 3 days (start every 6 h, 12 h horizon) against
     the real remaining capacity; the most accurate one is used and its error (MAE, % SOC) is reported.
     In simulations with changing weather this cut the error by ~25-40% compared to the old flat 7-day mean.
+  * **Weather**: with the Open-Meteo forecast configured (python/solar_forecast.py) the difference between the
+    forecast PV and a typical recent day is added hour by hour; solar-aware variants join the backtest.
   * **Outage scenario** ("no charging"): the household load profile from the Deye energy history
     (kWh per hour) converted to battery current (÷ pack voltage ÷ inverter efficiency + idle draw).
 """
@@ -25,6 +27,7 @@ from fastapi import APIRouter
 import python.db as db
 from python.alert_thresholds import get_thresholds
 from python.data_store import data_store
+from python.solar_forecast import solar_context
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
@@ -162,8 +165,11 @@ def fill_gaps(profile: list[float | None]) -> list[float]:
 _fill_gaps = fill_gaps
 
 
-def _current_at(profile: list[float], t: datetime, elapsed_min: float, now_current: float | None) -> float:
+def _current_at(profile: list[float], t: datetime, elapsed_min: float, now_current: float | None,
+                adjust: dict[str, float] | None = None) -> float:
     base = profile[t.hour]
+    if adjust:
+        base += adjust.get(t.strftime("%Y-%m-%d %H"), 0.0)
     if now_current is None:
         return base
     w = math.exp(-elapsed_min / NOW_BLEND_TAU_MIN)
@@ -172,14 +178,14 @@ def _current_at(profile: list[float], t: datetime, elapsed_min: float, now_curre
 
 def simulate_runtime(remaining_ah: float, capacity_ah: float, profile: list[float], start: datetime,
                      reserve_ah: float = 0.0, horizon_hours: int = SIMULATION_HORIZON_HOURS,
-                     now_current: float | None = None) -> float | None:
+                     now_current: float | None = None, adjust: dict[str, float] | None = None) -> float | None:
     """Minutes until the remaining capacity drops to `reserve_ah` (charging is capped at the capacity).
-    None = not reached within the horizon."""
+    None = not reached within the horizon. `adjust` adds per-hour corrections (e.g. the solar forecast)."""
     if remaining_ah <= reserve_ah:
         return 0.0
     level, t, elapsed = remaining_ah, start, 0.0
     while elapsed < horizon_hours * 60:
-        current = _current_at(profile, t, elapsed, now_current)
+        current = _current_at(profile, t, elapsed, now_current, adjust)
         new_level = min(capacity_ah, level + current * STEP_MIN / 60)
         if current < 0 and new_level <= reserve_ah:
             return elapsed + (level - reserve_ah) / -current * 60
@@ -188,11 +194,11 @@ def simulate_runtime(remaining_ah: float, capacity_ah: float, profile: list[floa
 
 
 def simulate_levels(remaining_ah: float, capacity_ah: float, profile: list[float], start: datetime,
-                    hours: int, now_current: float | None = None) -> list[float]:
+                    hours: int, now_current: float | None = None, adjust: dict[str, float] | None = None) -> list[float]:
     """Predicted remaining capacity at start+1h, start+2h, ... (floored at 0)."""
     level, t, elapsed, levels = remaining_ah, start, 0.0, []
     while len(levels) < hours:
-        current = _current_at(profile, t, elapsed, now_current)
+        current = _current_at(profile, t, elapsed, now_current, adjust)
         level = max(0.0, min(capacity_ah, level + current * STEP_MIN / 60))
         t, elapsed = t + timedelta(minutes=STEP_MIN), elapsed + STEP_MIN
         if elapsed % 60 == 0:
@@ -200,22 +206,78 @@ def simulate_levels(remaining_ah: float, capacity_ah: float, profile: list[float
     return levels
 
 
+def charge_outlook(remaining_ah: float, capacity_ah: float, profile: list[float], start: datetime,
+                   now_current: float | None = None, adjust: dict[str, float] | None = None) -> dict:
+    """Until midnight: max SOC reached and when the battery becomes full (≥ 99%), if at all."""
+    level, t, elapsed = remaining_ah, start, 0.0
+    end = (start + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    max_level, full_at = level, None
+    while t < end:
+        current = _current_at(profile, t, elapsed, now_current, adjust)
+        level = max(0.0, min(capacity_ah, level + current * STEP_MIN / 60))
+        t, elapsed = t + timedelta(minutes=STEP_MIN), elapsed + STEP_MIN
+        max_level = max(max_level, level)
+        if full_at is None and level >= capacity_ah * 0.99:
+            full_at = t
+    return {
+        "max_soc_today": round(max_level / capacity_ah * 100, 1) if capacity_ah else None,
+        "full_at": full_at.isoformat(timespec="minutes") if full_at else None,
+    }
+
+
 # Candidate models; the backtest on the user's own history picks the most accurate one.
 VARIANTS = {
-    # name: (half-life in days or None for a flat 7-day mean, blend in the measured current)
-    "recent-1d": (1.0, True),
-    "recent-2d": (2.0, True),
-    "week": (None, True),
-    "week-no-now": (None, False),   # the previous model
+    # half_life: days (None = flat 7-day mean) · now: blend in the measured current · sun: Open-Meteo correction
+    "recent-1d+sun": {"half_life": 1.0, "now": True, "sun": True},
+    "recent-2d+sun": {"half_life": 2.0, "now": True, "sun": True},
+    "recent-1d": {"half_life": 1.0, "now": True, "sun": False},
+    "recent-2d": {"half_life": 2.0, "now": True, "sun": False},
+    "week": {"half_life": None, "now": True, "sun": False},
+    "week-no-now": {"half_life": None, "now": False, "sun": False},   # the original model
 }
 DEFAULT_VARIANT = "recent-1d"
+DEFAULT_SOLAR_VARIANT = "recent-1d+sun"
+CHARGE_EFFICIENCY = 0.95        # PV -> battery (MPPT + battery)
 
 
-def backtest(history: dict[str, dict], capacity_ah: float, now: datetime) -> dict[str, dict]:
-    """Replays each variant on past data: MAE of the predicted vs real remaining capacity, in % of capacity."""
+def solar_adjustment(solar: dict | None, start: datetime, hours: int, half_life: float | None,
+                     pack_voltage: float) -> dict[str, float] | None:
+    """Battery-current correction for each upcoming hour: (forecast PV − PV of a typical recent day) as amps.
+
+    The learned profile already contains a *typical* amount of sun for every hour of the day; only the
+    difference to the weather forecast is added, so a sunny profile is lowered on a cloudy day and vice versa.
+    """
+    if not solar or pack_voltage <= 0:
+        return None
+    typical_hist = {k: v for k, v in solar["pv"].items()
+                    if start - timedelta(days=PROFILE_DAYS) <= _parse_hour(k) < start.replace(minute=0, second=0, microsecond=0)}
+    raw, used = build_hour_profile(typical_hist, start, half_life)
+    if used < MIN_PROFILE_HOURS:
+        return None
+    typical = fill_gaps(raw)
+    adjust = {}
+    base = start.replace(minute=0, second=0, microsecond=0)
+    for i in range(hours + 1):
+        t = base + timedelta(hours=i)
+        key = t.strftime("%Y-%m-%d %H")
+        predicted = solar["predicted_kwh"].get(key)
+        if predicted is not None:
+            adjust[key] = (predicted - typical[t.hour]) * 1000 / pack_voltage * CHARGE_EFFICIENCY
+    return adjust
+
+
+def backtest(history: dict[str, dict], capacity_ah: float, now: datetime, solar: dict | None = None,
+             pack_voltage: float = 51.2) -> dict[str, dict]:
+    """Replays each variant on past data: MAE of the predicted vs real remaining capacity, in % of capacity.
+
+    Solar variants use the irradiance Open-Meteo reports for those past hours (close to observed weather), so
+    their score shows the benefit of knowing the weather; live forecasts for tomorrow are somewhat less exact.
+    """
     results = {}
     hour0 = now.replace(minute=0, second=0, microsecond=0)
-    for name, (half_life, use_now) in VARIANTS.items():
+    for name, variant in VARIANTS.items():
+        if variant["sun"] and not solar:
+            continue
         errors = []
         for back in range(BACKTEST_HORIZON_H, BACKTEST_HOURS_BACK + 1, BACKTEST_EVERY_H):
             start = hour0 - timedelta(hours=back)
@@ -224,13 +286,18 @@ def backtest(history: dict[str, dict], capacity_ah: float, now: datetime) -> dic
                 continue
             past = {k: e["current"] for k, e in history.items()
                     if start - timedelta(days=PROFILE_DAYS) <= _parse_hour(k) < start}
-            raw, used = build_hour_profile(past, start, half_life)
+            raw, used = build_hour_profile(past, start, variant["half_life"])
             if used < MIN_PROFILE_HOURS:
                 continue
+            adjust = None
+            if variant["sun"]:
+                adjust = solar_adjustment(solar, start, BACKTEST_HORIZON_H, variant["half_life"], pack_voltage)
+                if adjust is None:
+                    continue
             prev_key = (start - timedelta(hours=1)).strftime("%Y-%m-%d %H")
-            now_current = history[prev_key]["current"] if use_now and prev_key in history else None
+            now_current = history[prev_key]["current"] if variant["now"] and prev_key in history else None
             predicted = simulate_levels(history[start_key]["remaining"], capacity_ah, fill_gaps(raw), start,
-                                        BACKTEST_HORIZON_H, now_current)
+                                        BACKTEST_HORIZON_H, now_current, adjust)
             for i, level in enumerate(predicted, start=1):
                 actual = history.get((start + timedelta(hours=i)).strftime("%Y-%m-%d %H"))
                 if actual:
@@ -315,14 +382,24 @@ async def compute_battery_analytics() -> dict:
         _hourly_battery, now - timedelta(days=PROFILE_DAYS) - timedelta(hours=BACKTEST_HOURS_BACK))
     recent = {k: e["current"] for k, e in history.items() if _parse_hour(k) >= now - timedelta(days=PROFILE_DAYS)}
 
+    # Weather: Open-Meteo irradiance calibrated on this station's real PV output (None if not configured).
+    try:
+        solar = await asyncio.to_thread(solar_context, now)
+    except Exception as e:
+        print(f"⚠️ Solar forecast unavailable: {e}")
+        solar = None
+
     # Pick the variant that was most accurate on the last days.
-    scores = await asyncio.to_thread(backtest, history, capacity, now) if capacity else {}
+    scores = await asyncio.to_thread(backtest, history, capacity, now, solar, pack_voltage) if capacity else {}
     measured = {name: s for name, s in scores.items() if s["mae_soc_pct"] is not None}
-    best = min(measured, key=lambda n: measured[n]["mae_soc_pct"]) if measured else DEFAULT_VARIANT
-    half_life, use_now = VARIANTS[best]
-    raw_profile, hours_used = build_hour_profile(recent, now, half_life)
+    default = DEFAULT_SOLAR_VARIANT if solar else DEFAULT_VARIANT
+    best = min(measured, key=lambda n: measured[n]["mae_soc_pct"]) if measured else default
+    variant = VARIANTS[best]
+    raw_profile, hours_used = build_hour_profile(recent, now, variant["half_life"])
     profile = fill_gaps(raw_profile)
-    now_current = current_now if (use_now and batteries) else None
+    now_current = current_now if (variant["now"] and batteries) else None
+    adjust = (solar_adjustment(solar, now, SIMULATION_HORIZON_HOURS, variant["half_life"], pack_voltage)
+              if variant["sun"] else None)
 
     load_history = await asyncio.to_thread(_hourly_load_kwh, now - timedelta(days=PROFILE_DAYS))
     outage = outage_profile(load_history, pack_voltage, now)
@@ -353,10 +430,15 @@ async def compute_battery_analytics() -> dict:
         "profile": [round(v, 2) if v is not None else None for v in raw_profile],
         "outage_profile": [round(v, 2) for v in outage] if outage else None,
         "self_sufficient": False,
+        "solar_used": adjust is not None,
+        "solar_calibration": solar["calibration"] if solar else None,
+        "max_soc_today": None,
+        "full_at": None,
     }
     if capacity and hours_used >= MIN_PROFILE_HOURS:
-        to_empty = simulate_runtime(remaining, capacity, profile, now, 0.0, now_current=now_current)
-        to_reserve = simulate_runtime(remaining, capacity, profile, now, reserve_ah, now_current=now_current)
+        to_empty = simulate_runtime(remaining, capacity, profile, now, 0.0, now_current=now_current, adjust=adjust)
+        to_reserve = simulate_runtime(remaining, capacity, profile, now, reserve_ah, now_current=now_current, adjust=adjust)
+        runtime.update(charge_outlook(remaining, capacity, profile, now, now_current, adjust))
         runtime["by_profile_min"] = round(to_empty) if to_empty is not None else None
         runtime["by_profile_to_reserve_min"] = round(to_reserve) if to_reserve is not None else None
         runtime["self_sufficient"] = to_empty is None  # never empties within a week with the usual pattern

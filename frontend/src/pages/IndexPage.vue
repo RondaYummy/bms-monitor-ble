@@ -364,6 +364,7 @@
     </q-dialog>
 
     <BatteryAnalytics v-if="Object.keys(devicesList || {}).length" />
+    <SolarForecast />
     <CellHeatmap v-if="Object.keys(devicesList || {}).length" />
 
     <BMSChart :tab="tab" />
@@ -442,6 +443,7 @@ import { usePowerStore } from 'src/stores/power';
 import { useLiveStore } from 'src/stores/live';
 import BatteryAnalytics from 'src/components/BatteryAnalytics.vue';
 import CellHeatmap from 'src/components/CellHeatmap.vue';
+import SolarForecast from 'src/components/SolarForecast.vue';
 import SslData from 'src/components/SslData.vue';
 import { useConfigStore } from 'src/stores/config';
 import TopTapoDevice from 'src/components/tapo/TopTapoDevice.vue';
