@@ -15,14 +15,14 @@
   "dependencies": {
     "@quasar/extras": "^1.18.0",
     "apexcharts": "^5.10.6",
-    "axios": "^1.15.0",
-    "esbuild": "^0.28.0",
+    "axios": "^1.21.1",
+    "esbuild": "^0.28.2",
     "mitt": "^3.0.1",
     "pinia": "^3.0.4",
     "qrcode": "^1.5.4",
-    "quasar": "^2.19.3",
+    "quasar": "^2.35.6",
     "register-service-worker": "^1.7.2",
-    "vite": "^8.0.8",
+    "vite": "^8.3.8",
     "vue": "^3.5.32",
     "vue-router": "^5.0.4",
     "vue3-apexcharts": "^1.11.1"

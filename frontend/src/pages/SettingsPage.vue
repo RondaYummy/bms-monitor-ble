@@ -58,13 +58,13 @@
 
     <div class="full-width">
       <q-tabs v-model="tab" align="justify" narrow-indicator class="q-mb-lg">
-        <q-tab class="text-purple" name="Alerts" label="Alerts" />
-        <q-tab class="text-orange" name="Settings" label="Settings" />
+        <q-tab class="text-purple-3" name="Alerts" label="Alerts" />
+        <q-tab class="text-orange-4" name="Settings" label="Settings" />
       </q-tabs>
       <q-tabs v-model="tab" align="justify" narrow-indicator class="q-mb-lg">
-        <q-tab class="text-blue" name="bms" label="JK-BMS" />
-        <q-tab class="text-blue" name="tapo" label="Tapo" />
-        <q-tab class="text-blue" name="deye" label="Deye" />
+        <q-tab class="text-light-blue-4" name="bms" label="JK-BMS" />
+        <q-tab class="text-light-blue-4" name="tapo" label="Tapo" />
+        <q-tab class="text-light-blue-4" name="deye" label="Deye" />
       </q-tabs>
 
       <div class="q-gutter-y-sm">

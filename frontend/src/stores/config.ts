@@ -10,12 +10,23 @@ export interface SslCertificateDetails {
   expires_at: string;
   days_valid: number;
   days_left: number;
+  issuer?: string;
+  subject?: string;
+  domains?: string[];
+  trusted?: boolean;
+  trust_error?: string;
+  checked_host?: string;
 }
+
+/** Where the expiry date comes from: the certificate file, a live TLS check, or a legacy manual record. */
+export type SslSource = 'file' | 'host' | 'manual' | null;
 
 export interface SslResponse {
   status: SslStatus;
   message: string;
   certificat: SslCertificateDetails | null;
+  source?: SslSource;
+  errors?: string[];
 }
 
 const configs = {

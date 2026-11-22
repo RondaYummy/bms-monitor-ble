@@ -71,8 +71,12 @@
     <q-expansion-item dense label="Користувачі та доступ" icon="group">
       <UsersManager class="q-pa-sm" />
     </q-expansion-item>
-    <q-btn class="q-my-sm" color="black" icon="storage" label="Дані та бекапи" @click="dataModal = true" />
+    <div class="row justify-center q-gutter-sm q-my-sm">
+      <q-btn color="black" icon="storage" label="Дані та бекапи" @click="dataModal = true" />
+      <q-btn color="black" icon="wb_sunny" label="Прогноз сонця" @click="solarModal = true" />
+    </div>
     <DataMaintenanceModal :show="dataModal" @update:show="(value) => (dataModal = value)" />
+    <SolarSettingsModal :show="solarModal" @update:show="(value) => (solarModal = value)" />
   </template>
 
   <q-separator class="q-mb-sm" color="orange" inset />
@@ -145,6 +149,7 @@ import AlertsSettingsModal from 'src/components/modals/AlertsSettingsModal.vue';
 import ChangePasswordModal from 'src/components/modals/ChangePasswordModal.vue';
 import AlertThresholdsModal from 'src/components/modals/AlertThresholdsModal.vue';
 import DataMaintenanceModal from 'src/components/modals/DataMaintenanceModal.vue';
+import SolarSettingsModal from 'src/components/modals/SolarSettingsModal.vue';
 import TwoFactorSetup from 'src/components/settings/TwoFactorSetup.vue';
 import UsersManager from 'src/components/settings/UsersManager.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
@@ -171,6 +176,7 @@ const changePasswordModal = ref(false);
 const alertsModal = ref<boolean>(false);
 const thresholdsModal = ref(false);
 const dataModal = ref(false);
+const solarModal = ref(false);
 const switching = ref<string>('');
 const intervalId = ref();
 const config = computed<Config>(configStore.getConfig);

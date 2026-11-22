@@ -155,6 +155,35 @@ docker compose exec python-app python -m python.manage disable-2fa admin
   If you use your own nginx, add the `/api/stream` location from `docs/nginx.md` (no buffering).
 - Build the frontend with an **empty `VITE_API_URL`** (see `frontend/.env.example`): requests go to `/api` on the same origin.
 
+### 💰 Energy economics (bottom menu → Energy)
+- kWh history is built from the Deye daily counters (per hour, resets at midnight and restarts are handled).
+- Set your tariffs (day price, optional two-zone night price/hours, "green" tariff for export) in the ⚙️ dialog.
+- Shows paid vs. "without the system", savings, export income and self-sufficiency per day/month;
+  download **CSV** or press **Print** → "Save as PDF" for a report.
+
+### ☀️ Solar forecast (Open-Meteo, free, no API key)
+- Settings → Settings → **Прогноз сонця**: coordinates (or "my location"), panel tilt and orientation; installed
+  power is optional. Works for any location (e.g. Lviv). Coordinates are rounded to ~1 km before being sent.
+- Every hour the plane-of-array irradiance for the next 3 days is fetched; the model **calibrates itself** on the
+  real hourly PV output from the Deye history (hours curtailed by a full battery are ignored).
+- The battery forecast adds the difference between the weather forecast and a typical recent day, and the
+  backtest decides whether the solar-aware model is more accurate on your data. The main page shows today's /
+  tomorrow's expected generation and when the battery will be full (or the maximum SOC today).
+
+### 🔬 Cell history (main page → "Історія комірок")
+- Average voltage of every cell is stored every 5 minutes (rolled up to hourly after the retention period).
+- Heatmap of each cell's deviation from the pack average; the weak-cell score (deviation at high SOC minus
+  deviation at low SOC) highlights cells with lower capacity long before an alert.
+
+### 🔒 SSL without manual work
+Run once on the server: `sudo ./scripts/ssl/setup-certbot-dns.sh cloudflare <domain> <email>` — certbot with a
+DNS plugin renews automatically and the app reads the expiry date from the certificate. See `SSL_CERTIFICATE.md`.
+
+### 🧩 Code structure
+`main.py` only wires the app (routers, middleware, background loops via `lifespan`). The BLE layer lives in
+`python/ble/` (`protocol.py` – frames/commands, `manager.py` – connections, `frames.py` – parsing, `routes.py` – API),
+other endpoints in `python/api/`. Set `BLE_DEBUG=1` for verbose BLE logs.
+
 ### Build Docker:
 ```bash
 yarn build

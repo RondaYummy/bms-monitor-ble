@@ -197,6 +197,7 @@ const chartOptions = ref({
   title: {
     text: 'BMS',
     align: 'left',
+    style: { color: '#e0e0e0' },
   },
   yaxis: [
     {

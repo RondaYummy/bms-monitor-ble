@@ -31,22 +31,33 @@
         </div>
         <div class="col-12 col-sm-4">
           <div class="tile">
-            <div class="tile-label">Без жодного заряду</div>
+            <div class="tile-label">Відключення (без сонця й мережі)</div>
             <div class="tile-value">{{ fmt(runtime.no_charge_min) }}</div>
             <div class="tile-hint">
-              Середній розряд: {{ runtime.avg_discharge_a ?? '—' }} A
+              до {{ runtime.reserve_soc }}%: {{ fmt(runtime.no_charge_to_reserve_min) }} ·
+              {{ runtime.no_charge_source === 'load' ? 'за споживанням будинку' : 'за середнім розрядом' }}
             </div>
           </div>
         </div>
       </div>
 
-      <div class="text-caption text-grey-5">
-        Профіль за {{ Math.round(runtime.history_hours / 24) }} дн. історії · точність:
-        <b :class="confidenceClass">{{ confidenceLabel }}</b>
-        <q-tooltip max-width="320px">
-          Прогноз моделює заряд годину за годиною, використовуючи середній струм для кожної години доби
-          за останній тиждень (вдень — заряд від сонця, вночі — розряд). «Без жодного заряду» —
-          сценарій відключення світла вночі або хмарних днів.
+      <div v-if="runtime.max_soc_today !== null && runtime.max_soc_today !== undefined" class="outlook">
+        <template v-if="runtime.full_at">🔋 Батарея зарядиться до 100% приблизно о <b>{{ runtime.full_at.slice(11, 16) }}</b></template>
+        <template v-else>🔋 Сьогодні заряд дійде максимум до <b>{{ Math.round(runtime.max_soc_today) }}%</b></template>
+        <span v-if="runtime.solar_used" class="text-amber-4"> · ☀️ з прогнозом сонця</span>
+      </div>
+
+      <div class="text-caption text-grey-4">
+        Точність: <b :class="confidenceClass">{{ confidenceLabel }}</b>
+        <span v-if="runtime.accuracy?.mae_soc_pct !== undefined && runtime.accuracy?.mae_soc_pct !== null">
+          · похибка ±{{ runtime.accuracy.mae_soc_pct }}% SOC на 12 год (перевірено на останніх 3 днях)
+        </span>
+        <span v-else> · ще мало історії для перевірки ({{ Math.round(runtime.history_hours / 24) }} дн.)</span>
+        <q-tooltip max-width="340px">
+          Прогноз моделює заряд кожні 5 хвилин: профіль струму батареї за годинами доби (свіжі дні важать
+          більше), а на найближчу годину — реальний струм зараз. Кілька варіантів моделі перевіряються на
+          ваших даних за останні дні, і використовується найточніший ({{ runtime.model }}).
+          «Відключення» — споживання будинку з інвертора без сонця й мережі.
         </q-tooltip>
       </div>
 
@@ -110,7 +121,14 @@ interface Analytics {
     by_profile_min: number | null;
     by_profile_to_reserve_min: number | null;
     no_charge_min: number | null;
+    no_charge_to_reserve_min: number | null;
+    no_charge_source: 'load' | 'bms' | null;
     avg_discharge_a: number | null;
+    model: string;
+    solar_used: boolean;
+    max_soc_today: number | null;
+    full_at: string | null;
+    accuracy: { mae_soc_pct: number | null; points: number } | null;
     current_now_a: number;
     reserve_soc: number;
     history_hours: number;
@@ -216,6 +234,11 @@ onBeforeUnmount(() => clearInterval(timer));
 }
 .bar-discharge {
   background: #ff9800;
+}
+.outlook {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 6px 10px;
 }
 .imbalance {
   background: rgba(255, 255, 255, 0.04);

@@ -30,12 +30,6 @@
         </div>
       </div>
 
-      <q-btn @click="showMoreDeye = !showMoreDeye" label="↓ Show more ↓" class="q-mb-sm full-width" size="md"
-        unelevated />
-
-      <template v-if="showMoreDeye">
-        <AddtionalInfo :data="deyeData" />
-      </template>
     </template>
 
     <PowerSolarMinitor />
@@ -89,9 +83,11 @@
 
             <q-card-actions align="right">
               <q-btn flat label="GitHub" :disable="!canEdit"
-                href="https://github.com/RondaYummy/bms-monitor-ble/blob/main/SSL_CERTIFICATE.md" color="primary" />
+                href="https://github.com/RondaYummy/bms-monitor-ble/blob/main/SSL_CERTIFICATE.md" color="light-blue-4" />
 
-              <q-btn flat label="Поновити" :disable="!canEdit" color="black">
+              <q-btn v-if="sslData.source === 'file' || sslData.source === 'host'" flat label="Перевірити"
+                :disable="!canEdit" color="black" @click="refreshSsl" />
+              <q-btn v-else flat label="Поновити" :disable="!canEdit" color="black">
                 <q-popup-proxy>
                   <q-banner class="q-pa-md">
                     <template v-slot:avatar>
@@ -102,7 +98,7 @@
                 </q-popup-proxy>
               </q-btn>
 
-              <q-btn flat label="OK" color="primary" v-close-popup />
+              <q-btn flat label="OK" color="light-blue-4" v-close-popup />
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -114,7 +110,7 @@
             </q-card-section>
 
             <q-card-actions align="right">
-              <q-btn flat label="OK" color="primary" v-close-popup />
+              <q-btn flat label="OK" color="light-blue-4" v-close-popup />
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -167,7 +163,7 @@
             </q-card-section>
 
             <q-card-actions align="right">
-              <q-btn flat label="OK" color="primary" v-close-popup />
+              <q-btn flat label="OK" color="light-blue-4" v-close-popup />
             </q-card-actions>
           </q-card>
         </q-dialog>
@@ -324,11 +320,11 @@
 
           <span v-if="calculatedList?.charge_current < 0" :class="{ 'blink-attention': autonomyTime <= 120 }">
             ⏳ Autonomy:
-            {{ formatMinutes(autonomyTime) }}
+            {{ isFinite(autonomyTime) ? formatMinutes(autonomyTime) : '∞' }}
 
             <q-tooltip>
-              Autonomy - Час автономної роботи при поточних навантаженнях. Також враховується
-              ефективність інвертора в коефіцієнті 0.95. Показується в годинах.
+              Autonomy — час роботи при поточному струмі батареї (втрати інвертора BMS уже враховує).
+              Точніший прогноз з урахуванням сонця й звичного споживання — у блоці «Прогноз батареї».
             </q-tooltip>
           </span>
 
@@ -368,6 +364,8 @@
     </q-dialog>
 
     <BatteryAnalytics v-if="Object.keys(devicesList || {}).length" />
+    <SolarForecast />
+    <CellHeatmap v-if="Object.keys(devicesList || {}).length" />
 
     <BMSChart :tab="tab" />
 
@@ -379,7 +377,7 @@
       <div v-if="isCellVoltagesOpen" class="column items-center q-mt-md">
         <div class="row justify-between">
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_voltages" :key="`cv_${idx}`">
-            <q-chip dense outline color="primary" text-color="white">{{
+            <q-chip dense outline color="light-blue-4" text-color="white">{{
               String(Number(idx) + 1).padStart(2, '0')
             }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
@@ -397,7 +395,7 @@
       <div v-if="isCellResistancesOpen" class="column items-center q-mt-md">
         <div class="row justify-between">
           <div class="row items-center" v-for="(d, idx) of calculatedList?.cell_resistances" :key="`cr_${idx}`">
-            <q-chip dense outline color="primary" text-color="white">{{
+            <q-chip dense outline color="light-blue-4" text-color="white">{{
               String(Number(idx) + 1).padStart(2, '0')
             }}</q-chip>
             <span> - {{ d?.toFixed(2) || 0.00 }} v. </span>
@@ -435,15 +433,17 @@ import {
   useAuth,
 } from '../helpers/utils';
 import { ref, watch, onBeforeUnmount, computed, onMounted } from 'vue';
-import type { BeforeInstallPromptEvent, CellInfo, DeyeSafeValues } from '../models';
+import type { BeforeInstallPromptEvent, CellInfo } from '../models';
 import { useBmsStore } from 'src/stores/bms';
 import { useDeyeStore } from 'src/stores/deye';
 import SemiCircleGauge from 'src/components/SemiCircleGauge.vue';
 import { useTapoStore } from 'src/stores/tapo';
-import AddtionalInfo from 'src/components/deye/AddtionalInfo.vue';
+import { useDeyeTotals } from 'src/composables/useDeyeTotals';
 import { usePowerStore } from 'src/stores/power';
 import { useLiveStore } from 'src/stores/live';
 import BatteryAnalytics from 'src/components/BatteryAnalytics.vue';
+import CellHeatmap from 'src/components/CellHeatmap.vue';
+import SolarForecast from 'src/components/SolarForecast.vue';
 import SslData from 'src/components/SslData.vue';
 import { useConfigStore } from 'src/stores/config';
 import TopTapoDevice from 'src/components/tapo/TopTapoDevice.vue';
@@ -466,53 +466,7 @@ const sslData = computed(configStore.getSsl);
 const devicesList = computed<Record<string, CellInfo>>(bmsStore.getCellInfo);
 const topTapoDevices = computed(() => tapoStore.topDevices);
 const powerSystemData = computed(powerStore.getPowerData);
-const deyeData = computed<DeyeSafeValues>(() => {
-  const data = deyeStore.getDeyeData();
-  const initial: DeyeSafeValues = {
-    pv1_power: 0,
-    pv2_power: 0,
-    total_pv: 0,
-    load_power: 0,
-    grid_power: 0,
-    battery_power: 0,
-    battery_voltage: 0,
-    battery_soc: 0,
-    net_balance: 0,
-    stat_daily_pv: 0,
-    stat_total_pv: 0,
-    stat_daily_bat_discharge: 0,
-    stat_daily_grid_in: 0,
-    stat_daily_grid_out: 0,
-    stat_total_grid_out: 0,
-    stat_total_load: 0,
-    daily_bat_charge: 0,
-    daily_load: 0,
-    grid_in: 0,
-    total_bat_charge: 0,
-    total_bat_discharge: 0,
-  };
-
-  if (!Array.isArray(data)) return initial;
-  return data.reduce((acc, curr) => {
-    acc.battery_voltage += Number(curr.battery_voltage) || 0;
-    acc.pv1_power += Number(curr.pv1_power) || 0;
-    acc.pv2_power += Number(curr.pv2_power) || 0;
-    acc.total_pv += Number(curr.total_pv) || 0;
-    acc.load_power += Number(curr.load_power) || 0;
-    acc.grid_power += Number(curr.grid_power) || 0;
-    acc.battery_power += Number(curr.battery_power) || 0;
-    acc.battery_soc += Number(curr.battery_soc) || 0;
-    acc.net_balance += Number(curr.net_balance) || 0;
-    acc.stat_daily_pv += Number(curr.stat_daily_pv) || 0;
-    acc.stat_total_pv += Number(curr.stat_total_pv) || 0;
-    acc.stat_daily_bat_discharge += Number(curr.stat_daily_bat_discharge) || 0;
-    acc.stat_daily_grid_in += Number(curr.stat_daily_grid_in) || 0;
-    acc.stat_daily_grid_out += Number(curr.stat_daily_grid_out) || 0;
-    acc.stat_total_grid_out += Number(curr.stat_total_grid_out) || 0;
-    acc.stat_total_load += Number(curr.stat_total_load) || 0;
-    return acc;
-  }, initial);
-});
+const deyeData = useDeyeTotals();
 
 const intervalId = ref();
 const isFetching = ref(false);
@@ -525,13 +479,11 @@ const showSslDialog = ref(false);
 const tab = ref<string>('All');
 const isCellVoltagesOpen = ref(false);
 const isCellResistancesOpen = ref(false);
-const showMoreDeye = ref(false);
 
 const autonomyTime = computed(() => calculateAutonomyTime(
   calculatedList.value?.remaining_capacity,
-  calculatedList.value?.charge_current,
-  0.95
-) || 0.00);
+  calculatedList.value?.charge_current
+));
 
 let deferredPrompt: BeforeInstallPromptEvent;
 

@@ -12,7 +12,7 @@
           <div class="row q-gutter-x-md justify-between items-center custom">
             <span>{{ getUnit('cell_count') }}</span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.cell_count" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.cell_count" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -20,7 +20,7 @@
               {{ getUnit('nominal_battery_capacity') }}
             </span>
 
-            <q-input
+            <q-input dark
               :readonly="readonlyInputs"
               outlined
               v-model="st.nominal_battery_capacity"
@@ -33,7 +33,7 @@
               {{ getUnit('balance_trigger_voltage') }}
             </span>
 
-            <q-input
+            <q-input dark
               :readonly="readonlyInputs"
               outlined
               v-model="st.balance_trigger_voltage"
@@ -59,7 +59,7 @@
               {{ getUnit('start_balance_voltage') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.start_balance_voltage" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.start_balance_voltage" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -67,7 +67,7 @@
               {{ getUnit('max_balance_current') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.max_balance_current" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.max_balance_current" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -75,7 +75,7 @@
               {{ getUnit('cell_ovp') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.cell_ovp" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.cell_ovp" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -83,7 +83,7 @@
               {{ getUnit('cell_request_charge_voltage') }}
             </span>
 
-            <q-input
+            <q-input dark
               :readonly="readonlyInputs"
               outlined
               v-model="st.cell_request_charge_voltage"
@@ -96,7 +96,7 @@
               {{ getUnit('soc_100_voltage') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.soc_100_voltage" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.soc_100_voltage" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -104,7 +104,7 @@
               {{ getUnit('cell_ovpr') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.cell_ovpr" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.cell_ovpr" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -112,7 +112,7 @@
               {{ getUnit('cell_uvpr') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.cell_uvpr" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.cell_uvpr" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -120,7 +120,7 @@
               {{ getUnit('cell_uvp') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.cell_uvp" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.cell_uvp" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -128,7 +128,7 @@
               {{ getUnit('power_off_voltage') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.power_off_voltage" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.power_off_voltage" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -136,7 +136,7 @@
               {{ getUnit('cell_request_float_voltage') }}
             </span>
 
-            <q-input
+            <q-input dark
               :readonly="readonlyInputs"
               outlined
               v-model="st.cell_request_float_voltage"
@@ -149,7 +149,7 @@
               {{ getUnit('smart_sleep_voltage') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.smart_sleep_voltage" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.smart_sleep_voltage" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -157,7 +157,7 @@
               {{ getUnit('max_charge_current') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.max_charge_current" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.max_charge_current" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -165,7 +165,7 @@
               {{ getUnit('charge_ocp_delay') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.charge_ocp_delay" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.charge_ocp_delay" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -173,7 +173,7 @@
               {{ getUnit('charge_ocp_recovery') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.charge_ocp_recovery" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.charge_ocp_recovery" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -181,7 +181,7 @@
               {{ getUnit('max_discharge_current') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.max_discharge_current" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.max_discharge_current" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -189,7 +189,7 @@
               {{ getUnit('discharge_ocp_delay') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.discharge_ocp_delay" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.discharge_ocp_delay" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -197,7 +197,7 @@
               {{ getUnit('discharge_ocp_recovery') }}
             </span>
 
-            <q-input
+            <q-input dark
               :readonly="readonlyInputs"
               outlined
               v-model="st.discharge_ocp_recovery"
@@ -210,7 +210,7 @@
               {{ getUnit('charge_otp') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.charge_otp" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.charge_otp" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -218,7 +218,7 @@
               {{ getUnit('charge_otp_recovery') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.charge_otp_recovery" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.charge_otp_recovery" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -226,7 +226,7 @@
               {{ getUnit('discharge_otp') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.discharge_otp" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.discharge_otp" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -234,7 +234,7 @@
               {{ getUnit('discharge_otp_recovery') }}
             </span>
 
-            <q-input
+            <q-input dark
               :readonly="readonlyInputs"
               outlined
               v-model="st.discharge_otp_recovery"
@@ -247,7 +247,7 @@
               {{ getUnit('charge_utp') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.charge_utp" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.charge_utp" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -255,7 +255,7 @@
               {{ getUnit('mos_otp') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.mos_otp" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.mos_otp" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -263,7 +263,7 @@
               {{ getUnit('mos_otp_recovery') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.mos_otp_recovery" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.mos_otp_recovery" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -271,7 +271,7 @@
               {{ getUnit('short_circuit_protection_delay') }}
             </span>
 
-            <q-input
+            <q-input dark
               :readonly="readonlyInputs"
               outlined
               v-model="st.short_circuit_protection_delay"
@@ -284,7 +284,7 @@
               {{ getUnit('short_circuit_protection_recovery') }}
             </span>
 
-            <q-input
+            <q-input dark
               :readonly="readonlyInputs"
               outlined
               v-model="st.short_circuit_protection_recovery"
@@ -297,7 +297,7 @@
               {{ getUnit('device_address') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.device_address" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.device_address" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -305,7 +305,7 @@
               {{ getUnit('port_switch') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.port_switch" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.port_switch" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -313,7 +313,7 @@
               {{ getUnit('precharge_time') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.precharge_time" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.precharge_time" dense />
           </div>
 
           <div class="row q-gutter-x-md justify-between items-center custom">
@@ -321,7 +321,7 @@
               {{ getUnit('data_field_enable_control') }}
             </span>
 
-            <q-input
+            <q-input dark
               :readonly="readonlyInputs"
               outlined
               v-model="st.data_field_enable_control"
@@ -334,7 +334,7 @@
               {{ getUnit('controls_bitmask') }}
             </span>
 
-            <q-input :readonly="readonlyInputs" outlined v-model="st.controls_bitmask" dense />
+            <q-input dark :readonly="readonlyInputs" outlined v-model="st.controls_bitmask" dense />
           </div>
         </q-card-section>
       </q-card>
@@ -346,7 +346,7 @@
       expand-separator
       icon="drafts"
       label="Con. Wire Res. Settings"
-      header-class="text-purple"
+      header-class="text-purple-3"
     >
       <q-card style="background: transparent">
         <q-card-section>
@@ -357,7 +357,7 @@
                 {{ getUnit('connection_wire_resistances') }}
               </span>
 
-              <q-input
+              <q-input dark
                 :readonly="readonlyInputs"
                 outlined
                 v-model="st.connection_wire_resistances[idx]"
@@ -446,7 +446,12 @@ watch(
 
 <style scoped lang="scss">
 .q-input {
-  max-width: 55px;
+  max-width: 72px;
+}
+
+:deep(.q-field__native) {
+  color: white;
+  text-align: right;
 }
 
 .q-input:focus-within {

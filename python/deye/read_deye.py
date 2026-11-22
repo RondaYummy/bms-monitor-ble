@@ -1,9 +1,11 @@
 import asyncio
+import time
 from datetime import datetime, timezone
 
 from pysolarmanv5 import PySolarmanV5, V5FrameError
 
 import python.db as db
+from python.energy import FLUSH_INTERVAL_SECONDS, accumulator as energy_accumulator
 
 # This is the local IP address of the WiFi stick connected to the Deye (or Solarman) inverter.
 # This stick works as a TCP server that listens to port 8899 and transmits data via the Modbus protocol.
@@ -83,7 +85,7 @@ def _read_deye_blocking(ip: str, serial_number: int, slave_id: int) -> dict:
     bat_soc = rt(184)
     net_balance = total_pv + grid_power - load_power - bat_power
 
-    return {
+    data = {
         "timestamp": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
         "pv1_power": pv1_power,
         "pv2_power": pv2_power,
@@ -109,6 +111,8 @@ def _read_deye_blocking(ip: str, serial_number: int, slave_id: int) -> dict:
         "grid_in": ((st(80) << 16) | st(78)) * 0.1,
         "daily_load": st(84) * 0.1,
     }
+    # register * 0.1 / 0.01 -> 12.299999999999999 etc.: keep two decimals
+    return {k: round(v, 2) if isinstance(v, float) else v for k, v in data.items()}
 
 
 async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
@@ -116,6 +120,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
         # Never run blocking socket I/O on the event loop: it would freeze BLE handling and the API.
         data = await asyncio.to_thread(_read_deye_blocking, ip, serial_number, slave_id)
         await asyncio.to_thread(db.update_deye_device_data, ip, data)
+        energy_accumulator.record(ip, data)  # hourly kWh history for the economics report
     except V5FrameError as err:
         print(f"❌ Modbus error on {ip}: {err}")
         _drop_client(ip, serial_number, slave_id)
@@ -125,6 +130,7 @@ async def read_deye_for_device(ip: str, serial_number: int, slave_id: int = 1):
 
 
 async def run_deye_loop():
+    last_flush = time.monotonic()
     while True:
         try:
             devices = db.get_all_deye_devices()
@@ -139,4 +145,10 @@ async def run_deye_loop():
             await asyncio.gather(*tasks)
         except Exception as e:
             print(f"❌ Error in Deye loop: {e}")
+        if time.monotonic() - last_flush >= FLUSH_INTERVAL_SECONDS:
+            last_flush = time.monotonic()
+            try:
+                await asyncio.to_thread(energy_accumulator.flush)
+            except Exception as e:
+                print(f"❌ Energy flush failed: {e}")
         await asyncio.sleep(POLL_INTERVAL_SECONDS)

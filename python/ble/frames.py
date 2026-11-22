@@ -1,0 +1,323 @@
+"""Parsing of JK-BMS response frames and storing the results (DB, in-memory store, alerts)."""
+import python.battery_alerts as alerts
+import python.db as db
+from python import cell_history
+from python.data_store import data_store
+from python.logger import log
+
+
+def clean_numbers(value, digits: int = 4):
+    """Raw register * 0.001 gives values like 3.5500000000000003: round floats (also inside lists)."""
+    if isinstance(value, float):
+        return round(value, digits)
+    if isinstance(value, list):
+        return [clean_numbers(v, digits) for v in value]
+    if isinstance(value, dict):
+        return {k: clean_numbers(v, digits) for k, v in value.items()}
+    return value
+
+async def parse_device_info(data, device_name, device_address):
+    """Parsing Device Info Frame (0x03)."""
+    log(device_name, "Parsing Device Info Frame...")
+    try:
+        # Extract fields from the frame
+        device_info = {
+            # "setup_passcode": data[118:134].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            # "passcode": data[97:102].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            # "device_passcode": data[62:78].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "frame_type": data[4],
+            "frame_counter": data[5],
+            "vendor_id": data[6:22].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "hardware_version": data[22:30].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "software_version": data[30:38].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "device_uptime": int.from_bytes(data[38:42], byteorder='little'),
+            "power_on_count": int.from_bytes(data[42:46], byteorder='little'),
+            "device_name": data[46:62].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "device_address": device_address,
+            "manufacturing_date": data[78:86].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "serial_number": data[86:97].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "user_data": data[102:118].split(b'\x00', 1)[0].decode('utf-8', errors='ignore'),
+            "connected": True,
+            "enabled": True
+        }
+        
+        # Save device-specific info
+        db.update_device(
+            device_address,
+            frame_type=device_info["frame_type"],
+            frame_counter=device_info["frame_counter"],
+            vendor_id=device_info["vendor_id"],
+            hardware_version=device_info["hardware_version"],
+            software_version=device_info["software_version"],
+            device_uptime=device_info["device_uptime"],
+            power_on_count=device_info["power_on_count"],
+            name=device_info["device_name"],
+            manufacturing_date=device_info["manufacturing_date"],
+            serial_number=device_info["serial_number"],
+            user_data=device_info["user_data"],
+            connected=device_info["connected"],
+            enabled=device_info["enabled"]
+        )
+
+        # Logging of parsed information
+        log(device_name, "Parsed Device Info:")
+        for key, value in device_info.items():
+            log(device_name, f"{key}: {value}")
+
+        return device_info
+
+    except Exception as e:
+        log(device_name, f"Error parsing Device Info Frame: {e}", force=True)
+        return None
+    
+async def parse_setting_info(data, device_name, device_address):
+    """Parsing Cell Info Frame (0x01)."""
+    log(device_name, "🔍 Parsing Setting Info Frame...")
+    try:
+        setting_info = {
+            "name": device_name,
+            "address": device_address,
+
+            # [MAIN] Base Settings
+            "cell_count": data[114], # Cell Count
+            "nominal_battery_capacity": int.from_bytes(data[130:134], "little") * 0.001, # Battery Capacity (Ah)
+            "balance_trigger_voltage": int.from_bytes(data[26:30], "little") * 0.001, # Balance Trig. Volt.(V)
+            # Calibrating Volt.(V)
+            # Calibrating Curr.(A)
+
+            
+            # [MAIN] Advance Settings
+            "start_balance_voltage": int.from_bytes(data[138:142], "little") * 0.001, # Start Balance Volt.(V)
+            "max_balance_current": int.from_bytes(data[78:82], "little") * 0.001, # Max Balance Cur.(A)
+            "cell_ovp": int.from_bytes(data[18:22], "little") * 0.001, # Cell OVP(V)
+            "cell_request_charge_voltage": int.from_bytes(data[38:42], "little") * 0.001, # Vol. Cell RCV(V)
+            "soc_100_voltage": int.from_bytes(data[30:34], "little") * 0.001, # SOC-100% Volt.(V)
+            "cell_ovpr": int.from_bytes(data[22:26], "little") * 0.001, # Cell  OVPR(V)
+            "cell_uvpr": int.from_bytes(data[14:18], "little") * 0.001, # Cell UCPR(V)
+            "soc_0_voltage": int.from_bytes(data[34:38], "little") * 0.001, # SOC-0% Volt.(V)
+            "cell_uvp": int.from_bytes(data[10:14], "little") * 0.001, # Cell UVP(V)
+            "power_off_voltage": int.from_bytes(data[46:50], "little") * 0.001, # Power Off Vol.(V)
+            "cell_request_float_voltage": int.from_bytes(data[42:46], "little") * 0.001, # Vol. Cell RFV(V)
+            "smart_sleep_voltage": int.from_bytes(data[6:10], "little") * 0.001, # Vol. Smart Sleep(V)
+            "smart_sleep_hours": data[286], # Time Smart Sleep(h) (the bool "smart_sleep" below comes from the bitmask)
+            "max_charge_current": int.from_bytes(data[50:54], "little") * 0.001, # Continued Charge Curr.(A)
+            "charge_ocp_delay": int.from_bytes(data[54:58], "little"), # Charge OCP Delay(s)
+            "charge_ocp_recovery": int.from_bytes(data[58:62], "little"), # Charge OCPR Time(s)
+            "max_discharge_current": int.from_bytes(data[62:66], "little") * 0.001, # Continued Discharge Curr.(A)
+            "discharge_ocp_delay": int.from_bytes(data[66:70], "little"), # Discharge OCP Delay(s)
+            "discharge_ocp_recovery": int.from_bytes(data[70:74], "little"), # Discharge OCPR Time(s)
+            "charge_otp": int.from_bytes(data[82:86], "little") * 0.1, # Charge OTP(°c)
+            "charge_otp_recovery": int.from_bytes(data[86:90], "little") * 0.1, # Charge OTPR(°c)
+            "discharge_otp": int.from_bytes(data[90:94], "little") * 0.1, # Discharge OTP(°c)
+            "discharge_otp_recovery": int.from_bytes(data[94:98], "little") * 0.1, # Discharge OTPR(°c)
+            "charge_utp_recovery": int.from_bytes(data[102:106], "little", signed=True) * 0.1, # Charge UTPR(°c)
+            "charge_utp": int.from_bytes(data[98:102], "little", signed=True) * 0.1, # Charge UTP(°c)
+            "mos_otp": int.from_bytes(data[106:110], "little", signed=True) * 0.1, # MOS OTP(°c)
+            "mos_otp_recovery": int.from_bytes(data[110:114], "little", signed=True) * 0.1, # MOS OTPR(°c)
+            "short_circuit_protection_delay": int.from_bytes(data[134:138], "little"), # SCP Delay(???)
+            "short_circuit_protection_recovery": int.from_bytes(data[74:78], "little"), # SCPR Time(s)
+            "device_address": data[270], # Device Addr.
+            # Data Stored Period(S)
+            # RCV Time(H)
+            # RFV Time(H)
+            # Emerg. Time(Min)
+            # User Private Data
+            # User Data 2
+            # UART1 Protocol No.
+            # UART2 Protocol No.
+            # CAN Protocol No.
+            # LCD Buzzer Trigger
+            # LCD Buzzer Trigger Val
+            # LCD Buzzer Release Val
+            # DRY 1 Trigger
+            # DRY 1 Release Val
+
+
+            # [MAIN] Con. Wire Res. Settings
+            "connection_wire_resistances": [int.from_bytes(data[i:i+4], "little") * 0.001 for i in range(142, 270, 4)], # Con, Wire Res.01-12 (???)
+
+
+            # [MAIN] Control Settings
+            "charge_switch": bool(data[118]), # Charge
+            "discharge_switch": bool(data[122]), # Discharge
+            "balancer_switch": bool(data[126]), # Balance
+            # Emergency
+            "heating_enabled": None, # Heating
+            "disable_temperature_sensors": None, # Disable Temp. Sensor
+            "display_always_on": None, # Display Always On
+            "special_charger": None, # Special Charger On
+            "smart_sleep": None, # Smart Sleep On
+            "timed_stored_data": None, # Timed Stored Data
+            "charging_float_mode": None, # Charging Float Mode
+            # DRY ARM Intermittent
+            # Discharge OCP 2
+            # Discharge OCP 3
+            # Time....
+
+
+            # [MAIN] Unknown
+            "gps_heartbeat": None,
+            "disable_pcl_module": None,
+            "port_switch": None,
+            "precharge_time": data[274],
+            "data_field_enable_control": data[287],
+            "controls_bitmask": int.from_bytes(data[282:284], "little"),
+        }
+
+        # Parse data from bitmask
+        bitmask = int.from_bytes(data[282:284], "little")
+        setting_info["heating_enabled"] = bool(bitmask & 0b0000000000000001)  # bit0
+        setting_info["disable_temperature_sensors"] = bool(bitmask & 0b0000000000000010)  # bit1
+        setting_info["gps_heartbeat"] = bool(bitmask & 0b0000000000000100)  # bit2
+        setting_info["port_switch"] = "RS485" if bitmask & 0b0000000000001000 else "CAN"  # bit3
+        setting_info["display_always_on"] = bool(bitmask & 0b0000000000010000)  # bit4
+        setting_info["special_charger"] = bool(bitmask & 0b0000000000100000)  # bit5
+        setting_info["smart_sleep"] = bool(bitmask & 0b0000000001000000)  # bit6
+        setting_info["disable_pcl_module"] = bool(bitmask & 0b0000000010000000)  # bit7
+        setting_info["timed_stored_data"] = bool(bitmask & 0b0000000100000000)  # bit8
+        setting_info["charging_float_mode"] = bool(bitmask & 0b0000001000000000)  # bit9
+
+        setting_info = clean_numbers(setting_info)
+        await data_store.update_setting_info(device_address, setting_info)
+
+        log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=False)
+        for key, value in setting_info.items():
+            log(device_name, f"{key}: {value}")
+
+        return setting_info
+
+    except Exception as e:
+        log(device_name, f"❌ Parsing error Setting Info Frame: {e}", force=True)
+        return None
+
+async def parse_cell_info(data, device_name, device_address):
+    """Parsing Cell Info Frame (0x02)."""
+    try:
+        log(device_name, "Parsing Cell Info Frame...")
+        # Extract cell data
+        cell_voltages = []
+        start_index = 6  # Initial index for cell tension
+        num_cells = 32   # Maximum number of cells
+        for i in range(num_cells):
+            voltage_raw = int.from_bytes(data[start_index:start_index + 2], byteorder='little')
+            voltage = voltage_raw * 0.001  # Conversion of volts
+            cell_voltages.append(voltage)
+            start_index += 2
+
+        # Extract cell resistances
+        cell_resistances = []
+        start_index = 80
+        for i in range(num_cells):
+            resistance_raw = int.from_bytes(data[start_index:start_index + 2], byteorder='little')
+            resistance = resistance_raw * 0.001  # Conversion of resistance
+            cell_resistances.append(resistance)
+            start_index += 2
+
+        # Filter only those cells that have a voltage > 0
+        filtered_voltages = [v for v in cell_voltages if v > 0]
+        filtered_resistances = [v for v in cell_resistances if v > 0]
+
+        # TODO need add 32 to pos, after cell resistance?
+        power_tube_temp = int.from_bytes(data[112+32:114+32], byteorder='little', signed=True) * 0.1
+        battery_voltage = int.from_bytes(data[118+32:122+32], byteorder='little', signed=True) * 0.001
+        battery_power = int.from_bytes(data[122+32:126+32], byteorder='little', signed=True) * 0.001
+        charge_current = int.from_bytes(data[126+32:130+32], byteorder='little', signed=True) * 0.001
+        temperature_sensor_1 = int.from_bytes(data[130+32:132+32], byteorder='little', signed=True) * 0.1
+        temperature_sensor_2 = int.from_bytes(data[132+32:134+32], byteorder='little', signed=True) * 0.1
+
+        state_of_charge = data[141+32]
+        remaining_capacity = int.from_bytes(data[142+32:146+32], byteorder='little') * 0.001
+        nominal_capacity = int.from_bytes(data[146+32:150+32], byteorder='little') * 0.001
+        cycle_count = int.from_bytes(data[150+32:154+32], byteorder='little')
+        total_cycle_capacity = int.from_bytes(data[154+32:157+32], byteorder='little') * 0.001
+        state_of_health = data[158+32]
+        charging_status = data[166+32]
+        discharging_status = data[167+32]
+        precharging_status = data[168+32]
+
+        temperature_sensor_5 = int.from_bytes(data[222+32:224+32], byteorder='little', signed=True) * 0.1
+        temperature_sensor_4 = int.from_bytes(data[224+32:226+32], byteorder='little', signed=True) * 0.1
+        temperature_sensor_3 = int.from_bytes(data[226+32:228+32], byteorder='little', signed=True) * 0.1
+        # 16-bit value in seconds (bytes 186-187 + 32 offset); previously only one byte was read.
+        emergency_time_countdown = int.from_bytes(data[186+32:188+32], byteorder='little')
+
+        if not filtered_voltages:
+            log(device_name, "⚠️ Cell Info Frame without cell voltages, skipping.", force=True)
+            return None
+        average_voltage = sum(filtered_voltages) / len(filtered_voltages)
+        voltage_diff = max(filtered_voltages) - min(filtered_voltages)
+        
+        cell_info = {
+            "device_address": device_address.lower(),
+            "charging_status": charging_status,
+            "discharging_status": discharging_status,
+            "precharging_status": precharging_status,
+            "voltage_difference": voltage_diff,
+            "average_voltage": average_voltage,
+            "cell_voltages": filtered_voltages,
+            "cell_resistances": filtered_resistances,
+            "power_tube_temperature": power_tube_temp,
+            "battery_voltage": battery_voltage,
+            "battery_power": battery_power,
+            "charge_current": charge_current,
+            "temperature_sensor_1": temperature_sensor_1,
+            "temperature_sensor_2": temperature_sensor_2,
+            "temperature_sensor_3": temperature_sensor_3,
+            "temperature_sensor_4": temperature_sensor_4,
+            "temperature_sensor_5": temperature_sensor_5,
+            "state_of_charge": state_of_charge,
+            "remaining_capacity": remaining_capacity,
+            "nominal_capacity": nominal_capacity,
+            "cycle_count": cycle_count,
+            "total_cycle_capacity": total_cycle_capacity,
+            "state_of_health": state_of_health,
+            "emergency_time_countdown": emergency_time_countdown,
+        }
+
+        cell_info = clean_numbers(cell_info)
+        await data_store.update_cell_info(device_name, cell_info)
+        await cell_history.record_cell_info(device_address.lower(), device_name, filtered_voltages, state_of_charge)
+        await alerts.evaluate_alerts(device_address=device_address, device_name=device_name, cell_info=cell_info)
+
+        if await are_all_allowed_devices_connected_and_have_data():
+            db.update_aggregated_data(device_name=device_name, device_address=device_address, current=charge_current, power=battery_power, remaining_capacity=remaining_capacity, voltage_difference=voltage_diff)
+        return cell_info
+
+    except Exception as e:
+        log(device_name, f"Error parsing Cell Info Frame: {e}", force=True)
+        return None
+
+async def process_frame(frame: bytes, device_name: str, device_address: str):
+    frame_type = frame[4]
+    if frame_type == 0x03:
+        await parse_device_info(frame, device_name, device_address)
+    elif frame_type == 0x02:
+        await data_store.update_last_cell_info_update(device_name)
+        await parse_cell_info(frame, device_name, device_address)
+    elif frame_type == 0x01:
+        await parse_setting_info(frame, device_name, device_address)
+    else:
+        log(device_name, f"❌ Unknown frame type {frame_type}", force=True)
+
+
+def is_device_address_in_cell_info(device_address, cell_info):
+    for device_data in cell_info.values():
+        if device_data.get("device_address") == device_address:
+            return True
+    return False
+
+async def are_all_allowed_devices_connected_and_have_data() -> bool:
+    allowed_devices = db.get_all_devices()
+    allowed_addresses = {device["address"].lower() for device in allowed_devices if device["enabled"]}
+    connected_addresses = {device["address"].lower() for device in allowed_devices if device["connected"]}
+
+    if not allowed_addresses.issubset(connected_addresses):
+        log("CHECK DEVICES", "❌ Not all allowed devices are connected")
+        return False
+
+    cell_info = await data_store.get_cell_info()
+    for device_address in allowed_addresses:
+        if not is_device_address_in_cell_info(device_address, cell_info):
+            log("CHECK DEVICES", f"❌ Device [{device_address}] has no data.")
+            return False
+    return True

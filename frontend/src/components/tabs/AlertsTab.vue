@@ -11,7 +11,7 @@
       <q-chip @click="filterAlertsByLevel()" outline clickable color="white" icon="apps">
         All
       </q-chip>
-      <q-chip @click="filterAlertsByLevel('info')" outline clickable color="primary" icon="priority_high">
+      <q-chip @click="filterAlertsByLevel('info')" outline clickable color="light-blue-4" icon="priority_high">
         Info
       </q-chip>
       <q-chip @click="filterAlertsByLevel('warning')" outline clickable color="orange" icon="warning">
