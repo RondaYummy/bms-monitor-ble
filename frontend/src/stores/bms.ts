@@ -4,6 +4,7 @@ import { api } from 'src/boot/axios';
 import { sortDevices } from 'src/helpers/utils';
 import { CellInfo, Device, DeviceInfo, SettingInfo } from 'src/models';
 import { readonly, ref } from 'vue';
+import { showSocBadge, socFromCellInfo } from 'src/composables/useAppBadge';
 
 const config = {
   timeout: 6000,
@@ -94,6 +95,7 @@ export const useBmsStore = defineStore('bms', () => {
   // ==============
   function updateCellInfo(newInfo: Record<string, CellInfo>): void {
     cellInfo.value = newInfo;
+    void showSocBadge(socFromCellInfo(newInfo as any)); // keeps the icon badge fresh while the app is open
   }
 
   function updateDeviceInfo(newInfo: DeviceInfo[]): void {
@@ -124,8 +126,7 @@ export const useBmsStore = defineStore('bms', () => {
   async function fetchCellInfo(): Promise<void> {
     try {
       const response = await api.get('/api/cell-info', config);
-      const data = response.data;
-      cellInfo.value = data;
+      updateCellInfo(response.data);
     } catch (error) {
       console.error('Error fetching cell info: ', error);
     }

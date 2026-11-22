@@ -29,6 +29,7 @@ from python.ble.manager import ble_main
 from python.ble.routes import router as ble_router
 from python.cell_history import router as cell_history_router
 from python.solar_forecast import router as solar_router, solar_forecast_loop
+from python.status_notifications import router as status_router, status_notification_loop
 from python.deye.deye_routes import router as deye_router
 from python.deye.read_deye import run_deye_loop
 from python.energy import accumulator as energy_accumulator
@@ -78,6 +79,7 @@ async def lifespan(app: FastAPI):
         spawn(run_forever("maintenance", maintenance_loop)),
         spawn(run_forever("ssl_watch", ssl_watch_loop)),
         spawn(run_forever("solar_forecast", solar_forecast_loop)),
+        spawn(run_forever("status_notifications", status_notification_loop)),
     ]
 
     admin = await loop.run_in_executor(None, db.get_user_by_username, "admin")
@@ -120,6 +122,7 @@ for router in (
     energy_router,
     cell_history_router,
     solar_router,
+    status_router,
 ):
     app.include_router(router, prefix="/api")
 
@@ -135,7 +138,7 @@ async def read_access_guard(request: Request, call_next):
     """
     path = request.url.path
     guarded = (request.method == "GET" and path.startswith("/api/") and path not in ALWAYS_PUBLIC_PATHS) \
-        or path == "/api/save-subscription"
+        or path in ("/api/save-subscription", "/api/push/status")
     if guarded and not is_public_read_enabled():
         header = request.headers.get("authorization", "")
         scheme, _, token = header.partition(" ")

@@ -45,6 +45,8 @@
     label="Скасувати підписки"
   />
 
+  <LiveStatusSettings class="q-mb-sm" :subscribed="!!pushSubscription" :key="pushSubscription?.endpoint || 'none'" />
+
   <q-separator class="q-mb-sm" color="orange" inset />
 
   <p class="text-caption q-mb-sm">
@@ -152,6 +154,7 @@ import DataMaintenanceModal from 'src/components/modals/DataMaintenanceModal.vue
 import SolarSettingsModal from 'src/components/modals/SolarSettingsModal.vue';
 import TwoFactorSetup from 'src/components/settings/TwoFactorSetup.vue';
 import UsersManager from 'src/components/settings/UsersManager.vue';
+import LiveStatusSettings from 'src/components/settings/LiveStatusSettings.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Dialog, Notify } from 'quasar';
 import { api } from 'src/axios-instance';

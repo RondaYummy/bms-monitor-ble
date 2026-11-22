@@ -382,6 +382,14 @@ def create_table():
             _ensure_column(cursor, "configs", "backup_keep", "INTEGER DEFAULT 7")
             _ensure_column(cursor, "configs", "energy_tariffs", "TEXT")
             _ensure_column(cursor, "configs", "solar_settings", "TEXT")
+            # Live status notification preferences (per device = per push subscription)
+            _ensure_column(cursor, "subscriptions", "status_enabled", "INTEGER NOT NULL DEFAULT 0")
+            _ensure_column(cursor, "subscriptions", "status_interval_min", "INTEGER NOT NULL DEFAULT 10")
+            _ensure_column(cursor, "subscriptions", "platform", "TEXT")
+            _ensure_column(cursor, "subscriptions", "last_status_at", "TEXT")
+            _ensure_column(cursor, "subscriptions", "last_status_soc", "REAL")
+            _ensure_column(cursor, "subscriptions", "last_status_grid", "INTEGER")
+            _ensure_column(cursor, "deye_devices", "grid_voltage", "REAL")
 
             # Feature modules own their tables (imported here to avoid import cycles).
             from python import cell_history, energy, solar_forecast
@@ -1113,7 +1121,7 @@ def update_deye_device_data(ip, data: dict):
 
             for key in [
                 "pv1_power", "pv2_power", "total_pv", "load_power", "grid_power",
-                "battery_power", "battery_voltage", "battery_soc", "net_balance", "timestamp", "stat_daily_pv", "stat_total_pv", "stat_daily_bat_discharge", "stat_daily_grid_in", "stat_daily_grid_out", "stat_total_grid_out", "stat_total_load"
+                "battery_power", "battery_voltage", "battery_soc", "net_balance", "timestamp", "grid_voltage", "stat_daily_pv", "stat_total_pv", "stat_daily_bat_discharge", "stat_daily_grid_in", "stat_daily_grid_out", "stat_total_grid_out", "stat_total_load"
             ]:
                 if key in data:
                     fields.append(f"{key} = ?")

@@ -78,8 +78,6 @@ self.addEventListener('activate', (event) => {
 //   });
 // });
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
-  console.debug('Notification Click: ', event);
-
   event.notification.close();
 
   if (event.action === 'close_all') {
@@ -90,15 +88,40 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
     );
     return;
   }
-  // Focus an already open app window, or open the app.
+  const url: string = event.notification.data?.url || '/#/';
+  // Focus an already open app window (and show the right page), or open the app.
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
-      const existing = windows.find((w) => 'focus' in w);
-      if (existing) return existing.focus();
-      return self.clients.openWindow('/#/settings');
+      const existing = windows.find((w) => 'focus' in w) as WindowClient | undefined;
+      if (existing) {
+        return existing.focus().then((w) => (w && 'navigate' in w ? w.navigate(url) : w));
+      }
+      return self.clients.openWindow(url);
     })
   );
 });
+
+interface PushData {
+  type?: 'status' | 'alert';
+  tag?: string;
+  title?: string;
+  body?: string;
+  badge?: number | null;
+}
+
+/** SOC on the app icon (iOS 16.4+/desktop show the number, Android Chrome a dot). */
+async function setBadge(value: number | null | undefined) {
+  const nav = self.navigator as Navigator & {
+    setAppBadge?: (n?: number) => Promise<void>;
+    clearAppBadge?: () => Promise<void>;
+  };
+  try {
+    if (value === null || value === undefined) await nav.clearAppBadge?.();
+    else await nav.setAppBadge?.(Math.max(0, Math.min(100, Math.round(value))));
+  } catch {
+    /* badging not supported */
+  }
+}
 
 self.addEventListener('push', (event: PushEvent) => {
   if (!event.data) {
@@ -106,11 +129,33 @@ self.addEventListener('push', (event: PushEvent) => {
     return;
   }
 
-  let data: { title?: string; body?: string };
+  let data: PushData;
   try {
     data = event.data.json();
   } catch {
     data = { title: 'BMS Monitor', body: event.data.text() };
+  }
+
+  if (data.type === 'status') {
+    // Live status: always the same tag, so the new one REPLACES the previous notification quietly.
+    const statusOptions: NotificationOptions & { renotify?: boolean; timestamp?: number } = {
+      body: data.body ?? '',
+      icon: '/icons/android-chrome-192x192.png',
+      badge: '/icons/favicon-32x32.png',
+      tag: data.tag || 'bms-status',
+      renotify: false,
+      silent: true,
+      requireInteraction: false,
+      timestamp: Date.now(),
+      data: { group: 'status', url: '/#/' },
+    };
+    event.waitUntil(
+      Promise.all([
+        self.registration.showNotification(data.title || 'BMS Monitor', statusOptions),
+        setBadge(data.badge),
+      ])
+    );
+    return;
   }
 
   const options: NotificationOptions & {
@@ -128,10 +173,9 @@ self.addEventListener('push', (event: PushEvent) => {
     requireInteraction: true,
     actions: [{ action: 'close_all', title: 'Закрити всі' }],
     silent: false,
-    // renotify: true,
     timestamp: Date.now(),
     vibrate: [200, 100, 200],
-    data: { group: 'device-alerts' },
+    data: { group: 'device-alerts', url: '/#/settings' },
   };
 
   event.waitUntil(self.registration.showNotification(data.title || 'BMS Monitor', options));
