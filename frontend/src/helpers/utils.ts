@@ -23,15 +23,17 @@ export const useSessionStorage = (key: string) => {
 
   window.addEventListener('storage', syncWithStorage);
 
-  eventBus.on('session:remove', (removedKey) => {
+  const onSessionRemove = (removedKey: string) => {
     if (removedKey === key) {
       value.value = null;
     }
-  });
+  };
+  eventBus.on('session:remove', onSessionRemove);
 
   onBeforeUnmount(() => {
     window.removeEventListener('storage', syncWithStorage);
-    eventBus.off('session:remove');
+    // Remove only this listener (calling off() without a handler dropped every component's listener).
+    eventBus.off('session:remove', onSessionRemove);
   });
 
   return value;

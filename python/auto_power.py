@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 
 import python.db as db
-from python.tapo.tapo_service import TapoDevice
+from python.tapo.tapo_service import TapoDevice, get_tapo_device
 from python.push_notifications import send_push_notification
 
 
@@ -15,7 +15,7 @@ async def auto_power_manager_loop():
             config = db.get_config()
 
             # 🚫 авто-логіка вимкнена
-            if not config.get("auto_power_management_enabled"):
+            if not config or not config.get("auto_power_management_enabled"):
                 await asyncio.sleep(10)
                 continue
 
@@ -28,8 +28,9 @@ async def auto_power_manager_loop():
 
             deye = deye_devices[0]
 
-            total_pv = deye.get("total_pv", 0)
-            load_power = deye.get("load_power", 0)
+            # Values are NULL until the first successful inverter read.
+            total_pv = deye.get("total_pv") or 0
+            load_power = deye.get("load_power") or 0
 
             # ☀️ є генерація → скидаємо таймер
             if total_pv >= load_power:
@@ -48,9 +49,12 @@ async def auto_power_manager_loop():
             for device in sorted(tapo_devices, key=lambda x: x.get("ip", "")):
 
                 # 🔄 перед кожним девайсом перевіряємо актуальний стан генерації
-                deye = db.get_all_deye_devices()[0]
-                total_pv = deye.get("total_pv", 0)
-                load_power = deye.get("load_power", 0)
+                fresh_devices = db.get_all_deye_devices()
+                if not fresh_devices:
+                    break
+                deye = fresh_devices[0]
+                total_pv = deye.get("total_pv") or 0
+                load_power = deye.get("load_power") or 0
 
                 # ☀️ генерація повернулась → зупиняємо вимикання
                 if total_pv >= load_power:
@@ -63,7 +67,7 @@ async def auto_power_manager_loop():
                     continue
 
                 try:
-                    tapo = TapoDevice(
+                    tapo = get_tapo_device(
                         device["ip"],
                         device["email"],
                         device["password"]
@@ -78,8 +82,8 @@ async def auto_power_manager_loop():
 
                     try:
                         status = await asyncio.to_thread(tapo.get_status)
-                        name = await asyncio.to_thread(tapo.get_name) or name
                         info = status.get("info", {}) if status else {}
+                        name = TapoDevice.name_from_info(info) or name
                     except Exception:
                         pass
 

@@ -160,8 +160,9 @@
           <q-input
             label-color="white"
             dark
-            label="Email to Tapo application"
+            label="Email to Tapo application (порожнє = без змін)"
             :disable="!token"
+            autocomplete="off"
             v-model="editedDeviceData.email"
             filled
             class="form-input"
@@ -175,8 +176,10 @@
           <q-input
             label-color="white"
             dark
-            label="Password to Tapo application"
+            label="Password to Tapo application (порожнє = без змін)"
             :disable="!token"
+            type="password"
+            autocomplete="new-password"
             v-model="editedDeviceData.password"
             filled
             class="form-input"
@@ -258,7 +261,9 @@ async function deleteDevice(ip: string) {
 
 async function openEditModal(device: TapoDevice) {
   editedTapoIp.value = device.ip;
-  editedDeviceData.value = device;
+  // Copy: editing must not mutate the store object. Credentials are never sent to the browser,
+  // so empty fields mean "keep the current value".
+  editedDeviceData.value = { ...device, email: '', password: '' };
   openModalEdit.value = true;
 }
 
@@ -266,11 +271,13 @@ async function editTapoDevice() {
   loadingEditDevice.value = true;
   try {
     const updateData: UpdateTapoDeviceDto = {
-      email: editedDeviceData.value.email,
       power_watt: editedDeviceData.value.power_watt,
       priority: editedDeviceData.value.priority,
     };
-    
+    if (editedDeviceData.value.email) {
+      updateData.email = editedDeviceData.value.email;
+    }
+
     if (editedDeviceData.value.password) {
       updateData.password = editedDeviceData.value.password;
     }

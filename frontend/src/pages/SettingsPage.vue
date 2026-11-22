@@ -86,6 +86,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { Notify } from 'quasar';
 import { useSessionStorage } from '../helpers/utils';
 import DeyeTab from 'src/components/tabs/DeyeTab.vue';
 import { useConfigStore } from 'src/stores/config';
@@ -104,9 +105,24 @@ const isPwd = ref<boolean>(true);
 const intervalId = ref<NodeJS.Timeout>();
 
 const login = async (pwd: string) => {
-  const response = await api.post('/api/login', {
-    password: pwd,
-  });
+  let response;
+  try {
+    response = await api.post('/api/login', {
+      password: pwd,
+    });
+  } catch (error: any) {
+    const status = error?.response?.status;
+    Notify.create({
+      message: status === 429
+        ? 'Забагато невдалих спроб. Спробуйте пізніше.'
+        : 'Невірний пароль',
+      color: 'red',
+      icon: 'warning',
+      position: 'top',
+      timeout: 2500,
+    });
+    return false;
+  }
 
   const data = response.data;
   localStorage.setItem('access_token', data.access_token);
@@ -118,10 +134,17 @@ const login = async (pwd: string) => {
 };
 
 const logout = async () => {
-  await api.post('/api/logout');
-  localStorage.removeItem('access_token');
-  token.value = '';
-  password.value = '';
+  try {
+    await api.post('/api/logout');
+  } catch (error) {
+    console.warn('Logout request failed (session may already be expired):', error);
+  } finally {
+    // Always drop the local session, even if the server call failed.
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('token_created_at');
+    token.value = '';
+    password.value = '';
+  }
   return true;
 };
 

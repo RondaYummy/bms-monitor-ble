@@ -110,6 +110,21 @@ sudo systemctl start bluetooth
 sudo systemctl enable bluetooth
 ```
 
+### 🔐 Admin password & configuration
+On the **first start with an empty database** the admin password is taken from `ADMIN_PASSWORD` (see `.env.example`).
+If it is not set, a random password is generated and printed **once** to the backend logs:
+```bash
+docker compose logs python-app | grep "Initial admin password"
+```
+Existing installations keep their current password. If it is still the old default `123456`, the backend prints a
+security warning on every start — change it in **Settings → Change password** (minimum 8 characters).
+
+Other optional variables (put them in `.env`):
+- `CORS_ORIGINS` — only needed when the UI is served from another origin (e.g. `quasar dev` on `:8080`).
+- `VAPID_SUBJECT` — contact (`mailto:`) for Web Push.
+
+The backend API port is published on `127.0.0.1:8000` only; access it through nginx (`/api/`).
+
 ### Build Docker:
 ```bash
 yarn build

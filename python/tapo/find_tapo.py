@@ -11,6 +11,7 @@ import python.db as db
 from python.auth.verify_token import verify_token
 
 MAX_WORKERS = 100
+MAX_SCAN_HOSTS = 1024  # e.g. a /22 — prevents scanning (and DoS-ing) huge ranges like 10.0.0.0/8
 
 router = APIRouter()
 
@@ -52,13 +53,18 @@ def try_check_device(ip: str, email: str, password: str):
 
 @router.post("/tapo/devices/search", dependencies=[Depends(verify_token)])
 def search_tapo_devices(request: ScanRequest):
-    print(f"🔐 Email: {request.email}")
-    print(f"🌐 Subnet: {request.subnet}")
+    print(f"🌐 Tapo scan in subnet: {request.subnet}")
 
     try:
-        network = ipaddress.ip_network(request.subnet)
+        network = ipaddress.ip_network(request.subnet.strip(), strict=False)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid subnet format")
+
+    if network.version != 4 or not network.is_private or network.num_addresses > MAX_SCAN_HOSTS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Only private IPv4 subnets up to {MAX_SCAN_HOSTS} addresses (e.g. /22) can be scanned",
+        )
 
     ip_list = [str(ip) for ip in network.hosts()]
 
@@ -66,14 +72,13 @@ def search_tapo_devices(request: ScanRequest):
         ping_results = list(executor.map(ping, ip_list))
 
     alive_ips = [ip for ip in ping_results if ip]
-    time.sleep(1)
 
     found_devices = []
     with ThreadPoolExecutor(max_workers=10) as executor:
         results = executor.map(lambda ip: try_check_device(ip, request.email, request.password), alive_ips)
         found_devices = [res for res in results if res]
 
-    print("✅ Found devices:", [dev for dev in found_devices])
+    print(f"✅ Found {len(found_devices)} Tapo device(s)")
 
     new_devices = []
     for d in found_devices:

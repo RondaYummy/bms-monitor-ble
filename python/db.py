@@ -1,8 +1,13 @@
 import asyncio
 import base64
+import hashlib
+import math
+import os
+import secrets
 import sqlite3
 import time
 from collections import defaultdict
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 
 from cryptography.hazmat.primitives import serialization
@@ -22,14 +27,26 @@ data_aggregator = defaultdict(lambda: {
     "last_insert_time": None
 })
 
-DB_NAME = '/app/data/bms_data.db'
+DB_NAME = os.getenv("DB_PATH", '/app/data/bms_data.db')
+TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+# Charts never need more than this many points per device; longer ranges are averaged into buckets.
+MAX_CHART_POINTS_PER_DEVICE = 1500
 
 CONFIG_CACHE = None
 CONFIG_CACHE_TIMESTAMP = 0
 CONFIG_CACHE_EXPIRY = 60
 
-DEVICE_CACHE = {}  # {address: {"data": device_data, "timestamp": last_update}}
+# Single snapshot of the (tiny) devices table, invalidated on every write.
+DEVICE_CACHE = {"data": None, "timestamp": 0.0}  # data: {address: device_dict}
 DEVICE_CACHE_EXPIRY = 60
+
+DEVICE_COLUMNS = (
+    "id", "address", "name", "added_at", "connected", "enabled", "frame_type", "frame_counter",
+    "vendor_id", "hardware_version", "software_version", "device_uptime", "power_on_count",
+    "manufacturing_date", "serial_number", "user_data",
+)
+DEVICE_UPDATABLE_COLUMNS = set(DEVICE_COLUMNS) - {"id", "address", "added_at"}
 
 ALERT_CACHE = {}  # {device_address: {error_code: {"timestamp": occurred_at, "id": alert_id}}}
 ALERT_CACHE_EXPIRY = 60
@@ -100,8 +117,8 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
     else:
         return  # No data to save
 
-    timestamp = now.strftime('%Y-%m-%d %H:%M:%S')
-    
+    timestamp = now.strftime(TIMESTAMP_FORMAT)
+
     try:
         insert_data(
             timestamp=timestamp,
@@ -125,14 +142,26 @@ def save_aggregated_data(device_name, device_address, device_data, interval=60):
         "last_insert_time": now
     })
 
+@contextmanager
 def get_connection():
+    """Opens a connection, commits on success, rolls back on error and ALWAYS closes it.
+
+    (`with sqlite3.connect(...) as conn` only manages the transaction and leaks the connection.)
+    """
     try:
-        conn = sqlite3.connect(DB_NAME)
-        # conn.set_trace_callback(print)
-        return conn
+        conn = sqlite3.connect(DB_NAME, timeout=10)
     except sqlite3.Error as e:
         print(f"Error connecting to database: {e}")
         raise
+    try:
+        conn.execute("PRAGMA busy_timeout = 10000")
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 def generate_vapid_keys():
     private_key = ec.generate_private_key(ec.SECP256R1())
@@ -154,10 +183,23 @@ def generate_vapid_keys():
 
     return private_pem, public_base64
 
+def _initial_admin_password() -> str:
+    """Password for a freshly created database: ADMIN_PASSWORD env or a random one printed once."""
+    password = os.getenv("ADMIN_PASSWORD", "").strip()
+    if password:
+        return password
+    password = secrets.token_urlsafe(12)
+    print("=" * 70)
+    print(f"🔐 Initial admin password (change it in Settings): {password}")
+    print("=" * 70)
+    return password
+
 def create_table():
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
+            # WAL lets the API read while background loops write (fewer "database is locked").
+            cursor.execute("PRAGMA journal_mode=WAL")
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS bms_data (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -184,6 +226,10 @@ def create_table():
             )
             ''')
             cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_error_notifications_lookup
+            ON error_notifications (device_address, error_code, occurred_at)
+            ''')
+            cursor.execute('''
             CREATE TABLE IF NOT EXISTS subscriptions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 endpoint TEXT UNIQUE NOT NULL,
@@ -205,7 +251,7 @@ def create_table():
             cursor.execute("SELECT COUNT(*) FROM configs")
             if cursor.fetchone()[0] == 0:
                 private_pem, public_base64 = generate_vapid_keys()
-                hashed_password = hash_password('123456')
+                hashed_password = hash_password(_initial_admin_password())
                 cursor.execute('''
                 INSERT INTO configs (password, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, n_hours)
                 VALUES (?, ?, ?, ?)
@@ -389,134 +435,82 @@ def delete_all_alerts():
         print(f"❌ Error deleting all alerts: {e}")
         raise
         
+def _invalidate_device_cache():
+    DEVICE_CACHE["data"] = None
+    DEVICE_CACHE["timestamp"] = 0.0
+
+def _row_to_device(row) -> dict:
+    device = dict(zip(DEVICE_COLUMNS, row))
+    device["connected"] = bool(device["connected"])
+    device["enabled"] = bool(device["enabled"])
+    return device
+
+def _load_all_devices() -> dict:
+    now = time.time()
+    if DEVICE_CACHE["data"] is not None and (now - DEVICE_CACHE["timestamp"]) < DEVICE_CACHE_EXPIRY:
+        return DEVICE_CACHE["data"]
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT {', '.join(DEVICE_COLUMNS)} FROM devices")
+        devices = {row[1].lower(): _row_to_device(row) for row in cursor.fetchall()}
+
+    DEVICE_CACHE["data"] = devices
+    DEVICE_CACHE["timestamp"] = now
+    return devices
+
 def set_all_devices_disconnected():
     try:
         with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-                UPDATE devices
-                SET connected = ?
-            ''', (False,))
-            conn.commit()
-            print("✅ All devices set to `connected = False` on startup.")
+            conn.execute("UPDATE devices SET connected = ?", (False,))
+        _invalidate_device_cache()
+        print("✅ All devices set to `connected = False` on startup.")
     except sqlite3.Error as e:
         print(f"❌ Error resetting device connection status: {e}")
 
 def get_all_devices(only_enabled: bool = False):
-    global DEVICE_CACHE
-    now = time.time()
-
-    if DEVICE_CACHE and all((now - data["timestamp"]) < DEVICE_CACHE_EXPIRY for data in DEVICE_CACHE.values()):
-        return list({tuple(device["data"].items()): device["data"] for device in DEVICE_CACHE.values()}.values())
-
     try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            query = '''
-                SELECT id, address, name, added_at, connected, enabled, frame_type, frame_counter, 
-                   vendor_id, hardware_version, software_version, device_uptime, power_on_count, 
-                   manufacturing_date, serial_number, user_data 
-                FROM devices
-            '''
-            params = ()
-            if only_enabled:
-                query += " WHERE enabled = ?"
-                params = (True,)
-
-            cursor.execute(query, params)
-            devices = cursor.fetchall()
-
-            now = time.time()
-            DEVICE_CACHE.clear()
-
-            for device in devices:
-                device_data = {
-                    "id": device[0], "address": device[1], "name": device[2], "added_at": device[3],
-                    "connected": bool(device[4]), "enabled": bool(device[5]), "frame_type": device[6],
-                    "frame_counter": device[7], "vendor_id": device[8], "hardware_version": device[9],
-                    "software_version": device[10], "device_uptime": device[11], "power_on_count": device[12],
-                    "manufacturing_date": device[13], "serial_number": device[14], "user_data": device[15]
-                }
-
-                DEVICE_CACHE[device[1]] = {"data": device_data, "timestamp": now}
-
-            return list({tuple(device["data"].items()): device["data"] for device in DEVICE_CACHE.values()}.values())
-
+        devices = _load_all_devices()
     except sqlite3.Error as e:
         print(f"❌ Error fetching devices: {e}")
         return []
+    # Copies, so callers can never corrupt the cache.
+    return [dict(d) for d in devices.values() if not only_enabled or d["enabled"]]
 
 def get_device_by_address(address, force_refresh: bool = False):
-    global DEVICE_CACHE
-    now = time.time()
-
-    if not force_refresh and address in DEVICE_CACHE and (now - DEVICE_CACHE[address]["timestamp"]) < DEVICE_CACHE_EXPIRY:
-        return DEVICE_CACHE[address]["data"]
-
+    if force_refresh:
+        _invalidate_device_cache()
     try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-            SELECT id, address, name, added_at, connected, enabled, frame_type, frame_counter, 
-                   vendor_id, hardware_version, software_version, device_uptime, power_on_count, 
-                   manufacturing_date, serial_number, user_data 
-            FROM devices WHERE address = ?
-            ''', (address.lower(),))
-            device = cursor.fetchone()
-
-            if not device:
-                return None
-
-            device_data = {
-                "id": device[0], "address": device[1], "name": device[2], "added_at": device[3],
-                "connected": bool(device[4]), "enabled": bool(device[5]), "frame_type": device[6],
-                "frame_counter": device[7], "vendor_id": device[8], "hardware_version": device[9],
-                "software_version": device[10], "device_uptime": device[11], "power_on_count": device[12],
-                "manufacturing_date": device[13], "serial_number": device[14], "user_data": device[15]
-            }
-
-            DEVICE_CACHE[address] = {"data": device_data, "timestamp": now}
-
-            return device_data
-
+        device = _load_all_devices().get(address.lower())
     except sqlite3.Error as e:
         print(f"❌ Error when receiving the device: {e}")
         raise
+    return dict(device) if device else None
 
 def update_device(address: str, **kwargs):
+    # Column names are interpolated into SQL, so only known columns are allowed.
+    kwargs = {k: v for k, v in kwargs.items() if k in DEVICE_UPDATABLE_COLUMNS}
     if not kwargs:
         return
 
     try:
         with get_connection() as conn:
-            cursor = conn.cursor()
-
             fields = ", ".join(f"{key} = ?" for key in kwargs.keys())
-            values = list(kwargs.values()) + [address]
-
-            query = f"UPDATE devices SET {fields} WHERE address = ?"
-
-            cursor.execute(query, values)
-            conn.commit()
+            values = list(kwargs.values()) + [address.lower()]
+            conn.execute(f"UPDATE devices SET {fields} WHERE address = ?", values)
+        _invalidate_device_cache()
     except sqlite3.Error as e:
         print(f"❌ Error updating the device: {e}")
         raise
 
 def update_device_status(address, connected: bool, enabled: bool):
-    global DEVICE_CACHE
     try:
-        now = time.time()
         with get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute('''
-            UPDATE devices
-            SET connected = ?, enabled = ?
-            WHERE address = ?
-            ''', (connected, enabled, address))
-            conn.commit()
-
-            device_data = get_device_by_address(address, force_refresh=True)
-            DEVICE_CACHE[address] = {"data": device_data, "timestamp": now}
+            conn.execute(
+                "UPDATE devices SET connected = ?, enabled = ? WHERE address = ?",
+                (connected, enabled, address.lower()),
+            )
+        _invalidate_device_cache()
     except sqlite3.Error as e:
         print(f"❌ Error updating status: {e}")
         raise
@@ -526,17 +520,12 @@ def insert_device(
     hardware_version=None, software_version=None, device_uptime=None, power_on_count=None,
     manufacturing_date=None, serial_number=None, user_data=None, connected=False, enabled=True
 ):
+    address = address.lower()
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-
-            cursor.execute("SELECT id FROM devices WHERE address = ?", (address,))
-            existing = cursor.fetchone()
-            if existing:
-                return get_device_by_address(address)
-
             cursor.execute('''
-            INSERT INTO devices (
+            INSERT OR IGNORE INTO devices (
                 address, name, added_at, connected, enabled, frame_type, frame_counter, vendor_id,
                 hardware_version, software_version, device_uptime, power_on_count,
                 manufacturing_date, serial_number, user_data
@@ -546,57 +535,47 @@ def insert_device(
                 hardware_version, software_version, device_uptime, power_on_count,
                 manufacturing_date, serial_number, user_data
             ))
+        _invalidate_device_cache()
+        return get_device_by_address(address)
 
-            conn.commit()
-
-            return get_device_by_address(address)
-    
     except sqlite3.Error as e:
         print(f"❌ Error inserting the device: {e}")
         raise
 
 
-def insert_alert_data(device_address, device_name, error_code, occurred_at, n_hours=1):
-    global ALERT_CACHE
+def insert_alert_data(device_address, device_name, error_code, occurred_at, n_hours=1) -> bool:
+    """Stores an alert unless the same code was already raised for the device in the last n_hours.
 
-    now = datetime.now()
-    time_limit = now - timedelta(hours=n_hours)
-    time_limit_str = time_limit.strftime('%Y-%m-%d %H:%M:%S')
+    Returns True if a new alert was stored (i.e. a notification should be sent).
+    """
+    if isinstance(occurred_at, datetime):
+        occurred_at = occurred_at.strftime(TIMESTAMP_FORMAT)
+    error_code = int(error_code)
+    time_limit_str = (datetime.now() - timedelta(hours=n_hours or 1)).strftime(TIMESTAMP_FORMAT)
 
-    if device_address in ALERT_CACHE and error_code in ALERT_CACHE[device_address]:
-        cached_alert = ALERT_CACHE[device_address][error_code]
-        
-        if cached_alert["timestamp"] > time_limit_str:
-            raise ValueError(f"❌ Error: An alert for {device_address} with code {error_code} has already existed for {n_hours} hours.")
+    cached_alert = ALERT_CACHE.get(device_address, {}).get(error_code)
+    if cached_alert and str(cached_alert["timestamp"]) > time_limit_str:
+        return False
 
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-
             cursor.execute('''
             SELECT id, occurred_at FROM error_notifications
             WHERE device_address = ? AND error_code = ? AND occurred_at > ?
-            ''', (device_address, error_code, time_limit_str))
+            ''', (device_address, str(error_code), time_limit_str))
 
             existing = cursor.fetchone()
             if existing:
-                if device_address not in ALERT_CACHE:
-                    ALERT_CACHE[device_address] = {}
-                
-                ALERT_CACHE[device_address][error_code] = {"timestamp": existing[1], "id": existing[0]}
-                raise ValueError(f"❌ Error: An alert for {device_address} with code {error_code} has already existed for {n_hours} hours.")
+                ALERT_CACHE.setdefault(device_address, {})[error_code] = {"timestamp": str(existing[1]), "id": existing[0]}
+                return False
 
             cursor.execute('''
             INSERT INTO error_notifications (device_address, error_code, occurred_at, device_name)
             VALUES (?, ?, ?, ?)
-            ''', (device_address, error_code, occurred_at, device_name))
-            conn.commit()
-
-            alert_id = cursor.lastrowid
-            if device_address not in ALERT_CACHE:
-                ALERT_CACHE[device_address] = {}
-
-            ALERT_CACHE[device_address][error_code] = {"timestamp": occurred_at, "id": alert_id}
+            ''', (device_address, str(error_code), occurred_at, device_name))
+            ALERT_CACHE.setdefault(device_address, {})[error_code] = {"timestamp": occurred_at, "id": cursor.lastrowid}
+            return True
 
     except sqlite3.Error as e:
         print(f"Error inserting alerts data: {e}")
@@ -615,18 +594,52 @@ def insert_data(timestamp, current, power, remaining_capacity, device_address, d
         print(f"Error inserting data: {e}")
         raise
 
+def _fetch_bms_data(from_dt: datetime, to_dt: datetime | None):
+    """Returns rows (timestamp, current, power, device_address, device_name, remaining_capacity).
+
+    Short ranges return raw per-minute rows; long ranges are averaged into time buckets so the
+    response never exceeds ~MAX_CHART_POINTS_PER_DEVICE points per device.
+    """
+    from_str = from_dt.strftime(TIMESTAMP_FORMAT)
+    end = to_dt or datetime.now()
+    span_seconds = max(0, (end - from_dt).total_seconds())
+    bucket_seconds = 0
+    if span_seconds > MAX_CHART_POINTS_PER_DEVICE * 60:
+        bucket_seconds = int(math.ceil(span_seconds / MAX_CHART_POINTS_PER_DEVICE / 60.0)) * 60
+
+    where = "timestamp >= ?"
+    params: list = [from_str]
+    if to_dt is not None:
+        where += " AND timestamp <= ?"
+        params.append(to_dt.strftime(TIMESTAMP_FORMAT))
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        if bucket_seconds:
+            cursor.execute(f'''
+                SELECT datetime((CAST(strftime('%s', timestamp) AS INTEGER) / ?) * ?, 'unixepoch') AS bucket_ts,
+                       AVG(current), AVG(power), device_address, device_name, AVG(remaining_capacity)
+                FROM bms_data
+                WHERE {where}
+                GROUP BY device_address, device_name, bucket_ts
+                ORDER BY bucket_ts
+            ''', [bucket_seconds, bucket_seconds, *params])
+        else:
+            cursor.execute(f'''
+                SELECT timestamp, current, power, device_address, device_name, remaining_capacity
+                FROM bms_data
+                WHERE {where}
+                ORDER BY timestamp
+            ''', params)
+        return cursor.fetchall()
+
 def fetch_all_data_range(from_dt: datetime, to_dt: datetime):
     try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            from_str = from_dt.strftime('%Y-%m-%d %H:%M:%S')
-            to_str = to_dt.strftime('%Y-%m-%d %H:%M:%S')
-            cursor.execute('SELECT timestamp, current, power, device_address, device_name, remaining_capacity FROM bms_data WHERE timestamp BETWEEN ? AND ?', (from_str, to_str))
-            return cursor.fetchall()
+        return _fetch_bms_data(from_dt, to_dt)
     except sqlite3.Error as e:
         print(f"Error fetching data: {e}")
         raise
-    
+
 def fetch_all_data(days=None):
     if days is None:
         print("No 'days' parameter provided. No data will be fetched.")
@@ -641,21 +654,15 @@ def fetch_all_data(days=None):
             return cached_result
 
     try:
-        with get_connection() as conn:
-            cursor = conn.cursor()
+        if days == 1:
+            cutoff_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        else:
+            cutoff_date = (now - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
 
-            if days == 1:
-                cutoff_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
-            else:
-                cutoff_date = (now - timedelta(days=days)).replace(hour=0, minute=0, second=0, microsecond=0)
-
-            cutoff_date_str = cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
-            cursor.execute('SELECT timestamp, current, power, device_address, device_name, remaining_capacity FROM bms_data WHERE timestamp >= ?', (cutoff_date_str,))
-            result = cursor.fetchall()
-
-            # Save to cache: the key is days, the value is a tuple (result, time)
-            AGGREGATED_CACHE[cache_key] = (result, now)
-            return result
+        result = _fetch_bms_data(cutoff_date, None)
+        # Save to cache: the key is days, the value is a tuple (result, time)
+        AGGREGATED_CACHE[cache_key] = (result, now)
+        return result
     except sqlite3.Error as e:
         print(f"Error fetching data: {e}")
         raise
@@ -664,7 +671,11 @@ def fetch_all_notifications():
     try:
         with get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute('SELECT * FROM error_notifications')
+            cursor.execute('''
+                SELECT id, device_address, error_code, device_name, occurred_at
+                FROM error_notifications
+                ORDER BY occurred_at DESC
+            ''')
             return cursor.fetchall()
     except sqlite3.Error as e:
         print(f"Error fetching notifications: {e}")
@@ -676,8 +687,12 @@ def get_subscription_by_endpoint(endpoint: str):
         cursor.execute("SELECT * FROM subscriptions WHERE endpoint = ?", (endpoint,))
         return cursor.fetchone()
     
+def count_subscriptions() -> int:
+    with get_connection() as conn:
+        return conn.execute("SELECT COUNT(*) FROM subscriptions").fetchone()[0]
+
 def add_subscription(subscription: dict):
-    with sqlite3.connect(DB_NAME) as conn:
+    with get_connection() as conn:
         cursor = conn.cursor()
 
         endpoint = subscription["endpoint"]
@@ -706,7 +721,7 @@ def add_subscription(subscription: dict):
 
 def remove_old_subscription(endpoint: str):
     try:
-        with sqlite3.connect(DB_NAME) as conn:
+        with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM subscriptions WHERE endpoint = ?", (endpoint,))
             conn.commit()
@@ -718,7 +733,7 @@ def remove_old_subscription(endpoint: str):
 
 def get_all_subscriptions():
     try:
-        with sqlite3.connect(DB_NAME) as conn:
+        with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT endpoint, p256dh, auth FROM subscriptions")
             rows = cursor.fetchall()
@@ -765,6 +780,11 @@ def get_config():
         print(f"Error fetching config: {e}")
         return None
 
+def invalidate_config_cache():
+    global CONFIG_CACHE, CONFIG_CACHE_TIMESTAMP
+    CONFIG_CACHE = None
+    CONFIG_CACHE_TIMESTAMP = 0
+
 def update_config(password=None, vapid_public=None, vapid_private=None, n_hours=None, auto_power_management_enabled=None):
     try:
         with get_connection() as conn:
@@ -779,10 +799,8 @@ def update_config(password=None, vapid_public=None, vapid_private=None, n_hours=
             if not existing_config:
                 raise ValueError("Config record not found!")
 
-            if n_hours is not None or auto_power_management_enabled is not None:
-                global CONFIG_CACHE, CONFIG_CACHE_TIMESTAMP
-                CONFIG_CACHE = None
-                CONFIG_CACHE_TIMESTAMP = 0
+            # Always invalidate: a stale cached password hash would keep the OLD password valid.
+            invalidate_config_cache()
 
             updated_config = {
                 "password": password if password is not None else existing_config[0],
@@ -889,10 +907,11 @@ def update_tapo_device_config_by_ip(ip: str, updates: dict):
             fields = []
             values = []
 
-            if "email" in updates:
+            # Empty email/password from the edit form mean "keep the current value".
+            if updates.get("email"):
                 fields.append("email = ?")
                 values.append(updates["email"])
-            if "password" in updates:
+            if updates.get("password"):
                 fields.append("password = ?")
                 values.append(updates["password"])
             if "power_watt" in updates:
@@ -1060,13 +1079,18 @@ def delete_deye_device_by_ip(ip: str):
         print(f"❌ Error deleting Deye device with IP {ip}: {e}")
         raise
 
+def _hash_token(token: str) -> str:
+    # Tokens are stored hashed, so a leaked DB file/backup does not contain usable sessions.
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
 def add_token_to_db(token: str):
     try:
         with get_connection() as conn:
             created_at = datetime.now().isoformat()
-            query = "INSERT OR REPLACE INTO active_tokens (token, created_at) VALUES (?, ?)"
-            conn.execute(query, (token, created_at)) 
-            conn.commit()
+            conn.execute(
+                "INSERT OR REPLACE INTO active_tokens (token, created_at) VALUES (?, ?)",
+                (_hash_token(token), created_at),
+            )
     except sqlite3.Error as e:
         print(f"❌ Error adding token to DB: {e}")
         raise
@@ -1074,35 +1098,56 @@ def add_token_to_db(token: str):
 def remove_token_from_db(token: str):
     try:
         with get_connection() as conn:
-            query = "DELETE FROM active_tokens WHERE token = ?"
-            conn.execute(query, (token,))
-            conn.commit()
+            # The raw value covers sessions created before tokens were hashed.
+            conn.execute("DELETE FROM active_tokens WHERE token IN (?, ?)", (_hash_token(token), token))
     except sqlite3.Error as e:
         print(f"❌ Error removing token from DB: {e}")
         raise
 
+def remove_all_tokens_except(token: str | None = None):
+    """Revokes every session (e.g. after a password change), optionally keeping the current one."""
+    try:
+        with get_connection() as conn:
+            if token:
+                conn.execute("DELETE FROM active_tokens WHERE token NOT IN (?, ?)", (_hash_token(token), token))
+            else:
+                conn.execute("DELETE FROM active_tokens")
+    except sqlite3.Error as e:
+        print(f"❌ Error revoking tokens: {e}")
+        raise
+
+def purge_expired_tokens(lifetime_seconds: int):
+    try:
+        cutoff = (datetime.now() - timedelta(seconds=lifetime_seconds)).isoformat()
+        with get_connection() as conn:
+            deleted = conn.execute("DELETE FROM active_tokens WHERE created_at < ?", (cutoff,)).rowcount
+        if deleted:
+            print(f"🧹 Removed {deleted} expired session token(s).")
+    except sqlite3.Error as e:
+        print(f"❌ Error purging expired tokens: {e}")
+
 def is_token_valid_in_db(token: str, lifetime_seconds: int) -> bool:
     try:
         with get_connection() as conn:
-            query = "SELECT created_at FROM active_tokens WHERE token = ?"
             cursor = conn.cursor()
-            cursor.execute(query, (token,))
+            cursor.execute(
+                "SELECT token, created_at FROM active_tokens WHERE token IN (?, ?)",
+                (_hash_token(token), token),
+            )
             result = cursor.fetchone()
-            
+
             if not result:
                 return False
 
-            created_at_str = result[0]
+            stored_token, created_at_str = result
             created_at = datetime.fromisoformat(created_at_str)
-            
+
             if datetime.now() < created_at + timedelta(seconds=lifetime_seconds):
                 return True
-            else:
-                print(f"⚠️ Token {token} expired. Removing from DB.")
-                remove_query = "DELETE FROM active_tokens WHERE token = ?"
-                conn.execute(remove_query, (token,))
-                conn.commit()
-                return False
+
+            print("⚠️ Session token expired. Removing from DB.")
+            conn.execute("DELETE FROM active_tokens WHERE token = ?", (stored_token,))
+            return False
 
     except sqlite3.Error as e:
         print(f"❌ Error validating token in DB: {e}")

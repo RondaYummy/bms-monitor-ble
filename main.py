@@ -1,8 +1,11 @@
 import asyncio
+import os
+import secrets
+import time
+from collections import defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from typing import Optional
-from uuid import uuid4
 
 import uvicorn
 import yaml
@@ -10,11 +13,11 @@ from bleak import BleakClient, BleakScanner
 from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 import python.battery_alerts as alerts
 import python.db as db
-from python.auth.verify_token import verify_token, initialize_auth_dependencies
+from python.auth.verify_token import verify_token, initialize_auth_dependencies, TOKEN_LIFETIME_SECONDS
 from python.colors import *
 from python.data_store import data_store
 from python.deye.deye_routes import router as deye_router
@@ -29,7 +32,7 @@ from python.tapo.tapo_service import check_all_tapo_devices
 from python.tapo.manage_device_power import manage_tapo_power
 from python.auto_power import auto_power_manager_loop
 
-with open('configs/error_codes.yaml', 'r') as file:
+with open('configs/error_codes.yaml', 'r', encoding='utf-8') as file:
     error_codes = yaml.safe_load(file)
 
 ENABLE_LOGS = False # True or False
@@ -52,64 +55,128 @@ app.include_router(tapo_find_router, prefix="/api")
 app.include_router(deye_router, prefix="/api")
 app.include_router(power_manage_router, prefix="/api")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-)
+# The frontend is served by nginx which proxies /api on the same origin, so CORS is only needed
+# for development setups (e.g. `quasar dev` on :8080). Configure with CORS_ORIGINS="http://a,http://b".
+_cors_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+if _cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_origins,
+        allow_methods=["GET", "POST", "PATCH", "DELETE"],
+        allow_headers=["Authorization", "Content-Type"],
+    )
 
 executor = ThreadPoolExecutor()
 initialize_auth_dependencies(executor)
 
-async def manage_device_power_task_wrapper():
-    try:
-        await manage_tapo_power()
-    except Exception as e:
-        print(f"❌ manage_tapo_power crashed on startup: {e}")
-        await asyncio.sleep(5)
-        # restart recursively (or log in and log out)
-        asyncio.create_task(manage_device_power_task_wrapper())
+# Strong references to fire-and-forget tasks (asyncio keeps only weak ones, so tasks could be GC'd).
+background_tasks: set = set()
 
+def spawn(coro) -> asyncio.Task:
+    task = asyncio.create_task(coro)
+    background_tasks.add(task)
+    task.add_done_callback(background_tasks.discard)
+    return task
+
+async def run_forever(name: str, factory, restart_delay: float = 5):
+    """Supervisor: restarts a background loop if it ever crashes or returns."""
+    while True:
+        try:
+            await factory()
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            print(f"❌ {name} crashed: {e}. Restarting in {restart_delay}s...")
+        await asyncio.sleep(restart_delay)
+
+LEGACY_DEFAULT_PASSWORD = "123456"
+
+async def periodic_maintenance():
+    while True:
+        await asyncio.to_thread(db.purge_expired_tokens, TOKEN_LIFETIME_SECONDS)
+        await asyncio.sleep(60 * 60 * 6)
+
+async def periodic_tapo_status():
+    while True:
+        try:
+            await check_all_tapo_devices()
+        except Exception as e:
+            print(f"❌ Tapo status checker error: {e}")
+        await asyncio.sleep(5)
 
 @app.on_event("startup")
 async def startup_event():
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(None, db.cleanup_ssl_certificates)
-    
-    asyncio.create_task(ble_main())
-    asyncio.create_task(db.process_devices())
-    asyncio.create_task(run_deye_loop())
-    asyncio.create_task(manage_device_power_task_wrapper())
-    asyncio.create_task(auto_power_manager_loop())
 
-    async def periodic_tapo_status():
-        while True:
-            try:
-                await check_all_tapo_devices()
-            except Exception as e:
-                print(f"❌ Tapo status checker error: {e}")
-            await asyncio.sleep(5)
-    asyncio.create_task(periodic_tapo_status())
+    spawn(run_forever("ble_main", ble_main))
+    spawn(run_forever("process_devices", db.process_devices))
+    spawn(run_forever("deye_loop", run_deye_loop))
+    spawn(run_forever("manage_tapo_power", manage_tapo_power))
+    spawn(run_forever("auto_power_manager", auto_power_manager_loop))
+    spawn(run_forever("tapo_status", periodic_tapo_status))
+    spawn(run_forever("maintenance", periodic_maintenance))
 
     config = db.get_config()
-    await send_push_startup(config)
+    if config and await loop.run_in_executor(executor, verify_password, LEGACY_DEFAULT_PASSWORD, config.get("password", "")):
+        print("⚠️⚠️⚠️ SECURITY WARNING: the admin password is still the default '123456'. Change it in Settings! ⚠️⚠️⚠️")
+    if config:
+        spawn(send_push_startup(config))
 
-@app.post("/api/change-password", dependencies=[Depends(verify_token)])
-async def change_password(request: Request):
-    body = await request.json()
-    old_password = body.get("old_password", "")
-    new_password = body.get("new_password", "")
+# ---------- Brute-force protection for /api/login ----------
+LOGIN_WINDOW_SECONDS = 15 * 60
+LOGIN_MAX_FAILURES_PER_CLIENT = 5
+LOGIN_MAX_FAILURES_GLOBAL = 30
+_login_failures: dict = defaultdict(deque)
 
-    if not old_password or not new_password:
-        raise HTTPException(status_code=400, detail="Both old and new passwords must be provided.")
+def _client_key(request: Request) -> str:
+    # nginx sets X-Real-IP; the backend port itself is bound to localhost only (see docker-compose.yml).
+    return request.headers.get("x-real-ip") or (request.client.host if request.client else "unknown")
 
-    hashed_new_password = hash_password(new_password)
+def _recent_failures(key: str, now: float) -> deque:
+    attempts = _login_failures[key]
+    while attempts and now - attempts[0] > LOGIN_WINDOW_SECONDS:
+        attempts.popleft()
+    return attempts
+
+def _check_login_allowed(client: str):
+    now = time.monotonic()
+    if (len(_recent_failures(client, now)) >= LOGIN_MAX_FAILURES_PER_CLIENT
+            or len(_recent_failures("*", now)) >= LOGIN_MAX_FAILURES_GLOBAL):
+        raise HTTPException(status_code=429, detail="Too many failed login attempts. Try again later.")
+
+def _register_login_failure(client: str):
+    now = time.monotonic()
+    _recent_failures(client, now).append(now)
+    _recent_failures("*", now).append(now)
+
+class LoginRequest(BaseModel):
+    password: str = Field(..., max_length=256)
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str = Field(..., max_length=256)
+    new_password: str = Field(..., min_length=8, max_length=256)
+
+@app.post("/api/change-password")
+async def change_password(body: ChangePasswordRequest, token: str = Depends(verify_token)):
+    loop = asyncio.get_running_loop()
+    config = db.get_config()
+    if not config or not config.get("password"):
+        raise HTTPException(status_code=500, detail="Password is not set in server configuration")
+
+    # Previously the old password was never checked: a stolen session could take over the account.
+    if not await loop.run_in_executor(executor, verify_password, body.old_password, config["password"]):
+        # 400, not 401/403: the frontend treats those as "session expired" and logs the user out.
+        raise HTTPException(status_code=400, detail="Old password is incorrect.")
+
+    hashed_new_password = await loop.run_in_executor(executor, hash_password, body.new_password)
     updated_config = db.update_config(password=hashed_new_password)
 
     if not updated_config:
         raise HTTPException(status_code=500, detail="Error updating password.")
 
+    # Log out every other session.
+    await loop.run_in_executor(executor, db.remove_all_tokens_except, token)
     return {"message": "Password changed successfully."}
 
 @app.get("/api/ssl")
@@ -149,8 +216,8 @@ async def getSsl():
         print(f"❌ Помилка обробки даних SSL-сертифіката: {e}")
         return {
             "status": "error",
-            "message": f"Помилка при обробці запису: {e}",
-            "certificat": ssls_data 
+            "message": "Помилка при обробці запису SSL-сертифіката.",
+            "certificat": None
         }
 
 @app.post("/api/ssl/refresh", dependencies=[Depends(verify_token)])
@@ -163,26 +230,28 @@ async def refresh_ssl():
             "message": "❌ Не вдалося оновити SSL сертифікат"
         }
 
-    return {
-        "status": "ok",
-        "message": "✅ SSL сертифікат успішно оновлено (відлік скинуто)"
-    }
+    # Same shape as GET /api/ssl, so the UI can render the fresh state directly.
+    return await getSsl()
 
 @app.post("/api/login")
-async def login(request: Request):
-    body = await request.json()
-    password = body.get("password", "")
-    config = db.get_config()
-    pwd = config.get("password", "")
+async def login(body: LoginRequest, request: Request):
+    client = _client_key(request)
+    _check_login_allowed(client)
 
-    if not config or not pwd:
+    config = db.get_config()
+    pwd = config.get("password", "") if config else ""
+    if not pwd:
         raise HTTPException(status_code=404, detail="Password is not set in server configuration")
 
-    if not verify_password(password, pwd):
+    loop = asyncio.get_running_loop()
+    # Argon2 is intentionally slow: never run it on the event loop.
+    if not body.password or not await loop.run_in_executor(executor, verify_password, body.password, pwd):
+        _register_login_failure(client)
+        await asyncio.sleep(1)  # slow down online guessing
         raise HTTPException(status_code=401, detail="Invalid password")
 
-    token = str(uuid4())
-    loop = asyncio.get_running_loop()
+    _login_failures.pop(client, None)
+    token = secrets.token_urlsafe(32)
     await loop.run_in_executor(executor, db.add_token_to_db, token)
     return {"access_token": token}
 
@@ -190,13 +259,11 @@ async def login(request: Request):
 async def logout(token: str = Depends(verify_token)):
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(executor, db.remove_token_from_db, token)
-    return {"logount": True}
+    return {"logout": True}
 
 class ConfigUpdateRequest(BaseModel):
-    password: Optional[str] = None
-    VAPID_PUBLIC_KEY: Optional[str] = None
-    n_hours: Optional[int] = None
-    auto_power_management_enabled: Optional[int] = None
+    n_hours: Optional[int] = Field(None, ge=1, le=24 * 30)
+    auto_power_management_enabled: Optional[int] = Field(None, ge=0, le=1)
 
 @app.get("/api/configs")
 async def get_configs():
@@ -247,7 +314,8 @@ async def get_device_settings():
 
         return list(setting_info.values())
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error deleting alert: {str(e)}")
+        print(f"❌ Error reading device settings: {e}")
+        raise HTTPException(status_code=500, detail="Error reading device settings")
 
 class DeleteAlertRequest(BaseModel):
     id: int
@@ -268,29 +336,26 @@ async def delete_all_error_alerts():
         raise HTTPException(status_code=500, detail=f"Error deleting all alerts: {str(e)}")
         
 @app.get("/api/error-alerts")
-async def get_device_info():
-    data = db.fetch_all_notifications()
+async def get_error_alerts():
+    data = db.fetch_all_notifications()  # already sorted newest → oldest in SQL
     if not data:
         return JSONResponse(content={"message": "No error alerts available yet."}, status_code=404)
-    
+
     enriched_data = []
-    for alert in data:
-        if isinstance(alert, tuple):
-            alert = {
-                "id": alert[0],
-                "device_address": alert[1],
-                "error_code": alert[2],
-                "device_name": alert[3],
-                "timestamp": alert[4],
-                "level": "",
-            }
-        error_code = int(alert.get("error_code"))
-        message = error_codes.get(error_code, {}).get('message', 'Message not found')
-        level = error_codes.get(error_code, {}).get('level', 'Level not found')
-        enriched_alert = {**alert, "message": message, "level": level}
-        enriched_data.append(enriched_alert)
-        # 🔽 Sort by timestamp (newest to oldest)
-        enriched_data.sort(key=lambda x: x["timestamp"], reverse=True)
+    for alert_id, device_address, error_code, device_name, timestamp in data:
+        try:
+            code_info = error_codes.get(int(error_code), {})
+        except (TypeError, ValueError):
+            code_info = {}
+        enriched_data.append({
+            "id": alert_id,
+            "device_address": device_address,
+            "error_code": error_code,
+            "device_name": device_name,
+            "timestamp": str(timestamp),
+            "message": code_info.get('message', 'Message not found'),
+            "level": code_info.get('level', 'Level not found'),
+        })
     return enriched_data
 
 async def disconnect_if_needed(device_address):
@@ -334,6 +399,7 @@ async def disconnect_device(body: DeviceRequest = Body(...), token: str = Depend
         db.update_device_status(device_address, connected=False, enabled=False)
 
         await data_store.delete_device_data(device_name)
+        response_buffers.pop(device_address, None)
         
         log(device_name, f"✅ Successfully disconnected and disabled the device.")
         return {"message": f"✅ Successfully disconnected from {device_address} and disabled the device."}
@@ -356,8 +422,7 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         await disconnect_if_needed(device_address)
         log("/api/connect-device", f"🔍 Scanning for device {device_address}...", force=True)
 
-        devices = await BleakScanner.discover()
-        log("/api/connect-device", f"FOUND DEVICES: {devices}", force=True)
+        devices = await discover_ble_devices()
         found_device = next((device for device in devices if device.address.lower() == device_address), None)
 
         if not found_device:
@@ -376,20 +441,31 @@ async def connect_device(request: DeviceRequest, token: str = Depends(verify_tok
         db.update_device_status(device_address, connected=True, enabled=True)
 
         log("/api/connect-device", f"🚀 Connection initiated for {found_device}.", force=True)
-        task = asyncio.create_task(connect_and_run(found_device))
-        active_connections[device_address] = task
-        db.update_device_status(device_address, connected=True, enabled=True)
+        existing_task = active_connections.get(device_address)
+        if not existing_task or existing_task.done():
+            active_connections[device_address] = spawn(connect_and_run(found_device))
 
         return JSONResponse(content={"message": f"🚀 Connection initiated for {device_address}. Check logs for updates."}, status_code=200)
 
+    except HTTPException:
+        raise
     except Exception as e:
-        return JSONResponse(content={"error": f"❌ Error connecting to device: {str(e)}"}, status_code=500)
+        print(f"❌ Error connecting to device: {e}")
+        return JSONResponse(content={"error": "❌ Error connecting to device."}, status_code=500)
 
-@app.get("/api/devices")
+# BlueZ cannot run several discoveries at once ("Operation already in progress"), and a scan also
+# disturbs active connections, so every scan goes through one lock.
+ble_scan_lock = asyncio.Lock()
+
+async def discover_ble_devices(timeout: float = 5.0):
+    async with ble_scan_lock:
+        return await BleakScanner.discover(timeout=timeout)
+
+@app.get("/api/devices", dependencies=[Depends(verify_token)])
 async def discover_devices():
     try:
         log("API", "🔍 Scanning for new devices...")
-        devices = await BleakScanner.discover()
+        devices = await discover_ble_devices()
 
         allowed_devices = db.get_all_devices()
         allowed_addresses = {device["address"].lower() for device in allowed_devices}
@@ -406,7 +482,8 @@ async def discover_devices():
         return {"devices": new_devices}
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"❌ Error searching for devices: {str(e)}")
+        print(f"❌ Error searching for devices: {e}")
+        raise HTTPException(status_code=500, detail="❌ Error searching for devices.")
 
 @app.get("/api/device-info")
 async def get_device_info():
@@ -424,7 +501,7 @@ async def get_cell_info():
 
 @app.get("/api/aggregated-data")
 async def get_aggregated_data(
-    days: int = Query(1, ge=0, description="Number of days to fetch data for"),
+    days: int = Query(1, ge=0, le=366, description="Number of days to fetch data for"),
     from_date: Optional[str] = Query(None, alias="from", description="Start date in format YYYY/MM/DD"),
     to_date: Optional[str] = Query(None, alias="to", description="End date in format YYYY/MM/DD")
 ):
@@ -434,7 +511,9 @@ async def get_aggregated_data(
             to_dt = datetime.strptime(to_date, "%Y/%m/%d") + timedelta(hours=23, minutes=59, seconds=59)
         except ValueError as e:
             return JSONResponse(content={"message": f"Invalid date format: {e}"}, status_code=400)
-        
+        if to_dt < from_dt or (to_dt - from_dt).days > 366:
+            return JSONResponse(content={"message": "Invalid range (max 366 days)."}, status_code=400)
+
         aggregated_data = db.fetch_all_data_range(from_dt, to_dt)
     else:
         aggregated_data = db.fetch_all_data(days=days)
@@ -624,7 +703,7 @@ async def parse_setting_info(data, device_name, device_address):
 
         log(device_name, "✅ Successfully disassembled Setting Info Frame:", force=False)
         for key, value in setting_info.items():
-            log(device_name, f"{key}: {value}", force=True)
+            log(device_name, f"{key}: {value}")
 
         return setting_info
 
@@ -680,8 +759,12 @@ async def parse_cell_info(data, device_name, device_address):
         temperature_sensor_5 = int.from_bytes(data[222+32:224+32], byteorder='little', signed=True) * 0.1
         temperature_sensor_4 = int.from_bytes(data[224+32:226+32], byteorder='little', signed=True) * 0.1
         temperature_sensor_3 = int.from_bytes(data[226+32:228+32], byteorder='little', signed=True) * 0.1
-        emergency_time_countdown = int.from_bytes(data[186+32:187+32], byteorder='little')
+        # 16-bit value in seconds (bytes 186-187 + 32 offset); previously only one byte was read.
+        emergency_time_countdown = int.from_bytes(data[186+32:188+32], byteorder='little')
 
+        if not filtered_voltages:
+            log(device_name, "⚠️ Cell Info Frame without cell voltages, skipping.", force=True)
+            return None
         average_voltage = sum(filtered_voltages) / len(filtered_voltages)
         voltage_diff = max(filtered_voltages) - min(filtered_voltages)
         
@@ -723,44 +806,56 @@ async def parse_cell_info(data, device_name, device_address):
         log(device_name, f"Error parsing Cell Info Frame: {e}", force=True)
         return None
 
-async def notification_handler(device, data):
+FRAME_HEADER = b'\x55\xAA\xEB\x90'
+# Per-device reassembly buffers. Only touched synchronously from the BLE callback (which runs on the
+# event loop), so no lock is needed and packets can never be interleaved/parsed twice.
+response_buffers: dict = {}
+
+def handle_ble_notification(device, data: bytearray):
     device_name = device.name
     device_address = device.address.lower()
 
-    task = active_connections.get(device_address)
-    if not task:
-        await data_store.clear_buffer(device_name)
+    if device_address not in active_connections:
+        response_buffers.pop(device_address, None)
         log(device_name, f"⚠️ Device {device_address} is not in active_connections, ignore the data.", force=True)
         return
 
-    if data[:4] == b'\x55\xAA\xEB\x90':  # The beginning of a new frame
-        await data_store.clear_buffer(device_name)
-    await data_store.append_to_buffer(device_name, data)
+    buffer = response_buffers.setdefault(device_address, bytearray())
+    if data[:4] == FRAME_HEADER:  # The beginning of a new frame
+        buffer.clear()
+    elif not buffer:
+        return  # continuation of a frame whose start we missed
+    buffer.extend(data)
 
-    buffer = await data_store.get_buffer(device_name)
-    if MIN_FRAME_SIZE <= len(buffer) <= MAX_FRAME_SIZE:
-        log(device_name, f"Full frame received: {buffer.hex()}")
+    if len(buffer) > MAX_FRAME_SIZE:
+        buffer.clear()
+        return
+    if len(buffer) < MIN_FRAME_SIZE:
+        return
 
-        # Checking the CRC
-        calculated_crc = calculate_crc(buffer[:-1])
-        received_crc = buffer[-1]
-        if calculated_crc != received_crc:
-            log(device_name, f"❌ Invalid CRC: {calculated_crc} != {received_crc}")
-            return
-        log(device.name, f"🔄 Received notification {buffer[4]}: {buffer.hex()}")
+    # Checking the CRC
+    calculated_crc = calculate_crc(buffer[:-1])
+    received_crc = buffer[-1]
+    if calculated_crc != received_crc:
+        log(device_name, f"❌ Invalid CRC: {calculated_crc} != {received_crc}")
+        return
 
-        # Determining the frame type
-        frame_type = buffer[4]
-        if frame_type == 0x03:
-            await parse_device_info(buffer, device_name, device_address)
-        elif frame_type == 0x02:
-            await data_store.update_last_cell_info_update(device_name)
-            await parse_cell_info(buffer, device_name, device_address)
-        elif frame_type == 0x01:
-            await parse_setting_info(buffer, device_name, device_address)
-        else:
-            log(device_name, f"❌ Unknown frame type {frame_type}: {buffer}", force=True)
-            await data_store.clear_buffer(device_name)
+    frame = bytes(buffer)  # immutable copy for the parser
+    buffer.clear()
+    log(device_name, f"🔄 Full frame received {frame[4]}: {frame.hex()}")
+    spawn(process_frame(frame, device_name, device_address))
+
+async def process_frame(frame: bytes, device_name: str, device_address: str):
+    frame_type = frame[4]
+    if frame_type == 0x03:
+        await parse_device_info(frame, device_name, device_address)
+    elif frame_type == 0x02:
+        await data_store.update_last_cell_info_update(device_name)
+        await parse_cell_info(frame, device_name, device_address)
+    elif frame_type == 0x01:
+        await parse_setting_info(frame, device_name, device_address)
+    else:
+        log(device_name, f"❌ Unknown frame type {frame_type}", force=True)
 
 device_locks = {}
 async def connect_and_run(device):
@@ -802,7 +897,7 @@ async def connect_and_run(device):
 
                 async with BleakClient(device.address) as client:
                     def handle_notification(sender, data):
-                        asyncio.create_task(notification_handler(device, data))
+                        handle_ble_notification(device, data)
 
                     await client.start_notify(CHARACTERISTIC_UUID, handle_notification)
                     db.update_device_status(device_address, connected=True, enabled=True)
@@ -810,14 +905,15 @@ async def connect_and_run(device):
 
                     while True:
                         # Check if the device is still connected
-                        device_info_data = db.get_device_by_address(device.address)
+                        device_info_data = db.get_device_by_address(device_address)
                         if not device_info_data or not device_info_data.get("connected", False):
                             log(device.name, "❌ Device has been disconnected. Stopping polling.", force=True)
-                            await data_store.clear_buffer(device.name)
+                            response_buffers.pop(device_address, None)
                             active_connections.pop(device_address, None)
                             break
 
-                        if not device_info_data or "frame_type" not in device_info_data:
+                        # The key always exists (possibly None), so check the value, not the key.
+                        if device_info_data.get("frame_type") is None:
                             # If the device information is not yet saved, send the command
                             device_info_command = create_command(CMD_TYPE_DEVICE_INFO)
                             await client.write_gatt_char(CHARACTERISTIC_UUID, device_info_command)
@@ -871,67 +967,62 @@ async def filter_devices(devices):
         filtered_devices.append(device)
     return filtered_devices
 
-ble_scan_lock = asyncio.Lock()
 active_connections = {}
 
+def _cleanup_finished_connections():
+    for device_address, task in list(active_connections.items()):
+        if not task.done():
+            continue
+        if not task.cancelled() and task.exception():
+            log(device_address, f"❌ Connection task failed with error: {task.exception()}", force=True)
+        active_connections.pop(device_address, None)
+
 async def ble_main():
-    async with ble_scan_lock:
+    """Scans for enabled-but-not-connected BMS devices and starts a connection task for each.
+
+    Connection tasks run independently (they reconnect by themselves), so this loop never blocks on
+    them: devices that show up later are picked up on the next iteration. Errors are handled per
+    iteration, so a single BlueZ failure no longer stops auto-connecting until a restart.
+    """
+    while True:
         try:
-            while True:  # 🔥 Internal scanning and connection cycle
-                log("ble_main", "Start ble_main...", force=True)
-                allowed_devices = db.get_all_devices(only_enabled=True)
-                allowed_addresses = {device["address"] for device in allowed_devices}
-                connected_addresses = {
-                    device["address"].lower() for device in allowed_devices if device["connected"]
-                }
+            _cleanup_finished_connections()
 
-                # Skip scanning if all allowed devices are already connected
-                if allowed_addresses.issubset(connected_addresses):
-                    log("ble_main", "✅ All allowed devices are already connected. Skipping scan.", force=True)
-                    await asyncio.sleep(60)
-                    continue
+            allowed_devices = db.get_all_devices(only_enabled=True)
+            pending = {
+                device["address"].lower() for device in allowed_devices
+                if not device["connected"] and device["address"].lower() not in active_connections
+            }
 
-                log("ble_main", "🔍 Start scanning for devices...", force=True)
-                devices = await BleakScanner.discover()
-                filtered_devices = await filter_devices(devices)
+            # Skip scanning if every enabled device is already connected/connecting
+            if not pending:
+                await asyncio.sleep(60)
+                continue
 
-                if not filtered_devices:
-                    log("ble_main", "⚠️ No new JK-BMS BLE devices found.", force=True)
-                    await asyncio.sleep(15)
-                    continue
-                log("ble_main", F"DEVICES: {filtered_devices}", force=True)
+            log("ble_main", "🔍 Start scanning for devices...", force=True)
+            devices = await discover_ble_devices()
+            filtered_devices = await filter_devices(devices)
 
-                tasks = []
-                for device in filtered_devices:
-                    device_address = device.address.lower()
-                    log(device.name, f"🔌 Connecting to allowed device: {device.address}", force=True)
+            if not filtered_devices:
+                log("ble_main", "⚠️ No new JK-BMS BLE devices found.")
+                await asyncio.sleep(15)
+                continue
+            log("ble_main", f"DEVICES: {filtered_devices}", force=True)
 
-                    # Create a connection task
-                    task = asyncio.create_task(connect_and_run(device))
-                    active_connections[device_address] = task  # Add to active
-                    tasks.append(task)
+            for device in filtered_devices:
+                device_address = device.address.lower()
+                log(device.name, f"🔌 Connecting to allowed device: {device.address}", force=True)
+                active_connections[device_address] = spawn(connect_and_run(device))
+                await asyncio.sleep(3)  # Delay between connections
 
-                    await asyncio.sleep(3)  # Delay between connections
+            await asyncio.sleep(15)  # Waiting before the next scan
 
-                if tasks:
-                    await asyncio.gather(*tasks)  # We are waiting for all connections to be made
-
-                # Remove completed tasks from the list of active connections
-                for device_address in list(active_connections.keys()):
-                    task = active_connections[device_address]
-                    if task.done() or task.cancelled():
-                        del active_connections[device_address]
-                    elif task.exception():
-                        log(device_address, f"❌ Task failed with error: {task.exception()}", force=True)
-                        task.cancel()
-                        del active_connections[device_address]
-                
-                await asyncio.sleep(15) # Waiting before the next scan
-
+        except asyncio.CancelledError:
+            raise
         except Exception as e:
             log("ble_main", f"❌ BLE scan error: {str(e)}", force=True)
             await asyncio.sleep(5)
-                                    
+
 def is_device_address_in_cell_info(device_address, cell_info):
     for device_data in cell_info.values():
         if device_data.get("device_address") == device_address:
@@ -944,13 +1035,13 @@ async def are_all_allowed_devices_connected_and_have_data() -> bool:
     connected_addresses = {device["address"].lower() for device in allowed_devices if device["connected"]}
 
     if not allowed_addresses.issubset(connected_addresses):
-        log("CHECK DEVICES", "❌ Not all allowed devices are connected", force=True)
+        log("CHECK DEVICES", "❌ Not all allowed devices are connected")
         return False
 
     cell_info = await data_store.get_cell_info()
     for device_address in allowed_addresses:
         if not is_device_address_in_cell_info(device_address, cell_info):
-            log("CHECK DEVICES", f"❌ Device [{device_address}] has no data.", force=True)
+            log("CHECK DEVICES", f"❌ Device [{device_address}] has no data.")
             return False
     return True
 

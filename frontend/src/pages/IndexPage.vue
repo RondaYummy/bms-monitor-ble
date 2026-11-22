@@ -666,7 +666,7 @@ if (!isInstalled() && skipInstall !== 'true') {
 }
 
 const intervalFunction = async () => {
-  if (isFetching.value) return;
+  if (isFetching.value || document.hidden) return;
   isFetching.value = true;
   try {
     await Promise.allSettled([
@@ -680,13 +680,19 @@ const intervalFunction = async () => {
   }
 };
 
+const onVisibilityChange = () => {
+  if (!document.hidden) intervalFunction(); // refresh immediately when the user comes back
+};
+
 onMounted(() => {
   intervalFunction();
   intervalId.value = setInterval(intervalFunction, 2000);
+  document.addEventListener('visibilitychange', onVisibilityChange);
 });
 
 onBeforeUnmount(() => {
   clearInterval(intervalId.value);
+  document.removeEventListener('visibilitychange', onVisibilityChange);
 });
 </script>
 
