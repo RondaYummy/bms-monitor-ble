@@ -1,6 +1,5 @@
 import ipaddress
 import subprocess
-import time
 from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import APIRouter, Depends, HTTPException

@@ -91,7 +91,9 @@
               <q-btn flat label="GitHub" :disable="!canEdit"
                 href="https://github.com/RondaYummy/bms-monitor-ble/blob/main/SSL_CERTIFICATE.md" color="primary" />
 
-              <q-btn flat label="Поновити" :disable="!canEdit" color="black">
+              <q-btn v-if="sslData.source === 'file' || sslData.source === 'host'" flat label="Перевірити"
+                :disable="!canEdit" color="black" @click="refreshSsl" />
+              <q-btn v-else flat label="Поновити" :disable="!canEdit" color="black">
                 <q-popup-proxy>
                   <q-banner class="q-pa-md">
                     <template v-slot:avatar>
@@ -368,6 +370,7 @@
     </q-dialog>
 
     <BatteryAnalytics v-if="Object.keys(devicesList || {}).length" />
+    <CellHeatmap v-if="Object.keys(devicesList || {}).length" />
 
     <BMSChart :tab="tab" />
 
@@ -444,6 +447,7 @@ import AddtionalInfo from 'src/components/deye/AddtionalInfo.vue';
 import { usePowerStore } from 'src/stores/power';
 import { useLiveStore } from 'src/stores/live';
 import BatteryAnalytics from 'src/components/BatteryAnalytics.vue';
+import CellHeatmap from 'src/components/CellHeatmap.vue';
 import SslData from 'src/components/SslData.vue';
 import { useConfigStore } from 'src/stores/config';
 import TopTapoDevice from 'src/components/tapo/TopTapoDevice.vue';

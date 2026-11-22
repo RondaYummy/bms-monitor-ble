@@ -18,6 +18,14 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/energy',
+    component: () => import('layouts/MainLayout.vue'),
+    children: [{ path: '', component: () => import('pages/EnergyPage.vue') }],
+    meta: {
+      pageTitle: 'BMS Monitor | Energy',
+    },
+  },
+  {
     path: '/settings',
     component: () => import('layouts/MainLayout.vue'),
     children: [{ path: '', component: () => import('pages/SettingsPage.vue') }],

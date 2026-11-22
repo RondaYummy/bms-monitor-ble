@@ -12,6 +12,9 @@
         <router-link to="/" id="summary" class="bloc-icon">
           <span>Summary</span>
         </router-link>
+        <router-link to="/energy" class="bloc-icon">
+          <span>Energy</span>
+        </router-link>
         <router-link to="/settings" class="bloc-icon">
           <span>Settings</span>
         </router-link>

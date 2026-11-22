@@ -24,7 +24,17 @@
         {{ certificatStatus(props.data?.status) }}
       </div>
 
-      <div class="box">Сертифікат дійсний ще {{ props.data.certificat?.days_left }} днів.</div>
+      <div class="box" :class="{ alert: props.data?.status === 'danger' }">{{ props.data?.message }}</div>
+
+      <div class="box left" v-if="props.data?.certificat?.issuer">
+        <div class="column">
+          <div class="sub-title">Видавець · домени</div>
+          <div class="title">
+            {{ props.data.certificat.issuer }}
+            <span v-if="props.data.certificat.domains?.length"> · {{ props.data.certificat.domains.join(', ') }}</span>
+          </div>
+        </div>
+      </div>
 
       <div class="box left">
         <div class="svg circle purpl">
@@ -76,6 +86,11 @@
         </div>
       </div>
 
+      <div class="source text-caption">
+        Джерело: {{ sourceLabel }}
+        <span v-if="props.data?.certificat?.trusted === true"> · ✅ браузери довіряють</span>
+      </div>
+
       <div class="mt-6 full-width">
         <div class="row q-mt-sm justify-between text-sm q-mb-sm">
           <span>Прогрес</span>
@@ -98,9 +113,24 @@ import { computed } from 'vue';
 
 const props = defineProps(['data']);
 
-const percentLeft = computed(
-  () => (props.data.certificat?.days_left / props.data.certificat?.days_valid) * 100
-);
+const percentLeft = computed(() => {
+  const left = props.data?.certificat?.days_left;
+  const total = props.data?.certificat?.days_valid;
+  return total ? Math.max(0, Math.min(100, (left / total) * 100)) : 0;
+});
+
+const sourceLabel = computed(() => {
+  switch (props.data?.source) {
+    case 'file':
+      return 'файл сертифіката (автоматично)';
+    case 'host':
+      return `перевірка ${props.data?.certificat?.checked_host || 'домену'} (автоматично)`;
+    case 'manual':
+      return 'ручний запис — налаштуйте автоматичне поновлення (SSL_CERTIFICATE.md)';
+    default:
+      return 'немає даних';
+  }
+});
 
 function certificatStatus(status: string) {
   if (status === 'ok') {
@@ -232,4 +262,12 @@ function certificatStatus(status: string) {
 }
 
 
+.alert {
+  color: #ff6b6b;
+}
+
+.source {
+  color: #9aa4b2;
+  margin-top: 8px;
+}
 </style>

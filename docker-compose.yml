@@ -29,6 +29,8 @@ services:
     volumes:
       - .:/app
       - /var/run/dbus:/var/run/dbus  # Access to D-Bus
+      # Public certificate published by scripts/ssl/deploy-hook.sh (for the SSL status card; no private key)
+      - /var/lib/bms-monitor/ssl:/ssl:ro
       - sqlite_data:/app/data
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
@@ -42,6 +44,9 @@ services:
       - VAPID_SUBJECT=${VAPID_SUBJECT:-mailto:halevych.dev@gmail.com}
       # Optional: encryption key for Tapo passwords / 2FA secrets (default: data/secret.key, auto-generated)
       - SECRET_KEY=${SECRET_KEY:-}
+      # SSL status: certificate file (default /ssl/fullchain.pem) and/or a live TLS check of "domain:port"
+      - SSL_CHECK_HOST=${SSL_CHECK_HOST:-}
+      - BLE_DEBUG=${BLE_DEBUG:-0}
     privileged: true  # Allows access to the Bluetooth adapter
     cap_add:
       - NET_RAW

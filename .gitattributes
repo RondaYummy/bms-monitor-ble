@@ -1,0 +1,2 @@
+# Shell scripts run on Linux: never convert them to CRLF
+*.sh text eol=lf

@@ -5,7 +5,6 @@ import os
 import re
 import shutil
 import sqlite3
-import time
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -14,6 +13,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 import python.db as db
+from python import cell_history
 from python.auth.verify_token import TOKEN_LIFETIME_SECONDS, require_admin
 
 router = APIRouter(prefix="/maintenance", tags=["Maintenance"], dependencies=[Depends(require_admin)])
@@ -168,9 +168,11 @@ async def run_retention_now() -> dict:
     config = db.get_config() or {}
     result = await asyncio.to_thread(rollup_old_bms_data, int(config.get("raw_retention_days") or 90))
     result["alerts_removed"] = await asyncio.to_thread(purge_old_alerts, int(config.get("alerts_retention_days") or 365))
+    result["cell_rows_removed"] = await asyncio.to_thread(
+        cell_history.rollup_old_cell_history, int(config.get("raw_retention_days") or 90))
     _state["last_rollup"] = datetime.now().isoformat(timespec="seconds")
     _state["last_rollup_result"] = result
-    if result["days"] or result["alerts_removed"]:
+    if result["days"] or result["alerts_removed"] or result["cell_rows_removed"]:
         print(f"🗜️ Retention: {result}")
     return result
 
