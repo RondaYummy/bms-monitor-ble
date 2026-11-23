@@ -39,8 +39,10 @@
         <div v-else-if="status.calibration?.method === 'peak_power'">
           ℹ️ Поки за потужністю панелей ({{ status.calibration.points }} год історії, потрібно ≥ 12 сонячних годин).
         </div>
-        <div v-if="status.last_fetch">Оновлено: {{ status.last_fetch.replace('T', ' ') }}</div>
-        <div v-if="status.last_error" class="text-orange">Помилка Open-Meteo: {{ status.last_error }}</div>
+        <div v-if="status.updated_at">Дані оновлено: {{ status.updated_at.replace('T', ' ') }}</div>
+        <div v-if="status.last_error" class="text-orange">
+          Не вдається оновити з Open-Meteo: {{ status.last_error }}. Повтор автоматично за кілька хвилин.
+        </div>
       </div>
 
       <div class="row justify-between q-mt-sm">

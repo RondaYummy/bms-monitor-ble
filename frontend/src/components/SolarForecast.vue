@@ -41,7 +41,10 @@
           <template v-else-if="data.calibration?.method === 'peak_power'">
             Поки за вказаною потужністю панелей — точність зросте після кількох сонячних днів історії.
           </template>
-          <span v-if="data.last_error" class="text-orange"> Open-Meteo: {{ data.last_error }}</span>
+          <span v-if="data.updated_at" class="text-grey-5"> Оновлено {{ updatedLabel(data.updated_at) }}.</span>
+          <span v-if="data.last_error" class="text-orange">
+            Не вдається оновити: {{ data.last_error }}. Повтор автоматично за кілька хвилин.
+          </span>
         </div>
       </template>
     </div>
@@ -70,6 +73,8 @@ interface SolarSummary {
   days: SolarDay[];
   hours: SolarHour[];
   last_error: string | null;
+  updated_at: string | null;
+  stale: boolean;
 }
 
 const { isAdmin: canEdit } = useAuth();
@@ -77,6 +82,15 @@ const open = ref(false);
 const loading = ref(false);
 const data = ref<SolarSummary>();
 let timer: ReturnType<typeof setInterval> | undefined;
+
+/** 'о 14:05' today, otherwise '22.11 о 14:05'. */
+function updatedLabel(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const time = d.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+  const sameDay = d.toDateString() === new Date().toDateString();
+  return sameDay ? `о ${time}` : `${d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' })} о ${time}`;
+}
 
 const caption = computed(() => {
   const days = data.value?.days || [];

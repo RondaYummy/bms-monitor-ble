@@ -14,7 +14,9 @@ hour bucket "12" (12:00–13:00).
 import asyncio
 import json
 import os
+import socket
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta
@@ -38,6 +40,13 @@ MIN_CALIBRATION_POINTS = 12
 MIN_IRRADIANCE = 80.0           # W/m²: ignore dawn/dusk hours for calibration
 PERFORMANCE_RATIO = 0.85        # fallback when the station has no history yet
 REQUEST_TIMEOUT = 20
+# A failed fetch (DNS hiccup, network down, Open-Meteo busy) is retried quickly inside one attempt, then the
+# loop backs off 5 -> 10 -> 20 -> 40 min instead of waiting a whole hour.
+QUICK_RETRY_DELAYS = (3, 10)
+LOOP_RETRY_MINUTES = (5, 10, 20, 40)
+# The forecast is still useful for hours after the last successful fetch: an error is only worth showing
+# when the stored data is older than this.
+STALE_AFTER = timedelta(hours=3)
 
 DEFAULT_SETTINGS = {
     "enabled": False,
@@ -48,7 +57,7 @@ DEFAULT_SETTINGS = {
     "peak_kw": None,     # optional: installed PV power, only used until enough history exists
 }
 
-_state = {"last_fetch": None, "last_error": None}
+_state = {"last_fetch": None, "last_error": None, "last_error_at": None, "failures": 0}
 
 
 def create_tables(cursor):
@@ -112,13 +121,46 @@ def parse_response(payload: dict) -> list[tuple]:
     return rows
 
 
+def _is_transient(error: Exception) -> bool:
+    """Network/DNS problems and 5xx/429 answers are worth retrying; a 4xx (bad parameters) is not."""
+    if isinstance(error, urllib.error.HTTPError):
+        return error.code >= 500 or error.code == 429
+    return isinstance(error, (urllib.error.URLError, OSError, TimeoutError))
+
+
+def describe_error(error: Exception) -> str:
+    """Short human-readable reason for the UI (the raw exception goes to the log)."""
+    reason = getattr(error, "reason", error)
+    if isinstance(reason, socket.gaierror) or "name resolution" in str(reason) or "getaddrinfo" in str(reason):
+        return "сервер не зміг знайти api.open-meteo.com (DNS / немає інтернету)"
+    if isinstance(reason, (TimeoutError, socket.timeout)) or "timed out" in str(reason):
+        return "Open-Meteo не відповів вчасно"
+    if isinstance(error, urllib.error.HTTPError):
+        return f"Open-Meteo відповів помилкою HTTP {error.code}"
+    if isinstance(reason, ConnectionError) or isinstance(error, urllib.error.URLError):
+        return "немає з'єднання з Open-Meteo"
+    return str(error)
+
+
+def _download(url: str, sleep=time.sleep) -> dict:
+    request = urllib.request.Request(url, headers={"User-Agent": "bms-monitor"})
+    for attempt in range(len(QUICK_RETRY_DELAYS) + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except Exception as e:
+            if attempt >= len(QUICK_RETRY_DELAYS) or not _is_transient(e):
+                raise
+            print(f"⚠️ Open-Meteo attempt {attempt + 1} failed ({e}), retrying in {QUICK_RETRY_DELAYS[attempt]} s")
+            sleep(QUICK_RETRY_DELAYS[attempt])
+    raise RuntimeError("unreachable")
+
+
 def fetch_and_store(settings: Optional[dict] = None) -> int:
     settings = settings or get_settings()
     if not is_configured(settings):
         return 0
-    request = urllib.request.Request(build_url(settings), headers={"User-Agent": "bms-monitor"})
-    with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT) as response:
-        payload = json.loads(response.read().decode("utf-8"))
+    payload = _download(build_url(settings))
     rows = parse_response(payload)
     now = datetime.now().isoformat(timespec="seconds")
     with db.get_connection() as conn:
@@ -138,13 +180,25 @@ def fetch_and_store(settings: Optional[dict] = None) -> int:
 async def refresh_now() -> dict:
     try:
         count = await asyncio.to_thread(fetch_and_store)
-        _state.update(last_fetch=datetime.now().isoformat(timespec="seconds"), last_error=None)
+        _state.update(last_fetch=datetime.now().isoformat(timespec="seconds"), last_error=None,
+                      last_error_at=None, failures=0)
         _invalidate()
         return {"rows": count}
     except Exception as e:
-        _state["last_error"] = str(e)
-        print(f"❌ Open-Meteo fetch failed: {e}")
+        _state.update(last_error=describe_error(e), last_error_at=datetime.now().isoformat(timespec="seconds"),
+                      failures=_state["failures"] + 1)
+        _invalidate()
+        print(f"❌ Open-Meteo fetch failed ({_state['failures']} in a row): {e}")
         raise
+
+
+def next_delay_seconds() -> int:
+    """Hourly after a success; 5/10/20/40 min after consecutive failures."""
+    failures = _state["failures"]
+    if not failures:
+        return FETCH_INTERVAL_SECONDS
+    minutes = LOOP_RETRY_MINUTES[min(failures, len(LOOP_RETRY_MINUTES)) - 1]
+    return min(minutes * 60, FETCH_INTERVAL_SECONDS)
 
 
 async def solar_forecast_loop():
@@ -153,8 +207,8 @@ async def solar_forecast_loop():
             try:
                 await refresh_now()
             except Exception:
-                pass  # logged; retry next hour
-        await asyncio.sleep(FETCH_INTERVAL_SECONDS)
+                pass  # logged; retried sooner by next_delay_seconds()
+        await asyncio.sleep(next_delay_seconds())
 
 
 # ---------------------------------------------------------------- data + calibration
@@ -173,6 +227,16 @@ def load_irradiance(since: datetime, until: datetime) -> dict[str, dict]:
             (since.strftime("%Y-%m-%d %H"), until.strftime("%Y-%m-%d %H")),
         ).fetchall()
     return {h: {"gti": g, "cloud": c, "temp": t} for h, g, c, t in rows}
+
+
+def data_updated_at() -> Optional[datetime]:
+    """When the stored forecast was last refreshed (survives restarts, unlike _state)."""
+    with db.get_connection() as conn:
+        row = conn.execute("SELECT MAX(updated_at) FROM solar_forecast").fetchone()
+    try:
+        return datetime.fromisoformat(row[0]) if row and row[0] else None
+    except ValueError:
+        return None
 
 
 def load_pv_history(since: datetime) -> dict[str, float]:
@@ -221,8 +285,16 @@ def forecast_summary(now: Optional[datetime] = None) -> dict:
     if _cache["value"] is not None and time.monotonic() - _cache["at"] < 300:
         return _cache["value"]
     settings = get_settings()
-    result = {"configured": is_configured(settings), "settings": settings, **_state, "calibration": None,
-              "days": [], "hours": []}
+    updated = data_updated_at()
+    stale = updated is None or now - updated > STALE_AFTER
+    result = {"configured": is_configured(settings), "settings": settings, "calibration": None,
+              "days": [], "hours": [],
+              "updated_at": updated.isoformat(timespec="seconds") if updated else None,
+              "stale": stale,
+              "last_fetch": _state["last_fetch"],
+              # A single failed fetch is not news while the stored forecast is fresh: it is retried in minutes.
+              "last_error": _state["last_error"] if stale else None,
+              "last_error_at": _state["last_error_at"] if stale else None}
     ctx = solar_context(now) if result["configured"] else None
     if ctx:
         result["calibration"] = ctx["calibration"]
@@ -286,7 +358,8 @@ async def update_settings(body: SolarSettings):
         try:
             await refresh_now()
         except Exception:
-            raise HTTPException(status_code=502, detail="Налаштування збережено, але Open-Meteo зараз недоступний")
+            raise HTTPException(status_code=502, detail=f"Налаштування збережено, але Open-Meteo зараз недоступний: "
+                                                        f"{_state['last_error']}. Спробую ще раз за кілька хвилин.")
     return get_settings()
 
 
@@ -297,4 +370,4 @@ async def refresh():
     try:
         return await refresh_now()
     except Exception:
-        raise HTTPException(status_code=502, detail="Open-Meteo is not reachable")
+        raise HTTPException(status_code=502, detail=f"Open-Meteo недоступний: {_state['last_error']}")
